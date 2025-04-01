@@ -1,0 +1,11 @@
+<div class="auth-popup">
+  <div class="auth-card">
+    <img class="avatar" src="assets/avatar-placeholder.png" alt="Avatar">
+    <h2>{{ isLoginMode ? '¡Hola, Usuario!' : 'Crear cuenta' }}</h2>
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+      <input type="email" formControlName="email" placeholder="Correo electrónico">
+      <input type="password" formControlName="password" placeholder="Contraseña">
+      <button type="submit">{{ isLoginMode ? 'Ingresar' : 'Registrarse' }}</button>
+    </form>
+  </div>
+</div>

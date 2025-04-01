@@ -1,0 +1,59 @@
+.auth-popup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.auth-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 350px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.google-btn {
+  background-color: #DB4437;
+  color: white;
+}
+
+.facebook-btn {
+  background-color: #3B5998;
+  color: white;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: #4285F4;
+  margin-top: 10px;
+  cursor: pointer;
+}

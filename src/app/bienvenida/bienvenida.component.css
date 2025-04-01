@@ -1,0 +1,76 @@
+.about-us-container {
+  background-color: #1e1e1e;
+  color: #f8f5d7; /* Color de texto */
+    padding-top: 10px;
+    padding-bottom: 30px;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .image-left, .image-right {
+    flex: 1;
+    max-width: 350px;
+  }
+  
+  .image-left img, .image-right img {
+    width: 100%;
+    border-radius: 10px;
+  }
+  
+  .text {
+    flex: 2;
+    max-width: 600px;
+    text-align: left;
+  }
+  
+  .text h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .text p {
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: justify;
+  }
+  
+  .btn {
+    background-color: #f8f5d7;
+    color: #3e3c2f;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+  
+  .btn:hover {
+    background-color: #e5e2c2;
+  }
+  
+  /* Responsivo */
+  @media screen and (max-width: 768px) {
+    .content {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .text {
+      text-align: center;
+    }
+  }

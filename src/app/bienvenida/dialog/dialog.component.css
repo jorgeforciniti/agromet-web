@@ -1,0 +1,28 @@
+.dialog-content {
+  background-color: #3e3c2f;
+  color: #f8f5d7;
+  padding: 20px;
+  text-align: justify;
+  font-family: 'Arial', sans-serif;
+  font-size: 16px;
+}
+
+.dialog-windows {
+  background-color: #2E7D32;
+  color: #f8f5d7;
+  padding: 20px;
+  text-align: justify;
+  font-family: 'Arial', sans-serif;
+  font-size: 16px;
+}
+
+button {
+  background-color: #f8f5d7;
+  color: #3e3c2f;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
+}

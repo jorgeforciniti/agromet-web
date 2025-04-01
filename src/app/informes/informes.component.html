@@ -1,0 +1,31 @@
+<section class="informes-section">
+  <!-- Contenedor de los informes -->
+  <div class="informes-wrapper">
+    <h2 class="informes-title">Informes</h2>
+    <div class="informes-container">
+      <div class="informe-card" *ngFor="let informe of datos">
+        <iframe [src]="informe.safeArchivo"></iframe>
+        <div class="info">
+          <h3>{{ informe.titulo }}</h3>
+          <p>{{ informe.fecha }}</p>
+          <button class="btn" (click)="openDialog(informe.archivo)">
+            Ver informe
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloque derecho -->
+  <div class="bloque-derecho">
+    <h2>Más informes...</h2>
+    <a href="#"><p>⭐ Informes pluviométricos: Datos de lluvia de nuestra red pluviométrica.</p></a>
+    <a href="#"><p>⭐ Informes de heladas: Monitoreo de las zonas afectadas con fecha de ocurrencia, intensidad y duración.</p></a>
+    <a href="#"><p>⭐ Boletines agrometeorológicos: Análisis mensual de las principales variables meteorológicas.</p></a>
+    <a href="#"><p>⭐ Presentaciones en congresos: Investigaciones clave sobre clima y agricultura.</p></a>
+    <a href="#"><p>⭐ Artículos en revistas: Estudios científicos en agrometeorología.</p></a>
+    <a href="#"><p>⭐ Cursos, talleres y jornadas técnicas: Presentaciones en eventos técnicos.</p></a>
+    <a href="#"><p>⭐ Seguimiento de adversidades: Análisis de eventos extremos.</p></a>
+    <a href="#"><p>⭐ Estadísticas agrometeorológicas: Datos históricos y tendencias climáticas.</p></a>
+  </div>
+</section>

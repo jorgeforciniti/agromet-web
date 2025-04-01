@@ -1,0 +1,26 @@
+<div class="dialog-windows">
+  <div class="dialog-content">
+    <h4 mat-dialog-title>{{ data.titulo || 'Detalles del informe' }}</h4>
+
+    <div mat-dialog-content>
+      <!-- Información del archivo -->
+      <p *ngIf="data.fecha">
+        <strong>Fecha:</strong> {{ formattedDate }}
+      </p>
+
+      <!-- Si es un PDF (usando safeArchivo) -->
+      <iframe [src]="safePdfUrl" width="100%" height="500px" style="border: none; display: block;"
+        title="Visualizador de PDF"></iframe>
+    </div>
+
+    <div mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cerrar</button>
+
+      <!-- Botón de descarga (opcional) -->
+      <a *ngIf="data.archivo" mat-flat-button color="primary" [href]="data.archivo"
+        download="{{ data.nombreOriginal || 'informe' }}">
+        Descargar
+      </a>
+    </div>
+  </div>
+</div>

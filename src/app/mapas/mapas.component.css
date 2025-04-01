@@ -1,0 +1,95 @@
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .mapas-container {
+    flex: 6; /* 70% del espacio */
+    background-color: #3e3c2f; /* Color de fondo similar al de la imagen */
+    color: #f8f5d7; /* Color de texto */
+    padding-top: 10px;
+    padding-bottom: 30px;
+    padding-right: 10px;
+    padding-left: 20px;
+    text-align: center;
+    }
+    
+    .sidebar {
+      flex: 4; /* 30% del espacio */
+      background-color: #313628;
+      color: white;
+      padding: 10px;
+      text-align: left;
+    }
+    .sidebar p{
+      color: white;
+      font-size: 1rem;
+      text-align: justify;
+    }
+    .sidebar a{
+      font-size: 1.1rem;
+      text-decoration: none;
+    }
+    .sidebar a :hover{
+      color: #fcfaa5;
+      font-size: 1.1rem;
+      text-decoration: underline;
+    }
+    .titulo {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 25px;
+      margin-bottom: 20px;
+    }
+    
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 300px));
+      gap: 25px;
+      padding: 20px;
+    }
+    
+    .card {
+      background-color: #313628;
+      color: white;
+      max-width: 250px;
+    }
+    
+    mat-card-content {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    
+    mat-card h3 {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    
+    mat-card-actions {
+      justify-content: center;
+    }
+    
+    button[mat-button] {
+      background-color: #f8f5d7;
+      color: #3e3c2f;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      .titulo {
+        font-size: 2rem;
+      }
+    
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    

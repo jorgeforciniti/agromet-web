@@ -1,0 +1,152 @@
+/* Estilos para el header fijo */
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  background-color: #f8f9fa;
+  padding-top: 5px;
+}
+
+.header-content {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  height: 80px;
+  width: auto;
+}
+
+.header-bar {
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.bar {
+  width: 100%;
+  height: auto;
+  max-height: 20px;
+}
+
+/* Estilos para el menú fijo */
+.fixed-toolbar {
+  position: sticky;
+  top: 102px; /* Ajusta según la altura de tu header */
+  z-index: 999;
+}
+
+/* Espacio para el contenido principal */
+.main-content {
+  margin-top: 160px; /* Ajusta según la altura combinada de header + menú */
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .logo {
+    height: 60px;
+    margin: 5px 0;
+  }
+
+  .bar {
+    max-height: 15px;
+  }
+
+  .fixed-toolbar {
+    top: 85px; /* Ajuste para móvil */
+  }
+
+  .main-content {
+    margin-top: 140px; /* Ajuste para móvil */
+  }
+}
+
+/* Menues */
+
+  /* Estilos generales del toolbar */
+mat-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Espacio flexible para empujar los elementos a la derecha */
+  .spacer {
+    flex: 1;
+  }
+  
+  /* Menú para pantallas grandes */
+  .menu-desktop {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Menú para pantallas pequeñas */
+  .menu-mobile {
+    display: none;
+  }
+  
+  /* Estilos responsivos */
+  @media (max-width: 768px) {
+    .menu-desktop {
+      display: none; /* Oculta el menú de escritorio en pantallas pequeñas */
+    }
+  
+    .menu-mobile {
+      display: block; /* Muestra el menú móvil en pantallas pequeñas */
+    }
+  }
+
+  .btn {
+    background-color: #30461a;
+    color: #e5e2c2;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+  
+  .btn:hover {
+    background-color: #e5e2c2;
+    color: #3e3c2f;
+    
+  }
+  
+    /* Media Queries para pantallas más pequeñas */
+    @media (min-width: 768px) {
+      footer div {
+          flex: 1 1 calc(33.33% - 40px); /* Divide las secciones en tres columnas */
+          margin-bottom: 0;
+          text-align: left;
+      }
+
+      footer div:last-child {
+          text-align: right;
+      }
+
+      footer img {
+          height: 60px; /* Ajusta el tamaño de los logos para pantallas más grandes */
+      }
+  }
