@@ -3,7 +3,8 @@ import { BienvenidaComponent } from "../bienvenida/bienvenida.component";
 import { DatosMeteorologicosComponent } from '../datos-meteorologicos/datos-meteorologicos.component';
 import { MapasComponent } from '../mapas/mapas.component';
 import { InformesComponent } from "../informes/informes.component";
-import { AuthComponent } from '../auth/auth.component'
+import { LeafletGoesViewerComponent } from '../leaflet-goes-viewer/leaflet-goes-viewer.component'; // ruta según tu estructura
+
 
 @Component({
   selector: 'app-home',
@@ -12,7 +13,7 @@ import { AuthComponent } from '../auth/auth.component'
     DatosMeteorologicosComponent,
     MapasComponent,
     InformesComponent,
-    AuthComponent,
+    LeafletGoesViewerComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'

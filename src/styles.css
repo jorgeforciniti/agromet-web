@@ -1,5 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import 'leaflet/dist/leaflet.css';
+
 html, body { height: 100%; }
 body { 
     background-color: #30461a; /* Color gris */

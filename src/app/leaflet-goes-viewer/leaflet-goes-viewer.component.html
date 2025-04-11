@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="sidebar">
+    <h2>Pronóstico...</h2>
+      <app-weather-forecast></app-weather-forecast>
+  </div>
+
+  <div class="viewer-container">
+    <h2 class="titulo">Visor de Imágenes Satelitales</h2>
+    <div class="controls">
+      <label for="layerSelect" style="color: antiquewhite;">Seleccionar Capa: </label>
+      <select id="layerSelect" [(ngModel)]="selectedLayer" (change)="setLayer(selectedLayer)">
+        <option *ngFor="let key of layerKeys" [value]="key">{{ layers[key].name }}</option>
+      </select>
+    </div>
+
+    <div class="map-wrapper">
+      <div id="map"></div>
+
+      <!-- Overlay de carga - Versión mejorada -->
+      <div *ngIf="isLoading" class="loading-overlay">
+        <div class="spinner-container">
+          <div class="spinner"></div>
+          <p class="loading-text">Cargando capa...</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="currentDateTime" class="timestamp">
+      <p>Última imagen disponible: {{ currentDateTime }}</p>
+    </div>
+  </div>
+</div>

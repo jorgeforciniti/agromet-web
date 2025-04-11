@@ -13,6 +13,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { AuthComponent } from './auth/auth.component';
+import { NavbarComponent } from './components/navbar/navbar.component';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+import { environment } from '../app/environments/environment'
 
 @Component({
   selector: 'app-root',
@@ -25,7 +29,9 @@ import { AuthComponent } from './auth/auth.component';
     MatIconModule,
     MatDialogModule,
     FontAwesomeModule,
-    ReactiveFormsModule],
+    ReactiveFormsModule,
+    NavbarComponent,
+    ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
@@ -48,5 +54,9 @@ export class AppComponent {
 }
 
 bootstrapApplication(AppComponent, {
-  providers: [provideRouter([])],
+  providers: [
+    provideRouter([]),
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideAuth(() => getAuth())
+  ]
 });
