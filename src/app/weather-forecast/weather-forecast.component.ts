@@ -1,121 +1,199 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
-import { WeatherService } from '../services/weather.service';
-import { WeatherData, Forecast, TimeSpecificForecast } from '../models/weather-data';
-import { SunriseSunsetService } from '../services/sunrise-sunset.service';
 import localeEsAr from '@angular/common/locales/es-AR';
+import { WeatherService } from '../services/weather.service';
+import { SunriseSunsetService } from '../services/sunrise-sunset.service';
+import { WeatherData, Forecast, TimeSpecificForecast } from '../models/weather-data';
+import { FormsModule } from '@angular/forms';
+import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { faTemperatureHigh, faTint, faWind, faClock } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faCloudRain } from '@fortawesome/free-solid-svg-icons';
+import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { MatSelectModule } from '@angular/material/select'; // Importar MatSelectModule
+import { MatFormFieldModule } from '@angular/material/form-field'; // Para el contenedor
 
-// Registrar localización para fechas en español
+
 registerLocaleData(localeEsAr);
 
 @Component({
   selector: 'app-weather-forecast',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, MatSelectModule, MatFormFieldModule,],
   templateUrl: './weather-forecast.component.html',
   styleUrls: ['./weather-forecast.component.css']
 })
 export class WeatherForecastComponent implements OnInit {
+  @Output() stationSelected = new EventEmitter<string>();
+
+  selectStation(station: any): void {
+    this.selectedStation = station;
+    this.updateStationData();
+    this.stationSelected.emit(station.Identificacion);
+  }
+
   loading = false;
   error: string | null = null;
   weatherData: WeatherData | null = null;
   currentConditions: TimeSpecificForecast | null = null;
-  currentWindDirection: string | null = null;
   sunrise: string = '--:--';
   sunset: string = '--:--';
   selectedDayIndex: number = 0;
   selectedDay: Forecast | null = null;
-  
-  readonly lat: number = -26.82414;
-  readonly lng: number = -65.2226;
+
+  stations: any[] = [];
+  selectedStation: any = null;
+  rtTemperature: number | null = null;
+  rtHumidity: number | null = null;
+  rtWind: { direction?: string; speed?: number } | null = null;
+  rtUpdated: Date | null = null;
+  rtStationName: string = '';
+
+  // Propiedades para alertas meteorológicas SMN
+  smnAlerts: any[] = [];
+  smnShortAlerts: any[] = [];
 
   constructor(
     private weatherService: WeatherService,
     private sunriseSunsetService: SunriseSunsetService,
-    private changeDetectorRef: ChangeDetectorRef
-  ) {}
-
-  ngOnInit() {
-    this.getWeatherForecast();
-    this.getSunriseSunset();
+    private changeDetectorRef: ChangeDetectorRef,
+    private library: FaIconLibrary,
+  ) {
+    library.addIcons(faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faEye);
   }
 
-  getWeatherForecast(): void {
+  ngOnInit() {
+    this.loadStations();
+  }
+
+  getWeatherForecast(lat: number, lon: number): void {
     this.loading = true;
-    this.weatherService.getWeatherForecast().subscribe({
-      next: (data: WeatherData) => {
-        this.weatherData = data;
-        if (data.forecast && data.forecast.length > 0) {
-          data.forecast = this.sortForecastByDate(data.forecast);
-          this.selectDay(null, 0); // Inicializar con primer día
-          
-          // Establecer condiciones actuales
-          const now = new Date().getHours();
-          const today = data.forecast[0];
-          
-          if (now >= 0 && now < 6 && today.early_morning) {
-            this.currentConditions = today.early_morning;
-          } else if (now >= 6 && now < 12 && today.morning) {
-            this.currentConditions = today.morning;
-          } else if (now >= 12 && now < 18 && today.afternoon) {
-            this.currentConditions = today.afternoon;
-          } else if (today.night) {
-            this.currentConditions = today.night;
-          }
-          
-          this.currentWindDirection = this.currentConditions?.wind?.direction || null;
-        }
+    this.weatherService.getOpenWeatherForecast(lat, lon).subscribe({
+      next: (response) => {
+        const groupedForecast = this.groupForecastByDay(response.list);
+        this.weatherData = {
+          location: {
+            name: response.city.name,
+            province: '',
+            lat,
+            lon
+          },
+          updated: new Date(),
+          forecast: groupedForecast
+        };
+
+        this.selectDay(null, 0);
+        this.getSunriseSunset(lat, lon);
         this.loading = false;
         this.changeDetectorRef.detectChanges();
       },
-      error: (err: any) => {
+      error: (err) => {
         console.error(err);
-        this.error = 'Error al obtener los datos del clima.';
+        this.error = 'Error al obtener el pronóstico';
         this.loading = false;
       }
     });
   }
 
-  private sortForecastByDate(forecast: Forecast[]): Forecast[] {
-    // Convertir fechas a objetos Date y ordenar
-    return forecast.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      
-      // Ajustar a zona horaria argentina
-      dateA.setHours(dateA.getHours() + 3);
-      dateB.setHours(dateB.getHours() + 3);
-      
-      return dateA.getTime() - dateB.getTime();
+  private groupForecastByDay(list: any[]): Forecast[] {
+    const daysMap = new Map<string, Forecast>();
+    const timeZone = 'America/Argentina/Buenos_Aires';
+
+    list.forEach((entry: any) => {
+      // Convertir timestamp (dt en segundos) a Date y ajustar a la zona local
+      const utcDate = new Date(entry.dt * 1000);
+      const localString = utcDate.toLocaleString('en-US', { timeZone });
+      const localDate = new Date(localString);
+
+      // Si la hora local es 21:00 o mayor, asignar la entrada al día anterior
+      let groupingDate = localDate;
+      if (localDate.getHours() >= 21) {
+        groupingDate = new Date(localDate);
+        groupingDate.setDate(groupingDate.getDate() - 1);
+      }
+      const dateKey = groupingDate.toISOString().split('T')[0];
+
+      const forecastEntry: TimeSpecificForecast = {
+        fullDate: localDate,
+        hour: localDate.toLocaleTimeString('es-AR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone
+        }),
+        temperature: entry.main.temp,
+        humidity: entry.main.humidity,
+        visibility: `${(entry.visibility / 1000).toFixed(1)} km`,
+        weather: {
+          description: entry.weather[0].description,
+          icon: entry.weather[0].icon
+        },
+        rain_prob: Math.round((entry.pop || 0) * 100),
+        wind: {
+          direction: this.getCardinalDirection(entry.wind.deg),
+          speed: Math.round(entry.wind.speed * 3.6) // de m/s a km/h
+        }
+      };
+
+      if (!daysMap.has(dateKey)) {
+        daysMap.set(dateKey, {
+          date: dateKey,
+          temp_min: entry.main.temp_min,
+          temp_max: entry.main.temp_max,
+          humidity_min: entry.main.humidity,
+          humidity_max: entry.main.humidity,
+          intervals: [forecastEntry]
+        });
+      } else {
+        const dayForecast = daysMap.get(dateKey)!;
+        dayForecast.temp_min = Math.min(dayForecast.temp_min, entry.main.temp_min);
+        dayForecast.temp_max = Math.max(dayForecast.temp_max, entry.main.temp_max);
+        dayForecast.humidity_min = Math.min(dayForecast.humidity_min, entry.main.humidity);
+        dayForecast.humidity_max = Math.max(dayForecast.humidity_max, entry.main.humidity);
+        dayForecast.intervals.push(forecastEntry);
+      }
     });
+
+    const forecastArray = Array.from(daysMap.values())
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 7);
+
+    // Ordenar los intervalos de cada día por su fullDate
+    forecastArray.forEach(day => {
+      day.intervals.sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime());
+    });
+    return forecastArray;
   }
 
-  getSunriseSunset(): void {
-    this.sunriseSunsetService.getSunriseSunset(this.lat, this.lng).subscribe({
+  private getCardinalDirection(degree: number): string {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+    const index = Math.round((degree % 360) / 45) % 8;
+    return directions[index];
+  }
+
+  private getSunriseSunset(lat: number, lon: number): void {
+    this.sunriseSunsetService.getSunriseSunset(lat, lon).subscribe({
       next: (response) => {
         if (response.status === 'OK') {
-          this.sunrise = new Date(response.results.sunrise).toLocaleTimeString('es-AR', { 
-            hour: '2-digit', 
+          this.sunrise = new Date(response.results.sunrise).toLocaleTimeString('es-AR', {
+            hour: '2-digit',
             minute: '2-digit',
             timeZone: 'America/Argentina/Buenos_Aires'
           });
-          this.sunset = new Date(response.results.sunset).toLocaleTimeString('es-AR', { 
-            hour: '2-digit', 
+          this.sunset = new Date(response.results.sunset).toLocaleTimeString('es-AR', {
+            hour: '2-digit',
             minute: '2-digit',
             timeZone: 'America/Argentina/Buenos_Aires'
           });
         }
       },
-      error: (err: any) => {
-        console.error(err);
-      }
+      error: (err) => console.error(err)
     });
   }
-  
+
   selectDay(event: MouseEvent | null, index: number): void {
     event?.preventDefault();
     event?.stopPropagation();
-    
     this.selectedDayIndex = index;
     if (this.weatherData) {
       this.selectedDay = this.weatherData.forecast[index];
@@ -123,11 +201,87 @@ export class WeatherForecastComponent implements OnInit {
   }
 
   getDayName(dateStr: string): string {
-    const date = new Date(dateStr);
-    date.setHours(date.getHours() + 3); // Ajuste horario
-    return date.toLocaleDateString('es-AR', { 
-      weekday: 'short',
-      timeZone: 'America/Argentina/Buenos_Aires'
-    }).substring(0, 3).toUpperCase();
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 12));
+    return dateObj
+      .toLocaleDateString('es-AR', {
+        weekday: 'short',
+        timeZone: 'America/Argentina/Buenos_Aires'
+      })
+      .substring(0, 3)
+      .toUpperCase();
+  }
+
+  loadStations(): void {
+    this.weatherService.getStations().subscribe({
+      next: (data: any[]) => {
+        this.stations = data;
+        // Seleccionar estación por defecto: Identificación "2049" o nombre que incluya "colmenar"
+        const defaultStation = this.stations.find(
+          station => station.Identificacion === '2049' ||
+                     station.nombre?.toLowerCase().includes('colmenar')
+        );
+        this.selectedStation = defaultStation || this.stations[0] || null;
+        if (this.selectedStation) {
+          const lat = parseFloat(this.selectedStation.lat);
+          const lon = parseFloat(this.selectedStation.lon);
+          if (!isNaN(lat) && !isNaN(lon)) {
+            this.getWeatherForecast(lat, lon);
+            this.updateStationData();
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar estaciones:', err);
+        this.error = 'No se pudieron cargar las estaciones';
+        this.changeDetectorRef.detectChanges();
+      }
+    });
+  }
+
+  updateStationData(): void {
+    if (this.selectedStation) {
+      const lat = parseFloat(this.selectedStation.lat) || -26.82414;
+      const lon = parseFloat(this.selectedStation.lon) || -65.2226;
+
+      this.rtTemperature = parseFloat(this.selectedStation.temp_af) || null;
+      this.rtHumidity = parseFloat(this.selectedStation.hum_af) || null;
+      this.rtWind = {
+        direction: this.selectedStation.direc || 'N/A',
+        speed: parseFloat(this.selectedStation.viento_medio) || 0
+      };
+      this.rtUpdated = new Date(this.selectedStation.fecha_I) || null;
+      this.rtStationName = this.selectedStation.nombre || 'Estación desconocida';
+
+      // Actualiza el pronóstico con las coordenadas de la estación
+      this.getWeatherForecast(lat, lon);
+      // Obtener alertas SMN utilizando los nuevos endpoints
+      this.loadSmnAlerts(lat, lon);
+    }
+  }
+
+  loadSmnAlerts(lat: number, lon: number): void {
+    // Obtener alertas generales
+    this.weatherService.getSmnAlertByCoords(lat, lon).subscribe({
+      next: (alerta) => {
+        // Se asume que la respuesta tiene la propiedad "reports" con un array de niveles por evento
+        this.smnAlerts = alerta?.reports?.flatMap((r: any) =>
+          r.levels.map((l: any) => ({
+            description: l.description,
+            instruction: l.instruction,
+            level: l.level
+          }))
+        ) || [];
+      },
+      error: (err) => console.error('Error al obtener alertas generales:', err)
+    });
+  
+    // Obtener avisos de corto plazo
+    this.weatherService.getSmnShortTermAlertByCoords(lat, lon).subscribe({
+      next: (data) => {
+        this.smnShortAlerts = Array.isArray(data) ? data : [];
+      },
+      error: (err) => console.error('Error al obtener alertas de corto plazo:', err)
+    });
   }
 }

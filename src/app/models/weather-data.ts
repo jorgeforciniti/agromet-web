@@ -1,56 +1,48 @@
 export interface WeatherData {
-    updated: string;
-    location: Location;
-    type: string;
-    forecast: Forecast[];
-  }
-  
-  export interface Location {
-    id: number;
+  location: {
     name: string;
-    department: string;
     province: string;
-    type: string;
-    coord: Coordinates;
-  }
-  
-  export interface Coordinates {
-    lon: number;
-    lat: number;
-  }
-  
-  export interface Forecast {
-    date: string;
-    temp_min: number;
-    temp_max: number;
-    humidity_min: number;
-    humidity_max: number;
-    early_morning?: TimeSpecificForecast;
-    morning?: TimeSpecificForecast;
-    afternoon?: TimeSpecificForecast;
-    night?: TimeSpecificForecast;
-  }
-  
-  export interface TimeSpecificForecast {
-    humidity: number | null;
-    rain_prob_range: [number, number];
-    gust_range: any;
-    temperature: number;
-    visibility: string;
-    rain06h: number | null;
-    weather: WeatherDescription;
-    wind: Wind;
-    river: any;
-    border: any;
-  }
-  
-  export interface WeatherDescription {
+    lat?: number;
+    lon?: number;
+  };
+  updated: Date;
+  forecast: Forecast[];
+}
+
+interface Estacion {
+  Identificacion: string;
+  nombre: string;
+  lat: string;
+  lon: string;
+  alt?: number;
+  temp_af: number;
+  hum_af: number;
+  precipitacion?: number;
+}
+
+export interface Forecast {
+  date: string;
+  temp_min: number;
+  temp_max: number;
+  humidity_min: number;
+  humidity_max: number;
+  intervals: TimeSpecificForecast[];
+  representativeIcon?: string; // Agregado: ícono representativo del día
+}
+
+export interface TimeSpecificForecast {
+  fullDate: Date; // Agregada la propiedad fullDate
+  hour: string;
+  temperature: number;
+  humidity: number;
+  visibility: string;
+  weather: {
     description: string;
-    id: number;
-  }
-  
-  export interface Wind {
+    icon: string;
+  };
+  rain_prob: number;
+  wind: {
     direction: string;
-    deg: number;
-    speed_range: [number, number];
-  }
+    speed: number;
+  };
+}

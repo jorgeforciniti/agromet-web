@@ -1,18 +1,17 @@
 <div class="header-container">
   <header class="header">
     <div class="header-content">
-      <a href="https://www.eeaoc.gob.ar/"><img src="../assets/images/logos/logo_eeaoc.png" alt="Logo EEAOC"
-          class="logo"></a>
-
-      <router-outlet></router-outlet>
+      <a href="https://www.eeaoc.gob.ar/">
+        <img src="assets/images/logos/logo_eeaoc.png" alt="Logo EEAOC" class="logo">
+      </a>
       <app-navbar></app-navbar>
     </div>
-
     <div class="header-bar">
-      <img src="../assets/images/logos/header-bottom.png" alt="Barra inferior" class="bar">
+      <img src="assets/images/logos/header-bottom.png" alt="Barra inferior" class="bar">
     </div>
   </header>
 
+  <!-- Menú que se oculta al hacer scroll -->
   <mat-toolbar color="primary" class="fixed-toolbar">
     <span class="spacer"></span>
     <div class="menu-desktop">
@@ -35,20 +34,15 @@
   </mat-toolbar>
 </div>
 
-<!-- Contenido principal de tu aplicación -->
+<!-- Contenido principal de la aplicación -->
 <main class="main-content">
   <router-outlet></router-outlet>
 </main>
 
-<router-outlet></router-outlet>
-
-<!--  Footer -->
 <footer style="background-color: #3D550C; padding: 20px; color: white; font-family: Arial, sans-serif;">
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-    <!-- Logo y Dirección -->
     <div style="flex: 1; min-width: 500px; display: flex; align-items: center;">
-      <img src="../assets/images/logos/logo_eeaoc_blanco.png" alt="Logo EEAOC"
-        style="height: 60px; margin-right: 10px;">
+      <img src="assets/images/logos/logo_eeaoc_blanco.png" alt="Logo EEAOC" style="height: 60px; margin-right: 10px;">
       <div>
         <strong>ESTACION EXPERIMENTAL AGROINDUSTRIAL OBISPO COLOMBRES</strong><br>
         William Cross 3150<br>
@@ -56,35 +50,26 @@
         Tel: (54 381) 452 1000 - FAX: (54 381) 452 1008
       </div>
     </div>
-
-    <!-- Redes Sociales -->
     <div style="flex: 1; min-width: 200px; text-align: center;">
       <p><strong>Su consulta o sugerencia aquí</strong></p>
       <div style="flex: 1; min-width: 200px; text-align: center;">
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'facebook']"
-            size="2x"></fa-icon></a>&nbsp;
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'twitter']"
-            size="2x"></fa-icon></a>&nbsp;
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'youtube']"
-            size="2x"></fa-icon></a>&nbsp;
+        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'facebook']" size="2x"></fa-icon></a>
+        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'twitter']" size="2x"></fa-icon></a>
+        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'youtube']" size="2x"></fa-icon></a>
         <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'instagram']" size="2x"></fa-icon></a>
       </div>
       <br>
     </div>
-
     <div style="flex: 1; min-width: 100px; text-align: center;">
-      <img src="../assets/images/qr/qrandroid.png" alt="QR Android" style="height: 150px; margin-right: 60px;">
+      <img src="assets/images/qr/qrandroid.png" alt="QR Android" style="height: 150px; margin-right: 60px;">
     </div>
     <div style="flex: 1; min-width: 100px; text-align: center;">
-      <img src="../assets/images/qr/qrios.png" alt="QR iOS" style="height: 150px; margin-right: 20px;">
+      <img src="assets/images/qr/qrios.png" alt="QR iOS" style="height: 150px; margin-right: 20px;">
     </div>
-
-    <!-- Logos -->
     <div style="flex: 1; min-width: 200px; text-align: right;">
-      <a href="https://www.conicet.gov.ar/"><img src="../assets/images/logos/itanoatransparente.png" alt="Logo Conicet"
-          style="height: 80px; margin-right: 10px;"></a>
-      <img src="../assets/images/logos/tucuman.png" alt="Logo Tucumán" style="height: 80px; margin-right: 10px;">
-      <img src="../assets/images/logos/paradigmax.png" alt="Logo Ambiental" style="height: 80px;">
+      <a href="https://www.conicet.gov.ar/"><img src="assets/images/logos/itanoatransparente.png" alt="Logo Conicet" style="height: 80px; margin-right: 10px;"></a>
+      <img src="assets/images/logos/tucuman.png" alt="Logo Tucumán" style="height: 80px; margin-right: 10px;">
+      <img src="assets/images/logos/paradigmax.png" alt="Logo Ambiental" style="height: 80px;">
     </div>
   </div>
 </footer>

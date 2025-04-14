@@ -6,7 +6,7 @@
   }
   
   .mapas-container {
-    flex: 6; /* 70% del espacio */
+    flex: 7; /* 75% del espacio */
     background-color: #3e3c2f; /* Color de fondo similar al de la imagen */
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
@@ -19,7 +19,7 @@
     }
     
     .sidebar {
-      flex: 4; /* 30% del espacio */
+      flex: 3; /* 25% del espacio */
       background-color: #313628;
       border-top-right-radius: 8px;
       border-bottom-right-radius: 8px;
@@ -51,7 +51,7 @@
     
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 300px));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 250px));
       gap: 25px;
       padding: 20px;
     }

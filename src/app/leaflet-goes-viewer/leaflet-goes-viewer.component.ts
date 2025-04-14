@@ -6,6 +6,8 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { GeoJsonObject } from 'geojson';
 import { WeatherForecastComponent } from '../weather-forecast/weather-forecast.component';
+import { WeatherService } from '../services/weather.service'; // Añadir este import
+import { FeatureCollection, Feature, Geometry } from 'geojson';
 
 interface LayerOption {
   name: string;
@@ -16,7 +18,14 @@ interface LayerOption {
   isCSV?: boolean;
 }
 
-// Clase personalizada para la leyenda genérica
+interface BaseMapOption {
+  name: string;
+  url: string;
+  attribution: string;
+  maxZoom: number;
+}
+
+// Clases de leyendas (sin cambios)
 class LegendControl extends L.Control {
   private component: LeafletGoesViewerComponent;
   
@@ -53,7 +62,6 @@ class LegendControl extends L.Control {
   }
 }
 
-// Clase para la leyenda de temperaturas (-40°C a 40°C)
 class TemperatureLegendControl extends L.Control {
   private component: LeafletGoesViewerComponent;
 
@@ -115,7 +123,6 @@ class TemperatureLegendControl extends L.Control {
   }
 }
 
-// Clase para la leyenda de precipitación con colores ajustados
 class PrecipitationLegendControl extends L.Control {
   private component: LeafletGoesViewerComponent;
 
@@ -135,7 +142,7 @@ class PrecipitationLegendControl extends L.Control {
       'rgba(180, 180, 255, 0.4)', // 0.5-1 mm
       'rgba(160, 160, 255, 0.5)', // 1-10 mm
       'rgba(100, 100, 255, 0.7)', // 10+ mm
-      'rgba(50, 50, 255, 0.9)'    // 140+ mm (aunque no se usa directamente)
+      'rgba(50, 50, 255, 0.9)'    // 140+ mm
     ];
 
     const title = '<strong>Precipitación (mm)</strong>';
@@ -158,7 +165,6 @@ class PrecipitationLegendControl extends L.Control {
   }
 }
 
-// Nueva clase para la leyenda de vientos
 class WindLegendControl extends L.Control {
   private component: LeafletGoesViewerComponent;
 
@@ -205,9 +211,9 @@ class WindLegendControl extends L.Control {
   selector: 'app-leaflet-goes-viewer',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    WeatherForecastComponent, 
+    WeatherForecastComponent,
   ],
   templateUrl: './leaflet-goes-viewer.component.html',
   styleUrls: ['./leaflet-goes-viewer.component.css']
@@ -215,13 +221,17 @@ class WindLegendControl extends L.Control {
 export class LeafletGoesViewerComponent implements OnInit {
   private map: L.Map | undefined;
   private baseLayer: L.ImageOverlay | L.GeoJSON | L.TileLayer | undefined;
+  private baseMapLayer: L.TileLayer | undefined; // Mapa base
   private legend: L.Control | undefined;
   private provincesLayer: L.GeoJSON | undefined;
   public selectedLayer: string = 'precipitacion';
+  public selectedBaseMap: string = 'satellite'; // Mapa satelital por defecto
   public currentDateTime: string = '';
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
   public loadingGifUrl: string = 'assets/icons/ZKZg.gif';
+  private stationsLayer: L.GeoJSON | undefined;
+  public selectedStationId: string | null = null;
 
   private focusBounds: L.LatLngBounds = L.latLngBounds(
     L.latLng(-25.994679, -66.390178),
@@ -237,6 +247,21 @@ export class LeafletGoesViewerComponent implements OnInit {
 
   private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
   private nasaFirmsMapKey = '05a7411727303e238b4b425a1b7fef16';
+
+  public baseMaps: Record<string, BaseMapOption> = {
+    satellite: {
+      name: 'Satelital',
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles © Esri',
+      maxZoom: 18
+    },
+    osm: {
+      name: 'OSM Estándar',
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '© OpenStreetMap',
+      maxZoom: 19
+    }
+  };
 
   public layers: Record<string, LayerOption> = {
     precipitacion: {
@@ -272,14 +297,6 @@ export class LeafletGoesViewerComponent implements OnInit {
       attribution: 'NASA FIRMS (VIIRS_NOAA21_NRT Fire Data)',
       isCSV: true
     },
-    relampagos_glm: {
-      name: 'Relámpagos',
-      url: (date: string, time: string) => {
-        return `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
-      },
-      attribution: 'OpenWeatherMap',
-      isTileLayer: true
-    },
     vientos: {
       name: 'Vientos',
       url: (date: string, time: string) => {
@@ -290,12 +307,107 @@ export class LeafletGoesViewerComponent implements OnInit {
     }
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,
+    private weatherService: WeatherService // Inyectar servicio
+) {
+    
+  }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initMap();
-    this.loadProvinces();
+    await this.loadProvinces();
+    await this.loadStations(); // Nuevo método
     this.loadLatestData();
+  }
+
+  private async loadStations(): Promise<void> {
+    try {
+      const stations = await firstValueFrom(
+        this.weatherService.getStations() // Usar servicio existente
+      );
+
+      this.stationsLayer = L.geoJSON(this.createStationsGeoJSON(stations), {
+        pointToLayer: (feature, latlng) => {
+          return L.circleMarker(latlng, {
+            radius: 6,
+            fillColor: this.getStationColor(feature.properties.id),
+            color: '#333',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+          });
+        },
+        onEachFeature: (feature, layer) => {
+          layer.bindPopup(`
+            <div class="station-popup">
+              <h4>${feature.properties.nombre}</h4>
+              <div class="popup-grid">
+                <div>Latitud: ${feature.properties.lat.toFixed(2)}°</div>
+                <div>Longitud: ${feature.properties.lon.toFixed(2)}°</div>
+                <div>Altitud: ${feature.properties.altitud} msnm</div>
+                <div>Temperatura: ${feature.properties.temperatura} °C</div>
+                <div>Humedad: ${feature.properties.humedad}%</div>
+                <div>Lluvia: ${feature.properties.lluvia} mm</div>
+              </div>
+            </div>
+          `);
+          
+          layer.on('click', () => {
+            this.selectedStationId = feature.properties.id;
+            this.highlightSelectedStation();
+          });
+        }
+      });
+
+      if (this.map) {
+        this.stationsLayer.addTo(this.map);
+        this.stationsLayer.setZIndex(3);
+      }
+    } catch (error) {
+      console.error('Error cargando estaciones:', error);
+    }
+  }
+
+  private createStationsGeoJSON(stations: any[]): FeatureCollection {
+    return {
+      type: 'FeatureCollection',
+      features: stations.map(station => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            parseFloat(station.lon),  // Mantener como número
+            parseFloat(station.lat)   // Mantener como número
+          ]
+        } as Geometry,
+        properties: {
+          id: station.Identificacion,
+          nombre: station.nombre,
+          temperatura: station.temp_af,
+          lat: parseFloat(station.lat),  // Guardar como número
+          lon: parseFloat(station.lon),  // Guardar como número
+          altitud: station.alt ? Number(station.alt).toFixed(0) : 'N/D',
+          humedad: station.hum_af,
+          lluvia: station.precipitacion || 0
+        }
+      })) as Feature<Geometry>[]
+    };
+  }  
+  public getStationColor(stationId: string): string {
+    return stationId === this.selectedStationId ? '#00ff00' : '#ff0000';
+  }
+
+  public highlightSelectedStation(): void {
+    if (this.stationsLayer) {
+      this.stationsLayer.eachLayer(layer => {
+        if (layer instanceof L.CircleMarker) {
+          const stationId = (layer.feature as any).properties.id;
+          layer.setStyle({
+            fillColor: this.getStationColor(stationId)
+          });
+        }
+      });
+    }
   }
 
   private initMap(): void {
@@ -307,11 +419,8 @@ export class LeafletGoesViewerComponent implements OnInit {
       maxBoundsViscosity: 1.0
     });
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-      maxZoom: 18
-    }).addTo(this.map!);
-
+    // Inicializar con el mapa base seleccionado
+    this.setBaseMap(this.selectedBaseMap);
     this.map.fitBounds(this.focusBounds);
   }
 
@@ -321,13 +430,13 @@ export class LeafletGoesViewerComponent implements OnInit {
       const provincesData = await firstValueFrom(
         this.http.get<GeoJsonObject>(provincesUrl)
       );
-  
+
       this.provincesLayer = L.geoJSON(provincesData, {
         style: {
-          color: '#ffffff',
+          color: 'blue',
           weight: 2,
           opacity: 0.8,
-          fillOpacity: 0
+          fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
         },
         onEachFeature: (feature, layer) => {
           if (feature.properties && feature.properties.nam) {
@@ -335,9 +444,10 @@ export class LeafletGoesViewerComponent implements OnInit {
           }
         }
       });
-  
+
       if (this.map) {
         this.provincesLayer.addTo(this.map);
+        this.provincesLayer.setZIndex(2); // Provincias en el frente
       }
     } catch (error) {
       console.error('Error al cargar provincias:', error);
@@ -348,6 +458,32 @@ export class LeafletGoesViewerComponent implements OnInit {
   public setLayer(layerKey: string): void {
     this.selectedLayer = layerKey;
     this.loadLatestData();
+  }
+
+  public setBaseMap(baseMapKey: string): void {
+    this.selectedBaseMap = baseMapKey;
+
+    if (this.baseMapLayer && this.map) {
+      this.map.removeLayer(this.baseMapLayer);
+    }
+
+    const baseMap = this.baseMaps[baseMapKey];
+    this.baseMapLayer = L.tileLayer(baseMap.url, {
+      attribution: baseMap.attribution,
+      maxZoom: baseMap.maxZoom,
+      pane: 'tilePane' // Renderizar en el panel de mapas base (por defecto)
+    });
+
+    if (this.map) {
+      this.baseMapLayer.addTo(this.map);
+      this.baseMapLayer.setZIndex(0); // Mapa base en el fondo
+      if (this.baseLayer) {
+        this.baseLayer.setZIndex(1); // Capa de datos en medio
+      }
+      if (this.provincesLayer) {
+        this.provincesLayer.setZIndex(2); // Provincias en el frente
+      }
+    }
   }
 
   private async loadLatestData(): Promise<void> {
@@ -603,7 +739,7 @@ export class LeafletGoesViewerComponent implements OnInit {
           color: color,
           weight: 1,
           opacity: 1,
-          fillOpacity: 0.8
+          fillOpacity: 1
         });
       },
       onEachFeature: (feature, layer) => {
@@ -617,36 +753,53 @@ export class LeafletGoesViewerComponent implements OnInit {
     });
 
     this.baseLayer.addTo(this.map!);
+    if (this.map && this.baseMapLayer) {
+      this.baseMapLayer.setZIndex(0); // Mapa base en el fondo
+      this.baseLayer.setZIndex(1); // Capa de datos en medio
+      if (this.provincesLayer) {
+        this.provincesLayer.setZIndex(2); // Provincias en el frente
+      }
+    }
   }
 
-  private updateTileLayer(url: string, attribution: string): void {
-    if (this.baseLayer) {
-      this.map?.removeLayer(this.baseLayer);
-    }
-  
-    let opacity = 0.85;
-    
-    if (this.selectedLayer === 'vientos') {
-      opacity = 1.0;
-    } else if (this.selectedLayer === 'relampagos_glm') {
-      opacity = 0.9;
-    }
-  
-    this.baseLayer = L.tileLayer(url, {
-      attribution: attribution,
-      opacity: opacity,
-      maxZoom: 18
-    });
-  
-    this.baseLayer.on('error', () => {
-      console.error(`Error al cargar la capa de teselas para ${this.selectedLayer}`);
-      this.errorMessage = 'Error al cargar la capa';
-    });
-  
-    this.baseLayer.addTo(this.map!);
+private updateTileLayer(url: string, attribution: string): void {
+  if (this.baseLayer) {
+    this.map?.removeLayer(this.baseLayer);
   }
+
+  this.baseLayer = L.tileLayer(url, {
+    attribution: attribution,
+    opacity: 1, // Máxima opacidad (sin transparencia)
+    maxZoom: 18,
+    pane: 'overlayPane' // Asegura renderizado sobre el mapa base
+  });
+
+  this.baseLayer.on('error', () => {
+    console.error(`Error al cargar la capa de teselas para ${this.selectedLayer}`);
+    this.errorMessage = 'Error al cargar la capa';
+  });
+
+  this.baseLayer.addTo(this.map!);
+
+  if (this.map) {
+    // Asegura que la capa esté encima del mapa base
+    (this.baseLayer as any).getPane().style.zIndex = 401; // Mayor que tilePane (zIndex: 200)
+  }
+// Asegurar el orden de renderizado
+  if (this.map && this.baseMapLayer) {
+    this.baseMapLayer.setZIndex(0); // Mapa base detrás
+    this.baseLayer.setZIndex(1);    // Capa meteorológica encima
+    if (this.provincesLayer) {
+      this.provincesLayer.setZIndex(2); // Provincias en frente
+    }
+  }
+}
 
   get layerKeys(): string[] {
     return Object.keys(this.layers);
+  }
+
+  get baseMapKeys(): string[] {
+    return Object.keys(this.baseMaps);
   }
 }

@@ -1,16 +1,27 @@
 <div class="container">
   <div class="sidebar">
-    <h2>Pronóstico...</h2>
-      <app-weather-forecast></app-weather-forecast>
+    <h2 class="titulo">Datos en tiempo real y pronóstico</h2>
+    <app-weather-forecast 
+      (stationSelected)="selectedStationId = $event; highlightSelectedStation()">
+    </app-weather-forecast>
   </div>
 
   <div class="viewer-container">
     <h2 class="titulo">Visor de Imágenes Satelitales</h2>
     <div class="controls">
-      <label for="layerSelect" style="color: antiquewhite;">Seleccionar Capa: </label>
-      <select id="layerSelect" [(ngModel)]="selectedLayer" (change)="setLayer(selectedLayer)">
-        <option *ngFor="let key of layerKeys" [value]="key">{{ layers[key].name }}</option>
-      </select>
+      <div class="control-group">
+        <label for="layerSelect" class="control-label">Capa:</label>
+        <select id="layerSelect" [(ngModel)]="selectedLayer" (change)="setLayer(selectedLayer)">
+          <option *ngFor="let key of layerKeys" [value]="key">{{ layers[key].name }}</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="baseMapSelect" class="control-label">Mapa Base:</label>
+        <select id="baseMapSelect" [(ngModel)]="selectedBaseMap" (change)="setBaseMap(selectedBaseMap)">
+          <option value="satellite">Satelital</option>
+          <option value="osm">OSM Estándar</option>
+        </select>
+      </div>
     </div>
 
     <div class="map-wrapper">

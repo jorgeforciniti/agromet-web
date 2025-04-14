@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,12 +16,13 @@ import { AuthComponent } from './auth/auth.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
-import { environment } from '../app/environments/environment'
+import { environment } from '../app/environments/environment';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [MatGridListModule,
+  imports: [
+    MatGridListModule,
     RouterOutlet,
     MatToolbarModule,
     MatButtonModule,
@@ -30,22 +31,39 @@ import { environment } from '../app/environments/environment'
     MatDialogModule,
     FontAwesomeModule,
     ReactiveFormsModule,
-    NavbarComponent,
-    ],
+    NavbarComponent
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'agromet-web';
+  
   constructor(library: FaIconLibrary, public dialog: MatDialog) {
-    // Añade los íconos a la librería
     library.addIcons(faTwitter, faYoutube, faInstagram, faFacebook);
   }
+
+  ngOnInit(): void {
+    window.addEventListener('scroll', this.onWindowScroll.bind(this));
+  }
+
+  onWindowScroll(): void {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const header = document.querySelector('.header-container');
+    if (header) {
+      if (scrollTop > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    }
+  }
+
   openDialog(): void {
     const dialogRef = this.dialog.open(AuthComponent, {
-      width: '50%', // o '1000px' si querés fijo
-      maxWidth: '95vw', // Para evitar que desborde en pantallas pequeñas
-      panelClass: 'custom-dialog-container', // clase para CSS adicional si querés
+      width: '50%', 
+      maxWidth: '95vw',
+      panelClass: 'custom-dialog-container',
       data: {
         info: 'Información extra para el diálogo'
       }

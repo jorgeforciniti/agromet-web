@@ -2,13 +2,14 @@
 .container {
   display: flex;
   flex-wrap: wrap;
+  font-size: 1.5rem;
   width: 100%;
 }
 
 .viewer-container {
   flex: 6; /* 70% del espacio */
   position: relative;
-  padding: 20px;
+  padding: 10px;
   background-color: #1e1e1e;
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
@@ -17,7 +18,7 @@
 
 .titulo {
   color: #f8f5d7; /* Color de texto */
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   text-align: left;
   padding-left: 25px;
@@ -27,7 +28,7 @@
 .map-wrapper {
   position: relative;
   text-align: center;
-  height: 600px;
+  height: 700px;
   width: 100%;
   max-width: 900px;
   margin: 0 auto; /* Añadido para centrar horizontalmente */
@@ -42,7 +43,30 @@
 
 /* Controles */
 .controls {
+  display: flex;
+  justify-content: space-around;
   margin-bottom: 15px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.control-label {
+  margin-right: 10px;
+  color: white; /* Texto en blanco para "Capa" y "Mapa Base" */
+  font-size: 16px;
+}
+
+select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+  font-size: 16px;
+  color: black; /* Texto en negro dentro de los selectores para legibilidad */
 }
 
 #layerSelect {
@@ -121,4 +145,49 @@
   color: antiquewhite;
   margin-top: 10px;
   font-style: italic;
+}
+
+.leaflet-layer {
+  mix-blend-mode: multiply; /* Mejora la combinación de capas */
+}
+
+/* Para capas de temperatura específicamente */
+.leaflet-layer[src*="temp_new"] {
+  filter: hue-rotate(-10deg) brightness(1.1);
+}
+
+.leaflet-marker-icon {
+  transition: fill-color 0.3s ease;
+}
+
+.station-marker {
+  cursor: pointer;
+  stroke-width: 1px;
+}
+
+.station-marker:hover {
+  filter: brightness(1.1);
+  transform: scale(1.1);
+}
+
+/* Añadir estilos para el popup */
+.station-popup {
+  font-family: 'Segoe UI', sans-serif;
+  min-width: 250px;
+}
+
+.popup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.popup-grid div:nth-child(odd) {
+  font-weight: 600;
+  color: #333;
+}
+
+.popup-grid div:nth-child(even) {
+  text-align: right;
 }

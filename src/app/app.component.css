@@ -1,4 +1,4 @@
-/* Estilos para el header fijo */
+/* Header Container */
 .header-container {
   position: fixed;
   top: 0;
@@ -7,18 +7,20 @@
   z-index: 1000;
   background-color: white;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
+/* Header */
 .header {
   display: flex;
   flex-direction: column;
-  align-items: left;
+  align-items: flex-start;
   background-color: #f8f9fa;
   padding-top: 5px;
+  transition: all 0.3s ease;
 }
 
 .header-content {
-  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,123 +32,117 @@
 .logo {
   height: 80px;
   width: auto;
+  transition: height 0.3s ease;
 }
 
 .header-bar {
   width: 100%;
   text-align: center;
   margin-top: 10px;
+  transition: margin-top 0.3s ease;
 }
 
 .bar {
   width: 100%;
   height: auto;
   max-height: 20px;
+  transition: max-height 0.3s ease;
 }
 
-/* Estilos para el menú fijo */
+/* Fixed Toolbar (Menú) */
 .fixed-toolbar {
   position: sticky;
-  top: 102px; /* Ajusta según la altura de tu header */
+  top: 102px; /* Valor inicial para escritorio */
   z-index: 999;
+  transition: top 0.3s ease;
 }
 
-/* Espacio para el contenido principal */
+/* Main Content */
 .main-content {
-  margin-top: 160px; /* Ajusta según la altura combinada de header + menú */
+  margin-top: 160px; /* Altura combinada del header y toolbar */
   padding: 20px;
+  transition: margin-top 0.3s ease;
 }
 
+/* Responsividad */
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
     align-items: center;
   }
-
   .logo {
     height: 60px;
     margin: 5px 0;
   }
-
   .bar {
     max-height: 15px;
   }
-
   .fixed-toolbar {
-    top: 85px; /* Ajuste para móvil */
+    top: 85px; /* Valor para móvil */
   }
-
   .main-content {
-    margin-top: 140px; /* Ajuste para móvil */
+    margin-top: 140px;
   }
 }
 
-/* Menues */
+/* Efecto "shrink" al hacer scroll */
+.header-container.scrolled .logo {
+  height: 45px;
+}
+.header-container.scrolled .header-bar {
+  margin-top: 4px;
+}
+.header-container.scrolled .bar {
+  max-height: 10px;
+}
 
-  /* Estilos generales del toolbar */
+/* Omitir el menú fijo por completo cuando se hace scroll */
+.header-container.scrolled .fixed-toolbar {
+  display: none;
+}
+
+/* Ajustar el margen del contenido principal al reducirse el header */
+.header-container.scrolled + .main-content {
+  margin-top: 120px;
+}
+
+/* Menús */
 mat-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  /* Espacio flexible para empujar los elementos a la derecha */
-  .spacer {
-    flex: 1;
-  }
-  
-  /* Menú para pantallas grandes */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.spacer {
+  flex: 1;
+}
+.menu-desktop {
+  display: flex;
+  gap: 15px;
+}
+.menu-mobile {
+  display: none;
+}
+@media (max-width: 768px) {
   .menu-desktop {
-    display: flex;
-    gap: 15px;
-  }
-  
-  /* Menú para pantallas pequeñas */
-  .menu-mobile {
     display: none;
   }
-  
-  /* Estilos responsivos */
-  @media (max-width: 768px) {
-    .menu-desktop {
-      display: none; /* Oculta el menú de escritorio en pantallas pequeñas */
-    }
-  
-    .menu-mobile {
-      display: block; /* Muestra el menú móvil en pantallas pequeñas */
-    }
+  .menu-mobile {
+    display: block;
   }
+}
 
-  .btn {
-    background-color: #30461a;
-    color: #e5e2c2;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 15px;
-  }
-  
-  .btn:hover {
-    background-color: #e5e2c2;
-    color: #3e3c2f;
-    
-  }
-  
-    /* Media Queries para pantallas más pequeñas */
-    @media (min-width: 768px) {
-      footer div {
-          flex: 1 1 calc(33.33% - 40px); /* Divide las secciones en tres columnas */
-          margin-bottom: 0;
-          text-align: left;
-      }
-
-      footer div:last-child {
-          text-align: right;
-      }
-
-      footer img {
-          height: 60px; /* Ajusta el tamaño de los logos para pantallas más grandes */
-      }
-  }
+/* Botón personalizado */
+.btn {
+  background-color: #30461a;
+  color: #e5e2c2;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
+}
+.btn:hover {
+  background-color: #e5e2c2;
+  color: #3e3c2f;
+}
