@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
@@ -8,6 +8,10 @@ import { GeoJsonObject } from 'geojson';
 import { WeatherForecastComponent } from '../weather-forecast/weather-forecast.component';
 import { WeatherService } from '../services/weather.service'; // Añadir este import
 import { FeatureCollection, Feature, Geometry } from 'geojson';
+import * as GeoJSON from 'geojson';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOptionModule } from '@angular/material/core';
 
 interface LayerOption {
   name: string;
@@ -214,6 +218,9 @@ class WindLegendControl extends L.Control {
     CommonModule,
     FormsModule,
     WeatherForecastComponent,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatOptionModule
   ],
   templateUrl: './leaflet-goes-viewer.component.html',
   styleUrls: ['./leaflet-goes-viewer.component.css']
@@ -232,7 +239,7 @@ export class LeafletGoesViewerComponent implements OnInit {
   public loadingGifUrl: string = 'assets/icons/ZKZg.gif';
   private stationsLayer: L.GeoJSON | undefined;
   public selectedStationId: string | null = null;
-
+  
   private focusBounds: L.LatLngBounds = L.latLngBounds(
     L.latLng(-25.994679, -66.390178),
     L.latLng(-28.092109, -63.895287)
@@ -394,7 +401,7 @@ export class LeafletGoesViewerComponent implements OnInit {
     };
   }  
   public getStationColor(stationId: string): string {
-    return stationId === this.selectedStationId ? '#00ff00' : '#ff0000';
+    return stationId === this.selectedStationId ? '#0084ff' : '#ff0000';
   }
 
   public highlightSelectedStation(): void {
@@ -426,7 +433,7 @@ export class LeafletGoesViewerComponent implements OnInit {
 
   private async loadProvinces(): Promise<void> {
     try {
-      const provincesUrl = 'https://wms.ign.gob.ar/geoserver/wfs?request=GetFeature&service=WFS&version=1.1.0&typeName=ign:provincia&outputFormat=application/json';
+      const provincesUrl = '../../assets/shapes/provincias.geojson';
       const provincesData = await firstValueFrom(
         this.http.get<GeoJsonObject>(provincesUrl)
       );

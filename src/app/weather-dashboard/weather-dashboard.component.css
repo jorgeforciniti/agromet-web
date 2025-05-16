@@ -1,0 +1,369 @@
+:host ::ng-deep .custom-dark-table {
+  background-color: #2c2c2c;
+}
+
+:host ::ng-deep .custom-dark-table .mat-header-cell,
+:host ::ng-deep .custom-dark-table .mat-cell {
+  color: #f8f5d7;
+  border-bottom: 1px solid rgba(248, 245, 215, 0.2);
+}
+
+/* Contenedor principal */
+.dashboard-container {
+  padding: 10px;
+  background-color: #1e1e1e; /* Fondo oscuro */
+  min-height: 90vh;
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+  overflow-y: auto; /* Scroll vertical */
+  max-height: 95vh; /* Texto claro */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  color: #f8f5d7;
+}
+
+.titulo {
+  padding: 10px;
+  font-size: 2rem;
+  font-weight: bold;
+  padding-left: 25px;
+  margin-bottom: 20px;
+}
+
+/* Grid de tarjetas */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+/* Estilo de las tarjetas */
+.summary-card {
+  background-color: #2c2c2c; /* Gris oscuro para tarjetas */
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Encabezado de la tarjeta */
+.summary-card mat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summary-card mat-card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #f8f5d7; /* Texto claro para títulos */
+}
+
+/* Íconos */
+.summary-card mat-icon {
+  color: #ffcc00; /* Amarillo para íconos */
+  font-size: 1.5rem;
+}
+
+/* Fila de datos */
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #444;
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-row span {
+  font-size: 0.95rem;
+  color: #b0b0b0; /* Gris claro para texto secundario */
+}
+
+.data-row span.value {
+  font-weight: bold;
+  color: #00ffcc; /* Verde claro para valores destacados */
+  font-size: 1.1rem;
+}
+
+/* Botón de cierre */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #f8f5d7;
+  cursor: pointer;
+  z-index: 1001;
+}
+.close-btn:hover {
+  color: #ff5555;
+}
+
+/* Formulario */
+.form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+  justify-content: center;
+}
+
+mat-form-field {
+  width: 300px;
+}
+
+mat-form-field mat-label {
+  color: #f8f5d7;
+}
+
+/* Color del texto en inputs */
+.mat-form-field.mat-form-field-type-mat-input .mat-input-element {
+  color: #f8f5d7 !important;
+}
+
+/* Color del texto en inputs de fecha */
+.mat-form-field.mat-form-field-type-mat-datepicker .mat-input-element {
+  color: #f8f5d7 !important;
+}
+
+/* Placeholder */
+.mat-form-field .mat-form-field-label {
+  color: #f8f5d7 !important;
+  opacity: 0.7;
+}
+
+/* Borde y subrayado */
+.mat-form-field .mat-form-field-underline {
+  background-color: #f8f5d7 !important;
+}
+
+/* Botón de búsqueda */
+.search-button {
+  background-color: #3f51b5; /* Amarillo para el botón */
+  color: #f8f5d7;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #3f51dd;
+}
+
+/* Mensaje de error */
+.error-message {
+  background-color: #4a0000;
+  color: #ff6666;
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.tab-nav .mat-tab-link {
+  color: #f8f5d7;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.mat-tab-link.mat-tab-label-active {
+  background-color: #ffcc00;
+  color: #1a1a1a;
+}
+
+/* Contenido de pestañas */
+.tab-content {
+  background-color: #2c2c2c;
+  border-radius: 15px;
+  padding: 2rem;
+  margin-top: 1rem;
+}
+
+/* Título de estación */
+.station-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #00ffcc; /* Verde claro para el título */
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .dashboard-container {
+    padding: 1rem;
+  }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ffcc00;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff9900;
+}
+
+::ng-deep input[type="date"]::-webkit-datetime-edit,
+::ng-deep input[type="date"]::-webkit-datetime-edit-text,
+::ng-deep input[type="date"]::-webkit-datetime-edit-month-field,
+::ng-deep input[type="date"]::-webkit-datetime-edit-day-field,
+::ng-deep input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #fff !important;
+}
+
+
+::ng-deep .mat-form-field-outline {
+  --mat-form-field-outline-color: #f8f5d7 !important;
+}
+
+::ng-deep .mat-form-field-label {
+  color: #f8f5d7 !important;
+}
+
+::ng-deep .mat-input-element {
+  color: #f8f5d7 !important;
+  caret-color: #ffcc00 !important;
+}
+
+::ng-deep .mat-datepicker-toggle {
+  color: #f8f5d7 !important;
+}
+
+/* =============== Date picker: texto blanco =============== */
+::ng-deep input[type="date"] {
+  color: #fff !important;
+  caret-color: #ffcc00 !important;
+}
+::ng-deep input[type="date"]::-moz-placeholder {
+  color: #fff !important;
+}
+::ng-deep input[type="date"]::-moz-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+::ng-deep .mat-tab-link {
+  color: #f8f5d7 !important; /* Color del texto inactivo */
+}
+
+::ng-deep .mat-tab-link.mat-tab-label-active {
+  color: #f8f5d7 !important; /* Color del texto activo */
+  background-color: #ffcc00; /* Mantenemos el fondo amarillo */
+}
+
+::ng-deep .mat-tab-link .mat-tab-label-content {
+  color: inherit !important; /* Hereda el color del padre */
+}
+
+.tab-name-text {
+  color: #f8f5d7;
+}
+
+.chart-wrapper {
+  height: 500px; /* Ajustá según lo necesario */
+}
+
+.chart-label {
+  color: #00ffcc;
+}
+
+/* Estilos para la tabla */
+.table-wrapper {
+  background-color: #2c2c2c !important;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+/* Encabezados de la tabla */
+.mat-header-cell {
+  color: #f8f5d7 !important;
+  font-weight: 600;
+  background-color: #3a3a3a !important; /* Color de fondo del encabezado */
+}
+
+/* Celdas de la tabla */
+.mat-cell {
+  color: #f8f5d7 !important;
+}
+
+/* Filas */
+.mat-row {
+  background-color: #2c2c2c !important;
+}
+
+/* Efecto hover en filas */
+.mat-row:hover {
+  background-color: #373737 !important;
+}
+
+/* Bordes de la tabla */
+.mat-table {
+  border-collapse: collapse;
+}
+
+.mat-header-cell, .mat-cell {
+  border-bottom: 1px solid #4a4a4a !important;
+}
+
+/* Mejor espaciado */
+.mat-header-cell, .mat-cell {
+  padding: 12px 16px !important;
+}
+
+/* Alineación de texto */
+.mat-header-cell {
+  text-align: center !important;
+}
+
+.mat-cell {
+  text-align: right !important;
+}
+
+/* Primera columna alineada a la izquierda */
+.mat-column-fecha .mat-cell {
+  text-align: left !important;
+}
+
+  /* tabla */
+  .tabla-datos {
+    background-color: rgba(0,0,0,0.7);
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+  }
+  .tabla-datos td {
+    color: #ccc;
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .tabla-datos th {
+    background-color: #4a4a4a;
+    color: #ccc;
+    font-weight: bold;
+  }

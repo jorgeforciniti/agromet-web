@@ -8,6 +8,8 @@ import { environment } from './app/environments/environment';
 import { provideHttpClient } from '@angular/common/http';
 import { enableProdMode } from '@angular/core';
 import * as L from 'leaflet';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { MatDialogModule }       from '@angular/material/dialog';
 
 if (environment.production) {
   enableProdMode();
@@ -25,5 +27,7 @@ bootstrapApplication(AppComponent, {
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     provideRouter(routes),
+    provideAnimations(), // 🟠 Necesario para Angular Material
+    MatDialogModule
   ],
 }).catch(err => console.error(err));

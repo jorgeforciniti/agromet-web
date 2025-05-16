@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import 'leaflet/dist/leaflet.css';
+/*@import 'leaflet/dist/leaflet.css';*/
+
 
 html, body { height: 100%; }
 body { 
@@ -9,11 +10,177 @@ body {
     font-family: Roboto, "Helvetica Neue", sans-serif; 
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-
 ::ng-deep .custom-dialog-container {
     padding: 0;
+    margin: 0;
+    flex: 1; /* Permite que el contenido ocupe todo el espacio disponible */
+    display: flex;
+    flex-direction: column;
+    height: 100%;    
     background-color: #1e1e1e;
     border-radius: 12px;
   }
+
+  ::ng-deep .custom-dialog-class .mat-dialog-container {
+    padding: 0; /* Elimina el relleno predeterminado */
+    height: 100%; /* Fuerza al contenedor a usar toda la altura */
+    display: flex;
+    flex-direction: column;
+  }
+
+  ::ng-deep .custom-dialog-class .mat-dialog-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+
+.custom-dialog-class .content-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.custom-dialog-class iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ==== Fecha: texto blanco ===== */
+input[type="date"] {
+    color: #f8f5d7 !important;
+    caret-color: #ffcc00 !important;  /* opcional, para que la línea de edición también sea visible */
+  }
+  
+  /* WebKit / Blink (Chrome, Edge, Safari) */
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="date"]::-webkit-datetime-edit-text,
+  input[type="date"]::-webkit-datetime-edit-month-field,
+  input[type="date"]::-webkit-datetime-edit-day-field,
+  input[type="date"]::-webkit-datetime-edit-year-field {
+    color: #fff !important;
+  }
+  
+  /* Firefox */
+  input[type="date"]::-moz-placeholder { /* placeholder nativo */
+    color: #fff !important;
+  }
+  input[type="date"]::-moz-calendar-picker-indicator { /* icono calendario */
+    filter: invert(1);
+  }
+
+  .mat-tab-group .mat-tab-label {
+    color: #f0f0f0 !important;
+  }
+  .mat-tab-group .mat-ink-bar {
+    background-color: #f0f0f0 !important;
+  }
+
+  .custom-dark-table {
+    background-color: #2c2c2c;  /* fondo de la envoltura*/
+  
+    /* Aplica fondo oscuro al header y celdas */
+    .mat-header-row, .mat-row {
+      background-color: #2c2c2c;
+    }
+  
+    /* Color de texto en headers y celdas */
+    .mat-header-cell, .mat-cell {
+      color: #f8f5d7;
+    }
+  
+    /* Si quieres bordes o líneas con color claro, opcional: */
+    .mat-header-cell, .mat-cell {
+      border-bottom: 1px solid rgba(248, 245, 215, 0.2);
+    }
+  }
+
+  :host ::ng-deep .custom-dark-table {
+    background-color: #2c2c2c;
+  
+    .mat-header-row, .mat-row {
+      background-color: #2c2c2c;
+    }
+  
+    .mat-header-cell, .mat-cell {
+      color: #f8f5d7;
+    }
+  }
+  
+  /* styles.css */
+
+.mat-mdc-text-field .mat-mdc-input-element,
+.mat-mdc-text-field .mat-mdc-text-field-input {
+  color: #eee !important;
+}
+
+/* placeholder */
+.mat-mdc-text-field .mat-mdc-text-field-input::placeholder {
+  color: #bbb !important;
+}
+
+/* datepicker toggle icon */
+.mat-datepicker-toggle .mat-icon {
+  color: #eee !important;
+}
+
+/* 1) Inputs de Angular Material (matInput) */
+input[matInput],
+textarea[matInput] {
+  color: #eee !important;
+}
+
+/* 2) Placeholder / hint */
+input[matInput]::placeholder,
+textarea[matInput]::placeholder {
+  color: #bbb !important;
+}
+
+/* 3) Fecha manual (mat-datepicker-input) */
+.mat-datepicker-input {
+  color: #eee !important;
+}
+
+/* 4) Icono datepicker */
+.mat-datepicker-toggle .mat-icon {
+  color: #eee !important;
+}
+
+/************************************************************************/
+
+
+/* Fondo oscuro para el panel del datepicker */
+.mat-datepicker-content {
+    background-color: #333333 !important; /* Gris oscuro */
+}
+
+/* Fondo oscuro para el calendario */
+.mat-calendar {
+    background-color: #333333 !important;
+}
+
+/* Color del texto para que sea legible */
+.mat-calendar-body-cell-content,
+.mat-calendar-period-button,
+.mat-calendar-arrow {
+    color: #ffffff !important; /* Texto blanco */
+}
+
+/* Fondo de las celdas del calendario */
+.mat-calendar-body-cell-content {
+    background-color: #333333 !important;
+}
+
+/* Fondo para el día seleccionado */
+.mat-calendar-body-selected {
+    background-color: #1976d2 !important; /* Azul para el día seleccionado */
+    color: #ffffff !important;
+}
+
+/* Borde para el día actual */
+.mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
+    border: 1px solid #1976d2 !important;
+}

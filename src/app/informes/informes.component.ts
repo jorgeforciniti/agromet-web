@@ -48,15 +48,16 @@ export class InformesComponent implements OnInit {
     });
   }
 
-  private procesarDatos(data: any[]): Informe[] {
-    return data.map((item: any) => ({
+  private procesarDatos(response: any): Informe[] {
+    const datos = response.data || [];
+    return datos.map((item: any) => ({
       archivo: item.archivo || '',
       fecha: item.creado || 'Fecha no disponible',
       titulo: item.titulo || 'Sin título',
       safeArchivo: this.generarUrlSegura(item.archivo)
     }));
   }
-
+  
   private generarUrlSegura(nombreArchivo: string): SafeResourceUrl {
     const urlBase = "https://agromet.eeaoc.gob.ar/PDFS/";
     return this.sanitizer.bypassSecurityTrustResourceUrl(urlBase + nombreArchivo);
@@ -66,9 +67,8 @@ export class InformesComponent implements OnInit {
     const informe = this.datos.find(item => item.archivo === nombreArchivo);
 
     this.dialog.open(DialogComponent, {
-      width: '70%',
-      height: '80%',
-      maxHeight: '95vw',
+      width: '80vw',
+      height: '90vw',
       maxWidth: '95vw',
       panelClass: 'custom-dialog-container',
       data: {

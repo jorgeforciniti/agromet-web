@@ -1,0 +1,88 @@
+<!-- weather-dialog.component.html -->
+<div class="container">
+  <div class="viewer-container">
+    <!-- Botón de cierre -->
+    <button class="close-btn" (click)="closeWindow()">✖</button>
+
+    <!-- Título del diálogo -->
+    <div class="titulo">Condiciones actuales para aplicación de agroquímicos</div>
+
+    <!-- Overlay de carga -->
+    <div *ngIf="loadingEstaciones" class="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Cargando estaciones...</div>
+    </div>
+    <!-- Mensaje de error -->
+    <div *ngIf="errorEstaciones" class="error">
+      Error al cargar las estaciones.
+    </div>
+
+    <!-- Contenedor del mapa siempre presente -->
+    <div class="map-wrapper">
+      <div id="mapConditions"></div>
+    </div>
+
+    <!-- Contenedor de controles (sin *ngIf en el mapa wrapper) -->
+    <div class="controls" *ngIf="!loadingEstaciones && !errorEstaciones">
+      <div class="control-group">
+        <label class="control-label">Estación:</label>
+        <select name="station" [(ngModel)]="selectedStation" class="select-wrapper">
+          <option value="" disabled>-- Seleccione --</option>
+          <option *ngFor="let estacion of estacionesRecientes" [value]="estacion.identificacion">
+            {{ estacion.nombre }}
+          </option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label class="control-label">Fecha:</label>
+        <mat-form-field appearance="outline" class="select-wrapper">
+          <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" name="date">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="control-group">
+        <button class="btn-search" (click)="searchData()">Buscar datos</button>
+      </div>
+    </div>
+
+    <!-- Bloque resumen de estación y fecha -->
+    <div *ngIf="weatherData.length" class="resumen-consulta">
+      <div><strong>Estación:</strong> {{ selectedStationName }}
+        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        <strong>Fecha:</strong> {{ selectedDate }}
+      </div>
+    </div>
+
+    <!-- Tabla de datos horarios -->
+    <table *ngIf="weatherData && weatherData.length" class="tabla-datos">
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Temp. (°C)</th>
+          <th>Temp 50cm (°C)</th>
+          <th>Temp 20cm (°C)</th>
+          <th>Humedad (%)</th>
+          <th>V. Medio (km/h)</th>
+          <th>Ráfaga (km/h)</th>
+          <th>Dirección</th>
+          <th>Lluvia (mm)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of weatherData" [ngClass]="row.apto ? 'apto-row' : 'no-apto-row'">
+          <td>{{ row.hora }}</td>
+          <td>{{ row.temp_af }}</td>
+          <td>{{ row.temp_50 }}</td>
+          <td>{{ row.temp_20 }}</td>
+          <td>{{ row.hum_af }}</td>
+          <td>{{ row.viento_medio }}</td>
+          <td>{{ row.viento_max }}</td>
+          <td>{{ row.direccion }}</td>
+          <td>{{ row.lluvia }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

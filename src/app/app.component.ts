@@ -18,6 +18,7 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { environment } from '../app/environments/environment';
 
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -45,6 +46,9 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.onWindowScroll.bind(this));
+    setTimeout(() => {
+      window.location.reload();
+    }, 900000);
   }
 
   onWindowScroll(): void {

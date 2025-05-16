@@ -1,0 +1,105 @@
+<mat-dialog-content class="rain-dialog dark-theme">
+    <!-- Encabezado y selector (no scroll) -->
+    <div class="header-and-form">
+        <button mat-icon-button class="close-btn" (click)="close()">
+            <mat-icon>close</mat-icon>
+        </button>
+        <h2>Lluvias por campaña</h2>
+        <form class="selection-form" (ngSubmit)="loadCampaign()">
+            <!-- tus campos Mes, Año, Cargar… -->
+        </form>
+    </div>
+
+    <!-- Selección de mes y año -->
+    <form class="selection-form dark-selection" (ngSubmit)="loadCampaign()">
+        <div class="selection-fields">
+          <mat-form-field appearance="outline" class="field">
+            <mat-label class="fondoblanco">Mes</mat-label>
+            <mat-select
+              [(value)]="selectedMonth"
+              panelClass="dark-selection-panel"
+              required>
+              <mat-option *ngFor="let m of monthsList" [value]="m.value">
+                {{ m.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+      
+          <mat-form-field appearance="outline" class="field">
+            <mat-label class="fondoblanco">Año</mat-label>
+            <input matInput
+                   type="number"
+                   [(ngModel)]="selectedYear"
+                   name="year"
+                   required
+                   min="1900"
+                   max="2100"
+                   class="fondoblanco">
+          </mat-form-field>
+      
+        <!-- Botón de búsqueda -->
+        <button mat-raised-button 
+                color="primary" 
+                type="submit" 
+                class="search-button">
+          <mat-icon>search</mat-icon>
+          {{ 'BUSCAR DATOS' }}
+        </button>
+        
+        </div>
+      </form>
+
+    <!-- Tabla de resultados -->
+    <div class="table-wrapper" *ngIf="dataSource.length">
+        <table mat-table [dataSource]="dataSource" class="rain-table">
+
+            <!-- Nombre -->
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+            </ng-container>
+
+            <!-- Latitud (2 decimales) -->
+            <ng-container matColumnDef="lat">
+                <th mat-header-cell *matHeaderCellDef>Lat</th>
+                <td mat-cell *matCellDef="let row">{{ row.lat | number:'1.2-2' }}</td>
+            </ng-container>
+
+            <!-- Longitud (2 decimales) -->
+            <ng-container matColumnDef="lon">
+                <th mat-header-cell *matHeaderCellDef>Lon</th>
+                <td mat-cell *matCellDef="let row">{{ row.lon | number:'1.2-2' }}</td>
+            </ng-container>
+
+            <!-- Meses dinámicos (1 decimal) -->
+            <ng-container *ngFor="let month of months; let idx = index" [matColumnDef]="month">
+                <th mat-header-cell *matHeaderCellDef>{{ month }}</th>
+                <td mat-cell *matCellDef="let row"
+                    [ngClass]="cellClass(row.dataset?.[idx]?.value ?? -999.9, row.dataset?.[idx]?.normal ?? 0)"
+                    matTooltip="{{ tooltipText(row.dataset?.[idx]?.normal ?? 0, row.reference_period) }}"
+                    matTooltipClass="dark-tooltip">
+                    {{ row.dataset?.[idx]?.value === -999.9
+                    ? '—'
+                    : (row.dataset[idx].value | number:'1.1-1') }}
+                </td>
+            </ng-container>
+
+            <!-- Total con tooltip de suma normal, pero oculto si falta dato -->
+            <ng-container matColumnDef="total">
+                <th mat-header-cell *matHeaderCellDef>Total</th>
+                <td mat-cell *matCellDef="let row" [ngClass]="{ 'no-data': hasMissingData(row.dataset) }" [matTooltip]="
+                hasMissingData(row.dataset)
+                  ? ''
+                  : ('Suma normal: ' + (totalNormal(row.dataset) | number:'1.1-1') + ' mm')
+              " matTooltipClass="dark-tooltip">
+                    {{ hasMissingData(row.dataset)
+                    ? '—'
+                    : (totalPeriod(row.dataset) | number:'1.1-1') }}
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </div>
+</mat-dialog-content>

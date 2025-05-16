@@ -1,0 +1,66 @@
+<div class="rain-monthly-map-dialog dark-theme">
+    <div class="dialog-header">
+      <h2>Mapa de Lluvias Mensuales Acumuladas</h2>
+      <button mat-icon-button (click)="close()" class="close-button" matTooltip="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  
+    <mat-dialog-content class="dialog-content">
+      <div class="form-controls">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mes Inicio</mat-label>
+          <mat-select [(ngModel)]="selectedStartMonth" name="startMonth" required panelClass="dark-selection-panel">
+              <mat-option *ngFor="let month of monthsList" [value]="month.value">
+              {{ month.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mes Fin</mat-label>
+          <mat-select [(ngModel)]="selectedEndMonth" name="endMonth" required>
+            <mat-option *ngFor="let month of monthsList" [value]="month.value">
+              {{ month.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+  
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Año Inicio</mat-label>
+          <mat-select [(ngModel)]="selectedStartYear" name="startYear" required>
+            <mat-option *ngFor="let year of yearsList" [value]="year">
+              {{ year }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Mapa Base</mat-label>
+          <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="onBaseMapChange()">
+            <mat-option *ngFor="let bm of baseMapsList" [value]="bm.value">
+              {{ bm.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="loadRainData()" [disabled]="isLoading" class="load-button">
+          <mat-icon *ngIf="!isLoading">map</mat-icon>
+          <mat-progress-spinner *ngIf="isLoading" mode="indeterminate" diameter="20"></mat-progress-spinner>
+          {{ isLoading ? 'Cargando...' : 'Cargar Mapa' }}
+        </button>
+      </div>
+  
+      <div *ngIf="noDataForSelection && !isLoading" class="no-data-message">
+          No se encontraron datos para la selección realizada o las estaciones no tienen información completa para el período.
+      </div>
+  
+      <div class="map-cont">
+        <div id="rainMapDialog" class="map-container">
+          <div *ngIf="isLoading" class="map-loader-overlay">
+              <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+              <span>Cargando mapa...</span>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+  </div>

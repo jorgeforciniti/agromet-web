@@ -7,7 +7,7 @@ import { WeatherData } from '../models/weather-data';
   providedIn: 'root'
 })
 export class WeatherService {
-  private stationsUrl = 'https://agromet.eeaoc.gob.ar/api/estaciones.php?habilitada=2';
+  private stationsUrl = 'https://agromet.eeaoc.gob.ar/services/estaciones.php';
 
   constructor(private http: HttpClient) { }
 
@@ -18,21 +18,51 @@ export class WeatherService {
   }
 
   getStations(): Observable<any[]> {
+    return this.http.get<any[]>(this.stationsUrl+'?habilitada=2');
+  }
+
+  getStationsAll(): Observable<any[]> {
     return this.http.get<any[]>(this.stationsUrl);
   }
 
+  getWeatherDataResumen(desde: string, hasta: string, estacion: string): Observable<any> {
+    const url = `https://agromet.eeaoc.gob.ar/services/datos-resumen.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
+    return this.http.get(url);
+  }
+
+  getWeatherDataDiary(desde: string, hasta: string, estacion: string): Observable<any> {
+    const url = `https://agromet.eeaoc.gob.ar/services/datos-diarios.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
+    return this.http.get(url);
+  }
+
+  getWeatherDataHourly(fecha: string, estacion: string): Observable<any> {
+    const url = `https://agromet.eeaoc.gob.ar/services/datos-24hs.php?fecha=${fecha}&estacion=${estacion}`;
+    return this.http.get(url);
+  }
+
   getSmnAlerts(lat: number, lon: number): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/api/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}`;
+    const url = `https://agromet.eeaoc.gob.ar/services/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}`;
     return this.http.get(url);
   }
   
   getSmnAlertByCoords(lat: number, lon: number): Observable<any> {
-    const url = `https://api.smn.gob.ar/v1/warning/alert/location/coord?lat=${lat}&lon=${lon}`;
+    const url = `https://agromet.eeaoc.gob.ar/services/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=1`;
     return this.http.get(url);
   }
   
   getSmnShortTermAlertByCoords(lat: number, lon: number): Observable<any> {
-    const url = `https://api.smn.gob.ar/v1/warning/shortterm/location/coord?lat=${lat}&lon=${lon}`;
+    const url = `https://agromet.eeaoc.gob.ar/services/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=2`;
     return this.http.get(url);
   }
+
+  getRainCampaign(month: number, year: number): Observable<any> {
+    const url = `https://agromet.eeaoc.gob.ar/services/datos-campania.php?mes=${month}&anio=${year}&tipo=2`;
+    return this.http.get(url);
+  }
+
+  getTMinMax(desde: string, hasta: string): Observable<any> {
+    const url = `https://agromet.eeaoc.gob.ar/services/datos-temperatura.php?desde=${desde}&hasta=${hasta}`;
+    return this.http.get(url);
+  }
+
 }

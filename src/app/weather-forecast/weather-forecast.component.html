@@ -6,22 +6,52 @@
   <!-- Contenedor principal -->
   <div *ngIf="weatherData as data" class="forecast-container">
 
+    <!-- SECCIÓN DE ALERTAS ARRIBA DE TODO -->
+    <div *ngIf="smnAlerts.length" class="alert-section">
+      <h3 class="alert-title">⚠️ Alertas Meteorológicas (SMN)</h3>
+      <div *ngFor="let alerta of smnAlerts" class="alert-card"
+           [ngClass]="'alert-level-' + alerta.level">
+        <h4>
+          Nivel {{ alerta.level }}
+          <small class="alert-datetime">
+            {{ alerta.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
+            – {{ periodoEnCastellano(alerta.period) }}
+          </small>
+        </h4>
+        <p class="alert-description">{{ alerta.description }}</p>
+        <div class="alert-instruction">{{ alerta.instruction }}</div>
+      </div>
+    </div>
+
     <!-- Encabezado: Selector de estación y Datos en Tiempo Real -->
     <div class="forecast-header">
-      <label for="stationSelect" class="station-label">Estación:</label>
-      <mat-form-field appearance="outline" class="station-select-wrapper">
-        <mat-label>Selecciona una estación</mat-label>
-        <mat-select
-          [(ngModel)]="selectedStation"
-          (selectionChange)="updateStationData()"
-          aria-label="Selección de estación meteorológica"
-        >
-          <mat-option *ngFor="let station of stations" [value]="station">
-            {{ station.nombre }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+      <label for="stationSelect" class="station-label">
+        Estación meteorológica: 
+        <mat-form-field appearance="outline" class="station-select-wrapper">
+          <mat-label>Selecciona una estación</mat-label>
+          <mat-select
+            [(ngModel)]="selectedStation"
+            (selectionChange)="updateStationData()"
+            aria-label="Selección de estación meteorológica">
+            <mat-option *ngFor="let station of stations" [value]="station">
+              {{ station.nombre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </label>
 
+      <!-- ... Salida y puesta de sol ... -->
+      <div class="realtime-footer" *ngIf="selectedStation">
+        <div class="realtime-item">
+          <fa-icon [icon]="['fas', 'sun']"></fa-icon>
+          <span>Salida: {{ sunrise }}</span>
+        </div>
+        <div class="realtime-item">
+          <fa-icon [icon]="['fas', 'moon']"></fa-icon>
+          <span>Puesta: {{ sunset }}</span>
+        </div>
+      </div>
+      
       <!-- Leyenda: Datos en tiempo real -->
       <div class="realtime-label">Datos en tiempo real</div>
 
@@ -54,8 +84,7 @@
           *ngFor="let day of data.forecast; let i = index"
           class="day-card"
           [class.active]="selectedDayIndex === i"
-          (click)="selectDay($event, i)"
-        >
+          (click)="selectDay($event, i)">
           <div class="day-name">{{ getDayName(day.date) }}</div>
           <div class="day-temps">
             <span class="temp min-temp">{{ day.temp_min.toFixed(0) }}°</span>
@@ -77,42 +106,19 @@
                 [src]="'assets/w-icons/' + interval.weather.icon + '.png'" 
                 alt="{{ interval.weather.description }}" />
             </div>
-            <div class="tp-desc">{{ interval.weather.description }} </div>
+            <div class="tp-desc">{{ interval.weather.description }}</div>
           </div>
-          <!-- Modificar la sección de pronóstico horario -->
-            <div class="tp-desc">
-              <span><fa-icon [icon]="['fas', 'temperature-high']"></fa-icon> {{ interval.temperature | number:'1.1-1' }}°C</span>
-              <span><fa-icon [icon]="['fas', 'tint']"></fa-icon> {{ interval.humidity }}%</span>
-              <span><fa-icon [icon]="['fas', 'wind']"></fa-icon> {{ interval.wind.speed }} km/h</span>
-              <span><fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon> {{ interval.rain_prob }}%</span>
-              <span><fa-icon [icon]="['fas', 'eye']"></fa-icon>: {{ interval.visibility }}</span>
-            </div>        
-          </div>
+          <div class="tp-desc">
+            <span><fa-icon [icon]="['fas', 'temperature-high']"></fa-icon> {{ interval.temperature | number:'1.1-1' }}°C</span>
+            <span><fa-icon [icon]="['fas', 'tint']"></fa-icon> {{ interval.humidity }}%</span>
+            <span><fa-icon [icon]="['fas', 'wind']"></fa-icon> {{ interval.wind.speed }} km/h</span>
+            <span><fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon> {{ interval.rain_prob }}%</span>
+            <span><fa-icon [icon]="['fas', 'eye']"></fa-icon> {{ interval.visibility }}</span>
+          </div>        
+        </div>
       </div>
     </div>
 
     <div class="forecast-source">Fuente: OpenWeatherMap</div>
-
-    <!-- Sección de Alertas Meteorológicas SMN -->
-    <div *ngIf="smnAlerts.length > 0 || smnShortAlerts.length > 0" class="alert-section">
-      <h3 class="alert-title">⚠️ Alertas Meteorológicas</h3>
-
-      <!-- Alertas Generales -->
-      <div *ngFor="let alerta of smnAlerts" class="alert-card" [ngClass]="'alert-level-' + alerta.level">
-        <h4>Nivel {{ alerta.level }}</h4>
-        <p><strong>Descripción:</strong> {{ alerta.description }}</p>
-        <p><strong>Recomendaciones:</strong> {{ alerta.instruction }}</p>
-      </div>
-
-      <!-- Avisos de Corto Plazo -->
-      <div *ngFor="let aviso of smnShortAlerts" class="alert-card alert-short">
-        <h4>⏱️ Aviso de Corto Plazo</h4>
-        <p><strong>Título:</strong> {{ aviso.title }}</p>
-        <p><strong>Desde:</strong> {{ aviso.date | date:'short' }}<br>
-           <strong>Hasta:</strong> {{ aviso.end_date | date:'short' }}</p>
-        <p><strong>Región:</strong> {{ aviso.region }}</p>
-        <p><strong>Instrucciones:</strong> {{ aviso.instructions }}</p>
-      </div>
-    </div>
   </div>
 </div>

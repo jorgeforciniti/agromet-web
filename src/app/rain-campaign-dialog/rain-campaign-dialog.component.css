@@ -1,0 +1,325 @@
+/* Estilos globales para el diálogo */
+::ng-deep .mat-dialog-container {
+    height: 95vh !important;
+    max-height: 95vh !important;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+/* Contenido del diálogo con desplazamiento */
+::ng-deep .mat-mdc-dialog-content {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 16px;
+    margin: 0;
+    max-height: 100%;
+}
+
+/* Tema oscuro */
+.dark-theme {
+    background-color: #1a1a1a;
+    color: #eee;
+}
+
+/* Botón de cierre */
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+/* Estilo para etiquetas negras */
+.label-black {
+    color: #000;
+}
+
+/* Hace que todo el diálogo sea flex column y ocupe la altura disponible */
+.rain-dialog {
+    display: flex;
+    flex-direction: column;
+    /* ajusta según necesites */
+    overflow: hidden; 
+    /* quita cualquier scroll exterior */
+    height: 100%;
+}
+
+/* El header y form no cambian de tamaño */
+.header-and-form {
+    flex: 0 0 auto;
+    padding-bottom: 16px;
+}
+
+/* La tabla ocupa el resto y scrolla internamente */
+.table-wrapper {
+    flex: 1 1 auto;
+    /* toma todo el espacio restante */
+    overflow: auto;
+    /* scroll en ambas direcciones */
+    padding-bottom: 0.5rem;
+    /* espacio para mostrar barras */
+}
+
+/* La tabla mantiene su ancho y dispara el scroll-horizontal */
+.rain-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #444;
+    /* Borde oscuro para la tabla */
+}
+
+/* Encabezado fijo */
+.rain-table thead th {
+    position: sticky;        /* Fija el encabezado */
+    top: 0;                  /* Lo mantiene en la parte superior */
+    background-color: #1a1a1a; /* Fondo oscuro */
+    z-index: 1;              /* Por encima del contenido */
+    border-bottom: 2px solid #444; /* Separación visual */
+}
+
+.rain-table th,
+.rain-table td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #444;
+    /* Borde oscuro para las celdas */
+}
+
+/* Sin datos */
+.no-data {
+    background-color: #444;
+    color: #888;
+}
+
+/* Colores para rangos de lluvia */
+.below-33 {
+    background-color: #a50f15;
+    /* rojo oscuro */
+    color: white;
+}
+
+.below-66 {
+    background-color: #d94801;
+    /* naranja */
+    color: white;
+}
+
+.below-99 {
+    background-color: #f59e0b;
+    /* amarillo */
+    color: black;
+}
+
+.above-100-50 {
+    background-color: #38bdf8;
+    /* celeste */
+    color: black;
+}
+
+.above-150-100 {
+    background-color: #0ea5e9;
+    /* azul intermedio */
+    color: white;
+}
+
+.above-200 {
+    background-color: #075985;
+    /* azul profundo */
+    color: white;
+}
+
+/* Tooltip oscuro */
+.dark-tooltip {
+    background-color: #424242;
+    color: #f8f5d7;
+    font-size: 0.9em;
+    white-space: pre-line;
+    /* para '\n' en tooltip */
+}
+
+/* Espaciado entre campos de selección */
+.selection-fields {
+    display: flex;
+    gap: 1rem;
+    /* separa mes, año y botón */
+    margin-bottom: 0px;
+}
+
+.field {
+    min-width: 100px;
+}
+
+/* Estilos para el formulario en tema oscuro */
+::ng-deep .dark-selection .mat-mdc-form-field {
+    background-color: #1a1a1a !important;
+    /* Borde gris alrededor del campo */
+    border-radius: 4px;
+    /* Redondear esquinas */
+}
+
+::ng-deep .dark-selection .mat-mdc-form-field.mat-form-field-appearance-fill .mat-mdc-form-field-flex {
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-form-field-label {
+    color: #f8f5d7 !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-floating-label {
+    color: #f8f5d7 !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-text-field-wrapper {
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mdc-text-field--filled {
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-form-field input.mat-mdc-input-element {
+    color: #f8f5d7 !important;
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-select {
+    color: #f8f5d7 !important;
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-select-trigger {
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-select-value,
+::ng-deep .dark-selection .mat-mdc-select-value-text {
+    color: #f8f5d7 !important;
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection .mat-mdc-select-arrow {
+    color: #f8f5d7 !important;
+}
+
+::ng-deep .dark-selection-panel {
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection-panel .mat-mdc-option {
+    color: #f8f5d7 !important;
+    background-color: #1a1a1a !important;
+}
+
+::ng-deep .dark-selection-panel .mat-mdc-option:hover,
+::ng-deep .dark-selection-panel .mat-mdc-option.mat-mdc-option-active {
+    background-color: #333 !important;
+}
+
+/* Línea inferior del campo de formulario */
+::ng-deep .dark-selection .mat-mdc-form-field-subscript-wrapper {
+    border-bottom: 1px solid #444 !important;
+    /* Línea inferior oscura */
+}
+
+/* Eliminar bordes blancos del mat-form-field */
+::ng-deep .dark-selection .mat-mdc-form-field-focus-overlay {
+    background-color: transparent !important;
+}
+
+::ng-deep .dark-selection .mdc-notched-outline__leading,
+::ng-deep .dark-selection .mdc-notched-outline__notch,
+::ng-deep .dark-selection .mdc-notched-outline__trailing {
+    border-color: #444 !important;
+}
+
+/* Botón primario */
+::ng-deep button.mat-raised-button[color="primary"] {
+    background-color: #3f51b5 !important;
+    color: #f8f5d7 !important;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 600px) {
+    .selection-fields {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .field {
+        width: 100%;
+    }
+}
+
+@media (hover: hover) {
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+    }
+}
+
+@media (max-width: 400px) {
+    .rain-table th,
+    .rain-table td {
+        padding: 4px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Botón de búsqueda */
+.search-button {
+    background-color: #3f51b5;
+    /* Amarillo para el botón */
+    color: #f8f5d7;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+    background-color: #3f51dd;
+}
+
+.fondoblanco {
+    background-color: #1a1a1a;
+    color: #eee;
+}
+
+mat-form-field mat-label {
+    color: #f8f5d7;
+  }
+
+  
+mat-form-field {
+    width: 300px;
+  }
+  
+  mat-form-field mat-label {
+    color: #f8f5d7;
+  }
+  
+  /* Color del texto en inputs */
+  .mat-form-field.mat-form-field-type-mat-input .mat-input-element {
+    color: #f8f5d7 !important;
+  }
+  
+  /* Color del texto en inputs de fecha */
+  .mat-form-field.mat-form-field-type-mat-datepicker .mat-input-element {
+    color: #f8f5d7 !important;
+  }
+  
+  /* Placeholder */
+  .mat-form-field .mat-form-field-label {
+    color: #f8f5d7 !important;
+    opacity: 0.7;
+  }
+  
+  /* Borde y subrayado */
+  .mat-form-field .mat-form-field-underline {
+    background-color: #f8f5d7 !important;
+  }
+  

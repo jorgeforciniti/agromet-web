@@ -9,10 +9,11 @@ import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { faTemperatureHigh, faTint, faWind, faClock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCloudRain } from '@fortawesome/free-solid-svg-icons';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
 import { MatSelectModule } from '@angular/material/select'; // Importar MatSelectModule
 import { MatFormFieldModule } from '@angular/material/form-field'; // Para el contenedor
-
+import { faEye } from '@fortawesome/free-solid-svg-icons'; // Asegúrate de que esta línea existe
+import { SmnAlertResponse, Warning, SmnEvent, ReportLevel, Period } from '../models/smn-alert.model';
 
 registerLocaleData(localeEsAr);
 
@@ -53,13 +54,24 @@ export class WeatherForecastComponent implements OnInit {
   smnAlerts: any[] = [];
   smnShortAlerts: any[] = [];
 
+  // weather-forecast.component.ts
+  periodoEnCastellano(period: string): string {
+    switch (period) {
+      case 'early_morning': return 'Madrugada';
+      case 'morning': return 'Mañana';
+      case 'afternoon': return 'Tarde';
+      case 'night': return 'Noche';
+      default: return period;
+    }
+  }
+
   constructor(
     private weatherService: WeatherService,
     private sunriseSunsetService: SunriseSunsetService,
     private changeDetectorRef: ChangeDetectorRef,
     private library: FaIconLibrary,
   ) {
-    library.addIcons(faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faEye);
+    library.addIcons(faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faSun, faMoon, faEye);
   }
 
   ngOnInit() {
@@ -219,7 +231,7 @@ export class WeatherForecastComponent implements OnInit {
         // Seleccionar estación por defecto: Identificación "2049" o nombre que incluya "colmenar"
         const defaultStation = this.stations.find(
           station => station.Identificacion === '2049' ||
-                     station.nombre?.toLowerCase().includes('colmenar')
+            station.nombre?.toLowerCase().includes('colmenar')
         );
         this.selectedStation = defaultStation || this.stations[0] || null;
         if (this.selectedStation) {
@@ -241,8 +253,8 @@ export class WeatherForecastComponent implements OnInit {
 
   updateStationData(): void {
     if (this.selectedStation) {
-      const lat = parseFloat(this.selectedStation.lat) || -26.82414;
-      const lon = parseFloat(this.selectedStation.lon) || -65.2226;
+      const lat = parseFloat(this.selectedStation.lat) || -26.8;
+      const lon = parseFloat(this.selectedStation.lon) || -65.2;
 
       this.rtTemperature = parseFloat(this.selectedStation.temp_af) || null;
       this.rtHumidity = parseFloat(this.selectedStation.hum_af) || null;
@@ -261,27 +273,40 @@ export class WeatherForecastComponent implements OnInit {
   }
 
   loadSmnAlerts(lat: number, lon: number): void {
-    // Obtener alertas generales
-    this.weatherService.getSmnAlertByCoords(lat, lon).subscribe({
-      next: (alerta) => {
-        // Se asume que la respuesta tiene la propiedad "reports" con un array de niveles por evento
-        this.smnAlerts = alerta?.reports?.flatMap((r: any) =>
-          r.levels.map((l: any) => ({
-            description: l.description,
-            instruction: l.instruction,
-            level: l.level
-          }))
-        ) || [];
-      },
-      error: (err) => console.error('Error al obtener alertas generales:', err)
-    });
-  
-    // Obtener avisos de corto plazo
-    this.weatherService.getSmnShortTermAlertByCoords(lat, lon).subscribe({
-      next: (data) => {
-        this.smnShortAlerts = Array.isArray(data) ? data : [];
-      },
-      error: (err) => console.error('Error al obtener alertas de corto plazo:', err)
-    });
+    this.weatherService.getSmnAlertByCoords(lat, lon)
+      .subscribe({
+        next: (alerta: SmnAlertResponse) => {
+          // Map de event_id → ReportLevel[]
+          const reportsMap = new Map<number, ReportLevel[]>();
+          alerta.reports.forEach(r => reportsMap.set(r.event_id, r.levels));
+
+          this.smnAlerts = alerta.warnings
+            // Filtrar sólo warnings con fecha y eventos
+            .filter((w: Warning): w is Warning => !!(w.date && w.events))
+            .flatMap((warning: Warning) => {
+              const fecha = warning.date!;  // ya garantizado por el filtro
+              return warning.events!.flatMap((event: SmnEvent) => {
+                // Sacamos la descripción/instrucción (suponemos un solo nivel)
+                const [reportInfo]: ReportLevel[] = reportsMap.get(event.id) ?? [];
+
+                // `Object.entries` devuelve [string, unknown], así que casteamos
+                const entries = Object.entries(event.levels) as [Period, number][];
+
+                return entries
+                  .filter(([period, lvl]) => lvl >= 3)
+                  .map(([period, lvl]) => ({
+                    date: fecha,
+                    period,      // tipo Period
+                    level: event.max_level,
+                    description: reportInfo?.description ?? '',
+                    instruction: reportInfo?.instruction ?? ''
+                  }));
+              });
+            });
+
+          this.changeDetectorRef.detectChanges();
+        },
+        error: err => console.error(err)
+      });
   }
 }

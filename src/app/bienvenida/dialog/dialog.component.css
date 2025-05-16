@@ -8,7 +8,7 @@
 }
 
 .dialog-windows {
-  background-color: #2E7D32;
+  background-color: #30461a;
   color: #f8f5d7;
   padding: 20px;
   text-align: justify;
@@ -25,4 +25,12 @@ button {
   font-weight: bold;
   cursor: pointer;
   margin-top: 15px;
+}
+
+button:hover {
+  background-color: #363e2f;
+  color: #f8f5d7;
+  border-color: #f8f5d7;
+  border-style: solid;
+  border-width: 1px;
 }

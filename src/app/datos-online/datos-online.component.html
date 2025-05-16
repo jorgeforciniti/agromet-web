@@ -1,0 +1,65 @@
+<!-- datos-online.component.html -->
+<div class="container">
+    <div class="viewer-container">
+        <!-- Botón de cierre -->
+    <button class="close-btn" (click)="closeWindow()">✖</button>
+
+      <div class="titulo">Datos en Tiempo Real</div>
+  
+      <div *ngIf="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Cargando datos...</div>
+      </div>
+      <div *ngIf="error" class="error">Error al cargar los datos.</div>
+  
+      <div class="controls" *ngIf="!loading && !error">
+        <div class="control-group">
+          <label class="control-label">Mapa Base:</label>
+          <!--
+            - [(ngModel)] bindea selectedBaseMap
+            - (ngModelChange) emite BaseMapKey
+            - [ngValue] conserva el tipo literal en cada <option>
+          -->
+          <select
+            class="select-wrapper"
+            [(ngModel)]="selectedBaseMap"
+            (ngModelChange)="setBaseMap($event)"
+          >
+            <option
+              *ngFor="let key of baseMapKeys"
+              [ngValue]="key"
+            >
+              {{ baseMaps[key].name }}
+            </option>
+          </select>
+        </div>
+      </div>
+  
+      <div class="map-wrapper">
+        <div id="mapDatosOnline"></div>
+      </div>
+      <br><br><br><br><br>
+        <table *ngIf="!loading && !error" class="tabla-datos">
+        <thead>
+          <tr>
+            <th>ID</th><th>Nombre</th><th>Fecha</th><th>Temp. (°C)</th>
+            <th>Humedad (%)</th><th>Precip. (mm)</th>
+            <th>V. Medio (km/h)</th><th>Ráfaga (km/h)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let est of estaciones">
+            <td>{{ est.identificacion }}</td>
+            <td>{{ est.nombre }}</td>
+            <td>{{ est.fecha_i }}</td>
+            <td>{{ fmt(est.temp_af) }}</td>
+            <td>{{ fmt(est.hum_af) }}</td>
+            <td>{{ fmt(est.rr_dia) }}</td>
+            <td>{{ fmt(est.viento_medio) }}</td>
+            <td>{{ fmt(est.viento_max) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  

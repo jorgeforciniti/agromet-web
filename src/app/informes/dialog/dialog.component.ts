@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, Inject, SecurityContext } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialogModule } from '@angular/material/dialog';
 
 interface DialogData {
   archivo: SafeResourceUrl | string;  // Acepta ambos tipos
@@ -13,7 +15,7 @@ interface DialogData {
 @Component({
   standalone: true,
   selector: 'app-dialog',
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule, MatDialogModule],
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.css']
 })

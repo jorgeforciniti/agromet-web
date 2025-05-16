@@ -10,17 +10,33 @@
     <h2 class="titulo">Visor de Imágenes Satelitales</h2>
     <div class="controls">
       <div class="control-group">
-        <label for="layerSelect" class="control-label">Capa:</label>
-        <select id="layerSelect" [(ngModel)]="selectedLayer" (change)="setLayer(selectedLayer)">
-          <option *ngFor="let key of layerKeys" [value]="key">{{ layers[key].name }}</option>
-        </select>
+        <label class="control-label">Capa:
+          <mat-form-field appearance="outline" class="select-wrapper">
+            <mat-label>Selecciona una capa</mat-label>
+            <mat-select
+              [(ngModel)]="selectedLayer"
+              (selectionChange)="setLayer(selectedLayer)"
+              aria-label="Selección de capa">
+              <mat-option *ngFor="let key of layerKeys" [value]="key">
+                {{ layers[key].name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </label>
       </div>
       <div class="control-group">
-        <label for="baseMapSelect" class="control-label">Mapa Base:</label>
-        <select id="baseMapSelect" [(ngModel)]="selectedBaseMap" (change)="setBaseMap(selectedBaseMap)">
-          <option value="satellite">Satelital</option>
-          <option value="osm">OSM Estándar</option>
-        </select>
+        <label class="control-label">Mapa Base:
+          <mat-form-field appearance="outline" class="select-wrapper">
+            <mat-label>Selecciona un mapa base</mat-label>
+            <mat-select
+              [(ngModel)]="selectedBaseMap"
+              (selectionChange)="setBaseMap(selectedBaseMap)"
+              aria-label="Selección de mapa base">
+              <mat-option value="satellite">Satelital</mat-option>
+              <mat-option value="osm">OSM Estándar</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </label>
       </div>
     </div>
 

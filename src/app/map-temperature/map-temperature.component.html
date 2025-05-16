@@ -1,0 +1,61 @@
+<div class="temp-map-dialog dark-theme">
+  <div class="dialog-header">
+    <h2>Mapa de Temperatura</h2>
+    <button mat-icon-button (click)="close()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content" [formGroup]="form">
+    <div class="form-controls">
+
+      <mat-form-field appearance="outline">
+        <mat-label>Desde</mat-label>
+        <input matInput [matDatepicker]="pickerDesde" formControlName="desde">
+        <mat-datepicker-toggle matSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+        <mat-datepicker #pickerDesde></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Fecha Hasta -->
+      <mat-form-field appearance="outline">
+        <mat-label>Hasta</mat-label>
+        <input matInput [matDatepicker]="pickerHasta" formControlName="hasta">
+        <mat-datepicker-toggle matSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+        <mat-datepicker #pickerHasta></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Variable</mat-label>
+        <mat-select formControlName="variable" panelClass="dark-selection-panel">
+          <mat-option *ngFor="let v of variables" [value]="v.key">{{ v.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Mapa Base</mat-label>
+        <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange()" panelClass="dark-selection-panel">
+          <mat-option *ngFor="let bm of baseMapsList" [value]="bm.value">{{ bm.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="loadData()" [disabled]="loading">
+        <mat-icon *ngIf="!loading">map</mat-icon>
+        <mat-progress-spinner *ngIf="loading" mode="indeterminate" diameter="20"></mat-progress-spinner>
+        {{ loading ? 'Cargando...' : 'Cargar' }}
+      </button>
+    </div>
+
+    <!-- Título dinámico -->
+    <div class="map-title">
+      {{ currentVariableLabel }} - Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta |
+      date:'dd/MM/yyyy' }}
+    </div>
+
+    <div class="map-container" id="mapContainer">
+      <div *ngIf="loading" class="map-loader-overlay">
+        <mat-progress-spinner mode="indeterminate" diameter="75"></mat-progress-spinner>
+        <span>Cargando datos...</span>
+      </div>
+    </div>
+  </mat-dialog-content>
+</div>

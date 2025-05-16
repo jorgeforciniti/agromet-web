@@ -1,0 +1,289 @@
+/* Etiquetas de radio buttons */
+.mat-mdc-radio-button .mdc-form-field label {
+  color: #f8f5d7 !important;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* comparison-by-year.component.css */
+:host {
+  display: block;
+  color: #f8f5d7;
+  background: #121212;
+  padding: 1rem;
+}
+
+/* ===== Título ===== */
+h2.mat-mdc-dialog-title {
+  color: #f8f5d7 !important;
+  margin: 0 0 1rem 0;
+  font-size: 1.4rem;
+}
+
+/* ===== Contenedores principales ===== */
+.mat-mdc-dialog-surface {
+  background: #1a1a1a !important;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* ===== Selector de estación ===== */
+.mat-mdc-select-panel {
+  background: #1a1a1a !important;
+  color: #f8f5d7 !important;
+}
+
+.mat-mdc-option {
+  background: #1a1a1a !important;
+  color: #f8f5d7 !important;
+}
+
+.mat-mdc-option:hover {
+  background: #2a2a2a !important;
+}
+
+/* ===== Datepickers ===== */
+.mat-datepicker-content {
+  background: #1a1a1a !important;
+  color: #f8f5d7 !important;
+}
+
+.mat-calendar-body-cell-content {
+  color: #f8f5d7 !important;
+}
+
+/* ===== Campos de formulario ===== */
+.mat-mdc-form-field {
+  --mat-form-field-label-text-color: #f8f5d7 !important;
+  --mat-form-field-outline-color: #666 !important;
+  --mat-form-field-focus-outline-color: #f8f5d7 !important;
+  --mat-input-text-color: #f8f5d7 !important;
+
+  --mdc-filled-text-field-container-color: #1a1a1a !important;
+  --mdc-filled-text-field-label-text-color: #f8f5d7 !important;
+  --mdc-filled-text-field-input-text-color: #f8f5d7 !important;
+  --mdc-filled-text-field-focus-label-text-color: #f8f5d7 !important;
+}
+
+/* ===== Radio buttons ===== */
+.vars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas responsivas */
+    gap: 0.5rem;
+  margin: 1rem 0;
+  justify-items: start; /* Alinea los elementos del grid a la izquierda */
+
+}
+
+.mat-mdc-radio-button {
+  --mdc-radio-disabled-selected-icon-color: #f8f5d7;
+  --mdc-radio-disabled-unselected-icon-color: #f8f5d7;
+  --mdc-radio-selected-icon-color: #f8f5d7;
+  --mdc-radio-unselected-icon-color: #666;
+  min-width: auto !important;
+  margin: 0 !important;
+  transform: scale(0.9);
+  padding: 0 4px !important;
+}
+
+.mat-mdc-radio-button .mdc-form-field {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start !important; /* Alinea el contenido del radio a la izquierda */
+  width: 100%;
+}
+
+.mat-mdc-radio-button .mdc-radio {
+  padding: 0 !important;
+}
+
+/* ===== Layout responsive ===== */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+mat-form-field {
+  flex: 1 1 200px;
+}
+
+/* ===== Progress Bar ===== */
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: #f8f5d7;
+  --mdc-linear-progress-track-color: rgba(248, 245, 215, 0.1);
+}
+
+/* ===== Gráficos ===== */
+.chart-container {
+  flex: 1;
+  position: relative;
+  min-height: 300px;
+  width: 100%;
+  height: 100% !important;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+.chart-container canvas {
+  height: 100% !important;
+  width: 100% !important;
+  max-height: 400px;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 90vh !important;
+  min-height: 95vh !important;
+  width: 80vw !important;
+}
+
+.mat-mdc-dialog-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Leyenda del gráfico */
+::ng-deep .chart-legend .legend-label {
+  color: #f8f5d7 !important;
+}
+
+::ng-deep .chart-tooltip {
+  background: #1a1a1a !important;
+  border: 1px solid #333 !important;
+  color: #f8f5d7 !important;
+  border-radius: 4px !important;
+  padding: 8px !important;
+}
+
+/* ===== Media Queries ===== */
+@media (max-width: 768px) {
+  .vars-grid {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    gap: 0.25rem;
+  }
+  
+  .mat-mdc-radio-button {
+    flex: 1 1 100%;
+    min-width: auto;
+    transform: scale(1);
+  }
+  
+  .row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  mat-form-field {
+    flex: 1 1 100%;
+  }
+
+  .chart-container {
+    height: 50vh;
+    min-height: 300px;
+  }
+
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    min-height: 90vh !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+
+  .search-button {
+    width: 100%;             /* Ocupa todo el ancho */
+    padding: 10px;           /* Mayor espaciado en móviles */
+  }
+}
+
+@media (max-width: 480px) {
+  :host {
+    padding: 0.5rem;
+  }
+  
+  .mat-mdc-dialog-surface {
+    padding: 0.5rem;
+  }
+  
+  .vars-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  }
+}
+
+/* ===== Ajustes generales de color ===== */
+.mat-mdc-select-value-text,
+.mat-mdc-select-arrow,
+.mat-datepicker-toggle,
+.mat-mdc-input-element,
+.mat-calendar-table-header {
+  color: #f8f5d7 !important;
+}
+
+.mat-calendar-body-disabled > .mat-calendar-body-cell-content {
+  color: #666 !important;
+}
+
+.radio-label {
+  text-align: left !important;
+  width: 100%;
+  padding-right: 8px; /* Espacio a la derecha del texto */
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #f8f5d7;
+  cursor: pointer;
+  z-index: 1001;
+}
+.close-btn:hover {
+  color: #ff5555;
+}
+
+::ng-deep button.mat-raised-button[color="primary"] {
+  background-color: #3f51b5 !important;
+  color: #f8f5d7 !important;
+}
+
+.search-button {
+  display: inline-flex !important;
+  border-radius: 10px;
+  font-size: medium;
+  color: #f8f5d7;
+  background-color: #3f51dd;
+  align-items: center;       /* Alineación vertical */
+  justify-content: center;   /* Alineación horizontal */
+  gap: 8px;                  /* Espacio entre icono y texto */
+  padding: 8px 16px;         /* Ajuste de espaciado interno */
+  height: 40px;              /* Altura consistente */
+}
+
+.search-button:hover {
+  background-color: #3f51dd;
+}
+
+.search-button mat-icon {
+  font-size: 18px;           /* Tamaño del icono */
+  height: 18px;              /* Altura del icono */
+  width: 18px;               /* Ancho del icono */
+}
+
+.search-button .mat-button-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -1,0 +1,212 @@
+@import "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+
+.container {
+    max-height: 95vh;
+    height: 90vh;
+    border-radius: 8px;
+}
+
+.viewer-container {
+    position: relative;
+    background-color: #1e1e1e;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: #f8f5d7;
+}
+
+/* Título */
+.titulo {
+    font-size: 2rem;
+    font-weight: bold;
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+/* Overlay de carga */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a1a1a;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    color: #f8f5d7;
+    margin-top: 15px;
+    font-size: 16px;
+}
+
+/* Estilo de error */
+.error {
+    color: #ff5555;
+    text-align: center;
+    margin: 10px 0;
+}
+
+/* Controles */
+.controls {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    padding: 0px;
+}
+
+.control-label {
+    margin-right: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f8f5d7;
+}
+
+.select-wrapper {
+    width: 190px;
+    padding: 0px;
+    background-color: #1e1e1e;
+    color: #f8f5d7;
+}
+
+/* Para que las opciones del select también tengan fondo oscuro */
+.select-wrapper option {
+    background-color: #1a1a1a;
+    color: #f8f5d7;
+}
+
+/* Botón de búsqueda */
+.btn-search {
+    margin-left: 10px;
+    padding: 6px 12px;
+    border: none;
+    background-color: #2196f3;
+    color: #f8f5d7;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-search:hover {
+    background-color: #1976d2;
+}
+
+/* Mapa */
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    margin-bottom: 1rem;
+}
+
+#mapConditions {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+#mapWeather {
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    min-height: 400px;
+}
+
+/* Tabla de datos */
+.tabla-datos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.tabla-datos td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.tabla-datos th {
+    background-color: #4a4a4a;
+    font-weight: bold;
+}
+
+/* Filas apto/no apto */
+.apto-row {
+    background-color: #388e3c;
+    color: #fff;
+}
+
+.no-apto-row {
+    background-color: #d32f2f;
+    color: #fff;
+}
+
+/* Botón de cierre */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #f8f5d7;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.close-btn:hover {
+    color: #ff5555;
+}
+
+.resumen-consulta {
+    margin: 1rem 0 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #2a2a2a;
+    color: #f8f5d7;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .map-wrapper {
+        height: 50vh;
+        min-height: 250px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .select-wrapper {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+

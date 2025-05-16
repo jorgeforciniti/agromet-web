@@ -7,21 +7,26 @@
         <img mat-card-image src="../../assets/images/datosmeteorologicos/datostiemporeal.jpeg" alt="Temperatura">
         <mat-card-content>
           <h3>Datos en tiempo real</h3>
-          <p>Estaciones meteorológicas automáticas en línea miden y calculan diversas variables meteorológicas cada 15 minutos, distribuidas en el territorio tucumano y áreas de influencia. Estos datos en tiempo real permiten monitorear las condiciones climáticas para la toma de decisiones en agricultura y otras actividades.</p>
+          <p>Estaciones meteorológicas automáticas en línea miden y calculan diversas variables meteorológicas cada 15
+            minutos, distribuidas en el territorio tucumano y áreas de influencia. Estos datos en tiempo real permiten
+            monitorear las condiciones climáticas para la toma de decisiones en agricultura y otras actividades.</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button color="primary">Ver más</button>
+          <button mat-button color="primary" (click)="openDatosOnline()">Ver más</button>
         </mat-card-actions>
       </mat-card>
+      <!-- Resto de tarjetas igual que antes -->
 
       <mat-card class="card">
         <img mat-card-image src="../../assets/images/datosmeteorologicos/estacion_mr.jpg" alt="Precipitación">
         <mat-card-content>
           <h3>Datos meteorológicos por localidad</h3>
-          <p>Genera tablas y gráficos diarios de variables agrometeorológicas como temperatura, humedad, precipitación, etc para cualquier localidad de la red, en un período especificado. Esta herramienta permite un análisis detallado del clima local, facilitando la toma de decisiones en actividades agropecuarias.</p>
+          <p>Genera tablas y gráficos diarios de variables agrometeorológicas como temperatura, humedad, precipitación,
+            etc para cualquier localidad de la red, en un período especificado. Esta herramienta permite un análisis
+            detallado del clima local, facilitando la toma de decisiones en actividades agropecuarias.</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button color="primary">Ver más</button>
+          <button mat-button color="primary" (click)="openDatosxLocalidad()">Ver más</button>
         </mat-card-actions>
       </mat-card>
 
@@ -29,10 +34,12 @@
         <img mat-card-image src="../../assets/images/datosmeteorologicos/tormenta.png" alt="Viento">
         <mat-card-content>
           <h3>Precipitaciones por campaña</h3>
-          <p>Muestra una tabla con la evolución mensual de las precipitaciones acumuladas de julio a junio para todas las localidades de la red pluviométrica, comparadas con el promedio histórico. Cada dato está categorizado mediante colores que indican el grado de normalidad del registro de lluvia.</p>
+          <p>Muestra una tabla con la evolución mensual de las precipitaciones acumuladas de julio a junio para todas
+            las localidades de la red pluviométrica, comparadas con el promedio histórico. Cada dato está categorizado
+            mediante colores que indican el grado de normalidad del registro de lluvia.</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button color="primary">Ver más</button>
+          <button mat-button color="primary" (click)="openRainDialog()">Ver más</button>
         </mat-card-actions>
       </mat-card>
 
@@ -40,23 +47,51 @@
         <img mat-card-image src="../../assets/images/datosmeteorologicos/aplicacion.png" alt="Viento">
         <mat-card-content>
           <h3>Condiciones para la aplicación de agroquímicos</h3>
-          <p>Muestra un mapa de las condiciones actuales para la aplicación de agroquímicos, basado en temperatura, humedad y viento en las localidades de la red. Además, es posible generar una tabla con la evolución de estas condiciones para una localidad específica en una fecha elegida.</p>
+          <p>Muestra un mapa de las condiciones actuales para la aplicación de agroquímicos, basado en temperatura,
+            humedad y viento en las localidades de la red. Además, es posible generar una tabla con la evolución de
+            estas condiciones para una localidad específica en una fecha elegida.</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button color="primary">Ver más</button>
+          <button mat-button color="primary" (click)="openConditionsDialog()">Ver más</button>
         </mat-card-actions>
       </mat-card>
     </div>
   </div>
   <div class="sidebar">
     <h2>Más datos...</h2>
-    <a href="#"><p>⭐ Comparación de datos meteorológicos por año: Para una localidad seleccionada, permite comparar la marcha de una variable en años diferentes a escala diaria o decádica.</p></a>
-    <a href="#"><p>⭐ Comparación de datos entre Localidades: Permite seleccionar una variable meteorológica en un período determinado y comparar, a través de un gráfico, su comportamiento en dos o más localidades.</p></a>
-    <a href="#"><p>⭐ Horas de frío: Para una localidad y período elegido genera una tabla con la cantidad de horas en las que la temperatura estuvo por debajo de 7 ó 10 ºC.</p></a>
-    <a href="#"><p>⭐ Sumas térmicas: Calcula para una localidad y período elegido las sumas térmicas sobre diferentes temperaturas bases (0, 5, 10, 12, 15 y 18ºC).</p></a>
-    <a href="#"><p>⭐ Balance hidrológico seriado: A partir de los datos de precipitación y evapotranspiración potencial, para una localidad y período determinado, se obtiene una tabla con valores de almacenaje de agua, situaciones hídricas, evapotranspiración real y evapotranspiración relativa.</p></a>
-    <a href="#"><p>⭐ Condiciones para enfermedades en cultivos: Genera, para una localidad seleccionada y en un determinado período, un reporte de las condiciones predisponentes para un conjunto de enfermedades de soja, limón y caña de azúcar.</p></a>
-    <a href="#"><p>⭐ Estimador de rindes de soja: Se estiman probables rendimientos de soja a partir de los componentes de rendimiento.</p></a>
+    <a href="#" (click)="openComparisonByYear(); $event.preventDefault()">
+      <p>
+        ⭐ Comparación de datos meteorológicos por año: Para una localidad seleccionada,
+        permite comparar la marcha de una variable en años diferentes a escala diaria o decádica.
+      </p>
+    </a>
+    <a href="#" (click)="openComparisonByLocation(); $event.preventDefault()">
+        <p>⭐ Comparación de datos entre Localidades: Permite seleccionar una variable meteorológica en un período
+          determinado y comparar, a través de un gráfico, su comportamiento en dos o más localidades.
+        </p>
+    </a>
+    <a href="#">
+      <p>⭐ Horas de frío: Para una localidad y período elegido genera una tabla con la cantidad de horas en las que la
+        temperatura estuvo por debajo de 7 ó 10 ºC.</p>
+    </a>
+    <a href="#">
+      <p>⭐ Sumas térmicas: Calcula para una localidad y período elegido las sumas térmicas sobre diferentes temperaturas
+        bases (0, 5, 10, 12, 15 y 18ºC).</p>
+    </a>
+    <a href="#">
+      <p>⭐ Balance hidrológico seriado: A partir de los datos de precipitación y evapotranspiración potencial, para una
+        localidad y período determinado, se obtiene una tabla con valores de almacenaje de agua, situaciones hídricas,
+        evapotranspiración real y evapotranspiración relativa.</p>
+    </a>
+    <a href="#">
+      <p>⭐ Condiciones para enfermedades en cultivos: Genera, para una localidad seleccionada y en un determinado
+        período, un reporte de las condiciones predisponentes para un conjunto de enfermedades de soja, limón y caña de
+        azúcar.</p>
+    </a>
+    <a href="#">
+      <p>⭐ Estimador de rindes de soja: Se estiman probables rendimientos de soja a partir de los componentes de
+        rendimiento.</p>
+    </a>
 
 
   </div>

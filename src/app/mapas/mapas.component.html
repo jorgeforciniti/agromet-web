@@ -1,46 +1,53 @@
 <div class="container">
-    <div class="mapas-container">
-      <h2 class="titulo">mapas</h2>
-  
-      <div class="grid-container">
-        <mat-card class="card">
-          <img mat-card-image src="../../assets/images/mapas/lluviasmensuales.png" alt="Temperatura">
-          <mat-card-content>
-            <h3>Precipitaciones mensuales</h3>
-            <p>Exhibe la distribución de las lluvias acumuladas en uno o más meses en diferentes localidades de la provincia y su comparación con el valor normal de cada localidad.</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">Ver más</button>
-          </mat-card-actions>
-        </mat-card>
-  
-        <mat-card class="card">
-          <img mat-card-image src="../../assets/images/mapas/temperaturas.png" alt="Precipitación">
-          <mat-card-content>
-            <h3>Temperatura del aire</h3>
-            <p>Construye un mapa con valores extremos y medios de máximas y mínimas para un período especificado.</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">Ver más</button>
-          </mat-card-actions>
-        </mat-card>
-  
-        <mat-card class="card">
-          <img mat-card-image src="../../assets/images/mapas/heladas.png" alt="Viento">
-          <mat-card-content>
-            <h3>Heladas meteorológicas</h3>
-            <p>Para un período elegido genera un mapa con intensidad, duración y frecuencia de heladas meteorológicas.</p>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">Ver más</button>
-          </mat-card-actions>
-        </mat-card>
-  
-      </div>
-    </div>
-    <div class="sidebar">
-      <h2>Más mapas...</h2>
-      <a href="#"><p>⭐ Precipitaciones diarias: Permite conocer la distribución de las lluvias acumuladas, para un período determinado, en diferentes localidades de la provincia.</p></a>
-      <a href="#"><p>⭐ Precipitaciones máximas en 24 horas: Permite conocer la distribución de las lluvias máximas en 24 horas en diferentes localidades de la provincia, para un rango de fechas determinado.</p></a>
+  <div class="mapas-container">
+    <h2 class="titulo">mapas</h2>
+
+    <div class="grid-container">
+      <mat-card class="card">
+        <img mat-card-image src="../../assets/images/mapas/lluviasmensuales.png" alt="Temperatura">
+        <mat-card-content>
+          <h3>Precipitaciones mensuales</h3>
+          <p>Exhibe la distribución de las lluvias acumuladas en uno o más meses en diferentes localidades de la
+            provincia y su comparación con el valor normal de cada localidad.</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="openMapRainMonthly()">Ver más</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="card">
+        <img mat-card-image src="../../assets/images/mapas/temperaturas.png" alt="Precipitación">
+        <mat-card-content>
+          <h3>Temperatura del aire</h3>
+          <p>Construye un mapa con valores extremos y medios de máximas y mínimas para un período especificado.</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="openMapTemperature()">Ver más</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="card">
+        <img mat-card-image src="../../assets/images/mapas/heladas.png" alt="Viento">
+        <mat-card-content>
+          <h3>Heladas meteorológicas</h3>
+          <p>Para un período elegido genera un mapa con intensidad, duración y frecuencia de heladas meteorológicas.</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary">Ver más</button>
+        </mat-card-actions>
+      </mat-card>
+
     </div>
   </div>
+  <div class="sidebar">
+    <h2>Más mapas...</h2>
+    <a href="#">
+      <p>⭐ Precipitaciones diarias: Permite conocer la distribución de las lluvias acumuladas, para un período
+        determinado, en diferentes localidades de la provincia.</p>
+    </a>
+    <a href="#">
+      <p>⭐ Precipitaciones máximas en 24 horas: Permite conocer la distribución de las lluvias máximas en 24 horas en
+        diferentes localidades de la provincia, para un rango de fechas determinado.</p>
+    </a>
+  </div>
+</div>
