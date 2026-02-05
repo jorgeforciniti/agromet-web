@@ -33,7 +33,7 @@
           <p>Para un período elegido genera un mapa con intensidad, duración y frecuencia de heladas meteorológicas.</p>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-button color="primary">Ver más</button>
+          <button mat-button color="primary" (click)="openMapFrost()">Ver más</button>
         </mat-card-actions>
       </mat-card>
 
@@ -41,11 +41,12 @@
   </div>
   <div class="sidebar">
     <h2>Más mapas...</h2>
-    <a href="#">
+    <a href="#" (click)="openMapRains(); $event.preventDefault()">
       <p>⭐ Precipitaciones diarias: Permite conocer la distribución de las lluvias acumuladas, para un período
         determinado, en diferentes localidades de la provincia.</p>
     </a>
-    <a href="#">
+
+    <a href="#" class="disabled-link">
       <p>⭐ Precipitaciones máximas en 24 horas: Permite conocer la distribución de las lluvias máximas en 24 horas en
         diferentes localidades de la provincia, para un rango de fechas determinado.</p>
     </a>

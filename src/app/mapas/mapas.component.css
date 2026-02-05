@@ -110,6 +110,14 @@ button[mat-button]:hover {
   color: #f8f5d7;
 }
 
+.disabled-link {
+  pointer-events: none; /* evita que el enlace sea clickeable */
+  color: gray !important; /* cambia el color para que parezca desactivado */
+  opacity: 0.6;
+  cursor: default;
+  text-decoration: none;
+}
+
 @media (max-width: 768px) {
   .titulo {
     font-size: 2rem;

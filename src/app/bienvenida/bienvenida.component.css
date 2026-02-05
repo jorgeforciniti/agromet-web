@@ -33,6 +33,7 @@
 .image-right {
   flex: 1;
   max-width: 350px;
+  padding: 10px;
 }
 
 .image-left img,

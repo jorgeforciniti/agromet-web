@@ -1,71 +1,86 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { DatosService } from '../services/datos.service';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDialogModule } from '@angular/material/dialog';
+import { DatosService } from '../services/datos.service';
 import { DialogComponent } from './dialog/dialog.component';
 
 interface Informe {
-  archivo: string;
-  safeArchivo: SafeResourceUrl;
+  id: number;
   titulo: string;
-  fecha: string;
+  archivo: string;
+  creado: string;
+  categoria: string;
+  posicion: number;
+  url_img: string;
+  safeArchivo?: SafeResourceUrl;
 }
 
 @Component({
   selector: 'app-informes',
   standalone: true,
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatRadioModule,
     MatDialogModule,
+    MatFormFieldModule
   ],
   templateUrl: './informes.component.html',
   styleUrls: ['./informes.component.css']
 })
 export class InformesComponent implements OnInit {
   datos: Informe[] = [];
+  filteredDatos: Informe[] = [];
+
+  tiposInformes = [
+    { value: 'll', viewValue: 'Informes de lluvias' },
+    { value: 'he', viewValue: 'Informes de heladas' },
+    { value: 'bo', viewValue: 'Boletín agrometeorológico' },
+    { value: 'co', viewValue: 'Presentaciones en congresos' },
+    { value: 'ad', viewValue: 'Seguimiento de adversidades' },
+    { value: 'rv', viewValue: 'Artículos en revistas' },
+    { value: 'et', viewValue: 'Estadísticas agrometeorológicas' }
+  ];
+
+  selectedCategoria = 'll';
 
   @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
 
   constructor(
     private datosService: DatosService,
     private sanitizer: DomSanitizer,
-    public dialog: MatDialog
-  ) { }
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit() {
-    this.cargarInformes();
-  }
-
-  private cargarInformes(): void {
-    this.datosService.getInformes().subscribe({
-      next: (res: any[]) => {
-        this.datos = this.procesarDatos(res);
-      },
-      error: (err) => {
-        console.error('Error al obtener informes:', err);
-      }
+    this.datosService.getInformes().subscribe(resp => {
+      this.datos = resp.data.map((inf: Informe) => ({
+        ...inf,
+        safeArchivo: this.sanitizeUrl(inf.archivo)
+      }));
+      this.applyFilter();
     });
   }
 
-  private procesarDatos(response: any): Informe[] {
-    const datos = response.data || [];
-    return datos.map((item: any) => ({
-      archivo: item.archivo || '',
-      fecha: item.creado || 'Fecha no disponible',
-      titulo: item.titulo || 'Sin título',
-      safeArchivo: this.generarUrlSegura(item.archivo)
-    }));
+  applyFilter() {
+    this.filteredDatos = this.datos.filter(i => i.categoria === this.selectedCategoria);
   }
-  
-  private generarUrlSegura(nombreArchivo: string): SafeResourceUrl {
-    const urlBase = "https://agromet.eeaoc.gob.ar/PDFS/";
-    return this.sanitizer.bypassSecurityTrustResourceUrl(urlBase + nombreArchivo);
+
+  sanitizeUrl(archivo: string): SafeResourceUrl {
+    const url = `https://agromet.eeaoc.gob.ar/PDFS/${archivo}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  onCategoriaChange() {
+    this.applyFilter();
   }
 
   openDialog(nombreArchivo: string): void {
     const informe = this.datos.find(item => item.archivo === nombreArchivo);
-
     this.dialog.open(DialogComponent, {
       width: '80vw',
       height: '90vw',
@@ -75,12 +90,11 @@ export class InformesComponent implements OnInit {
         archivo: informe?.safeArchivo,
         nombreOriginal: nombreArchivo,
         titulo: informe?.titulo,
-        fecha: informe?.fecha
+        fecha: informe?.creado
       }
     });
   }
 
-  // Métodos para el scroll horizontal
   scrollLeft(): void {
     this.scrollContainer.nativeElement.scrollBy({ left: -300, behavior: 'smooth' });
   }

@@ -133,10 +133,10 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.alert-level-3 { border-left: 6px solid #FFD700; }
-.alert-level-4 { border-left: 6px solid #FF8C00; }
-.alert-level-5 { border-left: 6px solid #FF4500; }
-.alert-short { border-left: 6px solid #00BFFF; }
+.alert-level-3 { border-left: 6px solid #FFD700;color: #FFD700; }
+.alert-level-4 { border-left: 6px solid #FF8C00;color: #FF8C00; }
+.alert-level-5 { border-left: 6px solid #FF4500;color: #FF4500; }
+.alert-short { border-left: 6px solid #00BFFF;color: #00BFFF; }
 
 .alert-description {
   font-size: 0.9rem;
@@ -164,7 +164,6 @@
 }
 
 .alert-region {
-  color: #4CAF50;
   font-weight: bold;
   margin: 0.5em 0;
 }
@@ -209,7 +208,7 @@
 
 .day-card.active {
   background-color: #474747;
-  border: 1px solid #6ec6ff;
+  border: 3px solid #6ec6ff;
 }
 
 .day-name {
@@ -295,35 +294,175 @@
   color: #bbb;
 }
 
-/* Responsividad */
-@media (max-width: 768px) {
-  .forecast-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .realtime-footer {
-    gap: 0.4em;
-  }
-  .week-forecast {
-    justify-content: flex-start;
-  }
+/* NUEVO: Estilos para el Pronóstico Horario Estilo Google Weather */
+.hourly-forecast-container {
+  margin-top: 0.8em;
+  background-color: #333; /* Fondo ligeramente diferente para destacar */
+  border-radius: 6px;
+  padding: 0.8em 0.5em;
 }
 
-@media (max-width: 480px) {
-  .week-forecast {
-    gap: 0.1em;
+.hourly-forecast-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5em; /* Espacio entre items horarios */
+  padding-bottom: 0.5em; /* Espacio para la barra de scroll si aparece */
+}
+
+.hourly-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #3E3E3E; /* Color de fondo de cada item horario */
+  border-radius: 4px;
+  padding: 0.6em 0.4em;
+  min-width: 65px; /* Ancho mínimo de cada item */
+  text-align: center;
+  color: #f1f1f1;
+}
+
+.hourly-time {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.4em;
+}
+
+.hourly-icon img {
+  width: 35px; /* Tamaño del icono del clima */
+  height: 35px;
+  margin-bottom: 0.1em;
+}
+
+.hourly-temp {
+  font-size: 0.95rem;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+.hourly-wind {
+  font-size: 0.95rem;
+  margin-bottom: 0.3em;
+  color: rgb(147, 202, 52);
+}
+
+.hourly-rain {
+  font-size: 0.7rem;
+  color: #87CEEB; /* Azul claro para la probabilidad de lluvia */
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.hourly-rain fa-icon {
+  font-size: 0.75rem;
+}
+
+/* Estilización de la barra de scroll horizontal (opcional, para Webkit) */
+.hourly-forecast-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-track {
+  background: #2c2c2c;
+  border-radius: 3px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6E6E6E;
+}
+
+#temperatureChart {
+  margin-top: 0.2em;
+  background-color: #2c2c2c;
+  border-radius: 4px;
+  padding: 0.5em;
+  max-height: 200px !important;
+}
+
+/* Estilos personalizados para el mat-form-field */
+.station-select-wrapper .mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: #252525; /* Color de fondo */
+  --mdc-filled-text-field-label-text-color: rgba(255, 255, 255, 0.6); /* Color del label */
+  --mdc-filled-text-field-input-text-color: #fff; /* Color del texto seleccionado */
+  --mat-select-disabled-trigger-text-color: rgba(255, 255, 255, 0.38);
+  --mat-select-trigger-text-color: #fff;
+}
+
+/* Flecha del select */
+.station-select-wrapper .mat-mdc-select-arrow {
+  color: #fff;
+}
+
+/* Borde y subrayado */
+.station-select-wrapper .mdc-line-ripple::before {
+  border-bottom-color: rgba(255, 255, 255, 0.42);
+}
+
+.station-select-wrapper .mdc-line-ripple::after {
+  border-bottom-color: #fff;
+}
+
+/* Opciones del dropdown */
+.station-select-wrapper .mat-mdc-select-panel {
+  background-color: #353535;
+}
+
+/* Items del dropdown */
+.station-select-wrapper .mat-mdc-option {
+  color: #fff;
+  background-color: #353535;
+}
+
+/* Item hover */
+.station-select-wrapper .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background-color: #454545;
+}
+
+/* Item seleccionado */
+.station-select-wrapper .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background-color: #3a3a3a;
+}
+/* Responsive */
+@media (max-width: 768px) {
+  .forecast-header {
+    gap: 0.5rem;
   }
+  
+  .realtime-footer {
+    gap: 0.8rem;
+  }
+  
   .day-card {
     flex: 0 0 65px;
     min-width: 65px;
   }
-  .time-period {
-    padding: 0.3em 0.2em;
-  }
-  .tp-desc {
-    gap: 0.3rem;
-  }
-  .alert-section {
+}
+
+@media (max-width: 480px) {
+  .forecast-container {
     padding: 0.6em;
+  }
+  
+  .alert-section {
+    padding: 0.8em;
+  }
+  
+  .hourly-item {
+    min-width: 60px;
+    padding: 0.4em;
+  }
+  
+  .realtime-item {
+    font-size: 0.8rem;
+  }
+  
+  .station-select-wrapper {
+    max-width: 100%;
   }
 }

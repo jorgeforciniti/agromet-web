@@ -1,7 +1,7 @@
 import { CdkTableModule } from '@angular/cdk/table';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -12,21 +12,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  LineController,
-  PointElement,
-  LineElement,
-  BarController,
-  BarElement,
-  Tooltip,
-  Legend,
-  ChartEvent,
-  ActiveElement,
-  ChartDataset
-} from 'chart.js';
+import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, BarController, BarElement, Tooltip, Legend, ChartEvent, ActiveElement, ChartDataset } from 'chart.js';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService } from '../services/weather.service';
@@ -35,23 +21,63 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
-import { 
-  MAT_DATE_FORMATS, 
-  MAT_DATE_LOCALE, 
-  MatNativeDateModule,
-  provideNativeDateAdapter 
-} from '@angular/material/core';
+import { MAT_DATE_LOCALE, MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
+import { MAT_DATE_FORMATS } from '@angular/material/core';
+import { NativeDateAdapter } from '@angular/material/core';
+import { Injectable } from '@angular/core';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { DateAdapter } from '@angular/material/core';
+
+@Injectable()
+export class DmyDateAdapter extends NativeDateAdapter {
+  override parse(value: any): Date | null {
+    if (typeof value === 'string' && value.includes('/')) {
+      const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
+      if ([dd, mm, yyyy].every(n => !isNaN(n))) {
+        const date = new Date(yyyy, mm - 1, dd);
+        if (
+          date.getFullYear() === yyyy &&
+          date.getMonth() + 1 === mm &&
+          date.getDate() === dd
+        ) {
+          return date;
+        }
+      }
+    }
+    return super.parse(value);
+  }
+}
+
+export function dmyDateValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const val = control.value;
+    if (!val || typeof val !== 'string') return null;
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(val);
+    if (!match) return { invalidDate: true };
+    const [, dd, mm, yyyy] = match;
+    const d = +dd, m = +mm, y = +yyyy;
+    const date = new Date(y, m - 1, d);
+    if (
+      date.getFullYear() !== y ||
+      date.getMonth() + 1 !== m ||
+      date.getDate() !== d
+    ) {
+      return { invalidDate: true };
+    }
+    return null;
+  };
+}
 
 export const MY_DATE_FORMATS = {
   parse: {
-    dateInput: 'dd/MM/yyyy',
+    dateInput: 'dd/MM/yyyy', // Formato de entrada
   },
   display: {
-    dateInput: 'dd/MM/yyyy',
-    monthYearLabel: 'MMM yyyy',
-    dateA11yLabel: 'dd/MM/yyyy',
-    monthYearA11yLabel: 'MMMM yyyy'
-  }
+    dateInput: 'dd/MM/yyyy', // Visualización principal
+    monthYearLabel: 'MMM yyyy', // Ej: "Jul 2024"
+    dateA11yLabel: 'dd/MM/yyyy', // Formato accesible
+    monthYearA11yLabel: 'MMMM yyyy' // Mes completo accesible
+  },
 };
 
 @Component({
@@ -80,9 +106,10 @@ export const MY_DATE_FORMATS = {
     CdkTableModule
   ],
   providers: [
-    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
-     provideNativeDateAdapter()
-  ]
+    { provide: DateAdapter, useClass: DmyDateAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+    { provide: MAT_DATE_LOCALE, useValue: 'es-AR' }, // Configura el locale a español argentino
+  ],
 })
 export class WeatherDashboardComponent implements OnInit {
   @ViewChild(BaseChartDirective) chartDirective!: BaseChartDirective;
@@ -107,7 +134,7 @@ export class WeatherDashboardComponent implements OnInit {
     'viento_max'
   ];
 
-  chartConfig: ChartConfiguration<'line'|'bar', number[], unknown> = {
+  chartConfig: ChartConfiguration<'line' | 'bar', number[], unknown> = {
     type: 'line',
     data: { labels: [], datasets: [] },
     options: {}
@@ -147,24 +174,30 @@ export class WeatherDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initializeDates();
+    const defaultDates = this.getDefaultDates();
+    this.weatherForm = this.fb.group({
+      station: ['', Validators.required],
+      desde: [defaultDates.desde, [Validators.required, dmyDateValidator()]],
+      hasta: [defaultDates.hasta, [Validators.required, dmyDateValidator()]]
+    });
     this.loadStations();
   }
 
-  private initializeDates(): void {
+  private getDefaultDates(): { desde: Date; hasta: Date } {
     const today = new Date();
-    const oneWeekAgo = new Date(today);
-    oneWeekAgo.setDate(today.getDate() - 7);
-
-    this.weatherForm.patchValue({
-      desde: this.formatDate(oneWeekAgo),
-      hasta: this.formatDate(today)
-    });
+    const desde = new Date(today.getFullYear(), today.getMonth(), 1); // Primer día del mes
+    const hasta = new Date(today); // Día actual
+    hasta.setDate(today.getDate() - 1); // Ajusta según necesidad
+    return { desde, hasta };
   }
 
   private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
-  }
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = ('0' + (d.getMonth() + 1)).slice(-2);
+  const day = ('0' + d.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+}
 
   private async loadStations(): Promise<void> {
     try {
@@ -188,9 +221,18 @@ export class WeatherDashboardComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = null;
-    const { station, desde, hasta } = this.weatherForm.value;
+
+    // 1) Extraemos station y raw desde/hasta del form
+    const { station, desde: rawDesde, hasta: rawHasta } = this.weatherForm.value;
+
+    // 2) Convertimos siempre a Date y luego a 'YYYY-MM-DD'
+    const desdeDate = new Date(rawDesde);
+    const hastaDate = new Date(rawHasta);
+    const desde = this.formatDate(desdeDate);
+    const hasta = this.formatDate(hastaDate);
 
     try {
+      // 3) Ahora paso strings '2025-04-01' y no objetos Date
       const resumen$ = this.weatherService.getWeatherDataResumen(desde, hasta, station);
       const resumen = await lastValueFrom(resumen$);
       this.summaryData = resumen.data?.[0] || null;
@@ -221,7 +263,7 @@ export class WeatherDashboardComponent implements OnInit {
 
   public setupCharts(): void {
     const labels = this.diaryData.map(d => d.fecha);
-    const datasets: ChartDataset<'line'|'bar', number[]>[] = [];
+    const datasets: ChartDataset<'line' | 'bar', number[]>[] = [];
 
     if (this.selectedVariables.temperatura) {
       datasets.push(
@@ -365,7 +407,7 @@ export class WeatherDashboardComponent implements OnInit {
         onClick: (evt: ChartEvent, elements: ActiveElement[], chart) => {
           if (elements.length > 0) {
             const { datasetIndex, index } = elements[0];
-            const ds = chart.data.datasets?.[datasetIndex] as ChartDataset<'line'|'bar', number[]>;
+            const ds = chart.data.datasets?.[datasetIndex] as ChartDataset<'line' | 'bar', number[]>;
             const value = ds.data[index];
             alert(`${ds.label}: ${value}`);
           }

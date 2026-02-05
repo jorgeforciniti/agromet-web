@@ -6,8 +6,9 @@ import * as L from 'leaflet';
 import { WeatherService } from '../services/weather.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, NativeDateAdapter } from '@angular/material/core';
+import { Injectable } from '@angular/core';
 
 interface Estacion {
   identificacion: string;
@@ -33,13 +34,48 @@ interface WeatherData {
   apto?: boolean;
 }
 
+// Definir el formato de fechas
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'dd/MM/yyyy',
+  },
+  display: {
+    dateInput: 'dd/MM/yyyy',
+    monthYearLabel: 'MMM yyyy',
+    dateA11yLabel: 'dd/MM/yyyy',
+    monthYearA11yLabel: 'MMMM yyyy'
+  },
+};
+
+// Adaptador de fechas personalizado
+@Injectable()
+export class DmyDateAdapter extends NativeDateAdapter {
+  override parse(value: any): Date | null {
+    if (typeof value === 'string' && value.includes('/')) {
+      const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
+      if ([dd, mm, yyyy].every(n => !isNaN(n))) {
+        const date = new Date(yyyy, mm - 1, dd);
+        if (
+          date.getFullYear() === yyyy &&
+          date.getMonth() + 1 === mm &&
+          date.getDate() === dd
+        ) {
+          return date;
+        }
+      }
+    }
+    return super.parse(value);
+  }
+}
+
 @Component({
   selector: 'app-conditions-to-apply',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule, MatDatepickerModule, MatFormFieldModule, MatInputModule]
-  ,
+  imports: [CommonModule, FormsModule, MatDialogModule, MatDatepickerModule, MatFormFieldModule, MatInputModule],
   providers: [
-    provideNativeDateAdapter()
+    { provide: DateAdapter, useClass: DmyDateAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+    { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
   ],
   templateUrl: './conditions-to-apply.component.html',
   styleUrls: ['./conditions-to-apply.component.css']
@@ -54,7 +90,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   private stationsLayer?: L.GeoJSON;
 
   selectedStation: string = '';
-  selectedDate: string = '';
+  selectedDate: Date = new Date();
   weatherData: WeatherData[] = [];
 
   constructor(
@@ -63,7 +99,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.selectedDate = this.formatDate(new Date());
+    this.selectedDate = new Date();
     this.loadStations();
   }
 
@@ -74,7 +110,6 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   private loadStations(): void {
     this.weatherService.getStationsAll().subscribe({
       next: (data: any[]) => {
-        // Adaptación de nombres y tipos
         this.estaciones = data.map(item => ({
           identificacion: String(item.Identificacion || item.identificacion),
           nombre: item.nombre,
@@ -91,10 +126,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
           new Date(est.fecha_I) >= twoHoursAgo
         );
 
-        // **DEBUG**: ver las estaciones recientes en consola
         console.log('🗺️ estacionesRecientes =', this.estacionesRecientes);
 
-        // Asigno por defecto la estación 2049 si está en recientes, sino la primera
         if (this.estacionesRecientes.length > 0) {
           const defaultEst = this.estacionesRecientes.find(est => est.identificacion === '2049');
           this.selectedStation = defaultEst
@@ -104,11 +137,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
         }
 
         this.loadingEstaciones = false;
-
-        // Cargo datos horarios iniciales
         this.searchData();
 
-        // Pongo marcadores en el mapa (si ya está listo)
         if (this.map) {
           this.addMarkers(this.estacionesRecientes);
         }
@@ -121,14 +151,12 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /** Devuelve el nombre de la estación según el ID seleccionado */
   public get selectedStationName(): string {
     const est = this.estacionesRecientes.find(e => e.identificacion === this.selectedStation);
     return est ? est.nombre : '';
   }
 
   public searchData(): void {
-    // **DEBUG**: compruebo qué hay en selectedStation
     console.log('💡 Al buscar datos, selectedStation =', this.selectedStation);
 
     if (!this.selectedStation) {
@@ -136,8 +164,10 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const formattedDate = this.formatDate(this.selectedDate);
+    console.log("Fecha: "+formattedDate)
     this.weatherService
-      .getWeatherDataHourly(this.selectedDate, this.selectedStation)
+      .getWeatherDataHourly(formattedDate, this.selectedStation)
       .subscribe({
         next: resp => {
           const arr = resp.data || [];
@@ -162,9 +192,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       return;
     }
     if (this.map) this.map.remove();
-    this.map = L.map(mapId, { center: [-26.8, -65.2], zoom: 7, preferCanvas: true });
+    this.map = L.map(mapId, { center: [-26.8, -65.2], zoom: 8, preferCanvas: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OSM'
+      attribution: '© OSM'
     }).addTo(this.map);
   }
 
@@ -204,6 +234,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
   }
 }

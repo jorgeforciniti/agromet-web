@@ -4,7 +4,7 @@ import { DatosMeteorologicosComponent } from '../datos-meteorologicos/datos-mete
 import { MapasComponent } from '../mapas/mapas.component';
 import { InformesComponent } from "../informes/informes.component";
 import { LeafletGoesViewerComponent } from '../leaflet-goes-viewer/leaflet-goes-viewer.component'; // ruta según tu estructura
-
+import { AlertComponent } from '../alert/alert.component';
 
 @Component({
   selector: 'app-home',
@@ -14,6 +14,7 @@ import { LeafletGoesViewerComponent } from '../leaflet-goes-viewer/leaflet-goes-
     MapasComponent,
     InformesComponent,
     LeafletGoesViewerComponent,
+    AlertComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'

@@ -1,0 +1,92 @@
+<div class="temp-map-dialog dark-theme">
+    <div class="dialog-header">
+        <h2>Mapa de Heladas</h2>
+        <button mat-icon-button (click)="close()" matTooltip="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <mat-dialog-content class="dialog-content" [formGroup]="form">
+        <div class="form-controls" *ngIf="!hoy">
+            <mat-form-field appearance="outline">
+                <mat-label>Desde</mat-label>
+                <input matInput [matDatepicker]="pickerDesde" formControlName="desde">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerDesde"></mat-datepicker-toggle>
+                <mat-datepicker #pickerDesde></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Hasta</mat-label>
+                <input matInput [matDatepicker]="pickerHasta" formControlName="hasta">
+                <mat-datepicker-toggle matIconSuffix [for]="pickerHasta"></mat-datepicker-toggle>
+                <mat-datepicker #pickerHasta></mat-datepicker>
+            </mat-form-field>
+        <mat-form-field appearance="outline">
+            <mat-label>Mapa Base</mat-label>
+            <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange($event)">
+                <mat-option *ngFor="let base of baseMapsList" [value]="base.value">{{base.label}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+            <button mat-flat-button color="primary" (click)="loadData()" [disabled]="loading">
+                <mat-icon>ac_unit</mat-icon>
+                {{ loading ? 'Cargando...' : 'Cargar' }}
+            </button>
+        </div>
+
+        <div class="map-title">
+            Heladas –
+            <span *ngIf="hoy; else rango">
+                {{ today | date:'dd/MM/yyyy' }}
+            </span>
+
+            <ng-template #rango>
+                Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta | date:'dd/MM/yyyy' }}
+            </ng-template>
+        </div>
+
+        <mat-tab-group>
+            <mat-tab label="Mapa">
+                <div class="map-container" id="mapContainer">
+                    <div *ngIf="loading" class="map-loader-overlay">
+                        <mat-progress-spinner mode="indeterminate" diameter="75"></mat-progress-spinner>
+                        <span>Cargando datos...</span>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <mat-tab label="Datos" [disabled]="heladasData.length === 0">
+                <div class="heladas-summary">
+                    <h3>Resumen de Heladas</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estación</th>
+                                <th>MinAbs (°C)</th>
+                                <th>Horas < -4°C</th>
+                                <th>Horas < -2°C</th>
+                                <th>Horas < 0°C</th>
+                                <th>Días Heladas</th>
+                                <th>FPH</th>
+                                <th>FUH</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let d of heladasData" [style.backgroundColor]="getColor(d.minAbs)">
+                                <td>{{ d.nombre }}</td>
+                                <td>{{ d.minAbs }}</td>
+                                <td>{{ d['hsDebajo-4'] }}</td>
+                                <td>{{ d['hsDebajo-2'] }}</td>
+                                <td>{{ d.hsDebajo0 }}</td>
+                                <td>{{ d.diasHeladas }}</td>
+                                <td>{{ d.FPH | date:'dd/MM/yyyy' }}</td>
+                                <td>{{ d.FUH | date:'dd/MM/yyyy' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </mat-tab>
+        </mat-tab-group>
+    </mat-dialog-content>
+</div>

@@ -67,7 +67,7 @@
     padding-bottom: 0px;
     gap: 15px;
     align-items: center;
-    margin-bottom: 0px;
+    margin-bottom: 0px !important;
     flex-wrap: wrap;
     /* Permite envoltura en pantallas pequeñas */
     flex-shrink: 0;
@@ -259,3 +259,34 @@
     min-height: 0;
     position: relative;
   }
+
+  .map-title {
+  color: #eee;
+  margin: 0px 0 !important;
+  font-size: 1.1em;
+  text-align: center;
+  padding: 8px;
+  background: #2c2c2c;
+  border-radius: 4px;
+}
+
+/* 1) Disminuye el gap general */
+.dialog-content {
+  gap: 8px; /* antes era 20px */
+}
+
+/* 2) Ajusta el padding entre secciones */
+.form-controls {
+  padding-top: 8px;    /* antes 10px */
+  padding-bottom: 4px; /* antes 0 (pero ayuda cerrar un poco) */
+}
+
+.map-title {
+  margin: 0;        /* elimina márgenes si tiene */
+  padding: 4px 0;   /* menos espacio arriba/abajo */
+}
+
+.map-cont {
+  padding: 4px;     /* antes 10px */
+  min-height: 40rem !important;
+}

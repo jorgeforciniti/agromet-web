@@ -161,10 +161,6 @@
   font-style: italic;
 }
 
-.leaflet-layer {
-  mix-blend-mode: multiply; /* Mejora la combinación de capas */
-}
-
 /* Para capas de temperatura específicamente */
 .leaflet-layer[src*="temp_new"] {
   filter: hue-rotate(-10deg) brightness(1.1);
@@ -204,4 +200,127 @@
 
 .popup-grid div:nth-child(even) {
   text-align: right;
+}
+
+::ng-deep .leaflet-tile[src*="precipitation_new"] {
+  filter: grayscale(1)
+    sepia(1)
+    hue-rotate(200deg)
+    saturate(3)
+    brightness(1.2)
+    contrast(1.2) !important;
+  opacity: 1 !important;
+   mix-blend-mode: normal !important;
+}
+
+.legend {
+  padding: 6px 10px;
+  background: white;
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  border-radius: 5px;
+  line-height: 18px;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+/* Título */
+.legend h4 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Cajas de color */
+.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+.leaflet-container .leaflet-tile {
+  transition: none !important;
+}
+
+::ng-deep .leaflet-container .leaflet-tile {
+  transition: none !important;
+}
+
+::ng-deep .leaflet-tile-loaded {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+::ng-deep .leaflet-overlay-pane {
+  z-index: 401 !important;
+}
+
+
+
+
+
+/* Deshabilitar transiciones para todas las teselas */
+::ng-deep .leaflet-container .leaflet-tile,
+::ng-deep .leaflet-container .leaflet-tile-loaded {
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+/* Asegurar z-index para overlayPane */
+::ng-deep .leaflet-overlay-pane {
+  z-index: 401 !important;
+}
+
+/* Estilos para la capa de precipitación (usar colores de OpenWeatherMap) */
+::ng-deep .leaflet-tile[src*="precipitation_new"] {
+  filter: none !important; /* Usar colores originales */
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Estilos para la capa de temperatura (usar colores de OpenWeatherMap) */
+::ng-deep .leaflet-tile[src*="temp_new"] {
+  filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Estilos para la capa de vientos (usar colores de OpenWeatherMap) */
+::ng-deep .leaflet-tile[src*="wind_new"] {
+  filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Estilos para la leyenda */
+.legend {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  line-height: 18px;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.legend h4 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 1 !important; /* Colores opacos en la leyenda */
+}
+
+.leaflet-container .leaflet-tile,
+.leaflet-container .leaflet-tile-loaded {
+  transition: none !important;
+  opacity: 1 !important;
 }

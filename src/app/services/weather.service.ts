@@ -7,7 +7,7 @@ import { WeatherData } from '../models/weather-data';
   providedIn: 'root'
 })
 export class WeatherService {
-  private stationsUrl = 'https://agromet.eeaoc.gob.ar/services/estaciones.php';
+  private stationsUrl = 'https://agromet.eeaoc.gob.ar/services/';
 
   constructor(private http: HttpClient) { }
 
@@ -18,50 +18,63 @@ export class WeatherService {
   }
 
   getStations(): Observable<any[]> {
-    return this.http.get<any[]>(this.stationsUrl+'?habilitada=2');
+    return this.http.get<any[]>(this.stationsUrl + 'estaciones.php?habilitada=2');
+  }
+
+  getAlerts(): Observable<any[]> {
+    return this.http.get<any[]>(this.stationsUrl + 'datos-alerta.php');
+  }
+
+  getRains(desde: string, hasta: string): Observable<any[]> {
+    return this.http.get<any[]>(this.stationsUrl + `datos-alerta.php?desde=${desde}&hasta=${hasta}`);
   }
 
   getStationsAll(): Observable<any[]> {
-    return this.http.get<any[]>(this.stationsUrl);
+    return this.http.get<any[]>(this.stationsUrl+'estaciones.php');
   }
 
   getWeatherDataResumen(desde: string, hasta: string, estacion: string): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/datos-resumen.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
+    const url = this.stationsUrl +`datos-resumen.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
     return this.http.get(url);
   }
 
   getWeatherDataDiary(desde: string, hasta: string, estacion: string): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/datos-diarios.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
+    const url = this.stationsUrl +`datos-diarios.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
     return this.http.get(url);
   }
 
   getWeatherDataHourly(fecha: string, estacion: string): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/datos-24hs.php?fecha=${fecha}&estacion=${estacion}`;
+    const url = this.stationsUrl +`datos-24hs.php?fecha=${fecha}&estacion=${estacion}`;
     return this.http.get(url);
   }
 
   getSmnAlerts(lat: number, lon: number): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}`;
+    const url = this.stationsUrl +`pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}`;
     return this.http.get(url);
   }
-  
+
   getSmnAlertByCoords(lat: number, lon: number): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=1`;
+    const url = this.stationsUrl +`pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=1`;
     return this.http.get(url);
   }
-  
+
   getSmnShortTermAlertByCoords(lat: number, lon: number): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=2`;
+    const url = this.stationsUrl +`pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=2`;
     return this.http.get(url);
   }
 
   getRainCampaign(month: number, year: number): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/datos-campania.php?mes=${month}&anio=${year}&tipo=2`;
+    const url = this.stationsUrl +`datos-campania.php?mes=${month}&anio=${year}&tipo=2`;
     return this.http.get(url);
   }
 
   getTMinMax(desde: string, hasta: string): Observable<any> {
-    const url = `https://agromet.eeaoc.gob.ar/services/datos-temperatura.php?desde=${desde}&hasta=${hasta}`;
+    const url = this.stationsUrl +`datos-temperatura.php?desde=${desde}&hasta=${hasta}`;
+    return this.http.get(url);
+  }
+
+  getHeladas(desde: string, hasta: string): Observable<any> {
+    const url = this.stationsUrl +`datos-heladas.php?desde=${desde}&hasta=${hasta}`;
     return this.http.get(url);
   }
 

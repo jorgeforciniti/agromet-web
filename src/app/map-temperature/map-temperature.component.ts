@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import * as L from 'leaflet';
@@ -10,7 +10,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,12 +18,55 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { NativeDateAdapter } from '@angular/material/core';
+import { Injectable } from '@angular/core';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
+@Injectable()
+export class DmyDateAdapter extends NativeDateAdapter {
+  override parse(value: any): Date | null {
+    if (typeof value === 'string' && value.includes('/')) {
+      const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
+      if ([dd, mm, yyyy].every(n => !isNaN(n))) {
+        const date = new Date(yyyy, mm - 1, dd);
+        if (
+          date.getFullYear() === yyyy &&
+          date.getMonth() + 1 === mm &&
+          date.getDate() === dd
+        ) {
+          return date;
+        }
+      }
+    }
+    return super.parse(value);
+  }
+}
 
 interface TemperatureData {
   lat: number;
   lon: number;
   nombre: string;
   [key: string]: string | number;
+}
+
+export function dmyDateValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const val = control.value;
+    if (!val || typeof val !== 'string') return null;
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(val);
+    if (!match) return { invalidDate: true };
+    const [, dd, mm, yyyy] = match;
+    const d = +dd, m = +mm, y = +yyyy;
+    const date = new Date(y, m - 1, d);
+    if (
+      date.getFullYear() !== y ||
+      date.getMonth() + 1 !== m ||
+      date.getDate() !== d
+    ) {
+      return { invalidDate: true };
+    }
+    return null;
+  };
 }
 
 export const MY_DATE_FORMATS = {
@@ -42,7 +85,6 @@ export const MY_DATE_FORMATS = {
   selector: 'app-map-temperature',
   templateUrl: './map-temperature.component.html',
   styleUrls: ['./map-temperature.component.css'],
-  encapsulation: ViewEncapsulation.None,
   standalone: true,
   imports: [
     CommonModule,
@@ -56,19 +98,17 @@ export const MY_DATE_FORMATS = {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatDatepickerModule,    ReactiveFormsModule,
     MatProgressSpinnerModule
   ],
   providers: [
-{ provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
-    provideNativeDateAdapter(), // ✅ Proveedor nativo
+    { provide: DateAdapter, useClass: DmyDateAdapter },
     { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
-    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
+    { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
   ]
 })
 
 export class MapTemperatureComponent implements OnInit, AfterViewInit {
-  public currentVariableLabel: string = ''; 
+  public currentVariableLabel: string = '';
   form!: FormGroup;
   map!: L.Map;
   layerGroup!: L.LayerGroup;
@@ -100,8 +140,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const defaultDates = this.getDefaultDates();
     this.form = this.fb.group({
-      desde: [defaultDates.desde, Validators.required],
-      hasta: [defaultDates.hasta, Validators.required],
+      desde: [defaultDates.desde, [Validators.required, dmyDateValidator()]],
+      hasta: [defaultDates.hasta, [Validators.required, dmyDateValidator()]],
       variable: [this.variables[0].key, Validators.required],
       baseMap: ['osm', Validators.required]
     });
@@ -143,7 +183,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
       this.provincesLayer = L.geoJSON(provincesData, {
         style: {
           color: 'blue',
-          weight: 2,
+          weight: 1,
           opacity: 0.8,
           fillOpacity: 0
         },
@@ -164,6 +204,14 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
       console.error('Error al cargar provincias:', error);
       this.errorMessage = 'No se pudieron cargar los límites provinciales';
     }
+  }
+
+  private formatDate(date: Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
   }
 
   onBaseMapChange() {
@@ -191,7 +239,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
   }
 
   loadData() {
-  if (!this.layerGroup) return;
+    if (!this.layerGroup) return;
     if (this.form.invalid) return;
 
     this.loading = true;
@@ -200,58 +248,80 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     const variableKey = this.form.value.variable;
     this.currentVariableLabel = this.variables.find(v => v.key === variableKey)?.label || '';
 
-  const desde: string = this.form.value.desde.toISOString().slice(0, 10);
-  const hasta: string = this.form.value.hasta.toISOString().slice(0, 10);
-  const variable: string = this.form.value.variable;
+    const desde = this.formatDate(this.form.value.desde);
+    const hasta = this.formatDate(this.form.value.hasta);
 
-  this.weatherService.getTMinMax(desde, hasta).subscribe({
-    next: (res: { status: string; data: TemperatureData[] }) => {
-      if (res.status === 'success' && res.data) {
-        const data: TemperatureData[] = res.data.filter(d => {
-          // Solo aplicar filtro para temperaturas absolutas
-          if (variable === 'abs_min_temp' || variable === 'abs_max_temp') {
+    const variable: string = this.form.value.variable;
+
+    const desdeDate = this.form.value.desde;
+    const hastaDate = this.form.value.hasta;
+    const diffTime = hastaDate.getTime() - desdeDate.getTime();
+    const totalDias = Math.floor(diffTime / (1000 * 3600 * 24)) + 1;
+
+    this.weatherService.getTMinMax(desde, hasta).subscribe({
+      next: (res: { status: string; data: TemperatureData[] }) => {
+        if (res.status === 'success' && res.data) {
+          const data: TemperatureData[] = res.data.filter(d => {
+            // Solo aplicar filtro para temperaturas absolutas
+            if (variable === 'abs_min_temp' || variable === 'abs_max_temp') {
+              const value = d[variable] as number;
+              return value >= -25 && value <= 50 && value != null; // Filtramos valores fuera de rango
+            }
+            return true; // Mantenemos todos los datos para otras variables
+          });
+          data.forEach((d: TemperatureData) => {
             const value = d[variable] as number;
-            return value >= -15 && value <= 50; // Filtramos valores fuera de rango
-          }
-          return true; // Mantenemos todos los datos para otras variables
-        });
+            const color = this.getColor(value);
+            const varLabel = this.variables.find(v => v.key === variable)!.label;
 
-        data.forEach((d: TemperatureData) => {
-          const value = d[variable] as number;
-          const color = this.getColor(value);
-          const varLabel = this.variables.find(v => v.key === variable)!.label;
+            const countRecords = Number(d['count_records']) || 0;
+            const recordsColor = this.getRecordsColor(countRecords, totalDias);
 
-          L.circleMarker([d.lat, d.lon], {
-            radius: 6,
-            fillColor: color,
-            color: '#333',
-            weight: 1,
-            fillOpacity: 0.9
-          }).bindPopup(`<b>${d.nombre}</b><br>${varLabel}: ${value}`)
-            .addTo(this.layerGroup);
-        });
-
+            L.circleMarker([d.lat, d.lon], {
+              radius: 6,
+              fillColor: color,
+              color: '#333',
+              weight: 1,
+              fillOpacity: 0.9
+            }).bindPopup(`<b>${d.nombre}</b><br><br>
+            <span style="padding: 2px 5px; border-radius: 3px;">${varLabel}: ${value.toFixed(1)}°C</span><br>
+            <span style="background: ${recordsColor}; padding: 2px 5px; border-radius: 3px;">Registros: ${countRecords} de ${totalDias}</span>
+          `)
+              .addTo(this.layerGroup);
+          });
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error en API:', error);
+        this.loading = false;
       }
-      this.loading = false;
-    },
-    error: (error) => {
-      console.error('Error en API:', error);
-      this.loading = false;
-    }
-  });
-}
+    });
+  }
 
-private addColorLegend() {
+  private getRecordsColor(count: number, totalDays: number): string {
+    if (!totalDays || count === undefined) return 'transparent';
+
+    const missingDays = totalDays - count;
+    const missingPercentage = (missingDays / totalDays) * 100;
+
+    if (missingPercentage == 0) return '#92e95e';  // verde
+    if (missingPercentage < 10) return '#ffeb3b';  // Amarillo
+    if (missingPercentage <= 20) return '#ff9800'; // Naranja
+    return '#f44336';                              // Rojo
+  }
+
+  private addColorLegend() {
     const existingLegend = document.getElementById('temperature-legend');
     if (existingLegend) existingLegend.remove();
 
     const legend = new L.Control({ position: 'bottomright' });
 
     legend.onAdd = () => {
-        const div = L.DomUtil.create('div', 'temperature-legend');
-        // ... estilos iguales
-        
-        div.innerHTML = `
+      const div = L.DomUtil.create('div', 'temperature-legend');
+      // ... estilos iguales
+
+      div.innerHTML = `
             <h4 style="margin: 0 0 8px 0; font-size:14px">Escala de Temperatura (°C)</h4>
             <div style="background: linear-gradient(to right, 
                 rgb(0,0,255), 
@@ -268,11 +338,11 @@ private addColorLegend() {
                 <span>35</span>
             </div>
         `;
-        return div;
+      return div;
     };
 
     legend.addTo(this.map);
-}
+  }
 
   private getColor(temperature: number): string {
     // Escala fija desde -5°C a 40°C
@@ -280,13 +350,13 @@ private addColorLegend() {
     const p = (clampedTemp + 5) / 40; // Normalizar a rango 0-1
 
     const colorStops = [
-        { pos: 0, color: [0, 0, 255] },    // -15°C - Azul
-        { pos: 0.25, color: [0, 255, 255] }, // 1.25°C - Cian
-        { pos: 0.5, color: [0, 255, 0] },    // 17.5°C - Verde
-        { pos: 0.75, color: [255, 255, 0] }, // 33.75°C - Amarillo
-        { pos: 1, color: [255, 0, 0] }       // 50°C - Rojo
+      { pos: 0, color: [0, 0, 255] },    // -15°C - Azul
+      { pos: 0.25, color: [0, 255, 255] }, // 1.25°C - Cian
+      { pos: 0.5, color: [0, 255, 0] },    // 17.5°C - Verde
+      { pos: 0.75, color: [255, 255, 0] }, // 33.75°C - Amarillo
+      { pos: 1, color: [255, 0, 0] }       // 50°C - Rojo
     ];
-    
+
 
     let lowerStop = colorStops[0];
     let upperStop = colorStops[colorStops.length - 1];
@@ -309,16 +379,6 @@ private addColorLegend() {
 
   get selectedVariableLabel(): string {
     return this.variables.find(v => v.key === this.form.value.variable)?.label || '';
-  }
-
-  private fitBounds(data: TemperatureData[]) {
-    const pts: [number, number][] = data.map((d: TemperatureData) => [
-      d.lat,
-      d.lon
-    ]);
-    if (pts.length) {
-      this.map.fitBounds(pts, { padding: [20, 20] });
-    }
   }
 
   private getDefaultDates(): { desde: Date; hasta: Date } {

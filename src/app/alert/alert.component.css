@@ -1,0 +1,51 @@
+.alert-container {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;  /* empuja el primer botón a la izquierda y el segundo a la derecha */
+  padding: auto;
+}
+
+.alert-btn {
+  display: flex;
+  align-items: center;
+  width: 30rem;
+  gap: 6px;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 10px 20px;
+  text-transform: none;
+  transition: box-shadow .2s, transform .1s;
+}
+
+.alert-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Lluvia: azul */
+.rain-alert {
+  background: linear-gradient(135deg, #1976d2, #64b5f6);
+  color: white;
+}
+
+/* Helada base */
+.frost-alert {
+  color: white;  
+}
+
+/* Niveles de helada */
+.frost-level-1 {
+  background: linear-gradient(135deg, red, orange); /* leve: turquesa claro */
+}
+.frost-level-2 {
+  background: linear-gradient(135deg, orange, yellow); /* moderada: azul medio */
+}
+.frost-level-3 {
+  background: linear-gradient(135deg, yellow, darkgoldenrod); /* severa: azul oscuro */
+  color: blue;
+}
+
+/* Icono */
+.alert-btn mat-icon {
+  font-size: 20px;
+}

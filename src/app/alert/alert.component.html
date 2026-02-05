@@ -1,0 +1,13 @@
+<div class="alert-container">
+  <button *ngIf="showRainAlert" mat-raised-button color="primary" class="alert-btn rain-alert"
+    (click)="openRainDialog()">
+    <mat-icon>umbrella</mat-icon>
+    Alerta de Lluvia
+  </button>
+
+  <button *ngIf="showFrostAlert" mat-raised-button
+    [ngClass]="['alert-btn', 'frost-alert', getFrostClass(frostAlertLevel)]" (click)="openFrostDialog()">
+    <mat-icon>ac_unit</mat-icon>
+    Alerta de Helada
+  </button>
+</div>

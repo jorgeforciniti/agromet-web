@@ -1,0 +1,52 @@
+<div class="temp-map-dialog">
+  <div class="dialog-header">
+    <h2>Mapa de Precipitaciones</h2>
+    <button mat-icon-button (click)="close()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div class="dialog-content">
+    <form [formGroup]="form" class="form-controls">
+
+      <!-- Controles condicionales (solo si hoy=false) -->
+      <div *ngIf="!hoy" class="date-controls">
+        <mat-form-field>
+          <mat-label>Desde</mat-label>
+          <input matInput [matDatepicker]="desdePicker" formControlName="desde">
+          <mat-datepicker-toggle matSuffix [for]="desdePicker"></mat-datepicker-toggle>
+          <mat-datepicker #desdePicker></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Hasta</mat-label>
+          <input matInput [matDatepicker]="hastaPicker" formControlName="hasta">
+          <mat-datepicker-toggle matSuffix [for]="hastaPicker"></mat-datepicker-toggle>
+          <mat-datepicker #hastaPicker></mat-datepicker>
+        </mat-form-field>
+        <!-- Selector de mapa base (siempre visible) -->
+        <mat-form-field>
+          <mat-label>Mapa Base</mat-label>
+          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange($event)">
+            <mat-option value="osm">OpenStreetMap</mat-option>
+            <mat-option value="esri">ESRI Satelital</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="loadData()" [disabled]="loading || form.invalid">
+          <mat-icon>ac_unit</mat-icon>
+          {{ loading ? 'Cargando...' : 'Cargar' }}
+        </button>
+      </div>
+    </form>
+    <div class="map-title">
+      <span *ngIf="hoy">Precipitaciones - Hoy</span>
+      <span *ngIf="!hoy">Precipitaciones - Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta |
+        date:'dd/MM/yyyy' }}</span>
+    </div>
+    <div class="map-container" id="mapContainer">
+      <!-- Overlay de carga (funciona con la variable 'loading') -->
+      <div *ngIf="loading" class="map-loader-overlay">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando datos...</p>
+      </div>
+    </div>
+
+  </div>
+</div>

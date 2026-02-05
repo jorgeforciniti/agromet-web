@@ -13,7 +13,7 @@
 
 .informes-wrapper {
   padding-top: 10px;
-  width: 70%;
+  width: 100%;
 }
 
 .informes-title {
@@ -116,6 +116,43 @@
   text-decoration: underline;
 }
 
+.disabled-link {
+  pointer-events: none; /* evita que el enlace sea clickeable */
+  color: gray !important; /* cambia el color para que parezca desactivado */
+  opacity: 0.6;
+  cursor: default;
+  text-decoration: none;
+}
+
+/* Asegúrate de que cada tarjeta sea un contenedor flex vertical */
+.informe-card {
+  display: flex;
+  flex-direction: column;
+  /* si quieres que todas las tarjetas tengan la misma altura, ponle una altura fija o min-height */
+  /* min-height: 300px; */
+}
+
+/* El bloque .info ocupa todo el espacio disponible y reparte items */
+.informe-card .info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;            /* ocupa el espacio sobrante */
+  justify-content: space-between;  /* empuja el botón abajo */
+}
+
+/* Alinea los radio buttons uno al lado del otro */
+mat-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;              /* espacio entre ellos */
+}
+
+/* Pinta el label de cada radio en blanco */
+mat-radio-button .mat-radio-label-content {
+  color: white !important;
+}
+
+
 /* Ajustes para pantallas más pequeñas */
 @media (max-width: 768px) {
   .informes-section {
@@ -136,3 +173,4 @@
     margin-top: 1.5rem;
   }
 }
+

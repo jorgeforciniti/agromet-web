@@ -344,7 +344,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       this.provincesLayer = L.geoJSON(provincesData, {
         style: {
           color: 'blue',
-          weight: 2,
+          weight: 1,
           opacity: 0.8,
           fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
         },

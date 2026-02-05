@@ -23,14 +23,14 @@
       <!-- Selector de fechas -->
       <mat-form-field appearance="outline">
         <mat-label>Fecha inicial</mat-label>
-        <input matInput formControlName="desde" [matDatepicker]="pickerInicio">
+        <input matInput [matDatepicker]="pickerInicio" formControlName="desde" placeholder="dd/mm/aaaa">
         <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
         <mat-datepicker #pickerInicio></mat-datepicker>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Fecha final</mat-label>
-        <input matInput formControlName="hasta" [matDatepicker]="pickerFin">
+        <input matInput [matDatepicker]="pickerFin" formControlName="hasta" placeholder="dd/mm/aaaa">
         <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
         <mat-datepicker #pickerFin></mat-datepicker>
       </mat-form-field>

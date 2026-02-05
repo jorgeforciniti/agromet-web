@@ -8,7 +8,6 @@ import { GeoJsonObject } from 'geojson';
 import { WeatherForecastComponent } from '../weather-forecast/weather-forecast.component';
 import { WeatherService } from '../services/weather.service'; // Añadir este import
 import { FeatureCollection, Feature, Geometry } from 'geojson';
-import * as GeoJSON from 'geojson';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
@@ -76,38 +75,30 @@ class TemperatureLegendControl extends L.Control {
 
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML = '<strong>Temperatura (°C)</strong>';
 
-    const grades = [-40, -35, -30, -25, -20, -15, -10, -5,
-                     0,   5,   10,  15,  20,  25,  30,  35,  40];
-    const colors = [
-      '#0000FF', // -40
-      '#0033FF', // -35
-      '#0066FF', // -30
-      '#0099FF', // -25
-      '#00CCFF', // -20
-      '#00FFFF', // -15
-      '#33FFCC', // -10
-      '#66FF99', // -5
-      '#99FF66', // 0
-      '#CCFF33', // 5
-      '#FFFF00', // 10
-      '#FFCC00', // 15
-      '#FFA500', // 20
-      '#FF8000', // 25
-      '#FF5500', // 30
-      '#FF2A00', // 35
-      '#FF0000'  // 40
+    // Usar los stops exactos de OpenWeatherMap
+    const stops = [
+      { limit: -65, color: 'rgba(130, 22, 146, 1)' },
+      { limit: -55, color: 'rgba(130, 22, 146, 1)' },
+      { limit: -45, color: 'rgba(130, 22, 146, 1)' },
+      { limit: -40, color: 'rgba(130, 22, 146, 1)' },
+      { limit: -30, color: 'rgba(130, 87, 219, 1)' },
+      { limit: -20, color: 'rgba(32, 140, 236, 1)' },
+      { limit: -10, color: 'rgba(32, 196, 232, 1)' },
+      { limit: 0, color: 'rgba(35, 221, 221, 1)' },
+      { limit: 10, color: 'rgba(194, 255, 40, 1)' },
+      { limit: 20, color: 'rgba(255, 240, 40, 1)' },
+      { limit: 25, color: 'rgba(255, 194, 40, 1)' },
+      { limit: 30, color: 'rgba(252, 128, 20, 1)' }
     ];
 
-    const title = '<strong>Temperatura (°C)</strong>';
-    div.innerHTML = title;
+    for (let i = 0; i < stops.length - 1; i++) {
+      const from = stops[i].limit;
+      const to = stops[i + 1].limit;
+      const color = stops[i].color;
 
-    for (let i = 0; i < grades.length - 1; i++) {
-      const from = grades[i];
-      const to = grades[i + 1];
-      const color = colors[i];
-
-      const label = `${from}—${to}`;
+      const label = i === stops.length - 2 ? `${from}+` : `${from}–${to}`;
       div.innerHTML += `
         <div class="legend-item">
           <i style="background:${color}"></i> ${label}
@@ -115,49 +106,38 @@ class TemperatureLegendControl extends L.Control {
       `;
     }
 
-    const lastValue = grades[grades.length - 1];
-    const lastColor = colors[colors.length - 1];
-    div.innerHTML += `
-      <div class="legend-item">
-        <i style="background:${lastColor}"></i> ${lastValue}+
-      </div>
-    `;
-
     return div;
   }
 }
 
 class PrecipitationLegendControl extends L.Control {
-  private component: LeafletGoesViewerComponent;
-
-  constructor(component: LeafletGoesViewerComponent, options?: L.ControlOptions) {
-    super(options);
-    this.component = component;
-  }
-
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML = '<h4>Precipitación (mm)</h4>';
 
-    const grades = [0, 0.1, 0.2, 0.5, 1, 10, 140];
-    const colors = [
-      'rgba(240, 240, 255, 0.1)', // 0-0.1 mm
-      'rgba(220, 220, 255, 0.2)', // 0.1-0.2 mm
-      'rgba(200, 200, 255, 0.3)', // 0.2-0.5 mm
-      'rgba(180, 180, 255, 0.4)', // 0.5-1 mm
-      'rgba(160, 160, 255, 0.5)', // 1-10 mm
-      'rgba(100, 100, 255, 0.7)', // 10+ mm
-      'rgba(50, 50, 255, 0.9)'    // 140+ mm
+    // Usar los stops exactos de OpenWeatherMap
+    const stops = [
+      { limit: 0, color: 'rgba(225, 200, 100, 0)' },
+      { limit: 0.1, color: 'rgba(200, 150, 150, 0)' },
+      { limit: 0.2, color: 'rgba(150, 150, 170, 0)' },
+      { limit: 0.5, color: 'rgba(120, 120, 190, 0)' },
+      { limit: 1, color: 'rgba(110, 110, 205, 0.3)' },
+      { limit: 10, color: 'rgba(80, 80, 225, 0.7)' },
+      { limit: 140, color: 'rgba(20, 20, 255, 0.9)' }
     ];
 
-    const title = '<strong>Precipitación (mm)</strong>';
-    div.innerHTML = title;
+    for (let i = 0; i < stops.length; i++) {
+      const { limit, color } = stops[i];
+      let label: string;
 
-    for (let i = 0; i < grades.length - 1; i++) {
-      const from = grades[i];
-      const to = grades[i + 1];
-      const color = colors[i];
+      if (i === 0) {
+        label = `0–${stops[1].limit}`;
+      } else if (i === stops.length - 1) {
+        label = `${stops[i - 1].limit}+`;
+      } else {
+        label = `${stops[i - 1].limit}–${limit}`;
+      }
 
-      const label = i === grades.length - 2 ? `${from}+` : `${from}–${to}`;
       div.innerHTML += `
         <div class="legend-item">
           <i style="background:${color}"></i> ${label}
@@ -179,27 +159,25 @@ class WindLegendControl extends L.Control {
 
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML = '<strong>Viento (m/s)</strong>';
 
-    const grades = [1, 5, 15, 25, 50, 100, 200];
-    const colors = [
-      'rgba(255, 255, 255, 0)',     // 1-5 m/s
-      'rgba(238, 206, 206, 0.4)',   // 5-15 m/s
-      'rgba(179, 100, 188, 0.7)',   // 15-25 m/s
-      'rgba(63, 33, 59, 0.8)',      // 25-50 m/s
-      'rgba(116, 76, 172, 0.9)',    // 50-100 m/s
-      'rgba(70, 0, 175, 1)',        // 100-200 m/s
-      'rgba(13, 17, 38, 1)'         // 200+ m/s
+    // Usar los stops exactos de OpenWeatherMap
+    const stops = [
+      { limit: 1, color: 'rgba(255, 255, 255, 0)' },
+      { limit: 5, color: 'rgba(238, 206, 206, 0.4)' },
+      { limit: 15, color: 'rgba(179, 100, 188, 0.7)' },
+      { limit: 25, color: 'rgba(63, 33, 59, 0.8)' },
+      { limit: 50, color: 'rgba(116, 76, 172, 0.9)' },
+      { limit: 100, color: 'rgba(70, 0, 175, 1)' },
+      { limit: 200, color: 'rgba(13, 17, 38, 1)' }
     ];
 
-    const title = '<strong>Viento (m/s)</strong>';
-    div.innerHTML = title;
+    for (let i = 0; i < stops.length - 1; i++) {
+      const from = stops[i].limit;
+      const to = stops[i + 1].limit;
+      const color = stops[i].color;
 
-    for (let i = 0; i < grades.length - 1; i++) {
-      const from = grades[i];
-      const to = grades[i + 1];
-      const color = colors[i];
-
-      const label = i === grades.length - 2 ? `${from}+` : `${from}–${to}`;
+      const label = i === stops.length - 2 ? `${from}+` : `${from}–${to}`;
       div.innerHTML += `
         <div class="legend-item">
           <i style="background:${color}"></i> ${label}
@@ -232,7 +210,7 @@ export class LeafletGoesViewerComponent implements OnInit {
   private legend: L.Control | undefined;
   private provincesLayer: L.GeoJSON | undefined;
   public selectedLayer: string = 'precipitacion';
-  public selectedBaseMap: string = 'satellite'; // Mapa satelital por defecto
+  public selectedBaseMap: string = 'osm'; // Mapa osm por defecto
   public currentDateTime: string = '';
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
@@ -256,17 +234,17 @@ export class LeafletGoesViewerComponent implements OnInit {
   private nasaFirmsMapKey = '05a7411727303e238b4b425a1b7fef16';
 
   public baseMaps: Record<string, BaseMapOption> = {
-    satellite: {
-      name: 'Satelital',
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Tiles © Esri',
-      maxZoom: 18
-    },
     osm: {
       name: 'OSM Estándar',
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       attribution: '© OpenStreetMap',
       maxZoom: 19
+    },
+    satellite: {
+      name: 'Satelital',
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Tiles © Esri',
+      maxZoom: 18
     }
   };
 
@@ -341,7 +319,7 @@ export class LeafletGoesViewerComponent implements OnInit {
             color: '#333',
             weight: 1,
             opacity: 1,
-            fillOpacity: 0.8
+            fillOpacity: 0.7
           });
         },
         onEachFeature: (feature, layer) => {
@@ -390,12 +368,12 @@ export class LeafletGoesViewerComponent implements OnInit {
         properties: {
           id: station.Identificacion,
           nombre: station.nombre,
-          temperatura: station.temp_af,
+          temperatura: station.temp_af ? Number(station.temp_af).toFixed(1) : 'N/D',
           lat: parseFloat(station.lat),  // Guardar como número
           lon: parseFloat(station.lon),  // Guardar como número
           altitud: station.alt ? Number(station.alt).toFixed(0) : 'N/D',
-          humedad: station.hum_af,
-          lluvia: station.precipitacion || 0
+          humedad: station.hum_af ? Number(station.hum_af).toFixed(0) : 'N/D',
+          lluvia: station.RR_dia ? Number(station.RR_dia).toFixed(1) : 'N/D'
         }
       })) as Feature<Geometry>[]
     };
@@ -423,7 +401,7 @@ export class LeafletGoesViewerComponent implements OnInit {
       center: center,
       zoom: 6,
       maxBounds: this.focusBounds,
-      maxBoundsViscosity: 1.0
+      maxBoundsViscosity: 0.0
     });
 
     // Inicializar con el mapa base seleccionado
@@ -441,7 +419,7 @@ export class LeafletGoesViewerComponent implements OnInit {
       this.provincesLayer = L.geoJSON(provincesData, {
         style: {
           color: 'blue',
-          weight: 2,
+          weight: 1,
           opacity: 0.8,
           fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
         },
@@ -493,52 +471,57 @@ export class LeafletGoesViewerComponent implements OnInit {
     }
   }
 
-  private async loadLatestData(): Promise<void> {
-    this.isLoading = true;
-    this.errorMessage = null;
-    
-    await new Promise(resolve => setTimeout(resolve, 50));
-  
-    if (this.legend && this.map) {
-      this.map.removeControl(this.legend);
-      this.legend = undefined;
-    }
-  
-    try {
-      const layer = this.layers[this.selectedLayer];
-      const currentDate = this.getCurrentDateString();
-  
-      if (layer.isGeoJSON) {
-        const geojsonUrl = layer.url(currentDate, '');
-        const geojsonData = await firstValueFrom(this.http.get(geojsonUrl));
-        this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
-        return;
-      }
-  
-      if (layer.isCSV) {
-        const csvUrl = layer.url(currentDate, '');
-        const csvData = await firstValueFrom(this.http.get(csvUrl, { responseType: 'text' }));
-        const geojsonData = this.csvToGeoJSON(csvData);
-        this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
-        return;
-      }
-  
-      if (layer.isTileLayer) {
-        this.displayTileLayer(layer.url(currentDate, ''), layer.attribution, currentDate);
-        return;
-      }
-  
-      this.errorMessage = `No se encontraron datos para ${layer.name}`;
-    } catch (error: unknown) {
-      console.error('Error al cargar los datos:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Desconocido';
-      this.errorMessage = 'Error al cargar los datos: ' + errorMessage;
-    } finally {
-      setTimeout(() => {
-        this.isLoading = false;
-      }, 500);
-    }
+private async loadLatestData(): Promise<void> {
+  this.isLoading = true;
+  this.errorMessage = null;
+
+  // Remover la capa anterior inmediatamente
+  if (this.baseLayer && this.map) {
+    this.map.removeLayer(this.baseLayer);
+    this.baseLayer = undefined;
   }
+
+  // Remover la leyenda
+  if (this.legend && this.map) {
+    this.map.removeControl(this.legend);
+    this.legend = undefined;
+  }
+
+  try {
+    const layer = this.layers[this.selectedLayer];
+    const currentDate = this.getCurrentDateString();
+
+    if (layer.isGeoJSON) {
+      const geojsonUrl = layer.url(currentDate, '');
+      const geojsonData = await firstValueFrom(this.http.get(geojsonUrl));
+      this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
+      return;
+    }
+
+    if (layer.isCSV) {
+      const csvUrl = layer.url(currentDate, '');
+      const csvData = await firstValueFrom(this.http.get(csvUrl, { responseType: 'text' }));
+      const geojsonData = this.csvToGeoJSON(csvData);
+      this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
+      return;
+    }
+
+    if (layer.isTileLayer) {
+      this.displayTileLayer(layer.url(currentDate, ''), layer.attribution, currentDate);
+      return;
+    }
+
+    this.errorMessage = `No se encontraron datos para ${layer.name}`;
+  } catch (error: unknown) {
+    console.error('Error al cargar los datos:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Desconocido';
+    this.errorMessage = 'Error al cargar los datos: ' + errorMessage;
+  } finally {
+    setTimeout(() => {
+      this.isLoading = false;
+    }, 500);
+  }
+}
 
   private getCurrentDateString(): string {
     const now = new Date();
@@ -675,7 +658,7 @@ export class LeafletGoesViewerComponent implements OnInit {
       this.map.removeControl(this.legend);
       this.legend = undefined;
     }
-    this.legend = new PrecipitationLegendControl(this, { position: 'bottomright' });
+    this.legend = new PrecipitationLegendControl({ position: 'bottomright' });
     this.legend.addTo(this.map);
     this.appendLegendStyle();
   }
@@ -720,6 +703,7 @@ export class LeafletGoesViewerComponent implements OnInit {
         margin-right: 8px;
         display: inline-block;
         opacity: 0.7;
+        fillOpacity: 0;
       }
     `;
     document.head.appendChild(style);
@@ -776,9 +760,9 @@ private updateTileLayer(url: string, attribution: string): void {
 
   this.baseLayer = L.tileLayer(url, {
     attribution: attribution,
-    opacity: 1, // Máxima opacidad (sin transparencia)
+    opacity: 1,
     maxZoom: 18,
-    pane: 'overlayPane' // Asegura renderizado sobre el mapa base
+    pane: 'overlayPane'
   });
 
   this.baseLayer.on('error', () => {
@@ -787,17 +771,17 @@ private updateTileLayer(url: string, attribution: string): void {
   });
 
   this.baseLayer.addTo(this.map!);
+  this.baseLayer.setOpacity(1); // Forzar opacidad completa
 
   if (this.map) {
-    // Asegura que la capa esté encima del mapa base
-    (this.baseLayer as any).getPane().style.zIndex = 401; // Mayor que tilePane (zIndex: 200)
+    (this.baseLayer as any).getPane().style.zIndex = 401;
   }
-// Asegurar el orden de renderizado
+
   if (this.map && this.baseMapLayer) {
-    this.baseMapLayer.setZIndex(0); // Mapa base detrás
-    this.baseLayer.setZIndex(1);    // Capa meteorológica encima
+    this.baseMapLayer.setZIndex(0);
+    this.baseLayer.setZIndex(1);
     if (this.provincesLayer) {
-      this.provincesLayer.setZIndex(2); // Provincias en frente
+      this.provincesLayer.setZIndex(2);
     }
   }
 }
