@@ -4,20 +4,22 @@ import { FormsModule } from '@angular/forms';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { DatosService } from '../services/datos.service';
-import { DialogComponent } from './dialog/dialog.component';
+import { DatosService, Informe } from '../services/datos.service';
 
-interface Informe {
-  id: number;
-  titulo: string;
-  archivo: string;
-  creado: string;
-  categoria: string;
-  posicion: number;
-  url_img: string;
+interface InformeViewModel extends Informe {
   safeArchivo?: SafeResourceUrl;
 }
+
+type InformeDialogInput = Partial<InformeViewModel> & {
+  nombreOriginal?: string;
+  nombre?: string;
+  file?: string;
+  pdf?: string;
+  path?: string;
+  url?: string;
+};
 
 @Component({
   selector: 'app-informes',
@@ -27,16 +29,18 @@ interface Informe {
     FormsModule,
     MatRadioModule,
     MatDialogModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatIconModule
   ],
   templateUrl: './informes.component.html',
   styleUrls: ['./informes.component.css']
 })
 export class InformesComponent implements OnInit {
-  datos: Informe[] = [];
-  filteredDatos: Informe[] = [];
+  datos: InformeViewModel[] = [];
+  filteredDatos: InformeViewModel[] = [];
 
   tiposInformes = [
+    { value: '', viewValue: 'Todos' },
     { value: 'll', viewValue: 'Informes de lluvias' },
     { value: 'he', viewValue: 'Informes de heladas' },
     { value: 'bo', viewValue: 'Boletín agrometeorológico' },
@@ -46,7 +50,7 @@ export class InformesComponent implements OnInit {
     { value: 'et', viewValue: 'Estadísticas agrometeorológicas' }
   ];
 
-  selectedCategoria = 'll';
+  selectedCategoria = '';
 
   @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
 
@@ -54,11 +58,11 @@ export class InformesComponent implements OnInit {
     private datosService: DatosService,
     private sanitizer: DomSanitizer,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.datosService.getInformes().subscribe(resp => {
-      this.datos = resp.data.map((inf: Informe) => ({
+      this.datos = resp.data.map((inf) => ({
         ...inf,
         safeArchivo: this.sanitizeUrl(inf.archivo)
       }));
@@ -67,7 +71,24 @@ export class InformesComponent implements OnInit {
   }
 
   applyFilter() {
-    this.filteredDatos = this.datos.filter(i => i.categoria === this.selectedCategoria);
+    if (this.selectedCategoria === '') {
+      const categorias = ['ll', 'he', 'bo', 'co', 'ad', 'rv', 'et'];
+      const agrupados: InformeViewModel[] = [];
+
+      categorias.forEach(cat => {
+        const ultimosTres = this.datos
+          .filter(i => i.categoria === cat)
+          .sort((a, b) => b.creado.localeCompare(a.creado))
+          .slice(0, 3);
+        agrupados.push(...ultimosTres);
+      });
+
+      this.filteredDatos = agrupados.sort((a, b) => b.creado.localeCompare(a.creado));
+    } else {
+      this.filteredDatos = this.datos
+        .filter(i => i.categoria === this.selectedCategoria)
+        .sort((a, b) => b.creado.localeCompare(a.creado));
+    }
   }
 
   sanitizeUrl(archivo: string): SafeResourceUrl {
@@ -75,31 +96,59 @@ export class InformesComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
-  onCategoriaChange() {
-    this.applyFilter();
-  }
+  async openDialog(informe: InformeDialogInput): Promise<void> {
+    const filename =
+      informe?.archivo ??
+      informe?.nombreOriginal ??
+      informe?.nombre ??
+      informe?.file ??
+      informe?.pdf ??
+      informe?.path ??
+      informe?.url;
 
-  openDialog(nombreArchivo: string): void {
-    const informe = this.datos.find(item => item.archivo === nombreArchivo);
+    if (!filename || typeof filename !== 'string') {
+      console.error('[openDialog] Informe sin archivo válido:', informe);
+      return;
+    }
+
+    const pdfUrl = filename.startsWith('http://') || filename.startsWith('https://')
+      ? filename
+      : `https://agromet.eeaoc.gob.ar/PDFS/${filename.replace(/^\/+/, '')}`;
+
+    const { DialogComponent } = await import('./dialog/dialog.component');
+
     this.dialog.open(DialogComponent, {
-      width: '80vw',
-      height: '90vw',
-      maxWidth: '95vw',
-      panelClass: 'custom-dialog-container',
       data: {
-        archivo: informe?.safeArchivo,
-        nombreOriginal: nombreArchivo,
-        titulo: informe?.titulo,
-        fecha: informe?.creado
-      }
+        titulo: informe?.titulo ?? 'Informe',
+        fecha: informe?.creado,
+        archivo: pdfUrl,
+        nombreOriginal: filename
+      },
+      width: 'min(1200px, 96vw)',
+      maxWidth: '96vw',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'pdf-dialog',
+      autoFocus: false,
+      restoreFocus: false
     });
   }
 
   scrollLeft(): void {
-    this.scrollContainer.nativeElement.scrollBy({ left: -300, behavior: 'smooth' });
+    this.scrollContainer.nativeElement.scrollLeft -= 300;
   }
 
   scrollRight(): void {
-    this.scrollContainer.nativeElement.scrollBy({ left: 300, behavior: 'smooth' });
+    this.scrollContainer.nativeElement.scrollLeft += 300;
+  }
+
+  onCategoriaChange(): void {
+    this.applyFilter();
+
+    setTimeout(() => {
+      if (this.scrollContainer?.nativeElement) {
+        this.scrollContainer.nativeElement.scrollLeft = 0;
+      }
+    }, 50);
   }
 }

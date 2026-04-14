@@ -3,7 +3,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional } from '@
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
-import { WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
+import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
 import { MatSelectChange } from '@angular/material/select';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -48,6 +48,7 @@ export function dmyDateValidator(): ValidatorFn {
       return { invalidDate: true };
     }
 
+
     const [, dd, mm, yyyy] = match;
     const d = +dd, m = +mm, y = +yyyy;
     const date = new Date(y, m - 1, d);
@@ -65,8 +66,22 @@ export function dmyDateValidator(): ValidatorFn {
   };
 }
 
+interface FrostMapRecord {
+  lat: number | string;
+  lon: number | string;
+  nombre: string;
+  minAbs: number;
+  cantidadDias: number;
+  diasHeladas: number;
+  hsDebajo0: number;
+  'hsDebajo-2': number;
+  'hsDebajo-4': number;
+  FPH?: string | Date | null;
+  FUH?: string | Date | null;
+}
+
 export class DmyDateAdapter extends NativeDateAdapter {
-  override parse(value: any, parseFormat?: string): Date | null {
+  override parse(value: unknown, parseFormat?: string): Date | null {
     if (typeof value === 'string' && value.includes('/')) {
       const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
       // Si alguno no es número, o no coincide largo, devolvés null
@@ -116,6 +131,7 @@ export class DmyDateAdapter extends NativeDateAdapter {
   encapsulation: ViewEncapsulation.None
 })
 export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
+  private defaultMapCenter: L.LatLngTuple = [-26.8305, -65.2226];
   today: Date = new Date();
   hoy: boolean = false;
   isCargarDisabled: boolean = false; // New property to control button state
@@ -127,7 +143,8 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   form: FormGroup;
-  map: any;
+  mapa?: L.Map;
+  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   baseMapsList = [
     {
       label: 'OpenStreetMap',
@@ -146,10 +163,10 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
   currentBaseLayer = this.baseMapsList[0].layer;
 
-  heladasData: any[] = [];
+  heladasData: FrostMapRecord[] = [];
   heladasSubscription: Subscription | undefined;
   markersLayer = L.layerGroup();
-  provincesLayer: L.GeoJSON<any> | null = null;
+  provincesLayer: L.GeoJSON | null = null;
   loading = false;
 
   constructor(
@@ -186,50 +203,81 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
-    this.map = L.map('mapContainer').setView([-27, -65], 8);
-    this.currentBaseLayer.addTo(this.map);
-    this.markersLayer.addTo(this.map);
+    this.mapa = L.map('mapfrost', {
+      center: this.defaultMapCenter,
+      zoom: 8,
+      maxBoundsViscosity: 0.0,
+      scrollWheelZoom: false  // Desactivar zoom por rueda
+    });
+    this.currentBaseLayer.addTo(this.mapa);
+    this.markersLayer.addTo(this.mapa);
 
     await this.loadProvinces(); // Cargar provincias al inicio
+
+    // Mostrar mensaje si gira la rueda sin Ctrl
+    if (!this.mapa) return;
+    this.mapa.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (!e.ctrlKey) {
+        this.mapa?.getContainer().classList.add('ctrl-zoom-message');
+        clearTimeout(this.ctrlZoomTimeout);
+        this.ctrlZoomTimeout = setTimeout(() => {
+          this.mapa?.getContainer().classList.remove('ctrl-zoom-message');
+        }, 1000);
+      }
+    });
+
+    // Habilitar zoom si Ctrl está presionado
+    this.mapa.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        this.mapa?.scrollWheelZoom.enable();
+      } else {
+        this.mapa?.scrollWheelZoom.disable();
+      }
+    });
+    this.addLegend();
+    setTimeout(() => this.mapa?.invalidateSize(), 50);
   }
 
   private async loadProvinces(): Promise<void> {
     try {
-      const provincesUrl = '../../assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(
-        this.http.get<FeatureCollection>(provincesUrl) // Tipo correcto
-      );
+      const url = 'assets/shapes/provincias.geojson';
+      const provincesData = await firstValueFrom(this.http.get<FeatureCollection>(url));
 
+      /* 1 ─ pane específico, z-index bajo */
+      if (!this.mapa!.getPane('provincePane')) {
+        this.mapa!.createPane('provincePane');
+        this.mapa!.getPane('provincePane')!.style.zIndex = '350';   // markerPane = 600
+      }
+
+      if (this.provincesLayer) this.provincesLayer.remove();
+
+      /* 2 ─ dibuja TODA la colección, sin capturar eventos */
       this.provincesLayer = L.geoJSON(provincesData, {
+        pane: 'provincePane',
+        interactive: false,                //  ←  no bloquea los clics
         style: {
           color: 'blue',
           weight: 1,
           opacity: 0.8,
           fillOpacity: 0
-        },
-        onEachFeature: (feature, layer) => {
-          const name = feature.properties?.['nam'];
-          if (name) {
-            layer.bindPopup(name);
-          }
         }
-      });
+      }).addTo(this.mapa!);
 
-      if (this.map && this.provincesLayer) {
-        this.provincesLayer.addTo(this.map);
-        this.provincesLayer.setZIndex(2);
-      }
-    } catch (error) {
-      console.error('Error al cargar provincias:', error);
+      // opcional: ajustar vista
+      // this.mapa.fitBounds(this.provincesLayer.getBounds(), { padding: [20, 20] });
+
+    } catch (err) {
+      console.error('Error al cargar provincias:', err);
     }
   }
 
+
   onBaseMapChange(event?: MatSelectChange): void {
     const selectedBase = this.baseMapsList.find(b => b.value === this.form.value.baseMap);
-    if (selectedBase) {
-      this.map.removeLayer(this.currentBaseLayer);
+    if (selectedBase && this.mapa) {
+      this.mapa.removeLayer(this.currentBaseLayer);
       this.currentBaseLayer = selectedBase.layer;
-      this.currentBaseLayer.addTo(this.map);
+      this.currentBaseLayer.addTo(this.mapa);
     }
   }
 
@@ -246,7 +294,6 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       today.setHours(0, 0, 0, 0);
       this.form.value.desde = today;
       this.form.value.hasta = today;
-      console.log("paso");
     }
     const desde = this.formatDate(this.form.value.desde as Date);
     const hasta = this.formatDate(this.form.value.hasta as Date);
@@ -256,10 +303,10 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     const diffTime = hastaDate.getTime() - desdeDate.getTime();
     const totalDias = Math.floor(diffTime / (1000 * 3600 * 24)) + 1;
 
-    this.heladasSubscription = this.weatherService.getHeladas(desde, hasta).subscribe({
-      next: (resp: any) => {
+    this.heladasSubscription = this.weatherService.getHeladas<FrostMapRecord>(desde, hasta).subscribe({
+      next: (resp) => {
         // solo dejamos los que tienen días de helada > 0
-        this.heladasData = resp.data.filter((d: any) => d.diasHeladas > 0);
+        this.heladasData = resp.data.filter((d) => d.diasHeladas > 0);
 
         this.plotHeladas(totalDias);
         this.loading = false;
@@ -278,7 +325,9 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!d.lat || !d.lon) return; // Saltar datos inválidos
 
       const color = this.getColor(d.minAbs);
-      const marker = L.circleMarker([d.lat, d.lon], {
+      const lat = Number(d.lat);
+      const lon = Number(d.lon);
+      const marker = L.circleMarker([lat, lon], {
         radius: 8,
         fillColor: color,
         color: '#000',
@@ -298,10 +347,15 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getColor(minAbs: number): string {
-    if (minAbs >= -2) return 'green';
-    if (minAbs >= -4) return 'orange';
+    if (minAbs >= -2) return '#fffb07';
+    if (minAbs >= -4) return '#ff9800';
     if (minAbs >= -6) return 'red';
     return '#8B0000'; // rojo oscuro
+  }
+
+  getColorLetra(minAbs: number): string {
+    if (minAbs >= -2) return 'black';
+    return 'white';
   }
 
   addLegend(): void {
@@ -312,22 +366,24 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
         const div = L.DomUtil.create('div', 'info legend');
         div.innerHTML = `
         <strong>Intensidad de Helada</strong><br>
-        <i style="background:green"></i> 0 a -2°C<br>
-        <i style="background:orange"></i> -2 a -4°C<br>
+        <i style="background:#fffb07"></i> 0 a -2°C<br>
+        <i style="background:#ff9800"></i> -2 a -4°C<br>
         <i style="background:red"></i> -4 a -6°C<br>
         <i style="background:#8B0000"></i> < -6°C
       `;
         return div;
       }
     });
-    new LegendControl().addTo(this.map);
+    if (this.mapa) {
+      new LegendControl().addTo(this.mapa);
+    }
   }
 
-toggleHoy(flag: boolean) {
+  toggleHoy(flag: boolean) {
     this.hoy = flag;
     const desdeCtrl = this.form.get('desde')!;
     const hastaCtrl = this.form.get('hasta')!;
-    
+
     this.isCargarDisabled = flag; // Update button state
 
     if (this.hoy) {
@@ -360,6 +416,7 @@ toggleHoy(flag: boolean) {
 
   ngOnDestroy(): void {
     this.heladasSubscription?.unsubscribe();
+    if (this.ctrlZoomTimeout) clearTimeout(this.ctrlZoomTimeout);
   }
 
   close(): void {

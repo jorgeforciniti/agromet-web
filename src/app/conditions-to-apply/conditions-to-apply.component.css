@@ -1,212 +1,1374 @@
-@import "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
 
 .container {
-    max-height: 95vh;
-    height: 90vh;
-    border-radius: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 .viewer-container {
-    position: relative;
-    background-color: #1e1e1e;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    color: #f8f5d7;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+
+  background: var(--surface);
+  color: var(--text);
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Título */
 .titulo {
-    font-size: 2rem;
-    font-weight: bold;
-    padding-left: 25px;
-    margin-bottom: 20px;
+  margin: 0 0 12px 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text);
 }
 
-/* Overlay de carga */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #1a1a1a;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgba(255, 255, 255, 0.3);
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.loading-text {
-    color: #f8f5d7;
-    margin-top: 15px;
-    font-size: 16px;
-}
-
-/* Estilo de error */
-.error {
-    color: #ff5555;
-    text-align: center;
-    margin: 10px 0;
-}
-
-/* Controles */
+/* ===== Controls ===== */
 .controls {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: flex-start;
+  margin-bottom: 12px;
 }
 
 .control-group {
-    display: flex;
-    align-items: center;
-    padding: 0px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .control-label {
-    margin-right: 10px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #f8f5d7;
+  font-size: .95rem;
+  font-weight: 800;
+  color: rgba(17, 24, 39, .70);
 }
 
 .select-wrapper {
-    width: 190px;
-    padding: 0px;
-    background-color: #1e1e1e;
-    color: #f8f5d7;
+  width: 220px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
 }
 
-/* Para que las opciones del select también tengan fondo oscuro */
-.select-wrapper option {
-    background-color: #1a1a1a;
-    color: #f8f5d7;
+mat-form-field.select-wrapper {
+  width: 220px;
+  margin: 0;
 }
 
-/* Botón de búsqueda */
 .btn-search {
-    margin-left: 10px;
-    padding: 6px 12px;
-    border: none;
-    background-color: #2196f3;
-    color: #f8f5d7;
-    font-size: 0.9rem;
-    border-radius: 4px;
-    cursor: pointer;
+  padding: 10px 14px;
+  border: none;
+  background-color: #3f51b5;
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 800;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-search:hover {
-    background-color: #1976d2;
+  background-color: #3f51dd;
 }
 
-/* Mapa */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ===== Params card ===== */
+.params-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(17, 24, 39, .02);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.leyenda-tabla {
+  display: block;
+  color: rgba(17, 24, 39, .70);
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ===== Error ===== */
+.error {
+  color: #b91c1c;
+  text-align: center;
+  margin: 10px 0;
+  font-weight: 700;
+}
+
+/* ===== Map ===== */
 .map-wrapper {
-    position: relative;
-    width: 100%;
-    height: 400px;
-    margin-bottom: 1rem;
+  width: 100%;
+  height: clamp(260px, 42vh, 420px);
+  margin-bottom: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 #mapConditions {
-    width: 100%;
-    height: 100%;
-    min-height: 400px;
+  width: 100%;
+  height: 100%;
 }
 
-#mapWeather {
-    height: 100%;
-    width: 100%;
-    z-index: 1;
-    min-height: 400px;
+/* ===== Table ===== */
+.table-wrap {
+  margin-top: 8px;
 }
 
-/* Tabla de datos */
 .tabla-datos {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-}
-
-.tabla-datos td {
-    border: 1px solid #ccc;
-    padding: 0.5rem;
-    text-align: center;
-    font-size: 0.9rem;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .tabla-datos th {
-    background-color: #4a4a4a;
-    font-weight: bold;
+  background: #111;
+  color: #fff;
+  padding: 10px;
+  font-weight: 900;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-/* Filas apto/no apto */
+.tabla-datos td {
+  padding: 10px;
+  text-align: center;
+  font-size: .9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabla-datos tbody tr:hover td {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, .04);
+}
+
+.cond-cell {
+  text-align: center;
+}
+
+/* ✅ Semáforo: NO cambiar */
 .apto-row {
-    background-color: #388e3c;
-    color: #fff;
+  background-color: #4caf50;
+  color: #000;
 }
 
 .no-apto-row {
-    background-color: #d32f2f;
-    color: #fff;
+  background-color: #c0392b;
+  color: #fff;
 }
 
-/* Botón de cierre */
+/* Pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  border: 1px solid rgba(0, 0, 0, .12);
+  background: rgba(255, 255, 255, .85);
+  color: rgba(17, 24, 39, .9);
+}
+
+.pill-ok {
+  background: rgba(255, 255, 255, .85);
+}
+
+.pill-bad {
+  background: rgba(255, 255, 255, .85);
+}
+
+/* ===== Detail ===== */
+.detail-card {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 12px;
+}
+
+.detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.detail-title {
+  font-weight: 900;
+  color: var(--text);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.detail-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: rgba(17, 24, 39, .85);
+  font-weight: 700;
+  font-size: .92rem;
+}
+
+.detail-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-box {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(17, 24, 39, .02);
+}
+
+.detail-box-title {
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.detail-box ul {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(17, 24, 39, .85);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.detail-reco {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+/* ...tu CSS existente... */
+
+/* ===== Info buttons (tooltips / dialog) ===== */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-left: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17, 24, 39, .70);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.info-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.info-btn:hover {
+  background: rgba(17, 24, 39, .04);
+  color: rgba(17, 24, 39, .92);
+}
+
+.why-info {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17, 24, 39, .85);
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.why-info mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.why-info:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+/* =============================
+   Info icons (tooltips nativos)
+   ============================= */
+
+.th-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: help;
+  user-select: none;
+
+  border: 1px solid rgba(17, 24, 39, .25);
+  background: rgba(17, 24, 39, .06);
+  color: rgba(17, 24, 39, .85);
+}
+
+.info-icon:hover {
+  background: rgba(17, 24, 39, .10);
+  border-color: rgba(17, 24, 39, .35);
+}
+
+/* Para headers oscuros: que el icono no “ensucie” visualmente */
+.tabla-datos th .info-icon {
+  border-color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+.tabla-datos th .info-icon:hover {
+  background: rgba(255, 255, 255, .18);
+}
+
+/* Variante por si querés diferenciar (ej: inversión) */
+.info-icon--inv {
+  /* sin colores fuertes: solo una leve diferencia */
+  background: rgba(255, 255, 255, .14);
+}
+
+/* ===== Info circle ===== */
+.info-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+
+  border-radius: 999px;
+  border: 1px solid var(--border);
+
+  background: #fff;
+  color: rgba(17, 24, 39, .75);
+
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: help;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.info-circle:hover {
+  background: rgba(17, 24, 39, .04);
+  color: rgba(17, 24, 39, .9);
+}
+
+.info-dot {
+  width: 22px !important;
+  height: 22px !important;
+  padding: 0 !important;
+  margin-left: 6px;
+  border-radius: 999px !important;
+  background: rgba(17, 24, 39, .06);
+  border: 1px solid rgba(17, 24, 39, .12);
+}
+
+.info-dot mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  color: rgba(17, 24, 39, .75);
+}
+
+.info-dot:hover {
+  background: rgba(17, 24, 39, .10);
+}
+
+/* X como los otros dialogs */
 .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    color: #f8f5d7;
-    cursor: pointer;
-    z-index: 1001;
+  position: absolute !important;
+  right: calc(14px + env(safe-area-inset-right));
+  top: calc(14px + env(safe-area-inset-top));
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+
+  border: 1px solid var(--border);
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  cursor: pointer;
+  z-index: 1100;
 }
 
 .close-btn:hover {
-    color: #ff5555;
+  background: rgba(17, 24, 39, .04) !important;
 }
 
-.resumen-consulta {
-    margin: 1rem 0 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: #2a2a2a;
-    color: #f8f5d7;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 1.5rem;
+/* ícono info consistente (no el “(”) */
+.info-mini {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: rgba(17, 24, 39, .75);
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.info-mini:hover {
+  background: rgba(17, 24, 39, .04);
+  color: rgba(17, 24, 39, .92);
+}
+
+/* en header negro: blanco */
+.info-mini--th {
+  border-color: rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+.info-mini--th:hover {
+  background: rgba(255, 255, 255, .18);
+}
+
+/* fecha: forzar texto visible */
+:host ::ng-deep .mat-mdc-form-field .mdc-text-field__input {
+  color: rgba(17, 24, 39, .92) !important;
+  -webkit-text-fill-color: rgba(17, 24, 39, .92) !important;
+  opacity: 1 !important;
+  font-weight: 700;
+}
+
+/* 1) AMARILLO real */
+.precaucion-row{
+  background: #ffeb3b !important; /* amarillo */
+  color: #111 !important;
+}
+.precaucion-row td b{ color:#111 !important; }
+
+/* 2) Header sticky real (con wrapper) */
+.table-wrap{
+  overflow-x: auto;
+}
+.tabla-datos th{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* 3) X fija estilo dialogs */
+.close-btn{
+  position: sticky;
+  top: 10px;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17,24,39,.9);
+  cursor: pointer;
+  z-index: 1000;
+}
+.close-btn:hover{
+  background: rgba(17,24,39,.04);
+}
+
+/* 4) Menos amontonado: labels arriba */
+.controls{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+.control-group{
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.control-head{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.select-wrapper,
+mat-form-field.select-wrapper{
+  width: 100% !important;
+}
+
+/* 5) Botón info consistente y visible */
+.info-btn{
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,24,39,.18);
+  background: rgba(17,24,39,.04);
+  color: rgba(17,24,39,.85);
+  font-weight: 900;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  user-select:none;
+}
+.info-btn:hover{ background: rgba(17,24,39,.08); }
+.info-btn--th{
+  margin-left: 6px;
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.22);
+  color: #fff;
+}
+
+/* Fecha legible (tu global la deja clara) */
+:host ::ng-deep .mat-mdc-text-field-input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  opacity: 1 !important;
+  font-weight: 800;
+}
+:host ::ng-deep .mat-datepicker-toggle .mat-icon{
+  color: rgba(17,24,39,.85) !important;
+}
+
+/* ===== Header fijo del dialog ===== */
+.dialog-header{
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.close-btn{
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17,24,39,.92);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.close-btn:hover{ background: rgba(17,24,39,.04); }
+
+/* el body scrollea */
+.viewer-container{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* ===== Controles: GRID (no amontonado) ===== */
+.controls{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  align-items: end;
+  margin: 12px 0 12px;
+}
+
+.field{
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field-label{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  font-size: .95rem;
+  font-weight: 900;
+  color: rgba(17,24,39,.75);
+}
+
+.field-action .btn-search{
+  width: 100%;
+  height: 56px;
+}
+
+/* fecha legible (tu valor estaba “lavado”) */
+.date-field .mdc-text-field__input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  font-weight: 800 !important;
+}
+
+/* evita “aire” extra del mat-form-field */
+.date-field .mat-mdc-form-field-subscript-wrapper{ display:none; }
+
+/* ===== Info icon (visible y clickeable) ===== */
+.info-dot{
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--border) !important;
+  background: #fff !important;
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+}
+.info-dot mat-icon{
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: rgba(17,24,39,.80);
+}
+.info-dot:hover{ background: rgba(17,24,39,.04) !important; }
+
+/* ===== KP alineado, sin romper ===== */
+.field-kp .kp-row{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.kp-time{ color: rgba(17,24,39,.65); font-weight: 700; }
+
+/* ===== Tabla: wrapper con scroll horizontal, sticky header real ===== */
+.table-wrap{
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.tabla-datos{
+  min-width: 980px; /* fuerza a que no “apriete” columnas */
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* sticky header */
+.tabla-datos thead th{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* iconos en header oscuro */
+.th-info{
+  margin-left: 6px;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.10) !important;
+  border: 1px solid rgba(255,255,255,.25) !important;
+}
+.th-info mat-icon{
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #fff !important;
+}
+.th-info:hover{ background: rgba(255,255,255,.16) !important; }
+
+/* ===== Semáforo (AGREGAR AMARILLO) ===== */
+.precaucion-row{
+  background: #ffeb3b; /* amarillo real */
+  color: #000;
+}
+.precaucion-row td{ color:#000; }
+.precaucion-row b{ color:#000; }
+
+/* Mantener verde/rojo si ya los tenías */
+.apto-row{
+  background-color: #4caf50;
+  color: #000;
+}
+.no-apto-row{
+  background-color: #c0392b;
+  color: #fff;
+}
+
+/* 1) X fija + estilo dialog */
+.container{
+  position: relative; /* para el absolute de la X */
+  padding: 0;
+}
+
+.close-btn{
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17,24,39,.90);
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 1200;
+}
+.close-btn:hover{
+  background: rgba(17,24,39,.04);
+}
+
+/* 2) Controles en grid (menos amontonado) */
+.controls-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: end;
+  margin: 12px 0 12px;
+}
+
+.field{ display:flex; flex-direction: column; gap: 8px; min-width: 0; }
+.field-wide{ grid-column: span 2; }
+.field-action{ display:flex; justify-content: flex-end; }
+.field-head{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.field-label{
+  font-size: .95rem;
+  font-weight: 900;
+  color: rgba(17,24,39,.75);
+}
+
+/* 3) Ícono info “clickable” real */
+.info-dot{
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,24,39,.18);
+  background: rgba(17,24,39,.06);
+  color: rgba(17,24,39,.85);
+  font-weight: 900;
+  line-height: 1;
+  display: inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  user-select: none;
+}
+.info-dot:hover{ background: rgba(17,24,39,.10); }
+
+/* 4) Fecha “lavada”: forzar color input */
+mat-form-field.date-field{ width: 100%; }
+.mat-mdc-form-field .mdc-text-field__input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  opacity: 1 !important;
+  font-weight: 800;
+}
+
+/* 5) KP: que no rompa línea */
+.kp-row{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.kp-time{ color: rgba(17,24,39,.70); font-weight: 700; }
+
+/* 6) Tabla: header sticky + scroll horizontal SIN romper sticky */
+.table-scroll{
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* importantísimo: NO display:block en la tabla (rompe sticky) */
+.tabla-datos{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tabla-datos thead th{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* Info en header oscuro */
+.th-info{
+  margin-left: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 7) Semáforo: agregar AMARILLO (tu CSS no lo tenía) */
+.precaucion-row{
+  background-color: #ffeb3b;
+  color: #000;
+}
+.precaucion-row td{ color: #000; }
+.precaucion-row b{ color:#000; }
+
+/* 8) Resumen con “aire” */
+.resumen-card{
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17,24,39,.02);
+  padding: 10px 12px;
+  margin: 8px 0 10px;
+}
+.resumen-line{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+.resumen-line .sep{ color: rgba(17,24,39,.35); padding: 0 6px; }
+.resumen-sub{
+  margin-top: 6px;
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: rgba(17,24,39,.82);
+  font-weight: 700;
+}
+.resumen-sub .dot{ color: rgba(17,24,39,.35); }
+
+/* ===== Header sticky para que título y X no se vayan ===== */
+.dialog-header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface);
+  padding: 4px 0 12px 0;
+}
+
+.do-close{
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17,24,39,.85);
+  cursor: pointer;
+  z-index: 60;
+}
+.do-close:hover{ background: rgba(17,24,39,.04); }
+
+/* ===== Menos amontonamiento: labels arriba + grid ===== */
+.controls{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.control-group{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.control-label-row{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.select-wrapper{ width: 100%; }
+
+/* ===== Fecha: que no quede “lavada” ===== */
+.date-field input.mat-mdc-input-element{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  opacity: 1 !important;
+  font-weight: 800;
+}
+
+.date-field .mdc-text-field--filled{
+  background: #fff !important;
+}
+
+/* ===== Amarillo real ===== */
+.precaucion-row{
+  background-color: #ffeb3b;  /* amarillo */
+  color: #000;
+}
+.precaucion-row td{ color: #000; }
+
+/* ===== Sticky header tabla (ya lo tenías, pero lo dejo blindado) ===== */
+.tabla-datos th{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* ===== Iconos de info (visibles y clicables) ===== */
+.info-dot{
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--border) !important;
+  background: #fff !important;
+  padding: 0 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.info-dot mat-icon{
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  color: rgba(17,24,39,.75);
+}
+.info-dot:hover{ background: rgba(17,24,39,.04) !important; }
+
+/* ícono en header oscuro */
+.th-info{
+  margin-left: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+}
+.th-info mat-icon{ font-size: 18px; width: 18px; height: 18px; }
+.th-info:hover{ background: rgba(255,255,255,.18); }
+
+
+/* X fija arriba a la derecha, sin ocupar ancho */
+.do-close{
+  position: sticky;
+  top: 10px;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17,24,39,.9);
+  cursor: pointer;
+  z-index: 50;
+}
+.do-close:hover{ background: rgba(17,24,39,.04); }
+
+/* Controles en grid (evita amontonamiento) */
+.controls-grid{
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin: 12px 0;
+}
+.field{ grid-column: span 3; min-width: 0; }
+.action-field{ grid-column: span 3; }
+.kp-field{ grid-column: span 4; }
+
+@media (max-width: 1100px){
+  .field{ grid-column: span 6; }
+  .kp-field{ grid-column: span 12; }
+  .action-field{ grid-column: span 12; }
+}
+@media (max-width: 768px){
+  .field{ grid-column: span 12; }
+}
+
+/* Etiqueta + info */
+.field-label{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 900;
+  color: rgba(17,24,39,.80);
+  margin-bottom: 6px;
+}
+
+/* Botón i (sin mat-icon, no sale “?”) */
+.info-dot{
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,24,39,.20);
+  background: rgba(17,24,39,.06);
+  color: rgba(17,24,39,.85);
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+}
+.info-dot:hover{ background: rgba(17,24,39,.10); }
+.info-dot--th{
+  margin-left: 6px;
+  border-color: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+
+/* Fecha: forzar texto oscuro (tu problema de “muy clarita”) */
+:host ::ng-deep .mat-mdc-form-field .mdc-text-field__input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  font-weight: 800;
+}
+:host ::ng-deep .mat-mdc-form-field .mdc-floating-label{
+  color: rgba(17,24,39,.70) !important;
+  font-weight: 800;
+}
+
+/* Amarillo real */
+.precaucion-row{
+  background: #ffeb3b !important;
+  color: #000 !important;
+}
+
+/* Sticky header real (dentro de tu scroll) */
+.tabla-datos th{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.table-title{
+  margin: 10px 0 8px;
+  font-weight: 900;
+  color: rgba(17,24,39,.9);
+}
+
+/* X fija y del tamaño correcto (sin ocupar ancho) */
+.close-btn{
+  position: absolute;
+  right: calc(14px + env(safe-area-inset-right));
+  top: calc(14px + env(safe-area-inset-top));
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  z-index: 1200;
+}
+.viewer-container{ position: relative; padding-top: 14px; }
+
+/* Ajuste de título para no pelearse con la X */
+.titulo{ padding-right: 56px; }
+
+/* Amarillo REAL */
+.precaucion-row{
+  background-color: #ffeb3b; /* amarillo */
+  color: #000;
+}
+
+/* Mantener verde/rojo como ya tenías */
+.apto-row{ background-color:#4caf50; color:#000; }
+.no-apto-row{ background-color:#c0392b; color:#fff; }
+
+/* Sticky header confiable */
+.tabla-datos th{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #111;
+}
+
+/* Título de tabla + botón “Cómo leer” */
+.table-title{
+  margin-top: 10px;
+  margin-bottom: 6px;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17,24,39,.03);
+}
+.table-title__left{ display:flex; align-items: baseline; gap: 10px; }
+.table-title__h{ font-weight: 900; color: rgba(17,24,39,.92); }
+.table-title__hint{ color: rgba(17,24,39,.60); font-weight: 800; }
+
+/* Fecha más visible */
+.fecha-strong{
+  color: rgba(17,24,39,.92);
+  font-weight: 900;
+}
+
+/* Menos “amontonado” */
+.resumen-consulta{ display:flex; flex-direction:column; gap: 8px; }
+.resumen-line{ display:flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
+.resumen-line .sep{ color: rgba(17,24,39,.35); font-weight: 900; }
+.resumen-sub{ display:flex; flex-wrap: wrap; gap: 8px; color: rgba(17,24,39,.78); font-weight: 700; }
+
+/* Icono info: que sea realmente un botón con el mat-icon visible */
+.info-dot{
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,24,39,.18);
+  background: rgba(17,24,39,.06);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 6px;
+}
+.info-dot mat-icon{
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  color: rgba(17,24,39,.75);
+}
+.info-dot:hover{ background: rgba(17,24,39,.10); }
+
+.info-dot--th{
+  border-color: rgba(255,255,255,.25);
+  background: rgba(255,255,255,.14);
+}
+.info-dot--th mat-icon{ color:#fff; }
+.info-dot--th:hover{ background: rgba(255,255,255,.20); }
+
+.precaucion-row{
+  background-color: #ffeb3b;
+  color: #000;
+}
+.precaucion-row td{ color:#000; }
+
+.precaucion-row{
+  background-color: #ffeb3b;
+  color: #000;
+}
+.precaucion-row td{ color:#000; }
+
+.container{ position: relative; }
+
+.do-close{
+  position: sticky;
+  top: 10px;
+  margin-left: auto;
+  align-self: flex-end;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: rgba(17,24,39,.9);
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 50;
+}
+.do-close:hover{ background: rgba(17,24,39,.04); }
+
+.controls{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.control-group{ display:flex; gap:10px; align-items:center; }
+.control-label{ min-width: 92px; }
+
+.info-circle-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,24,39,.20);
+  background: rgba(17,24,39,.06);
+  color: rgba(17,24,39,.85);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  user-select:none;
+  padding: 0;
+}
+.info-circle-btn:active{ transform: scale(.98); }
+.tabla-datos th .info-circle-btn.th-info{
+  border-color: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+
+:host ::ng-deep .mat-mdc-text-field__input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  opacity: 1 !important;
+  font-weight: 800;
+}
+
+
+/* el que scrollea para que sticky funcione */
+.table-scroll{
+  max-height: 52vh;              /* ajustá a gusto */
+  overflow: auto;                /* scroll vertical + horizontal si hace falta */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* la tabla ya no necesita overflow/rounded */
+.tabla-datos{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;             /* importante: no “cortes” sticky */
+}
+
+/* sticky header */
+.tabla-datos thead th{
+  position: sticky;
+  top: 0;
+  z-index: 10;                   /* más alto */
+  background: #111;
+}
+
+/* opcional: para que no “titile” cuando pasa por arriba */
+.tabla-datos thead{
+  position: sticky;
+  top: 0;
+  z-index: 9;
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .detail-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-group {
+    justify-content: space-between;
+  }
+
+  .select-wrapper,
+  mat-form-field.select-wrapper {
+    width: 100%;
+  }
+
+  .btn-search {
+    width: 100%;
+  }
+
+  .map-wrapper {
+    height: clamp(240px, 36vh, 320px);
+  }
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-    .map-wrapper {
-        height: 50vh;
-        min-height: 250px;
-    }
-
-    .controls {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .select-wrapper {
-        width: 100%;
-        margin-bottom: 1rem;
-    }
+@media (max-width: 1100px){
+  .controls-grid{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+  .field-wide{ grid-column: span 2; }
 }
-
+@media (max-width: 768px){
+  .controls-grid{ grid-template-columns: 1fr; }
+  .field-wide{ grid-column: span 1; }
+  .field-action{ justify-content: stretch; }
+  .btn-search{ width: 100%; }
+}

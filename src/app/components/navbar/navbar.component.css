@@ -1,38 +1,18 @@
 .navbar {
   display: flex;
-  justify-content: space-between;
-  align-items: right;
+  align-items: center;
+  gap: 12px;
 }
 
-.logo {
-  font-size: 1.5rem;
-  text-decoration: none;
-  color: white;
-}
+.spacer { flex: 1; }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
 }
 
-.user-info span {
-  margin-top: 15px;
-  color: rgb(44, 116, 34);
-}
-.btn {
-  background-color: #30461a;
-  color: #e5e2c2;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 15px;
-}
-
-.btn:hover {
-  background-color: #e5e2c2;
-  color: #3e3c2f;
-  
+.user-email {
+  color: var(--muted);
+  font-weight: 600;
 }

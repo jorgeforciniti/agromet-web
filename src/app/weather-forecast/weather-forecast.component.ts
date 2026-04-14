@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
-import { WeatherService } from '../services/weather.service';
+import { OpenWeatherForecastItem, OpenWeatherForecastResponse, OpenWeatherNowResponse, WeatherService, WeatherStation } from '../services/weather.service';
 import { SunriseSunsetService } from '../services/sunrise-sunset.service';
 import { WeatherData, Forecast, TimeSpecificForecast } from '../models/weather-data';
 import { FormsModule } from '@angular/forms';
@@ -10,8 +10,9 @@ import { faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faSun, faMoon,
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { SmnAlertResponse, Warning, SmnEvent, ReportLevel, Period } from '../models/smn-alert.model';
-import { Chart } from 'chart.js';
+import Chart from 'chart.js/auto';
+import { MatIconModule } from '@angular/material/icon';
+import { Input } from '@angular/core';
 
 registerLocaleData(localeEsAr);
 
@@ -24,37 +25,38 @@ registerLocaleData(localeEsAr);
     FontAwesomeModule,
     MatSelectModule,
     MatFormFieldModule,
-    // BaseChartDirective, // Eliminado de imports
+    MatIconModule,
   ],
   templateUrl: './weather-forecast.component.html',
   styleUrls: ['./weather-forecast.component.css']
 })
 export class WeatherForecastComponent implements OnInit, AfterViewInit {
+  @Input() mode: 'realtime' | 'forecast' | 'full' = 'full';
   @Output() stationSelected = new EventEmitter<string>();
   @ViewChild('temperatureChart') temperatureChartCanvas!: ElementRef<HTMLCanvasElement>;
 
-  // Propiedades relacionadas con los gráficos eliminadas:
-  // temperatureChartData, forecastDays, labels, tempChartData, humChartData, windChartData, rainChartData, chartOptions
   private temperatureChart: Chart | null = null;
   loading = false;
   error: string | null = null;
   weatherData: WeatherData | null = null;
+  nowIconUrl: string | null = null;
+  nowDescription: string | null = null;
+  nowLoading = false;
   currentConditions: TimeSpecificForecast | null = null;
   sunrise: string = '--:--';
   sunset: string = '--:--';
   selectedDayIndex: number = 0;
   selectedDay: Forecast | null = null;
 
-  stations: any[] = [];
-  selectedStation: any = null;
+  stations: WeatherStation[] = [];
+  selectedStation: WeatherStation | null = null;
   rtTemperature: number | null = null;
   rtHumidity: number | null = null;
+  rtRain: number | null = null;
   rtWind: { direction?: string; speed?: number } | null = null;
+
   rtUpdated: Date | null = null;
   rtStationName: string = '';
-
-  smnAlerts: any[] = [];
-  smnShortAlerts: any[] = [];
 
   periodoEnCastellano(period: string): string {
     switch (period) {
@@ -68,37 +70,45 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
 
   private createTemperatureChart(): void {
     if (!this.selectedDay) return;
+    const canvas = this.temperatureChartCanvas?.nativeElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const ctx = this.temperatureChartCanvas?.nativeElement;
-    if (!ctx) {
-      console.error('Canvas element not found');
-      return;
-    }
-
-    // Extraer horas y temperaturas
-    const labels = this.selectedDay.intervals.map(interval => interval.hour);
-    const temperatures = this.selectedDay.intervals.map(interval => interval.temperature);
-    const wind = this.selectedDay.intervals.map(interval => interval.wind.speed);
-
-    // Destruir el gráfico existente si ya hay uno
     if (this.temperatureChart) {
       this.temperatureChart.destroy();
+      this.temperatureChart = null;
     }
 
-    // Crear el nuevo gráfico
+    const labels = this.selectedDay.intervals.map(interval => interval.hour);
+    const temperatures = this.selectedDay.intervals.map(interval => interval.temperature);
+
+
+    const lineColor = this.cssVar('--brand', '#6d28d9');
+    const textColor = this.cssVar('--text', '#111827');
+    const mutedColor = this.cssVar('--muted', '#6b7280');
+    const gridColor = 'rgba(17,24,39,.08)';
+
     this.temperatureChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels,
         datasets: [{
-          label: 'Temperatura',  // el label puede quedarse o quitarse, no se mostrará
+          label: 'Temperatura',
           data: temperatures,
-          borderColor: 'rgba(255, 238, 5)',
-          backgroundColor: 'rgba(255, 238, 5, 0.3)',
+
+          borderColor: lineColor,
+          backgroundColor: lineColor + '22', // alpha suave (si no te gusta, lo cambiamos)
           borderWidth: 2,
-          pointRadius: 3,
-          pointBackgroundColor: 'rgba(255, 238, 5, 0.72)',
-          fill: false,
+
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          pointBackgroundColor: lineColor,
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1,
+
+          tension: 0.35,
+          fill: true
         }]
       },
       options: {
@@ -106,59 +116,45 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
         maintainAspectRatio: false,
         scales: {
           x: {
-            title: {
-              display: true,
-              text: 'Hora',
-              color: 'rgba(255, 248, 143, 0.72)'
-            },
             ticks: {
-              color: 'rgba(255, 248, 143, 0.72)' // Color amarillo para los ticks del eje Y
+              color: mutedColor,
+              maxTicksLimit: 6,
+              font: { size: 11 }
             },
-            grid: {
-              color: 'rgba(255, 248, 143, 0.1)' // Opcional: color de la cuadrícula
-            }
+            grid: { color: gridColor }
           },
           y: {
-            title: {
-              display: false,
-              text: '°C',
-              color: 'rgba(255, 248, 143, 0.72)'
-            },
             ticks: {
-              color: 'rgba(255, 248, 143, 0.72)',
-              callback: function(value) {
-  const numericValue = Number(value);
-  if (isNaN(numericValue)) return '';
-  
-  return numericValue < 10 
-    ? `0${numericValue.toFixed(0)}` 
-    : numericValue.toFixed(0);
-}
+              color: mutedColor,
+              callback: (value) => {
+                const n = Number(value);
+                return isNaN(n) ? '' : n.toFixed(1);
+              }
             },
-            grid: {
-              color: 'rgba(255, 248, 143, 0.1)', // Opcional: color de la cuadrícula
-            }
+            grid: { color: gridColor }
           }
         },
         plugins: {
-          legend: {
-            display: false    // ← aquí deshabilitamos la leyenda
-          },
+          legend: { display: false },
           title: {
             display: true,
             text: 'Pronóstico de Temperatura Horaria (°C)',
-            color: 'rgba(255, 248, 143, 0.72)'
+            color: textColor,
+            font: { weight: 700, size: 12 }
           },
           tooltip: {
             callbacks: {
-              label: function (context) {
-                return `${context.parsed.y.toFixed(0)}`;  // solo valor numérico
-              }
+              label: (context) => `${context.parsed.y.toFixed(1)} °C`
             }
           }
         }
       }
     });
+  }
+
+  private cssVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
   }
 
   constructor(
@@ -174,10 +170,12 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
     this.loadStations();
   }
 
-  ngAfterViewInit() {
-    this.createTemperatureChart();
+  ngAfterViewInit(): void {
+    this.scheduleChartRender();
   }
-  selectStation(station: any): void {
+
+
+  selectStation(station: WeatherStation): void {
     this.selectedStation = station;
     this.updateStationData();
     this.stationSelected.emit(station.Identificacion);
@@ -186,7 +184,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
   getWeatherForecast(lat: number, lon: number): void {
     this.loading = true;
     this.weatherService.getOpenWeatherForecast(lat, lon).subscribe({
-      next: (response) => {
+      next: (response: OpenWeatherForecastResponse) => {
         const groupedForecast = this.groupForecastByDay(response.list);
         this.weatherData = {
           location: {
@@ -199,24 +197,23 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
           forecast: groupedForecast
         };
 
-        this.selectDay(null, 0); // Esto seleccionará el primer día y sus datos para la nueva vista horaria
+        this.selectDay(groupedForecast[0] ?? null, 0);
         this.getSunriseSunset(lat, lon);
         this.loading = false;
         this.changeDetectorRef.detectChanges();
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
         this.error = 'Error al obtener el pronóstico';
         this.loading = false;
       }
     });
   }
 
-  private groupForecastByDay(list: any[]): Forecast[] {
+  private groupForecastByDay(list: OpenWeatherForecastItem[]): Forecast[] {
     const daysMap = new Map<string, Forecast>();
     const timeZone = 'America/Argentina/Buenos_Aires';
 
-    list.forEach((entry: any) => {
+    list.forEach((entry) => {
       const utcDate = new Date(entry.dt * 1000);
       const localString = utcDate.toLocaleString('en-US', { timeZone });
       const localDate = new Date(localString);
@@ -301,16 +298,19 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
           });
         }
       },
-      error: (err) => console.error(err)
+      error: () => undefined
     });
   }
 
   selectDay(day: Forecast | null, index: number): void {
+    const fallback = this.weatherData?.forecast?.[index] ?? this.weatherData?.forecast?.[0] ?? null;
+
     this.selectedDayIndex = index;
-    this.selectedDay = day || this.weatherData?.forecast[0] || null;
-    setTimeout(() => {
-      this.createTemperatureChart();
-    }, 0);
+    this.selectedDay = day ?? fallback;
+
+    this.changeDetectorRef.detectChanges();
+
+    this.scheduleChartRender();
   }
 
   getDayName(dateStr: string): string {
@@ -327,7 +327,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
 
   loadStations(): void {
     this.weatherService.getStations().subscribe({
-      next: (data: any[]) => {
+      next: (data) => {
         this.stations = data;
         const defaultStation = this.stations.find(
           station => station.Identificacion === '2049' ||
@@ -338,8 +338,8 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
           const lat = parseFloat(this.selectedStation.lat);
           const lon = parseFloat(this.selectedStation.lon);
           if (!isNaN(lat) && !isNaN(lon)) {
-            this.getWeatherForecast(lat, lon); // Esto llamará a selectDay(null, 0) internamente
-            this.updateStationData(); // Asegura que los datos en tiempo real y alertas se carguen
+            this.getWeatherForecast(lat, lon);
+            this.updateStationData();
           } else {
             this.error = 'Coordenadas inválidas para la estación por defecto.';
             this.loading = false;
@@ -350,8 +350,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
         }
         this.changeDetectorRef.detectChanges();
       },
-      error: (err) => {
-        console.error('Error al cargar estaciones:', err);
+      error: () => {
         this.error = 'No se pudieron cargar las estaciones';
         this.loading = false;
         this.changeDetectorRef.detectChanges();
@@ -364,53 +363,50 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
       const lat = parseFloat(this.selectedStation.lat) || -26.8;
       const lon = parseFloat(this.selectedStation.lon) || -65.2;
 
-      this.rtTemperature = parseFloat(this.selectedStation.temp_af) || null;
-      this.rtHumidity = parseFloat(this.selectedStation.hum_af) || null;
+      const temp = parseFloat(this.selectedStation.temp_af ?? '');
+      this.rtTemperature = isNaN(temp) || temp < -25 || temp > 55 ? null : temp;
+      const humidity = parseFloat(this.selectedStation.hum_af ?? '');
+      this.rtHumidity = isNaN(humidity) ? null : humidity;
+      const rrDia = parseFloat(this.selectedStation.RR_dia ?? '');
+      this.rtRain = isNaN(rrDia) || rrDia > 400 ? null : parseFloat(rrDia.toFixed(1));
+      const rawSpeed = parseFloat(this.selectedStation.viento_medio ?? '');
       this.rtWind = {
         direction: this.selectedStation.direc || 'N/A',
-        speed: parseFloat(this.selectedStation.viento_medio) || 0
+        speed: isNaN(rawSpeed) || rawSpeed > 390 ? undefined : rawSpeed
       };
       this.rtUpdated = this.selectedStation.fecha_I ? new Date(this.selectedStation.fecha_I) : null;
       this.rtStationName = this.selectedStation.nombre || 'Estación desconocida';
 
-      this.getWeatherForecast(lat, lon); // Actualiza el pronóstico detallado
-      this.loadSmnAlerts(lat, lon); // Carga alertas para la nueva estación
+      this.getWeatherForecast(lat, lon);
+      this.loadNowWeather(lat, lon);
     }
+
   }
 
-  loadSmnAlerts(lat: number, lon: number): void {
-    this.weatherService.getSmnAlertByCoords(lat, lon)
-      .subscribe({
-        next: (alerta: SmnAlertResponse) => {
-          const reportsMap = new Map<number, ReportLevel[]>();
-          alerta.reports.forEach(r => reportsMap.set(r.event_id, r.levels));
+  private loadNowWeather(lat: number, lon: number): void {
+    this.nowLoading = true;
+    this.nowIconUrl = null;
+    this.nowDescription = null;
 
-          this.smnAlerts = alerta.warnings
-            .filter((w: Warning): w is Warning => !!(w.date && w.events))
-            .flatMap((warning: Warning) => {
-              const fecha = warning.date!;
-              return warning.events!.flatMap((event: SmnEvent) => {
-                const [reportInfo]: ReportLevel[] = reportsMap.get(event.id) ?? [];
-                const entries = Object.entries(event.levels) as [Period, number][];
+    this.weatherService.getOpenWeatherNow(lat, lon).subscribe({
+      next: (res: OpenWeatherNowResponse) => {
+        const w = res?.weather?.[0];
+        const icon = w?.icon;
 
-                return entries
-                  .filter(([_, lvl]) => lvl >= 3) // Usar _ si 'period' no se usa aquí
-                  .map(([period, lvl]) => ({ // Aquí sí usamos 'period'
-                    date: fecha,
-                    period,
-                    level: event.max_level, // Usar max_level del evento general
-                    description: reportInfo?.description ?? 'No disponible',
-                    instruction: reportInfo?.instruction ?? 'No disponible'
-                  }));
-              });
-            });
-          this.changeDetectorRef.detectChanges();
-        },
-        error: err => {
-          console.error('Error al cargar alertas SMN:', err);
-          this.smnAlerts = []; // Limpiar alertas en caso de error
-          this.changeDetectorRef.detectChanges();
-        }
-      });
+        this.nowDescription = w?.description ?? null;
+        this.nowIconUrl = icon ? `https://openweathermap.org/img/wn/${icon}.png` : null;
+
+        this.nowLoading = false;
+      },
+      error: () => {
+        this.nowLoading = false;
+        this.nowIconUrl = null;
+        this.nowDescription = null;
+      }
+    });
+  }
+
+  private scheduleChartRender() {
+    setTimeout(() => this.createTemperatureChart(), 0);
   }
 }

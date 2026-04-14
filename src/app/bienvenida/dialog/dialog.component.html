@@ -1,23 +1,20 @@
 <div class="dialog-windows">
-  <div class="dialog-content">
-    <h1 mat-dialog-title>Acerca de Nosotros</h1>
-    <div mat-dialog-content>
-      <p>La Sección de Agrometeorología de la EEAOC (Estación Experimental Agroindustrial Obispo Colombres),
-        ubicada en Tucumán, Argentina, se especializa en ofrecer servicios integrales y datos precisos sobre el
-        clima y su impacto en la agricultura. <br><br>A través de nuestra página web, proporcionamos información
-        actualizada en tiempo real, pronósticos específicos para el sector agropecuario, herramientas para la
-        gestión de riesgos climáticos y recursos de investigación aplicados a la agroindustria.<br><br>
-        Ponemos a disposición una amplia gama de contenidos, que incluyen artículos especializados, informes
-        meteorológicos detallados y estudios científicos enfocados en la realidad de la región. Nuestro objetivo
-        es proporcionar a agricultores, investigadores y al público en general acceso a información confiable y
-        relevante sobre las condiciones climáticas en Tucumán y el Noroeste Argentino (NOA).<br><br>
-        Te invitamos a explorar nuestras secciones, donde podrás encontrar datos meteorológicos históricos, en
-        tiempo real, y descubrir investigaciones clave que influyen directamente en el desarrollo del sector
-        agrícola.
-      </p>
+  <div class="dialog-header">
+    <div>
+      <div class="dialog-eyebrow">SECCIÓN AGROMETEOROLOGÍA</div>
+      <h2 class="dialog-title">Acerca de Nosotros</h2>
     </div>
-    <div mat-dialog-actions>
-      <button mat-button (click)="closeDialog()">Cerrar</button>
-    </div>
+    <button class="dialog-close" type="button" (click)="closeDialog()" aria-label="Cerrar diálogo">×</button>
+  </div>
+
+  <div class="dialog-body">
+    <p>La Sección de Agrometeorología de la EEAOC (Estación Experimental Agroindustrial Obispo Colombres), ubicada en Tucumán, Argentina, se especializa en ofrecer servicios integrales y datos precisos sobre el clima y su impacto en la agricultura.</p>
+    <p>A través de nuestra página web, proporcionamos información actualizada en tiempo real, pronósticos específicos para el sector agropecuario, herramientas para la gestión de riesgos climáticos y recursos de investigación aplicados a la agroindustria.</p>
+    <p>Ponemos a disposición una amplia gama de contenidos, que incluyen artículos especializados, informes meteorológicos detallados y estudios científicos enfocados en la realidad de la región. Nuestro objetivo es proporcionar a agricultores, investigadores y al público en general acceso a información confiable y relevante sobre las condiciones climáticas en Tucumán y el Noroeste Argentino (NOA).</p>
+    <p>Te invitamos a explorar nuestras secciones, donde podrás encontrar datos meteorológicos históricos, en tiempo real, y descubrir investigaciones clave que influyen directamente en el desarrollo del sector agrícola.</p>
+  </div>
+
+  <div class="dialog-footer">
+    <button type="button" class="btn btn--ghost" (click)="closeDialog()">Cerrar</button>
   </div>
 </div>

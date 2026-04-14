@@ -4,9 +4,9 @@ Chart.register(...registerables);
 
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { 
-  MatDialogModule, 
-  MatDialogRef, 
+import {
+  MatDialogModule,
+  MatDialogRef,
   MAT_DIALOG_DATA
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,14 +15,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { 
-  MatNativeDateModule, 
-  NativeDateAdapter, 
-  MAT_DATE_LOCALE 
+import {
+  MatNativeDateModule,
+  NativeDateAdapter,
+  MAT_DATE_LOCALE
 } from '@angular/material/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
-import { WeatherService } from '../services/weather.service';
+import { WeatherService, WeatherStation } from '../services/weather.service';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
@@ -31,7 +31,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Injectable()
 export class CustomDateAdapter extends NativeDateAdapter {
-  override parse(value: any): Date | null {
+  override parse(value: unknown): Date | null {
     if (typeof value === 'string' && value.indexOf('/') > -1) {
       const [day, month, year] = value.split('/');
       const date = new Date(+year, +month - 1, +day);
@@ -46,12 +46,6 @@ export class CustomDateAdapter extends NativeDateAdapter {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   }
-}
-
-interface Station {
-  id: string;
-  Identificacion: string;
-  nombre: string;
 }
 
 interface WeatherRecord {
@@ -101,7 +95,7 @@ const MY_DATE_FORMATS = {
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'es-AR' },
     { provide: DateAdapter, useClass: CustomDateAdapter },
-    { 
+    {
       provide: MAT_DATE_FORMATS,
       useValue: MY_DATE_FORMATS
     }
@@ -111,13 +105,13 @@ const MY_DATE_FORMATS = {
 })
 export class ComparisonByYearComponent implements OnInit {
   form!: FormGroup;
-  stations: Station[] = [];
+  stations: WeatherStation[] = [];
   comparisonYears: number[] = [];
   lineChartData: ChartData<'line', number[]> = { labels: [], datasets: [] };
   barChartData: ChartData<'bar', number[]> = { labels: [], datasets: [] };
   chartLabels: string[] = [];
   isLoading = false;
-  
+
   chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -125,27 +119,20 @@ export class ComparisonByYearComponent implements OnInit {
       y: {
         position: 'left',
         display: true,
-        ticks: { color: '#f8f5d7' },
-        grid: { color: 'rgba(248, 245, 215, 0.1)' }
-      },
-      y1: {
-        position: 'right',
-        display: false,
-        ticks: { color: '#f8f5d7' },
-        grid: { color: 'rgba(248, 245, 215, 0.1)' }
+        ticks: { color: '#111827', font: { weight: '700' } },
+        grid: { color: 'rgba(17,24,39,.10)' }
       },
       x: {
-        ticks: { color: '#f8f5d7' },
-        grid: { color: 'rgba(248, 245, 215, 0.1)' }
+        ticks: { color: '#111827', font: { weight: '700' } },
+        grid: { color: 'rgba(17,24,39,.10)' }
       }
     },
     plugins: {
       legend: {
-        labels: { color: '#f8f5d7' }
+        labels: { color: '#111827', font: { weight: '700' } }
       }
     }
   };
-
   variables = [
     { key: 'temp_max', label: 'Temperatura máxima (°C)' },
     { key: 'temp_min', label: 'Temperatura mínima (°C)' },
@@ -158,15 +145,19 @@ export class ComparisonByYearComponent implements OnInit {
     { key: 'hum_hoja_hs', label: 'Hoja mojada (mm)' }
   ];
 
+  readonly data: Record<string, unknown>;
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<ComparisonByYearComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
+    @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
+  ) {
+    this.data = dialogData ?? {};
+  }
 
   ngOnInit() {
-    this.weatherService.getStationsAll().subscribe(res => this.stations = res as Station[]);
+    this.weatherService.getStationsAll().subscribe(res => this.stations = res);
     const currentYear = new Date().getFullYear();
     for (let y = 2006; y <= currentYear; y++) {
       this.comparisonYears.push(y);
@@ -195,14 +186,47 @@ export class ComparisonByYearComponent implements OnInit {
     return start && end && start > end ? { invalidRange: true } : null;
   }
 
+  private coerceDate(value: Date | string): Date {
+    if (value instanceof Date) {
+      return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    }
+
+    if (typeof value === 'string' && value.includes('/')) {
+      const [day, month, year] = value.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    if (typeof value === 'string' && value.includes('-')) {
+      const [year, month, day] = value.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    return new Date(value);
+  }
+
+  private resetCharts(): void {
+    this.chartLabels = [];
+    this.lineChartData = { labels: [], datasets: [] };
+    this.barChartData = { labels: [], datasets: [] };
+  }
+
   onSubmit(): void {
     if (this.form.invalid) return;
     this.isLoading = true;
+    this.resetCharts();
 
-    const { estacion, fechaDesde, fechaHasta, compYear, variable, formato } = this.form.value;
+    const { estacion, fechaDesde, fechaHasta, variable, formato } = this.form.getRawValue();
+    const compYear = Number(this.form.getRawValue().compYear);
 
-    const dFrom = new Date(fechaDesde);
-    const dTo = new Date(fechaHasta);
+    const dFrom = this.coerceDate(fechaDesde);
+    const dTo = this.coerceDate(fechaHasta);
+
+    if (isNaN(dFrom.getTime()) || isNaN(dTo.getTime()) || Number.isNaN(compYear)) {
+      this.isLoading = false;
+      this.resetCharts();
+      console.error('Parámetros inválidos en comparación por año', { fechaDesde, fechaHasta, compYear });
+      return;
+    }
 
     const cFrom = new Date(compYear, dFrom.getMonth(), dFrom.getDate());
     const yearDiff = dTo.getFullYear() - dFrom.getFullYear();
@@ -216,19 +240,26 @@ export class ComparisonByYearComponent implements OnInit {
     };
 
     forkJoin({
-      base: this.weatherService.getWeatherDataDiary(formatDate(dFrom), formatDate(dTo), estacion),
-      comp: this.weatherService.getWeatherDataDiary(formatDate(cFrom), formatDate(cTo), estacion)
-    }).subscribe(({ base, comp }) => {
-      const baseYears = Array.from(
-        new Set(base.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
-      ).join('-');
-      
-      const compYears = Array.from(
-        new Set(comp.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
-      ).join('-');
+      base: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), estacion),
+      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(cFrom), formatDate(cTo), estacion)
+    }).subscribe({
+      next: ({ base, comp }) => {
+        const baseYears = Array.from(
+          new Set(base.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
+        ).join('-');
 
-      this.applyBuildCharts(base.data, comp.data, baseYears, compYears, variable, formato);
-      this.isLoading = false;
+        const compYears = Array.from(
+          new Set(comp.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
+        ).join('-');
+
+        this.applyBuildCharts(base.data, comp.data, baseYears, compYears, variable, formato);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.resetCharts();
+        console.error('Error al calcular comparación por año', error);
+      }
     });
   }
 
@@ -242,7 +273,7 @@ export class ComparisonByYearComponent implements OnInit {
   ): void {
     const meta = this.variables.find(v => v.key === key)!;
     const isBar = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
-    
+
     const baseYearLabel = baseYear.includes('-') ? `(${baseYear})` : `(${baseYear})`;
     const compYearLabel = compYear.includes('-') ? `(${compYear})` : `(${compYear})`;
 
@@ -251,11 +282,11 @@ export class ComparisonByYearComponent implements OnInit {
       const compMonths = this.groupByMonth(compData);
       const baseValues = this.calculateMonthlyValues(baseMonths, key);
       const compValues = this.calculateMonthlyValues(compMonths, key);
-  
+
       this.chartLabels = baseValues.map(v => v.label);
       const valsBase = baseValues.map(v => v.value);
       const valsComp = compValues.map(v => v.value);
-  
+
       if (isBar) {
         const barDatasets: ChartDataset<'bar', number[]>[] = [
           { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'bar', yAxisID: 'y' },
@@ -276,11 +307,11 @@ export class ComparisonByYearComponent implements OnInit {
       const compDecades = this.groupByDecade(compData);
       const baseValues = this.calculateDecadeValues(baseDecades, key);
       const compValues = this.calculateDecadeValues(compDecades, key);
-  
+
       this.chartLabels = baseValues.map(v => v.label);
       const valsBase = baseValues.map(v => v.value);
       const valsComp = compValues.map(v => v.value);
-  
+
       if (isBar) {
         const barDatasets: ChartDataset<'bar', number[]>[] = [
           { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'bar', yAxisID: 'y' },
@@ -300,7 +331,7 @@ export class ComparisonByYearComponent implements OnInit {
       this.chartLabels = baseData.map(r => r.fecha.split('-').slice(1).join('/'));
       const valsBase = baseData.map(r => key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number));
       const valsComp = compData.map(r => key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number));
-  
+
       if (isBar) {
         const barDatasets: ChartDataset<'bar', number[]>[] = [
           { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'bar', yAxisID: 'y' },

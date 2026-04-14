@@ -1,52 +1,68 @@
 import { Component } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MapRainMonthlyComponent } from '../map-rain-monthly/map-rain-monthly.component'
-import { MapTemperatureComponent } from '../map-temperature/map-temperature.component'
-import { MapFrostComponent } from '../map-frost/map-frost.component'
-import { MapRainComponent } from '../map-rain/map-rain.component';
+import { MatIconModule } from '@angular/material/icon';
+
 
 @Component({
   selector: 'app-mapas',
   imports: [
     MatCardModule,
     MatDialogModule,
+    MatIconModule
   ],
   templateUrl: './mapas.component.html',
-  styleUrl: './mapas.component.css'
+  styleUrl: './mapas.component.css',
 })
 
 export class MapasComponent {
   constructor(private dialog: MatDialog) { }
-  openMapRainMonthly() {
+  async openMapRainMonthly(): Promise<void> {
+    const { MapRainMonthlyComponent } = await import('../map-rain-monthly/map-rain-monthly.component');
+
     this.dialog.open(MapRainMonthlyComponent, {
-      width: '90vw',
+      height: '95vh',
       maxWidth: '1200px',
-      panelClass: 'custom-dialog-container'
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
     });
   }
 
-  openMapTemperature() {
+  async openMapTemperature(): Promise<void> {
+    const { MapTemperatureComponent } = await import('../map-temperature/map-temperature.component');
+
     this.dialog.open(MapTemperatureComponent, {
-      width: '90vw',
+      height: '95vh',
       maxWidth: '1200px',
-      panelClass: 'custom-dialog-container'
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
     });
   }
 
-  openMapFrost() {
+  async openMapFrost(): Promise<void> {
+    const { MapFrostComponent } = await import('../map-frost/map-frost.component');
+
     this.dialog.open(MapFrostComponent, {
-      width: '90vw',
+      width: '95vw',
       maxWidth: '1200px',
-      panelClass: 'custom-dialog-container'
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false,
+      data: { hoy: false } // o lo que corresponda en tu caso
     });
   }
-  openMapRains() {
+  async openMapRains(): Promise<void> {
+    const { MapRainComponent } = await import('../map-rain/map-rain.component');
+
     this.dialog.open(MapRainComponent, {
-      width: '90vw',
+      width: '95vw',
       maxWidth: '1200px',
-      panelClass: 'custom-dialog-container',
-      data: { hoy: false }
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false,
+      data: { hoy: false } // o true
     });
   }
 

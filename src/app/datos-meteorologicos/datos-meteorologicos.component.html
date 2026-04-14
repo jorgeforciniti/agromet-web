@@ -1,96 +1,140 @@
-<div class="container">
-  <div class="datos-meteorologicos-container">
-    <h2 class="titulo">Datos Meteorológicos</h2>
+<div class="dm">
+  <div class="dm__main">
+    <div class="dm__intro">
+      <div>
+        <div class="dm__eyebrow">CONSULTA PRINCIPAL</div>
+        <h3 class="dm__headline">Herramientas de análisis y consulta meteorológica</h3>
+      </div>
+      <p class="dm__lead">Accesos directos a monitoreo, series comparativas y tableros por localidad para lectura operativa e histórica.</p>
+    </div>
 
-    <div class="grid-container">
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/datosmeteorologicos/datostiemporeal.jpeg" alt="Temperatura">
-        <mat-card-content>
-          <h3>Datos en tiempo real</h3>
-          <p>Estaciones meteorológicas automáticas en línea miden y calculan diversas variables meteorológicas cada 15
-            minutos, distribuidas en el territorio tucumano y áreas de influencia. Estos datos en tiempo real permiten
-            monitorear las condiciones climáticas para la toma de decisiones en agricultura y otras actividades.</p>
+    <div class="dm__grid">
+      <mat-card class="dm-card dm-card--primary">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/datostiemporeal.jpeg"
+               alt="Estación meteorológica operativa en tiempo real">
+          <div class="dm-card__badge">EN LÍNEA</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Monitoreo</div>
+          <h3 class="dm-card__title">Datos en tiempo real</h3>
+          <p class="dm-card__sub">Observación actualizada cada 15 minutos para seguimiento rápido de estaciones activas.</p>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openDatosOnline()">Ver más</button>
-        </mat-card-actions>
-      </mat-card>
-      <!-- Resto de tarjetas igual que antes -->
-
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/datosmeteorologicos/estacion_mr.jpg" alt="Precipitación">
-        <mat-card-content>
-          <h3>Datos meteorológicos por localidad</h3>
-          <p>Genera tablas y gráficos diarios de variables agrometeorológicas como temperatura, humedad, precipitación,
-            etc para cualquier localidad de la red, en un período especificado. Esta herramienta permite un análisis
-            detallado del clima local, facilitando la toma de decisiones en actividades agropecuarias.</p>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openDatosxLocalidad()">Ver más</button>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openDatosOnline()">Ver estaciones en línea</button>
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/datosmeteorologicos/tormenta.png" alt="Viento">
-        <mat-card-content>
-          <h3>Precipitaciones por campaña</h3>
-          <p>Muestra una tabla con la evolución mensual de las precipitaciones acumuladas de julio a junio para todas
-            las localidades de la red pluviométrica, comparadas con el promedio histórico. Cada dato está categorizado
-            mediante colores que indican el grado de normalidad del registro de lluvia.</p>
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/estacion_mr.jpg"
+               alt="Consulta de datos meteorológicos por localidad">
+          <div class="dm-card__badge">LOCALIDADES</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Consulta detallada</div>
+          <h3 class="dm-card__title">Datos por localidad</h3>
+          <p class="dm-card__sub">Tablas, gráficos y variables clave para analizar el comportamiento local con más profundidad.</p>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openRainDialog()">Ver más</button>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openDatosxLocalidad()">Consultar por localidad</button>
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/datosmeteorologicos/aplicacion.png" alt="Viento">
-        <mat-card-content>
-          <h3>Condiciones para la aplicación de agroquímicos</h3>
-          <p>Muestra un mapa de las condiciones actuales para la aplicación de agroquímicos, basado en temperatura,
-            humedad y viento en las localidades de la red. Además, es posible generar una tabla con la evolución de
-            estas condiciones para una localidad específica en una fecha elegida.</p>
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/tormenta.png"
+               alt="Evolución de lluvias por campaña agrícola">
+          <div class="dm-card__badge">ACUMULADOS</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Comparativa</div>
+          <h3 class="dm-card__title">Precipitaciones por campaña</h3>
+          <p class="dm-card__sub">Comparación interanual de lluvias acumuladas para leer la campaña con contexto histórico.</p>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openConditionsDialog()">Ver más</button>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openRainDialog()">Ver análisis de campañas</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/aplicacion.png"
+               alt="Condiciones para aplicación de agroquímicos">
+          <div class="dm-card__badge">DECISIÓN</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Manejo</div>
+          <h3 class="dm-card__title">Condiciones para aplicar agroquímicos</h3>
+          <p class="dm-card__sub">Mapas y tablas por localidad para evaluar ventanas operativas con mejor criterio.</p>
+        </mat-card-content>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openConditionsDialog()">Ver condiciones actuales</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/condiciones-enfermedades-card.svg"
+               alt="Condiciones predisponentes para enfermedades en cultivos">
+          <div class="dm-card__badge">SANIDAD</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Riesgo sanitario</div>
+          <h3 class="dm-card__title">Condiciones para enfermedades</h3>
+          <p class="dm-card__sub">Indicadores diarios por estación para evaluar escenarios predisponentes y acompañar el monitoreo fitosanitario.</p>
+        </mat-card-content>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openDiseaseConditionsDialog()">Ver condiciones predisponentes</button>
         </mat-card-actions>
       </mat-card>
     </div>
   </div>
-  <div class="sidebar">
-    <h2>Más datos...</h2>
-    <a href="#" (click)="openComparisonByYear(); $event.preventDefault()">
-      <p>
-        ⭐ Comparación de datos meteorológicos por año: Para una localidad seleccionada,
-        permite comparar la marcha de una variable en años diferentes a escala diaria o decádica.
-      </p>
-    </a>
-    <a href="#" (click)="openComparisonByLocation(); $event.preventDefault()">
-        <p>⭐ Comparación de datos entre Localidades: Permite seleccionar una variable meteorológica en un período
-          determinado y comparar, a través de un gráfico, su comportamiento en dos o más localidades.
-        </p>
-    </a>
-    <a href="#" class="disabled-link">
-      <p>⭐ Horas de frío: Para una localidad y período elegido genera una tabla con la cantidad de horas en las que la
-        temperatura estuvo por debajo de 7 ó 10 ºC.</p>
-    </a>
-    <a href="#" class="disabled-link">
-      <p>⭐ Sumas térmicas: Calcula para una localidad y período elegido las sumas térmicas sobre diferentes temperaturas
-        bases (0, 5, 10, 12, 15 y 18ºC).</p>
-    </a>
-    <a href="#" class="disabled-link">
-      <p>⭐ Balance hidrológico seriado: A partir de los datos de precipitación y evapotranspiración potencial, para una
-        localidad y período determinado, se obtiene una tabla con valores de almacenaje de agua, situaciones hídricas,
-        evapotranspiración real y evapotranspiración relativa.</p>
-    </a>
-    <a href="#" class="disabled-link">
-      <p>⭐ Condiciones para enfermedades en cultivos: Genera, para una localidad seleccionada y en un determinado
-        período, un reporte de las condiciones predisponentes para un conjunto de enfermedades de soja, limón y caña de
-        azúcar.</p>
-    </a>
-    <a href="#" class="disabled-link">
-      <p>⭐ Estimador de rindes de soja: Se estiman probables rendimientos de soja a partir de los componentes de
-        rendimiento.</p>
-    </a>
-  </div>
+
+  <aside class="dm__side">
+    <div class="dm__header">
+      <div class="dm__eyebrow dm__eyebrow--side">EXPLORACIÓN</div>
+      <h2 class="dm__title">Más análisis disponibles</h2>
+      <p class="dm__side-copy">Comparativas rápidas y nuevas herramientas en preparación para ampliar la lectura histórica.</p>
+    </div>
+
+    <ul class="dm-links">
+      <li>
+        <button type="button" class="dm-link" (click)="openComparisonByYear()">
+          <mat-icon inline>insights</mat-icon>
+          <span>Comparación de datos entre años</span>
+        </button>
+      </li>
+      <li>
+        <button type="button" class="dm-link" (click)="openComparisonByLocation()">
+          <mat-icon inline>compare</mat-icon>
+          <span>Comparación entre localidades</span>
+        </button>
+      </li>
+      <li>
+        <button type="button" class="dm-link" (click)="openChillHoursDialog()">
+          <mat-icon inline>hourglass_empty</mat-icon>
+          <span>Horas de frío</span>
+        </button>
+      </li>
+      <li>
+        <button type="button" class="dm-link" (click)="openThermalSumDialog()">
+          <mat-icon inline>functions</mat-icon>
+          <span>Sumas térmicas</span>
+        </button>
+      </li>
+      <li>
+        <span class="dm-link dm-link--disabled">
+          <mat-icon inline>water</mat-icon>
+          <span>Balance hidrológico seriado <span class="dm-soon">Próximamente</span></span>
+        </span>
+      </li>
+      <li>
+        <button type="button" class="dm-link" (click)="openSoyYieldDialog()">
+          <mat-icon inline>agriculture</mat-icon>
+          <span>Estimador de rindes de soja</span>
+        </button>
+      </li>
+    </ul>
+  </aside>
 </div>

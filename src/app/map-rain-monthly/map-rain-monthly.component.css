@@ -1,292 +1,283 @@
-/* Import Leaflet CSS */
-@import "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+/* =============================
+   Map Rain Monthly â€“ Dialog claro (final)
+   ============================= */
 
-/* Estilos para el diálogo completo */
-::ng-deep .mat-mdc-dialog-container {
-    height: 100vh !important;
-    /* Diálogo ocupa toda la altura de la ventana */
-    max-height: 100vh !important;
-    width: 90vw !important;
-    /* Mantiene el ancho del diseño original */
-    max-width: 1200px !important;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
+:host{
+  display: block;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
 }
 
-.rain-monthly-map-dialog {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    /* Ocupa todo el alto del contenedor del diálogo */
-    width: 100%;
-    background-color: #1a1a1a;
-    color: #eee;
-    min-height: 0;
-    /* Crítico para Chrome */
+/* Dialog shell (usa panelClass do-dialog) */
+.do-dialog .mat-mdc-dialog-surface {
+  width: min(1300px, 95vw) !important;
+  max-width: 98vw !important;
+  height: 92vh !important;
+  max-height: 92vh !important;
+  min-height: 92vh !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
 }
 
-
-
-.dialog-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    background-color: #1a1a1a;
-    flex-shrink: 0;
-    /* Evita que el encabezado se encoja */
+.do-dialog .mat-mdc-dialog-content {
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  scrollbar-gutter: stable;
 }
 
-.dialog-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
+/* Wrapper general */
+.scroll-container{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.close-button {
-    color: #eee;
+.dialog-body-wrapper{
+  position: relative;
+
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
 }
 
-.dialog-content {
-    flex: 1;
-    min-height: 0;
-    /* Necesario para navegadores basados en Chromium */
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow: hidden;
+/* TÃ­tulo + X */
+.titulo{
+  margin: 0 0 12px 0;
+  padding-right: 56px;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text);
 }
 
+.close-btn{
+  position: absolute;
+  right: calc(14px + env(safe-area-inset-right));
+  top: calc(14px + env(safe-area-inset-top));
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
 
-.form-controls {
-    display: flex;
-    padding-left: 10px;
-    padding-top: 10px;
-    padding-bottom: 0px;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 0px !important;
-    flex-wrap: wrap;
-    /* Permite envoltura en pantallas pequeñas */
-    flex-shrink: 0;
-    /* Evita que los controles se encojan */
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+  cursor: pointer;
+  z-index: 1100;
+}
+.close-btn:hover{ background: rgba(17,24,39,.04); }
+
+/* =============================
+   Form
+   ============================= */
+
+.form-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr)) minmax(160px, 220px);
+  gap: 12px;
+  align-items: end;
+  padding-right: 72px; /* evita solape con X */
+  box-sizing: border-box;
 }
 
-.form-field {
-    min-width: 150px;
+.actions{
+  display: flex;
+  align-items: stretch;
 }
 
-.load-button {
-    height: 52px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* BotÃ³n */
+.search-button{
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  height: 56px;              /* alinea con filled */
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 800;
 }
 
-/* Tema oscuro para componentes de Angular Material */
-.rain-monthly-map-dialog ::ng-deep .mat-mdc-form-field-label {
-    color: #bbb !important;
+/* Inputs/labels Material (claros) */
+.do-dialog .mat-mdc-form-field .mdc-floating-label{
+  color: rgba(17,24,39,.70) !important;
+  font-weight: 700;
 }
 
-.rain-monthly-map-dialog ::ng-deep .mat-mdc-input-element {
-    color: #eee !important;
+.do-dialog .mat-mdc-form-field .mdc-text-field__input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  opacity: 1 !important;
+  font-weight: 700;
 }
 
-.rain-monthly-map-dialog ::ng-deep .mat-mdc-select-value,
-.rain-monthly-map-dialog ::ng-deep .mat-mdc-select-arrow {
-    color: #eee !important;
+.do-dialog .mat-mdc-select-value,
+.do-dialog .mat-mdc-select-value-text{
+  color: rgba(17,24,39,.92) !important;
+  font-weight: 700;
 }
 
-.rain-monthly-map-dialog ::ng-deep .mdc-notched-outline__leading,
-.rain-monthly-map-dialog ::ng-deep .mdc-notched-outline__notch,
-.rain-monthly-map-dialog ::ng-deep .mdc-notched-outline__trailing {
-    border-color: #555 !important;
+.do-dialog .mat-mdc-select-arrow,
+.do-dialog .mat-datepicker-toggle .mat-icon{
+  color: rgba(17,24,39,.85) !important;
 }
 
-.rain-monthly-map-dialog ::ng-deep .mat-mdc-form-field:not(.mat-form-field-disabled) .mdc-text-field--filled:not(.mdc-text-field--disabled) {
-    background-color: #2c2c2c !important;
+/* Selectores blancos (filled) */
+.do-dialog .mat-mdc-form-field .mdc-text-field--filled{
+  background: #fff !important;
+}
+.do-dialog .mat-mdc-form-field .mdc-text-field--filled:hover{
+  background: #fff !important;
+}
+.do-dialog .mat-mdc-form-field .mat-mdc-form-field-focus-overlay{
+  background: transparent !important;
 }
 
-::ng-deep .dark-selection-panel.mat-mdc-select-panel {
-    background: #2c2c2c !important;
+/* Bordes */
+.do-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
+.do-dialog .mat-mdc-form-field .mdc-notched-outline__notch,
+.do-dialog .mat-mdc-form-field .mdc-notched-outline__trailing{
+  border-color: var(--border) !important;
 }
 
-::ng-deep .dark-selection-panel .mat-mdc-option {
-    color: #eee !important;
+/* Paneles select/datepicker */
+.do-dialog .mat-mdc-select-panel,
+.do-dialog .mat-mdc-option,
+.do-dialog .mat-datepicker-content,
+.do-dialog .mat-calendar{
+  background: #fff !important;
+  color: rgba(17,24,39,.92) !important;
 }
 
-::ng-deep .dark-selection-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
-::ng-deep .dark-selection-panel .mat-mdc-option.mat-mdc-option-active {
-    background-color: #444 !important;
-}
+/* =============================
+   Mensajes / tÃ­tulo mapa
+   ============================= */
 
-.map-container {
-    flex: 1;
-    min-height: 0;
-    /* Permite compresión en navegadores modernos */
-    position: relative;
-    border: 1px solid #444;
-    border-radius: 4px;
-    overflow: hidden;
-    /* Evita desbordamiento del mapa */
-}
-
-.map-cont {
-    min-height: 35.5rem ;
-    /* Permite compresión en navegadores modernos */
-    position: relative;
-    overflow: hidden;
-    padding: 10px;
-    /* Evita desbordamiento del mapa */
-}
-
-#rainMapDialog {
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 0;
-    border-radius: 8px;
-}
-
-.map-loader-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(26, 26, 26, 0.8);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    color: #eee;
-}
-
-.map-loader-overlay span {
-    margin-top: 10px;
-}
-
-.no-data-message {
-    padding: 15px;
-    text-align: center;
-    background-color: #2c2c2c;
-    border: 1px solid #444;
-    border-radius: 4px;
-    margin-bottom: 15px;
-    color: #ffc107;
-    flex-shrink: 0;
-    /* Evita que el mensaje se encoja */
-}
-
-/* Tema oscuro para popups de Leaflet */
-.leaflet-popup-content-wrapper {
-    background: #2c2c2c;
-    color: #eee;
-    border-radius: 4px;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
-}
-
-.leaflet-popup-tip {
-    background: #2c2c2c;
-}
-
-.leaflet-popup-close-button {
-    color: #eee !important;
-}
-
-.leaflet-popup-close-button:hover {
-    color: #fff !important;
-}
-
-::ng-deep .mat-mdc-dialog-container .mat-mdc-dialog-content {
-    flex-grow: 1;
-    overflow: hidden;
-    padding: 0 !important;
-    /* Eliminar padding interno del contenedor de contenido */
-}
-
-.mat-mdc-dialog-content {
-    display: flex !important;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    max-height: 95vh;
-}
-
-::ng-deep .mat-mdc-dialog-container {
-    width: 90vw !important;
-    max-width: 1200px !important;
-    height: 95vh !important;
-    display: flex;
-    flex-direction: column;
-}
-
-/* 1) Aseguro que el diálogo use flex y columna */
-::ng-deep .custom-dialog-container {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* 2) El contenido del diálogo (mat-dialog-content) ocupa todo el flex restante */
-  ::ng-deep .custom-dialog-container .mat-mdc-dialog-content {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-  }
-  
-  /* 3) El wrapper principal de tu componente (rain-monthly-map-dialog) también flex full */
-  ::ng-deep .custom-dialog-container .rain-monthly-map-dialog {
-    height: 100% !important;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* 4) Tu .dialog-content (ya dentro de mat-dialog-content) ocupa su flex */
-  ::ng-deep .custom-dialog-container .dialog-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-  
-  /* 5) Finalmente el contenedor del mapa dispara el uso total del espacio sobrante */
-  ::ng-deep .custom-dialog-container .map-container {
-    flex: 1;
-    min-height: 0;
-    position: relative;
-  }
-
-  .map-title {
-  color: #eee;
-  margin: 0px 0 !important;
-  font-size: 1.1em;
+.no-data-message,
+.map-title{
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17,24,39,.03);
+  color: rgba(17,24,39,.85);
+  font-weight: 800;
   text-align: center;
-  padding: 8px;
-  background: #2c2c2c;
-  border-radius: 4px;
+}
+.no-data-message{
+  font-weight: 700;
+  color: rgba(17,24,39,.80);
 }
 
-/* 1) Disminuye el gap general */
-.dialog-content {
-  gap: 8px; /* antes era 20px */
+/* =============================
+   Mapa
+   ============================= */
+
+.map-wrap{
+  flex: 1 1 auto;
+  min-height: 420px;          /* fallback seguro */
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  box-shadow: var(--shadow-sm);
 }
 
-/* 2) Ajusta el padding entre secciones */
-.form-controls {
-  padding-top: 8px;    /* antes 10px */
-  padding-bottom: 4px; /* antes 0 (pero ayuda cerrar un poco) */
+.map-container{
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  position: relative;
 }
 
-.map-title {
-  margin: 0;        /* elimina márgenes si tiene */
-  padding: 4px 0;   /* menos espacio arriba/abajo */
+#rainMapDialog{
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
 }
 
-.map-cont {
-  padding: 4px;     /* antes 10px */
-  min-height: 40rem !important;
+/* Overlay loader */
+.map-loader-overlay{
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.78);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  color: rgba(17,24,39,.85);
+}
+
+/* Mensaje ctrl+zoom */
+.ctrl-zoom-message::after{
+  content: "MantÃ©n pulsada la tecla Ctrl y gira la rueda para hacer zoom";
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  font-size: .9rem;
+  border-radius: 0 0 6px 6px;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+/* Leyenda Leaflet */
+.legend{
+  background: #fff;
+  padding: 10px 12px;
+  line-height: 1.4em;
+  color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,.18);
+  font-size: .9rem;
+}
+
+/* =============================
+   Responsive
+   ============================= */
+
+@media (max-width: 1100px){
+  .form-grid{
+    grid-template-columns: 1fr 1fr;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px){
+  .scroll-container{ padding: 12px; }
+
+  .form-grid{ grid-template-columns: 1fr; }
+  .search-button{ width: 100%; }
+
+  .map-wrap{ min-height: 360px; }
+  .map-container{ min-height: 360px; }
+}
+
+.close-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
+  outline-offset: 2px;
 }

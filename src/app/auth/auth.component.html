@@ -1,24 +1,40 @@
-<div class="auth-popup">
+<div class="auth-shell">
   <div class="auth-card">
-    <img class="avatar" src="../../assets/images/auth/avatarplaceholder.png" alt="Avatar">
-    <h2>{{ isLoginMode ? '¡Hola, invitado!' : 'Crear cuenta' }}</h2>
-
-    <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
-      <input type="email" formControlName="email" placeholder="Correo electrónico" autocomplete="username">
-      <input type="password" formControlName="password" placeholder="Contraseña" autocomplete="current-password">
-
-      <button class="btn" type="submit">{{ isLoginMode ? 'Ingresar' : 'Registrarse' }}</button>
-    </form>
-
-    <button class="btn" (click)="loginWithGoogle()">Iniciar con Google</button>
-    
-    <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
-    
-    <button class="toggle-btn" (click)="toggleMode()">
-      {{ isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
+    <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+      <mat-icon>close</mat-icon>
     </button>
 
-    <!-- ✅ Botón para cerrar manualmente la autenticación -->
-    <button class="close-btn" (click)="close()">Cerrar</button>
+    <div class="auth-brand">
+      <img class="avatar" src="../../assets/images/auth/avatarplaceholder.png" alt="Acceso de usuario">
+      <div class="auth-eyebrow">ACCESO AGROMETEOROLÓGICO</div>
+      <h2>{{ isLoginMode ? 'Ingresar a tu cuenta' : 'Crear una cuenta' }}</h2>
+      <p>
+        {{ isLoginMode
+          ? 'Accede a tus herramientas y seguimientos personalizados.'
+          : 'Regístrate para guardar accesos y continuar tu trabajo.' }}
+      </p>
+    </div>
+
+    <form class="auth-form" [formGroup]="authForm" (ngSubmit)="onSubmit()">
+      <label class="field-label" for="auth-email">Correo electrónico</label>
+      <input id="auth-email" type="email" formControlName="email" placeholder="nombre@dominio.com" autocomplete="username">
+
+      <label class="field-label" for="auth-password">Contraseña</label>
+      <input id="auth-password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+
+      <button class="btn btn--primary" type="submit">
+        {{ isLoginMode ? 'Ingresar' : 'Registrarme' }}
+      </button>
+    </form>
+
+    <button class="btn btn--google" type="button" (click)="loginWithGoogle()">
+      Continuar con Google
+    </button>
+
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+    <button class="toggle-btn" type="button" (click)="toggleMode()">
+      {{ isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
+    </button>
   </div>
 </div>

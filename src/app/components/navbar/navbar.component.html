@@ -1,12 +1,12 @@
 <nav class="navbar">
-  <a routerLink="/" class="logo">x</a>
+  <div class="spacer"></div>
 
   <div class="user-info" *ngIf="userEmail; else guest">
-    <span>{{ userEmail }}</span>
-    <button class="btn" (click)="logout()">Cerrar Sesión</button>
+    <span class="user-email">{{ userEmail }}</span>
+    <button class="btn btn--ghost" (click)="logout()">Cerrar sesión</button>
   </div>
 
   <ng-template #guest>
-    <button class="btn" (click)="openAuthDialog()">Iniciar Sesión</button> <!-- ✅ Cambiado a botón -->
+    <button class="btn" (click)="openAuthDialog()">Iniciar sesión</button>
   </ng-template>
 </nav>

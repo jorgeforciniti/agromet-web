@@ -2,6 +2,20 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface Informe {
+  id: number;
+  titulo: string;
+  archivo: string;
+  creado: string;
+  categoria: string;
+  posicion: number;
+  url_img: string;
+}
+
+export interface InformesResponse {
+  data: Informe[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -10,7 +24,7 @@ export class DatosService {
 
   constructor(private http: HttpClient) { }
 
-  getInformes(): Observable<any> {
-    return this.http.get<any>(this.apiUrl);
+  getInformes(): Observable<InformesResponse> {
+    return this.http.get<InformesResponse>(this.apiUrl);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
 import { user } from 'rxfire/auth';
 import { Observable } from 'rxjs';
@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 
 export class AuthService {
   
-  constructor(private auth: Auth) {}
+  private auth = inject(Auth); // ✅ en vez de usar constructor
 
   async login(email: string, password: string) {
     return await signInWithEmailAndPassword(this.auth, email, password);

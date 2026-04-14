@@ -4,18 +4,19 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AuthService } from '../services/auth.service';
 import { Auth, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule], // ✅ Agregamos los módulos necesarios
+  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatIconModule],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
 })
 export class AuthComponent {
   authForm: FormGroup;
-  isLoginMode: boolean = true;
-  errorMessage: string = '';
+  isLoginMode = true;
+  errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -29,43 +30,50 @@ export class AuthComponent {
     });
   }
 
-  toggleMode() {
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Ocurrió un error inesperado';
+  }
+
+  toggleMode(): void {
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = '';
   }
 
-  async onSubmit() {
-    if (this.authForm.valid) {
-      const { email, password } = this.authForm.value;
-      
-      try {
-        if (this.isLoginMode) {
-          await this.authService.login(email, password);
-        } else {
-          await this.authService.register(email, password);
-        }
-        this.dialogRef.close(); 
-      } catch (error: any) {
-        this.errorMessage = error.message;
-        console.error('Error en autenticación', error);
+  async onSubmit(): Promise<void> {
+    if (!this.authForm.valid) {
+      this.authForm.markAllAsTouched();
+      return;
+    }
+
+    const { email, password } = this.authForm.value;
+
+    try {
+      if (this.isLoginMode) {
+        await this.authService.login(email, password);
+      } else {
+        await this.authService.register(email, password);
       }
+      this.dialogRef.close();
+    } catch (error: unknown) {
+      this.errorMessage = this.getErrorMessage(error);
+      console.error('Error en autenticación', error);
     }
   }
 
-  async loginWithGoogle() {
+  async loginWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' }); // ✅ Forzar elección de cuenta
-  
+    provider.setCustomParameters({ prompt: 'select_account' });
+
     try {
       await signInWithPopup(this.auth, provider);
       this.dialogRef.close();
-    } catch (error: any) {
-      this.errorMessage = error.message;
+    } catch (error: unknown) {
+      this.errorMessage = this.getErrorMessage(error);
       console.error('Error en login con Google', error);
     }
   }
 
-  close() {
+  close(): void {
     this.dialogRef.close();
   }
 }

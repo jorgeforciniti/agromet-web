@@ -15,7 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, BarController, BarElement, Tooltip, Legend, ChartEvent, ActiveElement, ChartDataset } from 'chart.js';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
-import { WeatherService } from '../services/weather.service';
+import { WeatherService, WeatherStation } from '../services/weather.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -30,7 +30,7 @@ import { DateAdapter } from '@angular/material/core';
 
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
-  override parse(value: any): Date | null {
+  override parse(value: unknown): Date | null {
     if (typeof value === 'string' && value.includes('/')) {
       const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
       if ([dd, mm, yyyy].every(n => !isNaN(n))) {
@@ -80,6 +80,50 @@ export const MY_DATE_FORMATS = {
   },
 };
 
+interface WeatherSummaryRecord {
+  cantidadRegistros: number;
+  TempMaxAbs: number;
+  TempMinAbs: number;
+  tempMaxMedia: number;
+  tempMinMedia: number;
+  amplitudTermica: number;
+  lluvia: number;
+  lluviaMaxDiaria: number;
+  diasLluvia: number;
+  vientoMedio: number;
+  VientoMaximo: number;
+  radSolarMedia: number;
+  radSolarMax: number;
+}
+
+interface WeatherDiaryRecord {
+  fecha: string;
+  temp_max: number;
+  temp_min: number;
+  HR_max: number;
+  HR_min: number;
+  rr_24: number;
+  viento_medio: number;
+  viento_max: number;
+  rad_solar_media: number;
+  et: number;
+  hum_hoja_hs: number;
+}
+
+type WeatherDiaryField = keyof WeatherDiaryRecord;
+
+type VariableSelection = {
+  temperatura: boolean;
+  humedad: boolean;
+  lluvia: boolean;
+  viento: boolean;
+  radSolar: boolean;
+  et: boolean;
+  humHoja: boolean;
+};
+
+type DashboardScales = NonNullable<ChartConfiguration<'line' | 'bar', number[], string>['options']>['scales'];
+
 @Component({
   selector: 'app-weather-dashboard',
   templateUrl: './weather-dashboard.component.html',
@@ -115,12 +159,11 @@ export class WeatherDashboardComponent implements OnInit {
   @ViewChild(BaseChartDirective) chartDirective!: BaseChartDirective;
 
   weatherForm: FormGroup;
-  stations: any[] = [];
-  summaryData: any = null;
-  diaryData: any[] = [];
+  stations: WeatherStation[] = [];
+  summaryData: WeatherSummaryRecord | null = null;
+  diaryData: WeatherDiaryRecord[] = [];
 
-  // Nuevas propiedades para la tabla
-  truncatedDiaryData: any[] = [];
+  truncatedDiaryData: WeatherDiaryRecord[] = [];
   showLimitMessage = false;
 
   displayedColumns: string[] = [
@@ -131,10 +174,13 @@ export class WeatherDashboardComponent implements OnInit {
     'HR_min',
     'rr_24',
     'viento_medio',
-    'viento_max'
+    'viento_max',
+    'rad_solar_media',
+    'et',
+    'hum_hoja_hs'
   ];
 
-  chartConfig: ChartConfiguration<'line' | 'bar', number[], unknown> = {
+  chartConfig: ChartConfiguration<'line' | 'bar', number[], string> = {
     type: 'line',
     data: { labels: [], datasets: [] },
     options: {}
@@ -143,11 +189,14 @@ export class WeatherDashboardComponent implements OnInit {
   loading = false;
   errorMessage: string | null = null;
 
-  selectedVariables = {
+  selectedVariables: VariableSelection = {
     temperatura: true,
     humedad: false,
     lluvia: false,
-    viento: false
+    viento: false,
+    radSolar: false,
+    et: false,
+    humHoja: false
   };
 
   constructor(
@@ -192,12 +241,12 @@ export class WeatherDashboardComponent implements OnInit {
   }
 
   private formatDate(date: Date): string {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = ('0' + (d.getMonth() + 1)).slice(-2);
-  const day = ('0' + d.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
-}
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  }
 
   private async loadStations(): Promise<void> {
     try {
@@ -233,17 +282,17 @@ export class WeatherDashboardComponent implements OnInit {
 
     try {
       // 3) Ahora paso strings '2025-04-01' y no objetos Date
-      const resumen$ = this.weatherService.getWeatherDataResumen(desde, hasta, station);
+      const resumen$ = this.weatherService.getWeatherDataResumen<WeatherSummaryRecord>(desde, hasta, station);
       const resumen = await lastValueFrom(resumen$);
       this.summaryData = resumen.data?.[0] || null;
 
-      const diario$ = this.weatherService.getWeatherDataDiary(desde, hasta, station);
+      const diario$ = this.weatherService.getWeatherDataDiary<WeatherDiaryRecord>(desde, hasta, station);
       const diario = await lastValueFrom(diario$);
       this.diaryData = diario.data || [];
 
-      // Configurar la tabla: limitar a 30 días y mostrar mensaje si excede
-      if (this.diaryData.length > 30) {
-        this.truncatedDiaryData = this.diaryData.slice(0, 30);
+      // Configurar la tabla: limitar a 31 días y mostrar mensaje si excede
+      if (this.diaryData.length > 31) {
+        this.truncatedDiaryData = this.diaryData.slice(0, 31);
         this.showLimitMessage = true;
       } else {
         this.truncatedDiaryData = this.diaryData;
@@ -319,6 +368,30 @@ export class WeatherDashboardComponent implements OnInit {
       );
     }
 
+    if (this.selectedVariables.et) {
+      datasets.push(
+        {
+          label: 'Evapotranspiración (mm)',
+          type: 'bar',
+          data: this.diaryData.map(d => d.et),
+          yAxisID: 'yEt',
+          backgroundColor: 'red'
+        } as ChartDataset<'bar', number[]>
+      );
+    }
+
+    if (this.selectedVariables.humHoja) {
+      datasets.push(
+        {
+          label: 'Humedad de hoja (hs)',
+          type: 'bar',
+          data: this.diaryData.map(d => d.hum_hoja_hs),
+          yAxisID: 'yHumHoja',
+          backgroundColor: 'orange'
+        } as ChartDataset<'bar', number[]>
+      );
+    }
+
     if (this.selectedVariables.viento) {
       datasets.push(
         {
@@ -339,52 +412,95 @@ export class WeatherDashboardComponent implements OnInit {
         } as ChartDataset<'line', number[]>
       );
     }
+    if (this.selectedVariables.radSolar) {
+      datasets.push(
+        {
+          label: 'Rad. Solar (W/m²)',
+          type: 'line',
+          data: this.diaryData.map(d => d.rad_solar_media),
+          yAxisID: 'yRad',
+          borderColor: '#9f9c00ff',
+          backgroundColor: 'rgba(255, 240, 29, 0.2)'
+        } as ChartDataset<'line', number[]>
+      );
+    }
 
-    const scales: any = {};
+    const scales: DashboardScales = {};
     if (this.selectedVariables.temperatura) {
-      scales.yTemp = {
+      scales['yTemp'] = {
         type: 'linear',
         display: true,
         position: 'left',
-        title: { display: true, text: 'Temperatura (°C)', color: 'white' },
-        ticks: { color: 'white' },
-        grid: { color: 'rgba(255,255,255,0.1)' }
+        title: { display: true, text: 'Temperatura (°C)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(17,24,39,.10)' }
       };
     }
     if (this.selectedVariables.humedad) {
-      scales.yHumedad = {
+      scales['yHumedad'] = {
         type: 'linear',
         display: true,
         position: 'right',
-        title: { display: true, text: 'Humedad (%)', color: 'white' },
-        ticks: { color: 'white' },
-        grid: { color: 'rgba(255,255,255,0.1)' }
+        title: { display: true, text: 'Humedad (%)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(17,24,39,.10)' }
+      };
+    }
+    if (this.selectedVariables.radSolar) {
+      scales['yRad'] = {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: { display: true, text: 'Rad.Solar (W/m²)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(17,24,39,.10)' }
       };
     }
     if (this.selectedVariables.lluvia) {
-      scales.yLluvia = {
+      scales['yLluvia'] = {
         type: 'linear',
         display: true,
         position: 'left',
-        title: { display: true, text: 'Lluvia (mm)', color: 'white' },
-        ticks: { color: 'white' },
-        grid: { color: 'rgba(255,255,255,0.1)' }
+        title: { display: true, text: 'Lluvia (mm)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(17,24,39,.10)' }
+      };
+    }
+    if (this.selectedVariables.et) {
+      scales['yEt'] = {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: { display: true, text: 'et (mm)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(17,24,39,.10)' }
+      };
+    }
+    if (this.selectedVariables.humHoja) {
+      scales['yHumHoja'] = {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        title: { display: true, text: 'Lluvia (mm)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(17,24,39,.10)' }
       };
     }
     if (this.selectedVariables.viento) {
-      scales.yViento = {
+      scales['yViento'] = {
         type: 'linear',
         display: true,
         position: 'right',
-        title: { display: true, text: 'Viento (km/h)', color: 'white' },
-        ticks: { color: 'white' },
-        grid: { color: 'rgba(255,255,255,0.1)' }
+        title: { display: true, text: 'Viento (km/h)', color: '#111827' },
+        ticks: { color: '#111827' },
+        grid: { color: 'rgba(217,24,39,.10)' }
       };
     }
-    scales.x = {
-      title: { display: true, text: 'Fecha', color: 'white' },
-      ticks: { color: 'white' },
-      grid: { color: 'rgba(255,255,255,0.1)' }
+    scales['x'] = {
+      type: 'category',
+      ticks: { color: '#111827', font: { weight: 700 } },
+      grid: { color: 'rgba(17,24,39,.10)' },
+      title: { display: true, text: 'Fecha', color: '#111827', font: { weight: 800 } }
     };
 
     this.chartConfig = {
@@ -396,15 +512,18 @@ export class WeatherDashboardComponent implements OnInit {
         scales,
         plugins: {
           legend: {
-            labels: { color: 'white' }
+            labels: {
+              color: '#111827',   // texto leyenda
+              font: { weight: 700 }
+            }
           },
           tooltip: {
-            titleColor: 'white',
-            bodyColor: 'white',
+            titleColor: '#111827',
+            bodyColor: '#111827',
             backgroundColor: 'rgba(0,0,0,0.7)'
           }
         },
-        onClick: (evt: ChartEvent, elements: ActiveElement[], chart) => {
+        onClick: (_evt: ChartEvent, elements: ActiveElement[], chart) => {
           if (elements.length > 0) {
             const { datasetIndex, index } = elements[0];
             const ds = chart.data.datasets?.[datasetIndex] as ChartDataset<'line' | 'bar', number[]>;
@@ -437,7 +556,75 @@ export class WeatherDashboardComponent implements OnInit {
     return station?.nombre || 'Estación desconocida';
   }
 
-  closeDashboard(): void {
+  downloadCSV(): void {
+    if (!this.truncatedDiaryData.length) return;
+
+    const headers: WeatherDiaryField[] = [
+      'fecha',
+      'temp_max',
+      'temp_min',
+      'HR_max',
+      'HR_min',
+      'rr_24',
+      'viento_medio',
+      'viento_max',
+      'rad_solar_media',
+      'et',
+      'hum_hoja_hs'
+    ];
+
+    const csvRows = [headers.join(',')];
+
+    for (const row of this.truncatedDiaryData) {
+      const values = headers.map(key => row[key]);
+      csvRows.push(values.join(','));
+    }
+
+    // Información de encabezado
+    const stationName = this.getStationName(this.weatherForm.value.station).replace(/[^\w\s]/gi, '').replace(/\s+/g, '_');
+    const desdeReal = new Date(this.truncatedDiaryData[0]?.fecha);
+    desdeReal.setDate(desdeReal.getDate() + 1);
+
+    const hastaReal = new Date(this.truncatedDiaryData[this.truncatedDiaryData.length - 1]?.fecha);
+    hastaReal.setDate(hastaReal.getDate() + 1);
+
+    const desdeStr = this.formatDate(desdeReal);         // para el nombre del archivo
+    const hastaStr = this.formatDate(hastaReal);
+
+    const desdeLegible = this.formatDateDisplay(desdeReal); // para leyenda visible
+    const hastaLegible = this.formatDateDisplay(hastaReal);
+
+    // Agregar línea de advertencia y fuente
+    csvRows.push('');
+    csvRows.push(`"Nota: La información corresponde a la estación ${stationName} en el período comprendido entre el ${desdeLegible} y el ${hastaLegible}."`);
+    csvRows.push('"Los datos son de carácter provisional y puede estar sujeta a modificaciones."');
+    csvRows.push('"La EEAOC no asume responsabilidad por las decisiones que se tomen con base a esta información."');
+
+    const csvContent = csvRows.join('\n');
+    const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); // UTF-8 BOM
+    const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Construir nombre de archivo amigable
+    const fileName = `meteo_${stationName}_${desdeStr}_a_${hastaStr}.csv`;
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  private formatDateDisplay(date: Date): string {
+    const d = new Date(date);
+    const day = ('0' + d.getDate()).slice(-2);
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  close(): void {
     this.dialogRef.close();
   }
 }
+

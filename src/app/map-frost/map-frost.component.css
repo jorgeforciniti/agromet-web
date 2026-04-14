@@ -1,288 +1,299 @@
-@import "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+/* ===== Dialog claro final ===== */
+:host{
+  display:block;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+}
 
-.temp-map-dialog {
-  display: flex;
+/* Shell (panelClass do-dialog) */
+.do-dialog .mat-mdc-dialog-surface {
+  width: min(1300px, 95vw) !important;
+  max-width: 98vw !important;
+  height: 92vh !important;
+  max-height: 92vh !important;
+  min-height: 92vh !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+.do-dialog .mat-mdc-dialog-content {
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  scrollbar-gutter: stable;
+}
+
+/* Wrapper */
+.scroll-container{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  box-sizing: border-box;
+
+  display:flex;
   flex-direction: column;
-  height: 100vh;
-  background: #1a1a1a;
-  color: #eee;
+  height: 100%;
 }
 
-.dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  background: #1a1a1a;
-}
-
-.dialog-header h2 { margin: 0; font-size: 1.25rem; }
-.dialog-header button { color: #eee; }
-
-.dialog-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.form-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.form-controls ::ng-deep .mdc-notched-outline__leading,
-.form-controls ::ng-deep .mdc-notched-outline__notch,
-.form-controls ::ng-deep .mdc-notched-outline__trailing {
-  border-color: #555 !important;
-}
-.dark-selection-panel { background: #2c2c2c !important; }
-.dark-selection-panel .mat-mdc-option { color: #eee !important; }
-
-.map-container {
-  
-  flex: 1;
-  min-height: 400px; /* Altura mínima garantizada */
+.dialog-body-wrapper{
   position: relative;
-  border: 1px solid #444;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.map-loader-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(26,26,26,0.8);
-  display: flex; align-items: center; justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  display:flex;
   flex-direction: column;
-  color: #eee;
 }
 
-.leaflet-popup-content-wrapper {
-  background: #2c2c2c;
-  color: #eee;
-  border-radius: 4px;
-}
-.leaflet-popup-tip { background: #2c2c2c; }
-.leaflet-popup-close-button { color: #eee !important; }
-.leaflet-popup-close-button:hover { color: #fff !important; }
-
-.map-title {
-    color: #eee;
-    margin: 0px 0;
-    font-size: 1.1em;
-    text-align: center;
-    padding: 8px;
-    background: #2c2c2c;
-    border-radius: 4px;
-  }
-
-/* Inputs */
-.form-controls ::ng-deep .mat-mdc-text-field-wrapper {
-    color: #fff;
-    background-color: #333 !important;
-  }
-  
-  .form-controls ::ng-deep .mat-mdc-input-element {
-    color: #fff !important; /* Texto blanco */
-    caret-color: #fff !important; /* Cursor visible */
-  }
-  
-  /* Etiquetas */
-  .form-controls ::ng-deep .mat-mdc-form-field-label {
-    color: #ccc !important; /* Gris claro */
-  }
-  
-  /* Bordes */
-  .form-controls ::ng-deep .mdc-notched-outline__leading,
-  .form-controls ::ng-deep .mdc-notched-outline__notch,
-  .form-controls ::ng-deep .mdc-notched-outline__trailing {
-    border-color: #666 !important; /* Bordes visibles */
-  }
-  
-  /* Datepicker temático */
-  .mat-datepicker-content {
-    background: #2c2c2c !important;
-    color: #eee !important;
-  }
-  
-  .mat-calendar-body-cell-content {
-    color: #eee !important;
-  }
-
-  /* Asegura que el texto de los inputs sea claro */
-.form-controls ::ng-deep .mat-mdc-input-element {
-  color: #ffffff !important; /* Blanco */
+/* Header */
+.titulo{
+  margin: 0 0 12px 0;
+  padding-right: 56px;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text);
 }
 
+.close-btn{
+  position: absolute;
+  right: calc(14px + env(safe-area-inset-right));
+  top: calc(14px + env(safe-area-inset-top));
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
 
-/* Borde del input cuando no está enfocado */
-.form-controls ::ng-deep .mdc-notched-outline__leading,
-.form-controls ::ng-deep .mdc-notched-outline__notch,
-.form-controls ::ng-deep .mdc-notched-outline__trailing {
-  border-color: #666666 !important; /* Gris oscuro */
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+  cursor: pointer;
+  z-index: 1100;
+}
+.close-btn:hover{ background: rgba(17,24,39,.04); }
+
+/* Form */
+.form-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr)) minmax(160px, 220px);
+  gap: 12px;
+  align-items: end;
+  padding-right: 72px;
+  box-sizing: border-box;
 }
 
-/* Borde del input cuando está enfocado */
-.form-controls ::ng-deep .mdc-text-field--focused .mdc-notched-outline__leading,
-.form-controls ::ng-deep .mdc-text-field--focused .mdc-notched-outline__notch,
-.form-controls ::ng-deep .mdc-text-field--focused .mdc-notched-outline__trailing {
-  border-color: #2196F3 !important; /* Azul brillante para el foco */
-}
+.actions{ display:flex; align-items: stretch; }
 
-.mat-mdc-dialog-content {
-    display: flex !important;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    max-height: 95vh;
-}
-
-.form-controls ::ng-deep .mat-mdc-input-element {
-    color: #fff !important;
-    caret-color: #fff !important;
-}
-
-/* Color de bordes */
-.form-controls ::ng-deep .mdc-notched-outline__leading,
-.form-controls ::ng-deep .mdc-notched-outline__notch,
-.form-controls ::ng-deep .mdc-notched-outline__trailing {
-    border-color: #666 !important;
-}
-
-.form-controls ::ng-deep .mat-mdc-form-field {
-    --mdc-filled-text-field-label-text-color: #ccc;
-    --mdc-filled-text-field-input-text-color: #fff;
-    --mdc-filled-text-field-caret-color: #fff;
-    --mdc-filled-text-field-active-indicator-color: #666;
-    --mdc-filled-text-field-focus-active-indicator-color: #2196F3;
-}
-
-/* Fuerza el color del texto dentro del input a blanco */
-.form-controls ::ng-deep .mat-mdc-text-field-input {
-  color: #eee !important;
-}
-
-/* Asegura también que el placeholder / label flotante sea blanco */
-.form-controls ::ng-deep .mat-mdc-form-field-label {
-  color: #eee !important;
-}
-
-.form-controls ::ng-deep .mat-datepicker-toggle {
-  color: #eee !important;
-}
-
-.temp-map-dialog ::ng-deep input.mat-mdc-text-field-input,
-.temp-map-dialog ::ng-deep textarea.mat-mdc-text-field-input {
-  color: #eee !important;
-}
-
-/* Forzar texto de inputs MDC a blanco */
-.temp-map-dialog ::ng-deep .mat-mdc-text-field .mat-mdc-input-element,
-.temp-map-dialog ::ng-deep input.mat-mdc-text-field-input,
-.temp-map-dialog ::ng-deep textarea.mat-mdc-text-field-input {
-  color: #eee !important;
-}
-
-/* Forzar placeholder / hint */
-.temp-map-dialog ::ng-deep input.mat-mdc-text-field-input::placeholder,
-.temp-map-dialog ::ng-deep textarea.mat-mdc-text-field-input::placeholder {
-  color: #bbb !important;
-}
-
-/* Compatibilidad con select */
-.temp-map-dialog ::ng-deep .mat-mdc-select-value {
-  color: #eee !important;
-}
-
-/* ************************************************************ */
-
-.heladas-summary {
-  max-width: 100%;
-  margin-top: 1rem;
-  overflow-x: auto;
-  overflow-y: auto;
-}
-
-.heladas-summary table {
+.search-button{
   width: 100%;
-  height: 90%;
-  border-collapse: collapse;
-  color: white;
+  height: 56px;
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  gap: 8px;
+  border-radius: 10px;
+  font-weight: 800;
 }
 
-.heladas-summary th, .heladas-summary td {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
+/* Inputs claros + filled blanco */
+.do-dialog .mat-mdc-form-field .mdc-floating-label{
+  color: rgba(17,24,39,.70) !important;
+  font-weight: 700;
+}
+.do-dialog .mat-mdc-form-field .mdc-text-field__input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  opacity: 1 !important;
+  font-weight: 700;
+}
+.do-dialog .mat-mdc-select-value,
+.do-dialog .mat-mdc-select-value-text{
+  color: rgba(17,24,39,.92) !important;
+  font-weight: 700;
+}
+.do-dialog .mat-mdc-select-arrow,
+.do-dialog .mat-datepicker-toggle .mat-icon{
+  color: rgba(17,24,39,.85) !important;
+}
+
+/* Fill blanco */
+.do-dialog .mat-mdc-form-field .mdc-text-field--filled{
+  background: #fff !important;
+}
+.do-dialog .mat-mdc-form-field .mat-mdc-form-field-focus-overlay{
+  background: transparent !important;
+}
+.do-dialog .mat-mdc-form-field .mdc-notched-outline__leading,
+.do-dialog .mat-mdc-form-field .mdc-notched-outline__notch,
+.do-dialog .mat-mdc-form-field .mdc-notched-outline__trailing{
+  border-color: var(--border) !important;
+}
+
+/* Paneles select/datepicker */
+.do-dialog .mat-mdc-select-panel,
+.do-dialog .mat-mdc-option,
+.do-dialog .mat-datepicker-content,
+.do-dialog .mat-calendar{
+  background: #fff !important;
+  color: rgba(17,24,39,.92) !important;
+}
+
+/* Map title */
+.map-title{
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17,24,39,.03);
+  color: rgba(17,24,39,.85);
+  font-weight: 800;
   text-align: center;
 }
 
-.info.legend {
-  background: white;
-  padding: 6px 8px;
-  font: 14px/16px Arial, Helvetica, sans-serif;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-}
-
-.info.legend i {
-  width: 18px;
-  height: 18px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.7;
-}
-
-.mat-mdc-tab-group {
-  flex: 1;
-  display: flex;
+/* Tabs */
+.tabs{
+  flex: 1 1 auto;
+  min-height: 0;
+  display:flex;
   flex-direction: column;
-  height: calc(100vh - 180px); /* Ajustar según necesidad */
+}
+::ng-deep .tabs .mat-mdc-tab-body-wrapper{
+  flex: 1 1 auto;
+  min-height: 0;
+}
+::ng-deep .tabs .mat-mdc-tab-body-content{
+  height: 100%;
 }
 
-.mat-mdc-tab-body-wrapper {
+/* Map */
+.map-wrap{
+  height: 100%;
+  min-height: 59vh;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  box-shadow: var(--shadow-sm);
+}
+
+.map-container{
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  position: relative;
+}
+#mapfrost{
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Loader */
+.map-loader-overlay{
+  position:absolute;
+  inset:0;
+  background: rgba(255,255,255,.78);
+  display:flex;
+  flex-direction: column;
+  justify-content:center;
+  align-items:center;
+  gap: 10px;
+  z-index: 1000;
+  color: rgba(17,24,39,.85);
+}
+
+/* Tabla */
+.table-wrap{
+  padding: 10px 2px 2px;
+}
+
+.table-title{
+  margin: 6px 0 10px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.table-scroll{
+  width: 100%;
   overflow: auto;
-  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
 }
 
-/* Filas de tabla con transparencia */
-.heladas-summary tr {
-  background-color: rgba(255, 255, 255, 0.1);
-  transition: background-color 0.2s;
+.heladas-table{
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.heladas-summary tr:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+.heladas-table th{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #111;
+  color: #fff;
+  padding: 10px;
+  font-weight: 900;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  text-align: center;
 }
 
-.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{
-  height: 70vh;
+.heladas-table td{
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  font-weight: 800;
 }
 
-.mat-mdc-tab-group[_ngcontent-ng-c3003498539] {
-  overflow-x: auto;
-  height: 70vh;
+/* Leyenda Leaflet (ya es clara por defecto, solo la suavizamos) */
+.info.legend{
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,.18);
+  color: #333;
 }
 
-.mat-tab-body-animating>.mat-mdc-tab-body-content, .mat-mdc-tab-body-active>.mat-mdc-tab-body-content{
-  height: 70vh;
+/* Ctrl zoom message */
+.ctrl-zoom-message::after{
+  content: "MantÃ©n pulsada la tecla Ctrl y gira la rueda para hacer zoom";
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  background: rgba(0,0,0,.7);
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  font-size: .9rem;
+  border-radius: 0 0 6px 6px;
+  pointer-events: none;
+  z-index: 10000;
 }
 
-.mat-mdc-tab.mdc-tab .mdc-tab__text-label {
-  color: #eee !important;
-}
-
-/* Ajustes específicos para móvil */
-@media (max-width: 480px) {
-  .dialog-content {
-    padding: 8px;
+/* Responsive */
+@media (max-width: 1100px){
+  .form-grid{
+    grid-template-columns: 1fr 1fr;
+    padding-right: 0;
   }
-  .form-controls ::ng-deep .mat-mdc-form-field {
-    width: 100% !important;
-  }
-  .mat-mdc-tab-group .mat-mdc-tab-label {
-    font-size: 0.875rem !important;
-  }
+}
+@media (max-width: 768px){
+  .scroll-container{ padding: 12px; }
+  .form-grid{ grid-template-columns: 1fr; }
+  .search-button{ width: 100%; }
+  .map-wrap, .map-container{ min-height: 360px; }
+}
+
+.close-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
+  outline-offset: 2px;
 }

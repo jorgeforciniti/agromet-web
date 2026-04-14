@@ -1,0 +1,127 @@
+﻿<mat-dialog-content class="disease-dialog">
+  <div class="disease-shell">
+    <div class="dialog-header">
+      <div>
+        <div class="dialog-eyebrow">SANIDAD VEGETAL</div>
+        <h2 class="titulo">Condiciones para enfermedades</h2>
+        <p class="dialog-lead">
+          Evalua condiciones meteorologicas predisponentes para distintas enfermedades a partir
+          de registros horarios de estacion.
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar dialogo">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form (ngSubmit)="loadReport()" class="disease-form">
+      <div class="native-grid">
+        <div class="native-field">
+          <label for="disease-station">Estacion</label>
+          <select id="disease-station" name="station" [(ngModel)]="selectedStation" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
+            <option *ngFor="let station of stations" [ngValue]="station.Identificacion">
+              {{ station.Identificacion }} - {{ station.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="native-field">
+          <label for="disease-code">Enfermedad</label>
+          <select id="disease-code" name="disease" [(ngModel)]="selectedDisease" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
+            <optgroup *ngFor="let group of diseaseGroups" [label]="group.label">
+              <option *ngFor="let option of group.options" [ngValue]="option.code">
+                {{ option.label }}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="native-field">
+          <label for="disease-from">Desde</label>
+          <input id="disease-from" type="date" name="fromDate" [(ngModel)]="fromDate" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;pointer-events:auto;">
+        </div>
+
+        <div class="native-field">
+          <label for="disease-to">Hasta</label>
+          <input id="disease-to" type="date" name="toDate" [(ngModel)]="toDate" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;pointer-events:auto;">
+        </div>
+
+        <button mat-raised-button color="primary" class="search-button" type="submit" [disabled]="isLoading">
+          <mat-icon>biotech</mat-icon>
+          Consultar
+        </button>
+      </div>
+    </form>
+
+    <div class="disease-summary" *ngIf="rows.length">
+      <div class="disease-summary__card">
+        <span>Estacion</span>
+        <strong>{{ stationLabel(appliedStation) }}</strong>
+      </div>
+      <div class="disease-summary__card">
+        <span class="label-with-info">
+          <span>Enfermedad</span>
+          <button
+            type="button"
+            class="info-dot"
+            [attr.aria-label]="'Condiciones de ' + selectedDiseaseLabel(appliedDisease)"
+            [attr.title]="diseaseCriteria(appliedDisease)">
+            i
+          </button>
+        </span>
+        <strong>{{ selectedDiseaseLabel(appliedDisease) }}</strong>
+      </div>
+      <div class="disease-summary__card">
+        <span>Periodo</span>
+        <strong>
+          {{ appliedFromDate | date:'dd/MM/yyyy' }} - {{ appliedToDate | date:'dd/MM/yyyy' }}
+        </strong>
+      </div>
+      <div class="disease-summary__card">
+        <span>Dias evaluados</span>
+        <strong>{{ rows.length }}</strong>
+      </div>
+    </div>
+
+    <p class="disease-note">
+      <mat-icon>verified_user</mat-icon>
+      {{ diseaseHelp() }}
+    </p>
+
+    <div class="disease-error" *ngIf="loadError">
+      <mat-icon>error</mat-icon>
+      <span>{{ loadError }}</span>
+    </div>
+
+    <div class="disease-buckets" *ngIf="summaryItems.length">
+      <div class="bucket-card" *ngFor="let item of summaryItems" [attr.data-tone]="item.tone">
+        <strong>{{ item.label }}: {{ item.value }}</strong>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="rows.length">
+      <table class="disease-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th *ngFor="let column of columns" [class.align-right]="column.align === 'right'">{{ column.label }}</th>
+            <th class="classification-col">Calificacion</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows; trackBy: rowTrackBy" [attr.data-tone]="row.tone">
+            <td>{{ formatDisplayDate(row.date) }}</td>
+            <td *ngFor="let column of columns" [class.align-right]="column.align === 'right'">{{ row.values[column.key] }}</td>
+            <td class="classification classification-col">
+              <span class="classification-badge" [attr.data-tone]="row.tone">{{ row.classification }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+  </div>
+</mat-dialog-content>
+

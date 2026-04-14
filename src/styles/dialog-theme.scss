@@ -1,0 +1,108 @@
+// === Tema base para todos los diálogos ===
+
+.dialog-theme {
+  background-color: #1a1a1a;
+  color: #f8f5d7;
+
+  .mat-mdc-dialog-container {
+    padding: 0;
+  }
+
+  h2.mat-mdc-dialog-title {
+    font-size: 1.4rem;
+    margin: 1rem;
+    color: #f8f5d7;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #f8f5d7;
+    cursor: pointer;
+    z-index: 1001;
+    &:hover {
+      color: #ff5555;
+    }
+  }
+
+  .mat-mdc-dialog-content {
+    padding: 1rem;
+    overflow-y: auto;
+  }
+
+  .mat-mdc-form-field,
+  .mat-mdc-select-panel,
+  .mat-mdc-option,
+  .mat-mdc-select-value-text,
+  .mat-mdc-select-arrow,
+  .mat-datepicker-toggle,
+  .mat-mdc-input-element,
+  .mat-calendar-table-header {
+    background-color: #1a1a1a !important;
+    color: #f8f5d7 !important;
+  }
+
+  .mat-calendar-body-cell-content {
+    color: #f8f5d7 !important;
+  }
+
+  .mat-calendar-body-disabled > .mat-calendar-body-cell-content {
+    color: #666 !important;
+  }
+
+  .search-button {
+    background-color: #3f51dd;
+    color: #f8f5d7;
+    border-radius: 10px;
+    padding: 8px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    mat-icon {
+      font-size: 18px;
+    }
+
+    &:hover {
+      background-color: #3f51dd;
+    }
+  }
+
+  .mat-mdc-progress-bar {
+    --mdc-linear-progress-active-indicator-color: #f8f5d7;
+    --mdc-linear-progress-track-color: rgba(248, 245, 215, 0.1);
+  }
+
+  .chart-container {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    canvas {
+      width: 100% !important;
+      max-height: 400px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .search-button {
+      width: 100%;
+      padding: 10px;
+    }
+
+    .chart-container {
+      height: 50vh;
+    }
+
+    .mat-mdc-dialog-container .mdc-dialog__surface {
+      min-height: 90vh !important;
+      width: 95vw !important;
+      max-width: 95vw !important;
+    }
+  }
+}

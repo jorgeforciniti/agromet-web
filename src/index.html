@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>Sección Agrometeorología - EEAOC | Tucumán - Argentina</title>
@@ -8,8 +9,212 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- 🚨 Script de redirección por index.php -->
+  <script>
+    if (window.location.href.includes('index.php')) {
+      window.location.href = '/';
+    }
+  </script>
+
 </head>
+
+<!----------------------------------------------------------- ChatGPT Widget -->
+<!-- ChatGPT Widget Mejorado -->
+
+<!--
+<style>
+  #chat-widget {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    max-height: 500px;
+    background: linear-gradient(to bottom, #2e2d24, #1f1f1f);
+    color: #fcfaa5;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Roboto', Arial, sans-serif;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  #chat-header {
+    background: linear-gradient(90deg, #a5fca5, #6ec982);
+    padding: 10px 12px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    color: #2e2d24;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  #chat-header .close-btn {
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    color: #2e2d24;
+    transition: color 0.2s;
+  }
+
+  #chat-header .close-btn:hover {
+    color: #e74c3c;
+  }
+
+  #chat-messages {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    font-size: 14px;
+    background: #1f1f1f;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+  }
+
+  #chat-input {
+    display: flex;
+    background: #2e2d24;
+  }
+
+  #chat-input input {
+    flex: 1;
+    border: none;
+    padding: 10px;
+    background: #2e2d24;
+    color: #fcfaa5;
+    font-size: 14px;
+    outline: none;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  #chat-input button {
+    border: none;
+    background: linear-gradient(to right, #a5fca5, #6ec982);
+    color: #2e2d24;
+    padding: 10px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-left: 1px solid #444;
+    transition: background 0.3s;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  #chat-input button:hover {
+    background: linear-gradient(to right, #6cb35e, #33923b);
+  }
+
+  #chat-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(to bottom, #fcfaa5, #c9c06e);
+    color: #2e2d24;
+    border-radius: 50%;
+    width: 58px;
+    height: 58px;
+    font-size: 26px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 58px;
+    z-index: 9998;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+
+  #chat-toggle:hover {
+    transform: scale(1.1);
+    background: linear-gradient(to bottom, #f8f5d7, #c9c06e);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  #chat-messages p {
+    margin: 6px 0;
+    line-height: 1.4em;
+    white-space: pre-wrap;
+  }
+</style>
+
+
+<div id="chat-toggle" title="Asistente IA">🧠</div>
+
+<div id="chat-widget">
+  <div id="chat-header">
+    Asistente Virtual
+    <span class="close-btn" onclick="closeChat()">×</span>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input">
+    <input type="text" id="user-message" placeholder="Escribe tu mensaje..." />
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
+</div>
+
+<script>
+  const toggle = document.getElementById('chat-toggle');
+  const widget = document.getElementById('chat-widget');
+  const messages = document.getElementById('chat-messages');
+  const input = document.getElementById('user-message');
+
+  toggle.onclick = () => {
+    widget.style.display = 'flex';
+    toggle.style.display = 'none';
+    input.focus();
+  };
+
+  function closeChat() {
+    widget.style.display = 'none';
+    toggle.style.display = 'block';
+  }
+
+  function addMessage(text, sender) {
+    const p = document.createElement('p');
+    p.textContent = (sender === 'user' ? '👤 ' : '🤖 ') + text;
+    messages.appendChild(p);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function sendMessage() {
+    const msg = input.value.trim();
+    if (!msg) return;
+    addMessage(msg, 'user');
+    input.value = '';
+
+    fetch('https://agromet.eeaoc.gob.ar/chatgpt.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    })
+      .then(res => res.json())
+      .then(data => {
+        const reply = data.choices?.[0]?.message?.content || 'Error en la respuesta.';
+        addMessage(reply, 'bot');
+      })
+      .catch(() => addMessage('Error al conectar con el servidor.', 'bot'));
+  }
+    input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // evita salto de línea
+      sendMessage();
+    }
+  });
+</script>
+-->
+
+<!------------------------------------------------------------------------------------->
+
 <body>
   <app-root></app-root>
 </body>
+
 </html>

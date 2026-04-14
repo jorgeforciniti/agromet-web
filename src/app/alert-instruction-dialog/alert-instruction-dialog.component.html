@@ -1,0 +1,15 @@
+<div class="instr-wrap">
+    <h2 class="instr-title">Instrucciones</h2>
+
+    <ol class="instr-list" *ngIf="lines.length; else empty">
+        <li *ngFor="let line of lines">{{ line }}</li>
+    </ol>
+
+    <ng-template #empty>
+        <p class="instr-list">Sin instrucciones disponibles.</p>
+    </ng-template>
+
+    <div class="instr-actions">
+        <button class="instr-close" (click)="close()">Cerrar</button>
+    </div>
+</div>

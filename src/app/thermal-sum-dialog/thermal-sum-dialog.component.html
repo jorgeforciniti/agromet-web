@@ -1,0 +1,115 @@
+<mat-dialog-content class="thermal-dialog">
+  <div class="thermal-shell">
+    <div class="dialog-header">
+      <div>
+        <div class="dialog-eyebrow">ANÁLISIS TÉRMICO</div>
+        <h2 class="titulo">Calculador de sumas térmicas</h2>
+        <p class="dialog-lead">
+          Estima la suma térmica diaria a partir de temperaturas máximas y mínimas,
+          aplicando temperatura base y acumulado del período.
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="calculate()" class="thermal-form">
+      <div class="thermal-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Estación</mat-label>
+          <select matNativeControl formControlName="station">
+            <option *ngFor="let station of stations" [value]="station.Identificacion">
+              {{ station.Identificacion }} - {{ station.nombre }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Base térmica</mat-label>
+          <select matNativeControl formControlName="base">
+            <option *ngFor="let base of baseOptions" [value]="base">{{ base }} °C</option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Desde</mat-label>
+          <input matInput [matDatepicker]="fromPicker" formControlName="from">
+          <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Hasta</mat-label>
+          <input matInput [matDatepicker]="toPicker" formControlName="to">
+          <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+          <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="search-button" type="submit" [disabled]="isLoading">
+          <mat-icon>functions</mat-icon>
+          Calcular
+        </button>
+      </div>
+    </form>
+
+    <div class="thermal-summary" *ngIf="rows.length">
+      <div class="thermal-summary__card">
+        <span>Estación</span>
+        <strong>{{ stationLabel(form.get('station')?.value) }}</strong>
+      </div>
+      <div class="thermal-summary__card">
+        <span>Base térmica</span>
+        <strong>{{ form.get('base')?.value }} °C</strong>
+      </div>
+      <div class="thermal-summary__card">
+        <span>Total acumulado</span>
+        <strong>{{ totalThermalSum | number:'1.1-1' }}</strong>
+      </div>
+      <div class="thermal-summary__card">
+        <span>Días válidos</span>
+        <strong>{{ validDays }} / {{ rows.length }}</strong>
+      </div>
+    </div>
+
+    <p class="thermal-note">
+      <mat-icon>info</mat-icon>
+      Se usa la fórmula `((Tmax + Tmin) / 2) - base`, con Tmax limitada a 30 °C y sin valores negativos.
+      Los días con datos insuficientes no se computan en el acumulado.
+    </p>
+
+    <div class="thermal-error" *ngIf="loadError">
+      <mat-icon>error</mat-icon>
+      <span>{{ loadError }}</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="rows.length">
+      <table mat-table [dataSource]="rows" class="thermal-table">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let row">{{ formatDisplayDate(row.date) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="dailyValue">
+          <th mat-header-cell *matHeaderCellDef>Suma térmica</th>
+          <td mat-cell *matCellDef="let row" [class.is-missing]="row.insufficient">
+            {{ row.insufficient ? '---' : (row.dailyValue | number:'1.1-1') }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="accumulated">
+          <th mat-header-cell *matHeaderCellDef>Acumulada</th>
+          <td mat-cell *matCellDef="let row" [class.is-missing]="row.insufficient">
+            {{ row.insufficient ? '---' : (row.accumulated | number:'1.1-1') }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+
+    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+  </div>
+</mat-dialog-content>

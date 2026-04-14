@@ -1,14 +1,171 @@
-
 <div class="home">
+  <section class="hero">
     <app-bienvenida></app-bienvenida>
-    <br>
-    <app-alert></app-alert>
-    <br>
-    <app-leaflet-goes-viewer></app-leaflet-goes-viewer>
-    <br>
-    <app-datos-meteorologicos></app-datos-meteorologicos>
-    <br>
-    <app-informes></app-informes>
-    <br>
-    <app-mapas></app-mapas>
+  </section>
+
+  <section class="summary" aria-label="Estado actual y accesos rápidos">
+    <div class="summary-shell">
+      <article
+        class="summary-feature"
+        [style.--moduleColor]="featuredSummary.colorVar"
+        (click)="scrollTo(featuredSummary.targetId)"
+        (keydown.enter)="scrollTo(featuredSummary.targetId)"
+        (keydown.space)="scrollTo(featuredSummary.targetId); $event.preventDefault()"
+        role="button"
+        tabindex="0">
+        <div class="summary-feature__glow" aria-hidden="true"></div>
+        <div class="summary-feature__eyebrow">{{ featuredSummary.eyebrow }}</div>
+
+        <div class="summary-feature__head">
+          <div class="summary-icon summary-icon--feature">
+            <mat-icon>{{ featuredSummary.icon }}</mat-icon>
+          </div>
+
+          <div>
+            <h2 class="summary-feature__title">{{ featuredSummary.title }}</h2>
+            <p class="summary-feature__copy">{{ featuredSummary.subtitle }}</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="summary-action summary-action--feature"
+          (click)="$event.stopPropagation(); scrollTo(featuredSummary.targetId)">
+          {{ featuredSummary.actionLabel }}
+          <mat-icon>arrow_outward</mat-icon>
+        </button>
+      </article>
+
+      <div class="summary-grid summary-grid--quick">
+        <article
+          class="summary-card"
+          *ngFor="let s of quickSummaries"
+          [style.--moduleColor]="s.colorVar"
+          (click)="scrollTo(s.targetId)"
+          (keydown.enter)="scrollTo(s.targetId)"
+          (keydown.space)="scrollTo(s.targetId); $event.preventDefault()"
+          role="button"
+          tabindex="0">
+          <div class="summary-left">
+            <div class="summary-icon">
+              <mat-icon>{{ s.icon }}</mat-icon>
+            </div>
+
+            <div class="summary-text">
+              <div class="summary-eyebrow">{{ s.eyebrow }}</div>
+              <div class="summary-title">{{ s.title }}</div>
+              <div class="summary-subtitle">{{ s.subtitle }}</div>
+            </div>
+          </div>
+
+          <button type="button" class="summary-action" (click)="$event.stopPropagation(); scrollTo(s.targetId)">
+            {{ s.actionLabel }}
+            <mat-icon>arrow_outward</mat-icon>
+          </button>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alertas" id="sec-alertas">
+    <header class="section-header">
+      <div>
+        <div class="section-kicker">QUÉ ESTÁ PASANDO AHORA</div>
+        <h2 class="section-title">Alertas y avisos</h2>
+      </div>
+      <p class="section-hint">Consulta rápida de condiciones críticas y seguimiento por zona.</p>
+    </header>
+    @defer (on viewport) {
+      <app-alert></app-alert>
+    } @placeholder {
+      <div class="section-loading">Cargando alertas...</div>
+    }
+  </section>
+
+  <section class="section section--datos" id="sec-datos">
+    <header class="section-header">
+      <div>
+        <div class="section-kicker">MONITOREO OPERATIVO</div>
+        <h2 class="section-title">Datos actuales y pronóstico</h2>
+      </div>
+      <p class="section-hint">Observación en tiempo real, mapa operativo y proyecciones para los próximos días.</p>
+    </header>
+    @defer (on viewport) {
+      <div class="dash2-grid">
+        <div class="dash2-left">
+          <div class="dash-panel-head">
+            <div class="dash-panel-kicker">OBSERVACIÓN</div>
+            <h3 class="dash-title"><mat-icon>thermostat</mat-icon> Datos en tiempo real</h3>
+            <p class="dash-copy">Lecturas instantáneas para consultar la situación actual por estación seleccionada.</p>
+          </div>
+          <app-weather-forecast mode="realtime"></app-weather-forecast>
+        </div>
+
+        <div class="dash2-right">
+          <div class="dash-panel-head">
+            <div class="dash-panel-kicker">CAPA ESPACIAL</div>
+            <h3 class="dash-title dash-title--map"><mat-icon>map</mat-icon> Mapa operativo</h3>
+            <p class="dash-copy">Ubicación y contexto territorial para interpretar rápidamente lo que muestran las estaciones.</p>
+          </div>
+          <app-leaflet-goes-viewer></app-leaflet-goes-viewer>
+        </div>
+
+        <div class="dash2-forecast">
+          <div class="dash-panel-head">
+            <div class="dash-panel-kicker">PROYECCIÓN</div>
+            <h3 class="dash-title"><mat-icon>calendar_month</mat-icon> Pronóstico</h3>
+            <p class="dash-copy">Evolución esperada para los próximos días con foco en seguimiento operativo.</p>
+          </div>
+          <app-weather-forecast mode="forecast"></app-weather-forecast>
+        </div>
+      </div>
+    } @placeholder {
+      <div class="section-loading">Cargando datos meteorológicos...</div>
+    }
+  </section>
+
+  <section class="section section--estadisticas" id="sec-estadisticas">
+    <header class="section-header">
+      <div>
+        <div class="section-kicker">ANÁLISIS HISTÓRICO</div>
+        <h2 class="section-title">Estadísticas meteorológicas</h2>
+      </div>
+      <p class="section-hint">Explorá series históricas, comparaciones y extremos por variable.</p>
+    </header>
+    @defer (on viewport) {
+      <app-datos-meteorologicos></app-datos-meteorologicos>
+    } @placeholder {
+      <div class="section-loading">Cargando estadísticas...</div>
+    }
+  </section>
+
+  <section class="section section--informes" id="sec-informes">
+    <header class="section-header">
+      <div>
+        <div class="section-kicker">PUBLICACIONES TÉCNICAS</div>
+        <h2 class="section-title">Informes agrometeorológicos</h2>
+      </div>
+      <p class="section-hint">Acceso directo a boletines, reportes y material técnico actualizado.</p>
+    </header>
+    @defer (on viewport) {
+      <app-informes></app-informes>
+    } @placeholder {
+      <div class="section-loading">Cargando informes...</div>
+    }
+  </section>
+
+  <section class="section section--mapas" id="sec-mapas">
+    <header class="section-header">
+      <div>
+        <div class="section-kicker">VISUALIZACIÓN TERRITORIAL</div>
+        <h2 class="section-title">Mapas interactivos</h2>
+      </div>
+      <p class="section-hint">Visualizaciones espaciales para interpretar rápidamente el comportamiento territorial.</p>
+    </header>
+    @defer (on viewport) {
+      <app-mapas></app-mapas>
+    } @placeholder {
+      <div class="section-loading">Cargando mapas...</div>
+    }
+  </section>
 </div>

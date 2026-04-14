@@ -1,0 +1,43 @@
+:root {
+  /* Marca */
+  --brand: #4f7932;
+  --brand-600: #3f6428;
+  --brand-50: #f2f6ef;
+
+  /* Acento (cambiable) */
+  --accent: #7e19a7;
+  --accent-600: #651388;
+  --accent-50: #f6effa;
+
+  /* Semánticos */
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --info: #2563eb;
+  --teal: #06b6d4;
+
+  /* Módulos (acción por módulo) */
+  --mod-alert: var(--warning);
+  --mod-rain: #0ea5e9;
+  --mod-data: var(--accent);
+  --mod-sat: var(--teal);
+  --mod-stats: var(--brand);
+  --mod-reports: #64748b;
+  --mod-maps: #16a34a;
+
+  /* Neutros */
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --surface-2: #f1f0ef;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  /* Layout */
+  --radius: 18px;
+  --radius-sm: 14px;
+  --shadow: 0 10px 30px rgba(0,0,0,.08);
+  --shadow-sm: 0 6px 18px rgba(0,0,0,.08);
+
+  /* Tipografía */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+}

@@ -1,0 +1,47 @@
+<div class="alert-dialog">
+  <header class="alert-dialog__header">
+    <div>
+      <div class="alert-dialog__eyebrow">RIESGO METEOROLÓGICO</div>
+      <h2 class="alert-dialog__title">Alertas meteorológicas</h2>
+      <p class="alert-dialog__copy">Detalle por región, vigencia y nivel de severidad.</p>
+    </div>
+
+    <button type="button" class="alert-dialog__close" (click)="close()" aria-label="Cerrar diálogo">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="alert-dialog__body">
+    <section class="alert-group" *ngFor="let grupo of flattenedAlerts">
+      <div class="alert-group__title">{{ grupo.label }}</div>
+
+      <div *ngIf="grupo.expanded" class="alert-group__items">
+        <article class="alert-entry" *ngFor="let alerta of grupo.alertas; let i = index">
+          <button
+            type="button"
+            class="alert-entry__toggle"
+            [ngClass]="'alert-entry__toggle--' + alerta.level"
+            (click)="toggleAlert(grupo.area, i)">
+            <span class="alert-entry__meta">
+              <span class="alert-entry__date">{{ alerta.date }}</span>
+              <span class="alert-entry__period">{{ formatPeriod(alerta.period) }}</span>
+            </span>
+            <span class="alert-entry__state">
+              {{ isAlertExpanded(grupo.area, i) ? 'Ocultar detalle' : 'Ver detalle' }}
+              <mat-icon>{{ isAlertExpanded(grupo.area, i) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </span>
+          </button>
+
+          <div *ngIf="isAlertExpanded(grupo.area, i)" class="alert-entry__panel">
+            <div class="alert-entry__badge">Nivel {{ alerta.level }} · {{ levelName(alerta.level) }}</div>
+            <div class="alert-entry__description">{{ alerta.description }}</div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <footer class="alert-dialog__footer">
+    <button mat-button class="alert-dialog__action" (click)="close()">Cerrar</button>
+  </footer>
+</div>

@@ -1,326 +1,68 @@
-/* Estructura principal */
-.container {
+.viewer-container{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: 14px;
+  color: var(--text);
+}
+
+.panel-title{
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 900;
   display: flex;
-  flex-wrap: wrap;
-  font-size: 1.5rem;
-  width: 100%;
-}
-
-.viewer-container {
-  flex: 6; /* 70% del espacio */
-  position: relative;
-  padding: 10px;
-  background-color: #1e1e1e;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.titulo {
-  color: #f8f5d7; /* Color de texto */
-  font-size: 2rem;
-  font-weight: bold;
-  text-align: left;
-  padding-left: 25px;
-  margin-bottom: 20px;
-}
-
-.map-wrapper {
-  position: relative;
-  text-align: center;
-  height: 700px;
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto; /* Añadido para centrar horizontalmente */
-  margin-top: 15px;
-}
-
-#map {
-  height: 100%;
-  width: 100%;
-  z-index: 1;
-}
-
-/* Controles */
-.controls {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-}
-
-.control-group {
-  display: flex;
-  align-items: flex-start;
-  margin-right: 20px;
-}
-
-.control-label {
-  margin-right: 10px;
-  color: white; /* Texto en blanco para "Capa" y "Mapa Base" */
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* Estilo para el mat-select */
-.select-wrapper {
-  width: 250px;
-  margin: 0.3rem 0;
-}
-
-::ng-deep .mat-mdc-select-value {
-  color: white !important;
-}
-
-::ng-deep .mat-mdc-option {
-  color: #333;
-}
-
-::ng-deep .mat-mdc-form-field-label {
-  color: white !important;
-}
-
-::ng-deep .mat-mdc-text-field-wrapper {
-  background-color: transparent;
-}
-
-::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-ripple {
-  background-color: #007bff;
-}
-
-::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-focus-overlay {
-  background-color: transparent;
-}
-
-/* Spinner y overlay */
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.panel-title mat-icon{ color: var(--mod-data); }
+
+.controls{
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 6px 0 12px;
 }
 
-.spinner-container {
-  text-align: center;
+.control-group{
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top: 5px solid #3498db;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
+.control-label{
+  color: var(--muted);
+  font-weight: 700;
 }
 
-.loading-text {
-  color: white;
-  margin-top: 15px;
-  font-size: 16px;
-}
+.select-wrapper{ width: 250px; }
 
-.sidebar {
-  flex: 4; /* 30% del espacio */
-  background-color: #2a2a2a;
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
-  color: white;
-  padding: 10px;
-  text-align: left;
+/* mapa */
+.map-wrapper{
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  height: clamp(360px, 50vh, 560px);
+  min-height: 360px;
 }
-.sidebar p{
-  color: white;
-  font-size: 1rem;
-  text-align: justify;
-}
-.sidebar a{
-  font-size: 1.1rem;
-  text-decoration: none;
-}
-.sidebar a :hover{
-  color: #fcfaa5;
-  font-size: 1.1rem;
-  text-decoration: underline;
-}
+#map{ width: 100%; height: 100% !important; }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Texto de fecha */
-.timestamp p {
-  color: antiquewhite;
-  margin-top: 10px;
+/* timestamp */
+.timestamp p{
+  margin: 10px 0 0;
+  color: var(--muted);
   font-style: italic;
 }
 
-/* Para capas de temperatura específicamente */
-.leaflet-layer[src*="temp_new"] {
-  filter: hue-rotate(-10deg) brightness(1.1);
-}
+/* Material claro */
+:host ::ng-deep .mat-mdc-select-value{ color: var(--text) !important; }
+:host ::ng-deep .mat-mdc-form-field-label{ color: var(--muted) !important; }
+:host ::ng-deep .mat-mdc-text-field-wrapper{ background: transparent !important; }
 
-.leaflet-marker-icon {
-  transition: fill-color 0.3s ease;
-}
-
-.station-marker {
-  cursor: pointer;
-  stroke-width: 1px;
-}
-
-.station-marker:hover {
-  filter: brightness(1.1);
-  transform: scale(1.1);
-}
-
-/* Añadir estilos para el popup */
-.station-popup {
-  font-family: 'Segoe UI', sans-serif;
-  min-width: 250px;
-}
-
-.popup-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.3rem 0.8rem;
-  margin-top: 0.5rem;
-}
-
-.popup-grid div:nth-child(odd) {
-  font-weight: 600;
-  color: #333;
-}
-
-.popup-grid div:nth-child(even) {
-  text-align: right;
-}
-
-::ng-deep .leaflet-tile[src*="precipitation_new"] {
-  filter: grayscale(1)
-    sepia(1)
-    hue-rotate(200deg)
-    saturate(3)
-    brightness(1.2)
-    contrast(1.2) !important;
-  opacity: 1 !important;
-   mix-blend-mode: normal !important;
-}
-
-.legend {
-  padding: 6px 10px;
-  background: white;
-  background: rgba(255,255,255,0.8);
-  box-shadow: 0 0 15px rgba(0,0,0,0.2);
-  border-radius: 5px;
-  line-height: 18px;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-/* Título */
-.legend h4 {
-  margin: 0 0 6px;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-/* Cajas de color */
-.legend i {
-  width: 18px;
-  height: 18px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.8;
-}
-
-.leaflet-container .leaflet-tile {
-  transition: none !important;
-}
-
-::ng-deep .leaflet-container .leaflet-tile {
-  transition: none !important;
-}
-
-::ng-deep .leaflet-tile-loaded {
-  opacity: 1 !important;
-  transition: none !important;
-}
-
-::ng-deep .leaflet-overlay-pane {
-  z-index: 401 !important;
-}
-
-
-
-
-
-/* Deshabilitar transiciones para todas las teselas */
-::ng-deep .leaflet-container .leaflet-tile,
-::ng-deep .leaflet-container .leaflet-tile-loaded {
-  transition: none !important;
-  opacity: 1 !important;
-}
-
-/* Asegurar z-index para overlayPane */
-::ng-deep .leaflet-overlay-pane {
-  z-index: 401 !important;
-}
-
-/* Estilos para la capa de precipitación (usar colores de OpenWeatherMap) */
-::ng-deep .leaflet-tile[src*="precipitation_new"] {
-  filter: none !important; /* Usar colores originales */
-  opacity: 1 !important;
-  mix-blend-mode: normal !important;
-}
-
-/* Estilos para la capa de temperatura (usar colores de OpenWeatherMap) */
-::ng-deep .leaflet-tile[src*="temp_new"] {
-  filter: none !important;
-  opacity: 1 !important;
-  mix-blend-mode: normal !important;
-}
-
-/* Estilos para la capa de vientos (usar colores de OpenWeatherMap) */
-::ng-deep .leaflet-tile[src*="wind_new"] {
-  filter: none !important;
-  opacity: 1 !important;
-  mix-blend-mode: normal !important;
-}
-
-/* Estilos para la leyenda */
-.legend {
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  line-height: 18px;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.legend h4 {
-  margin: 0 0 6px;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.legend i {
-  width: 18px;
-  height: 18px;
-  float: left;
-  margin-right: 8px;
-  opacity: 1 !important; /* Colores opacos en la leyenda */
-}
-
-.leaflet-container .leaflet-tile,
-.leaflet-container .leaflet-tile-loaded {
-  transition: none !important;
-  opacity: 1 !important;
+/* Responsive */
+@media (max-width: 620px){
+  .select-wrapper{ width: 100%; }
+  .map-wrapper{ height: 55vh; min-height: 360px; }
 }

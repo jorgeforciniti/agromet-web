@@ -1,22 +1,12 @@
-<div class="container">
-  <div class="sidebar">
-    <h2 class="titulo">Datos en tiempo real y pronóstico</h2>
-    <app-weather-forecast 
-      (stationSelected)="selectedStationId = $event; highlightSelectedStation()">
-    </app-weather-forecast>
-  </div>
-
   <div class="viewer-container">
-    <h2 class="titulo">Visor de Imágenes Satelitales</h2>
+    <h2 class="panel-title"><mat-icon>satellite_alt</mat-icon> Visor de Imágenes Satelitales</h2>
     <div class="controls">
       <div class="control-group">
         <label class="control-label">Capa:
           <mat-form-field appearance="outline" class="select-wrapper">
             <mat-label>Selecciona una capa</mat-label>
-            <mat-select
-              [(ngModel)]="selectedLayer"
-              (selectionChange)="setLayer(selectedLayer)"
-              aria-label="Selección de capa">
+            <mat-select [(ngModel)]="selectedLayer" (selectionChange)="setLayer($event.value)"
+              title="Seleccioná una capa">
               <mat-option *ngFor="let key of layerKeys" [value]="key">
                 {{ layers[key].name }}
               </mat-option>
@@ -28,9 +18,7 @@
         <label class="control-label">Mapa Base:
           <mat-form-field appearance="outline" class="select-wrapper">
             <mat-label>Selecciona un mapa base</mat-label>
-            <mat-select
-              [(ngModel)]="selectedBaseMap"
-              (selectionChange)="setBaseMap(selectedBaseMap)"
+            <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="setBaseMap(selectedBaseMap)"
               aria-label="Selección de mapa base">
               <mat-option value="satellite">Satelital</mat-option>
               <mat-option value="osm">OSM Estándar</mat-option>
@@ -56,4 +44,3 @@
       <p>Última imagen disponible: {{ currentDateTime }}</p>
     </div>
   </div>
-</div>

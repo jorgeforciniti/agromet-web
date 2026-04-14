@@ -1,65 +1,91 @@
-<!-- datos-online.component.html -->
 <div class="container">
-    <div class="viewer-container">
-        <!-- Botón de cierre -->
-    <button class="close-btn" (click)="closeWindow()">✖</button>
+  <button class="do-close" (click)="closeWindow()">✖</button>
 
+  <div class="viewer-container">
+    <div class="do-topbar">
       <div class="titulo">Datos en Tiempo Real</div>
-  
-      <div *ngIf="loading" class="loading-overlay">
-        <div class="spinner"></div>
-        <div class="loading-text">Cargando datos...</div>
-      </div>
-      <div *ngIf="error" class="error">Error al cargar los datos.</div>
-  
+
       <div class="controls" *ngIf="!loading && !error">
         <div class="control-group">
           <label class="control-label">Mapa Base:</label>
-          <!--
-            - [(ngModel)] bindea selectedBaseMap
-            - (ngModelChange) emite BaseMapKey
-            - [ngValue] conserva el tipo literal en cada <option>
-          -->
-          <select
-            class="select-wrapper"
-            [(ngModel)]="selectedBaseMap"
-            (ngModelChange)="setBaseMap($event)"
-          >
-            <option
-              *ngFor="let key of baseMapKeys"
-              [ngValue]="key"
-            >
+          <select [(ngModel)]="selectedBaseMap" (ngModelChange)="setBaseMap($event)">
+            <option *ngFor="let key of baseMapKeys" [ngValue]="key">
               {{ baseMaps[key].name }}
             </option>
           </select>
         </div>
       </div>
-  
-      <div class="map-wrapper">
+    </div>
+
+
+    <div class="contenido-wrapper">
+      <div class="map-column">
         <div id="mapDatosOnline"></div>
       </div>
-      <br><br><br><br><br>
+
+      <div class="chart-column">
+        <h3 *ngIf="selectedStationId; else emptyState">{{ nombreEstacionSeleccionada }}</h3>
+
+        <ng-template #emptyState>
+          <h3>Seleccioná una estación</h3>
+          <div class="selector-text">Clic sobre una estación en el mapa para ver su gráfico.</div>
+        </ng-template>
+
+        <div class="variable-selector" [class.is-disabled]="!selectedStationId">
+          <label for="varSelect"><strong>Variable:</strong></label>
+
+          <select id="varSelect" [(ngModel)]="selectedVariable" (change)="actualizarGrafico()"
+            [disabled]="!selectedStationId">
+            <option value="temp_af">Temperatura (°C)</option>
+            <option value="hum_af">Humedad relativa (%)</option>
+            <option value="presion">Presión (hPa)</option>
+            <option value="lluvia">Lluvia (mm)</option>
+            <option value="viento_medio">Viento (km/h)</option>
+            <option value="viento_max">Ráfagas (km/h)</option>
+          </select>
+
+          <span class="rango-fechas" *ngIf="selectedStationId">Período: {{ fechasPeriodo }}</span>
+        </div>
+
+        <div class="chart-box" *ngIf="selectedStationId">
+          <canvas id="graficoVariables"></canvas>
+        </div>
+
+        <div class="selector-text" *ngIf="selectedStationId">
+          Clic sobre una estación en el mapa para ver su gráfico.
+        </div>
+      </div>
+    </div>
+
+    <div class="tabla-wrapper">
+      <div class="tabla-scroll-x">
         <table *ngIf="!loading && !error" class="tabla-datos">
-        <thead>
-          <tr>
-            <th>ID</th><th>Nombre</th><th>Fecha</th><th>Temp. (°C)</th>
-            <th>Humedad (%)</th><th>Precip. (mm)</th>
-            <th>V. Medio (km/h)</th><th>Ráfaga (km/h)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let est of estaciones">
-            <td>{{ est.identificacion }}</td>
-            <td>{{ est.nombre }}</td>
-            <td>{{ est.fecha_i }}</td>
-            <td>{{ fmt(est.temp_af) }}</td>
-            <td>{{ fmt(est.hum_af) }}</td>
-            <td>{{ fmt(est.rr_dia) }}</td>
-            <td>{{ fmt(est.viento_medio) }}</td>
-            <td>{{ fmt(est.viento_max) }}</td>
-          </tr>
-        </tbody>
-      </table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Fecha</th>
+              <th>Temp. (°C)</th>
+              <th>Humedad (%)</th>
+              <th>Precip. (mm)</th>
+              <th>V. Medio (km/h)</th>
+              <th>Ráfaga (km/h)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let est of estaciones">
+              <td>{{ est.identificacion }}</td>
+              <td>{{ est.nombre }}</td>
+              <td>{{ formatFecha(est.fecha_i) }}</td>
+              <td class="derecha">{{ fmt(est.temp_af) }}</td>
+              <td class="derecha">{{ fmt(est.hum_af) }}</td>
+              <td class="derecha">{{ fmt(est.rr_dia) }}</td>
+              <td class="derecha">{{ fmt(est.viento_medio) }}</td>
+              <td class="derecha">{{ fmt(est.viento_max) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-  
+</div>

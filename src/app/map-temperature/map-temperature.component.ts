@@ -24,7 +24,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
-  override parse(value: any): Date | null {
+  override parse(value: unknown): Date | null {
     if (typeof value === 'string' && value.includes('/')) {
       const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
       if ([dd, mm, yyyy].every(n => !isNaN(n))) {
@@ -111,6 +111,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
   public currentVariableLabel: string = '';
   form!: FormGroup;
   map!: L.Map;
+  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   layerGroup!: L.LayerGroup;
   provincesLayer!: L.GeoJSON;
   baseMaps: { [key: string]: L.TileLayer } = {};
@@ -150,7 +151,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     this.map = L.map('mapContainer', {
       center: [-27, -65],
       zoom: 8,
-      zoomControl: false
+      maxBoundsViscosity: 0.0,
+      scrollWheelZoom: false  // Desactivar zoom por rueda
     });
 
     // Capas base
@@ -171,6 +173,28 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     // Grupo de marcadores
     this.layerGroup = L.layerGroup().addTo(this.map);
     this.addColorLegend();
+    setTimeout(() => this.map?.invalidateSize(), 50);
+
+    // Mostrar mensaje si gira la rueda sin Ctrl
+    if (!this.map) return;
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (!e.ctrlKey) {
+        this.map?.getContainer().classList.add('ctrl-zoom-message');
+        clearTimeout(this.ctrlZoomTimeout);
+        this.ctrlZoomTimeout = setTimeout(() => {
+          this.map?.getContainer().classList.remove('ctrl-zoom-message');
+        }, 1000);
+      }
+    });
+
+    // Habilitar zoom si Ctrl está presionado
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        this.map?.scrollWheelZoom.enable();
+      } else {
+        this.map?.scrollWheelZoom.disable();
+      }
+    });
   }
 
   private async loadProvinces(): Promise<void> {
@@ -258,8 +282,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     const diffTime = hastaDate.getTime() - desdeDate.getTime();
     const totalDias = Math.floor(diffTime / (1000 * 3600 * 24)) + 1;
 
-    this.weatherService.getTMinMax(desde, hasta).subscribe({
-      next: (res: { status: string; data: TemperatureData[] }) => {
+    this.weatherService.getTMinMax<TemperatureData>(desde, hasta).subscribe({
+      next: (res) => {
         if (res.status === 'success' && res.data) {
           const data: TemperatureData[] = res.data.filter(d => {
             // Solo aplicar filtro para temperaturas absolutas

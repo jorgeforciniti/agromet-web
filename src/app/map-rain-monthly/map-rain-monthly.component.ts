@@ -73,7 +73,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   public noDataForSelection = false;
   public osmLayer!: L.TileLayer;
   public satLayer!: L.TileLayer;
-
+  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
 
   public selectedStartMonth!: number;
   public selectedEndMonth!: number;
@@ -136,14 +136,13 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     await this.loadProvinces();
 
     this.dialogRef.afterOpened().subscribe(() => {
-      // con un pequeño timeout para que el DOM esté 100% listo
       setTimeout(() => {
-        if (this.map) {
-          this.map.invalidateSize();  // fuerza a Leaflet a recalcular su tamaño
+        if (this.map && this.map.getContainer().offsetHeight > 0) {
+          this.map.invalidateSize();
         }
-      }, 0);
+      }, 200); // esperar al menos 200ms
     });
-
+    this.addRainLegendControl();
   }
 
   ngOnDestroy(): void {
@@ -157,6 +156,8 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       this.map = L.map('rainMapDialog', {
         center: this.defaultMapCenter,
         zoom: this.defaultMapZoom,
+        maxBoundsViscosity: 0.0,
+        scrollWheelZoom: false  // Desactivar zoom por rueda
       });
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -182,6 +183,27 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       console.error('Map container "rainMapDialog" not found.');
     }
     this.updateBaseMap();
+
+    // Mostrar mensaje si gira la rueda sin Ctrl
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (!e.ctrlKey) {
+        this.map?.getContainer().classList.add('ctrl-zoom-message');
+        clearTimeout(this.ctrlZoomTimeout);
+        this.ctrlZoomTimeout = setTimeout(() => {
+          this.map?.getContainer().classList.remove('ctrl-zoom-message');
+        }, 1000);
+      }
+    });
+
+    // Habilitar zoom si Ctrl está presionado
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        this.map?.scrollWheelZoom.enable();
+      } else {
+        this.map?.scrollWheelZoom.disable();
+      }
+    });
+
   }
 
   onBaseMapChange(): void {
@@ -364,7 +386,28 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       this.errorMessage = 'No se pudieron cargar los límites provinciales';
     }
   }
-  
+
+  private addRainLegendControl(): void {
+    const legend = new L.Control({ position: 'bottomright' });
+
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'info legend');
+
+      div.innerHTML = `
+  <div class="legend-title">Relación al normal</div>
+    <i style="background:#a50f15; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
+    <i style="background:#d97401; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
+    <i style="background:#f5f10b; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
+    <i style="background:#88dafd; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
+    <i style="background:#2597cc; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
+    <i style="background:#254faa; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
+`;
+      return div;
+    };
+
+    legend.addTo(this.map);
+  }
+
   public close(): void {
     this.dialogRef.close();
   }

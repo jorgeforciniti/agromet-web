@@ -1,0 +1,332 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+:host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
+  width: min(1120px, 95vw) !important;
+  max-width: 95vw !important;
+  height: 92vh !important;
+  max-height: 92vh !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+:host ::ng-deep .do-dialog .mat-mdc-dialog-content {
+  height: 100% !important;
+  max-height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  background: transparent !important;
+}
+
+.thermal-dialog {
+  padding: 0;
+  margin: 0;
+}
+
+.thermal-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--mod-stats) 14%, transparent), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99));
+}
+
+.dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+}
+
+.dialog-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
+  background: rgba(255,255,255,.92);
+  color: color-mix(in srgb, var(--mod-stats) 66%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.titulo {
+  margin: 8px 0 6px;
+  font-size: 1.28rem;
+  line-height: 1.08;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.dialog-lead {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--muted);
+  line-height: 1.42;
+  font-size: .98rem;
+}
+
+.close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.close-btn:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+.close-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-stats) 18%, white);
+  outline-offset: 2px;
+}
+
+.thermal-form,
+.thermal-summary,
+.table-wrapper,
+.thermal-note,
+.thermal-error {
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  border-radius: 18px;
+  background: rgba(255,255,255,.88);
+  box-shadow: var(--shadow-sm);
+}
+
+.thermal-form {
+  padding: 14px;
+}
+
+.thermal-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(140px, .55fr) minmax(180px, .8fr) minmax(180px, .8fr) minmax(170px, .7fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.search-button {
+  min-height: 52px;
+  border-radius: 12px;
+  font-weight: 800;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.thermal-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.thermal-summary__card {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+}
+
+.thermal-summary__card span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.thermal-summary__card strong {
+  color: var(--text);
+  font-size: .96rem;
+  font-weight: 900;
+}
+
+.thermal-note,
+.thermal-error {
+  margin: 0;
+  padding: 10px 12px;
+  display: inline-flex;
+  align-items: start;
+  gap: 8px;
+  color: var(--muted);
+  line-height: 1.38;
+}
+
+.thermal-error {
+  color: #991b1b;
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.table-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.thermal-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.thermal-table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #111827;
+  color: #fff;
+  font-weight: 900;
+}
+
+.thermal-table th,
+.thermal-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.thermal-table td {
+  color: var(--text);
+  font-weight: 700;
+  background: rgba(255,255,255,.88);
+}
+
+.thermal-table tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.thermal-table td.is-missing {
+  color: #6b7280;
+  font-style: italic;
+}
+
+:host ::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-floating-label {
+  color: rgba(17,24,39,.70) !important;
+  font-weight: 700;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-text-field__input,
+:host ::ng-deep .mat-mdc-form-field select,
+:host ::ng-deep .mat-mdc-select-value,
+:host ::ng-deep .mat-mdc-select-value-text {
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .thermal-grid,
+  .thermal-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .table-wrapper {
+    min-height: 36vh;
+  }
+}
+
+@media (max-width: 720px) {
+  :host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    height: 96vh !important;
+    max-height: 96vh !important;
+    border-radius: 18px !important;
+  }
+
+  .thermal-shell {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .dialog-header {
+    gap: 10px;
+    padding-bottom: 8px;
+  }
+
+  .dialog-eyebrow {
+    min-height: 24px;
+    padding: 0 10px;
+    font-size: .68rem;
+  }
+
+  .titulo {
+    margin: 6px 0 4px;
+    font-size: 1.1rem;
+  }
+
+  .dialog-lead {
+    font-size: .9rem;
+    line-height: 1.32;
+  }
+
+  .thermal-grid,
+  .thermal-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .thermal-form {
+    padding: 10px;
+  }
+
+  .thermal-summary {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .thermal-summary__card {
+    padding: 9px 10px;
+  }
+
+  .thermal-note,
+  .thermal-error {
+    padding: 9px 10px;
+    font-size: .88rem;
+  }
+
+  .table-wrapper {
+    min-height: 42vh;
+  }
+
+  .thermal-table {
+    min-width: 520px;
+  }
+
+  .thermal-table th,
+  .thermal-table td {
+    padding: 8px 10px;
+    font-size: .9rem;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+}

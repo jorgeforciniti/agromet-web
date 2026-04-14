@@ -10,84 +10,83 @@
 
   <!-- Contenedor principal -->
   <div class="forecast-container" *ngIf="!loading && !error && weatherData">
-    <!-- Alertas -->
-    <div class="alert-section" *ngIf="smnAlerts.length || smnShortAlerts.length">
-      <div class="alert-title">⚠️ Alertas Meteorológicas (SMN)</div>
-      <div *ngFor="let alerta of smnAlerts">
-        <div class="alert-card alert-level-{{ alerta.level }}">
-          <div class="alert-region">Nivel {{ alerta.level }}</div>
-          <div class="alert-period">
-            {{ alerta.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
-            – {{ periodoEnCastellano(alerta.period) }}
-          </div>
-          <div class="alert-description">{{ alerta.description }}</div>
-          <div class="alert-instruction">{{ alerta.instruction }}</div>
-        </div>
-      </div>
-    </div>
-
     <!-- Header -->
-    <div class="forecast-header">
-      <div class="station-label">
-        Estación meteorológica:
-        <span class="station-select-wrapper">
-          <mat-form-field appearance="fill">
-            <mat-label>Selecciona una estación</mat-label>
-            <mat-select [(ngModel)]="selectedStation" (selectionChange)="selectStation($event.value)">
-              <mat-option *ngFor="let station of stations" [value]="station">
-                {{ station.nombre }}
+
+    <!-- ───── Station Widget ───── -->
+    <div *ngIf="mode === 'realtime' || mode === 'full'">
+      <section class="station-widget station-realtime-card">
+
+        <div class="realtime-label"><mat-icon
+            style="font-size: 16px; vertical-align: bottom; color:#c5f366">sensors</mat-icon>
+          <span>Datos en tiempo real de estaciones automáticas EEAOC</span>
+        </div>
+        <header class="station-header">
+          <mat-icon class="station-icon">location_on</mat-icon>
+
+          <h3 class="station-title">
+            {{ selectedStation?.nombre || 'Estación meteorológica' }}
+            <img *ngIf="nowIconUrl" class="now-icon" [src]="nowIconUrl" [alt]="nowDescription || 'Estado del tiempo'"
+              [title]="nowDescription || ''" />
+          </h3>
+
+          <!-- Selector -->
+          <mat-form-field appearance="outline" class="station-select">
+            <mat-label>Selecciona estación</mat-label>
+            <mat-select [(ngModel)]="selectedStation" (selectionChange)="selectStation($event.value)"
+              [panelClass]="'full-screen-select'">
+              <mat-option *ngFor="let st of stations" [value]="st">
+                {{ st.nombre }}
               </mat-option>
             </mat-select>
           </mat-form-field>
-        </span>
-      </div>
+        </header>
 
-      <div class="realtime-footer" *ngIf="selectedStation">
-        <div class="realtime-item">
-          <fa-icon [icon]="['fas', 'sun']"></fa-icon>
-          Salida: {{ sunrise }}
+        <div class="station-metrics">
+          <div class="metric"><mat-icon>thermostat</mat-icon><span class="value">{{ rtTemperature }} °C</span></div>
+          <div class="metric"><fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon><span class="value">{{ rtRain }}
+              mm</span>
+          </div>
+          <div class="metric"><mat-icon>water_drop</mat-icon><span class="value">{{ rtHumidity }} %</span></div>
+          <div class="metric"><mat-icon>air</mat-icon><span class="value">{{ rtWind?.direction }} {{ rtWind?.speed }}
+              km/h</span></div>
+          <div class="metric"><mat-icon>schedule</mat-icon><span class="value">{{ rtUpdated | date:'dd-MM-YY HH:mm'
+              }}</span></div>
         </div>
-        <div class="realtime-item">
-          <fa-icon [icon]="['fas', 'moon']"></fa-icon>
-          Puesta: {{ sunset }}
-        </div>
-      </div>
 
-      <div class="realtime-label">Datos en tiempo real</div>
-      <div class="realtime-footer" *ngIf="rtTemperature !== null">
-        <div class="realtime-item">
-          <fa-icon [icon]="['fas', 'temperature-high']"></fa-icon>
-          {{ rtTemperature }} °C
-        </div>
-        <div class="realtime-item">
-          <fa-icon [icon]="['fas', 'tint']"></fa-icon>
-          {{ rtHumidity }} %
-        </div>
-        <div class="realtime-item">
-          <fa-icon [icon]="['fas', 'wind']"></fa-icon>
-          {{ rtWind?.direction }} {{ rtWind?.speed }} km/h
-        </div>
-        <div class="realtime-item">
-          <fa-icon [icon]="['fas', 'clock']"></fa-icon>
-          {{ rtUpdated | date:'HH:mm' }}
-        </div>
-      </div>
+        <footer class="station-sun">
+          <span><mat-icon>wb_sunny</mat-icon> {{ sunrise }}</span>
+          <span><mat-icon>
+              <div class="luna">nights_stay</div>
+            </mat-icon> {{ sunset }}</span>
+        </footer>
+
+      </section>
     </div>
-
+    <!-- ──── /Station Widget ──── -->
     <!-- Pronóstico -->
-    <div class="forecast-content">
-      <div class="forecast-title">
-        Pronóstico para los próximos días para {{ selectedStation.nombre }}
-      </div>
+    <div *ngIf="mode === 'forecast' || mode === 'full'">
+      <div class="forecast-content-card">
+        <div class="forecast-content">
+  <div class="forecast-title">
+    Pronóstico para los próximos días para <span>{{ selectedStation?.nombre || 'la estación seleccionada' }}</span>
+  </div>
 
+  <!-- Grid principal: días, detalle horario y gráfico -->
+  <div class="forecast-grid" *ngIf="selectedDay">
+
+    <!-- IZQ / ARRIBA: días -->
+    <div class="forecast-week">
       <div class="week-forecast">
         <div *ngFor="let day of weatherData?.forecast; let i = index"
              class="day-card"
              [class.active]="selectedDayIndex === i"
-             (click)="selectDay(day, i)">
+             (click)="selectDay(day, i)"
+             (keydown.enter)="selectDay(day, i)"
+             tabindex="0">
           <div class="day-name">{{ getDayName(day.date) }}</div>
           <div class="tp-icon">
-            <img [src]="'https://openweathermap.org/img/wn/' + day.intervals[0].weather.icon + '.png'" alt="weather icon">
+            <img [src]="'https://openweathermap.org/img/wn/' + day.intervals[0].weather.icon + '.png'"
+                 alt="weather icon">
           </div>
           <div class="day-temps">
             <span class="min-temp">{{ day.temp_min.toFixed(0) }}°</span>
@@ -95,34 +94,42 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Detalles del día seleccionado con pronóstico horario estilo Google Weather -->
-      <div class="day-details" *ngIf="selectedDay">
-        <div class="day-details-title">
-          Pronóstico para el día {{ selectedDay.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
-        </div>
+    <!-- IZQ / ABAJO: horas -->
+    <div class="forecast-hours" *ngIf="selectedDay">
+      <div class="day-details-title">
+        Pronóstico para el día {{ selectedDay.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
+      </div>
 
-        <!-- Nueva sección de pronóstico horario -->
-        <div class="hourly-forecast-container">
-          <div class="hourly-forecast-scroll">
-            <div *ngFor="let interval of selectedDay.intervals" class="hourly-item">
-              <div class="hourly-time">{{ interval.hour }}</div>
-              <div class="hourly-icon">
-                <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'" alt="weather icon">
-              </div>
-              <div class="hourly-temp">{{ interval.temperature.toFixed(0) }}°C</div>
-              <div class="hourly-wind">{{ interval.wind.speed }}km/h</div>
-              <div class="hourly-rain">
-                <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
-                {{ interval.rain_prob }}%
-              </div>
+      <div class="hourly-forecast-container">
+        <div class="hourly-forecast-scroll">
+          <div *ngFor="let interval of selectedDay.intervals" class="hourly-item">
+            <div class="hourly-time">{{ interval.hour }}</div>
+            <div class="hourly-icon">
+              <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'" alt="weather icon">
             </div>
+            <div class="hourly-rain">
+              <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
+              {{ interval.rain_prob }}%
+            </div>
+            <div class="hourly-temp">{{ interval.temperature.toFixed(0) }}°C</div>
+            <div class="hourly-wind">{{ interval.wind.speed }} km/h</div>
           </div>
-          <canvas #temperatureChart id="temperatureChart" style="max-height: 300px; width: 100%;"></canvas>
         </div>
       </div>
     </div>
 
-    <div class="forecast-source">Fuente: OpenWeatherMap</div>
+    <!-- DER (SPAN): gráfico -->
+    <div class="forecast-chart">
+      <div class="chart-card">
+        <canvas #temperatureChart></canvas>
+      </div>
+    </div>
+
   </div>
+
+  <div class="forecast-source">Fuente: OpenWeatherMap</div>
 </div>
+      </div>
+    </div>

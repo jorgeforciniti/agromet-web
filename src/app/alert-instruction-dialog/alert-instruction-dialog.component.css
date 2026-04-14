@@ -1,0 +1,78 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+:host ::ng-deep .instr-dialog .mat-mdc-dialog-surface {
+  width: min(720px, 94vw) !important;
+  max-width: 94vw !important;
+  border-radius: 22px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-alert) 5%, white), rgba(255,255,255,.99)) !important;
+  color: var(--text) !important;
+  overflow: hidden !important;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, .18) !important;
+}
+
+:host ::ng-deep .instr-dialog .mat-mdc-dialog-content {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.instr-wrap {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.instr-title {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.instr-list,
+.instr-empty {
+  margin: 0;
+  color: rgba(17,24,39,.86);
+  line-height: 1.5;
+}
+
+.instr-list {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.instr-list li::marker {
+  color: color-mix(in srgb, var(--mod-alert) 72%, #9f1239);
+  font-weight: 900;
+}
+
+.instr-empty {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, .16);
+  background: rgba(255,255,255,.76);
+  font-weight: 600;
+}
+
+.instr-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.instr-close {
+  border-radius: 999px;
+  padding-inline: 16px;
+  font-weight: 800;
+}
+
+.instr-close:focus-visible {
+  outline: 3px solid rgba(249, 115, 22, .18);
+  outline-offset: 2px;
+}

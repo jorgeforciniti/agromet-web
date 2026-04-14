@@ -1,0 +1,116 @@
+<mat-dialog-content class="yield-dialog">
+  <div class="yield-shell">
+    <div class="dialog-header">
+      <div>
+        <div class="dialog-eyebrow">HERRAMIENTA PRODUCTIVA</div>
+        <h2 class="titulo">Estimador de rindes de soja</h2>
+        <p class="dialog-lead">
+          Cargá el conteo de vainas y el peso de mil semillas para estimar el rendimiento
+          corregido a 13,5 % de humedad.
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="yield-layout">
+      <form class="yield-form" [formGroup]="form" (ngSubmit)="calculate()">
+        <div class="yield-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Vainas de 1 semilla por metro</mat-label>
+            <input matInput type="number" formControlName="s1" min="0" max="500" step="1">
+            <mat-hint>Rango esperado: 0 a 500</mat-hint>
+            <mat-error>{{ fieldError('s1') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Vainas de 2 semillas por metro</mat-label>
+            <input matInput type="number" formControlName="s2" min="0" max="500" step="1">
+            <mat-hint>Rango esperado: 0 a 500</mat-hint>
+            <mat-error>{{ fieldError('s2') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Vainas de 3 semillas por metro</mat-label>
+            <input matInput type="number" formControlName="s3" min="0" max="500" step="1">
+            <mat-hint>Rango esperado: 0 a 500</mat-hint>
+            <mat-error>{{ fieldError('s3') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Vainas de 4 semillas por metro</mat-label>
+            <input matInput type="number" formControlName="s4" min="0" max="500" step="1">
+            <mat-hint>Rango esperado: 0 a 500</mat-hint>
+            <mat-error>{{ fieldError('s4') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Peso de mil semillas (g)</mat-label>
+            <input matInput type="number" formControlName="ps" min="50" max="200" step="0.1">
+            <mat-hint>Rango esperado: 50 a 200 g</mat-hint>
+            <mat-error>{{ fieldError('ps') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Humedad del grano (%)</mat-label>
+            <input matInput type="number" formControlName="hg" min="7" max="20" step="0.1">
+            <mat-hint>Rango esperado: 7 a 20 %</mat-hint>
+            <mat-error>{{ fieldError('hg') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="yield-actions">
+          <button mat-raised-button color="primary" class="search-button" type="submit">
+            <mat-icon>calculate</mat-icon>
+            Calcular rendimiento
+          </button>
+        </div>
+      </form>
+
+      <section class="yield-result" [class.yield-result--empty]="!result">
+        <div class="yield-result__eyebrow">RESULTADO</div>
+        <h3 class="yield-result__title">Rendimiento estimado</h3>
+
+        <ng-container *ngIf="result; else pendingState">
+          <div class="yield-result__value">
+            {{ result.estimatedYield | number:'1.0-0' }}
+            <span>kg/ha</span>
+          </div>
+
+          <div class="yield-metrics">
+            <div class="yield-metric">
+              <span>Semillas estimadas por metro</span>
+              <strong>{{ result.seedsPerMeter | number:'1.0-0' }}</strong>
+            </div>
+            <div class="yield-metric">
+              <span>Rinde base sin corrección</span>
+              <strong>{{ result.rawYield | number:'1.0-0' }} kg/ha</strong>
+            </div>
+            <div class="yield-metric">
+              <span>Ajuste por humedad</span>
+              <strong>{{ result.moistureAdjustment | number:'1.0-0' }} kg/ha</strong>
+            </div>
+          </div>
+
+          <p class="yield-note">
+            El cálculo replica la ecuación utilizada en la herramienta histórica de EEAOC y corrige el
+            resultado al 13,5 % de humedad.
+          </p>
+        </ng-container>
+
+        <ng-template #pendingState>
+          <p class="yield-empty">
+            Ingresá valores válidos para obtener la estimación.
+          </p>
+        </ng-template>
+      </section>
+    </div>
+
+    <div class="yield-footnote">
+      <mat-icon>info</mat-icon>
+      <span>Referencia metodológica: Programa Granos de la EEAOC. En esta primera versión el cálculo es local y no guarda registros.</span>
+    </div>
+  </div>
+</mat-dialog-content>

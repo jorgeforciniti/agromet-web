@@ -1,28 +1,56 @@
 <section class="informes-section">
   <div class="informes-wrapper">
-    <h2 class="informes-title">Informes</h2>
+    <div class="informes-head">
+      <div>
+        <div class="informes-eyebrow">BIBLIOTECA TÉCNICA</div>
+        <h3 class="informes-title">Informes y publicaciones recientes</h3>
+      </div>
+      <p class="informes-copy">Explorá boletines, reportes y documentos técnicos con filtros por temática y acceso rápido al PDF.</p>
+    </div>
 
-    <!-- Selector de tipo de informe con radio buttons -->
-    <fieldset style="margin-bottom: 1rem; border: none; padding: 0;">
-      <mat-radio-group [(ngModel)]="selectedCategoria" (ngModelChange)="onCategoriaChange()"
-        aria-label="Tipo de informe">
-        <mat-radio-button *ngFor="let tipo of tiposInformes" [value]="tipo.value"
-          style="display: inline-flex; align-items: center; margin-right: 1rem;">
-          <span style="color: white;">{{ tipo.viewValue }}</span>
+    <div class="filters">
+      <mat-radio-group [(ngModel)]="selectedCategoria" (ngModelChange)="onCategoriaChange()" aria-label="Tipo de informe">
+        <mat-radio-button *ngFor="let tipo of tiposInformes" [value]="tipo.value">
+          {{ tipo.viewValue }}
         </mat-radio-button>
       </mat-radio-group>
+    </div>
 
-    </fieldset>
+    <div class="informes-scroll-wrapper">
+      <button class="scroll-left" (click)="scrollLeft()" aria-label="Desplazar informes hacia la izquierda">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
 
-    <div class="informes-container">
-      <div class="informe-card" *ngFor="let informe of filteredDatos">
-        <iframe [src]="informe.safeArchivo" frameborder="0"></iframe>
-        <div class="info">
-          <h3>{{ informe.titulo }}</h3>
-          <p>{{ informe.creado }}</p>
-          <button class="btn" (click)="openDialog(informe.archivo)">Ver informe</button>
+      <div class="informes-container" #scrollContainer>
+        <div class="informe-card" *ngFor="let informe of filteredDatos">
+          <div
+            class="thumb"
+            (click)="openDialog(informe)"
+            (keydown.enter)="openDialog(informe)"
+            (keydown.space)="openDialog(informe); $event.preventDefault()"
+            role="button"
+            tabindex="0">
+            <embed class="thumb-embed" [src]="informe.safeArchivo" type="application/pdf" />
+            <div class="thumb-overlay" aria-hidden="true"></div>
+            <div class="thumb-badge">PDF</div>
+          </div>
+
+          <div class="info">
+            <div class="meta meta--top">
+              <span class="date">{{ informe.creado }}</span>
+            </div>
+            <h3 class="title" [title]="informe.titulo">{{ informe.titulo }}</h3>
+            <button class="btn-primary" (click)="openDialog(informe)">
+              Ver informe
+              <mat-icon>arrow_outward</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
+
+      <button class="scroll-right" (click)="scrollRight()" aria-label="Desplazar informes hacia la derecha">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
     </div>
   </div>
 </section>

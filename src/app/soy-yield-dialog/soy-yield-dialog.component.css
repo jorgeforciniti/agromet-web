@@ -1,0 +1,265 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+:host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
+  width: min(980px, 94vw) !important;
+  max-width: 94vw !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+:host ::ng-deep .do-dialog .mat-mdc-dialog-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  background: transparent !important;
+}
+
+.yield-dialog {
+  padding: 0;
+  margin: 0;
+}
+
+.yield-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--mod-stats) 14%, transparent), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99));
+}
+
+.dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 14%, var(--border));
+}
+
+.dialog-eyebrow,
+.yield-result__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
+  background: rgba(255,255,255,.9);
+  color: color-mix(in srgb, var(--mod-stats) 72%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.titulo {
+  margin: 10px 0 8px;
+  font-size: 1.45rem;
+  line-height: 1.08;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.dialog-lead {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.close-btn:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+.close-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-stats) 18%, white);
+  outline-offset: 2px;
+}
+
+.yield-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, .85fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.yield-form,
+.yield-result {
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 14%, var(--border));
+  border-radius: 20px;
+  background: rgba(255,255,255,.88);
+  box-shadow: var(--shadow-sm);
+}
+
+.yield-form {
+  padding: 18px;
+}
+
+.yield-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.yield-actions {
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.search-button {
+  min-height: 52px;
+  border-radius: 14px;
+  padding-inline: 18px;
+  font-weight: 800;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.yield-result {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.yield-result--empty {
+  justify-content: center;
+}
+
+.yield-result__title {
+  margin: 0;
+  font-size: 1.18rem;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.yield-result__value {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 900;
+  line-height: 1;
+  color: color-mix(in srgb, var(--mod-stats) 78%, #0f172a);
+}
+
+.yield-result__value span {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.yield-metrics {
+  display: grid;
+  gap: 10px;
+}
+
+.yield-metric {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+}
+
+.yield-metric span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.yield-metric strong {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.yield-note,
+.yield-empty {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.yield-footnote {
+  display: inline-flex;
+  align-items: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  background: rgba(255,255,255,.82);
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+.yield-footnote mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  margin-top: 1px;
+  color: color-mix(in srgb, var(--mod-stats) 70%, #475467);
+}
+
+:host ::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-floating-label,
+:host ::ng-deep .mat-mdc-form-field .mat-mdc-form-field-hint-wrapper,
+:host ::ng-deep .mat-mdc-form-field .mat-mdc-form-field-error-wrapper {
+  font-weight: 700;
+}
+
+:host ::ng-deep .mdc-text-field--outlined,
+:host ::ng-deep .mdc-text-field--filled {
+  background: rgba(255,255,255,.96) !important;
+}
+
+@media (max-width: 900px) {
+  .yield-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .yield-shell {
+    padding: 14px;
+  }
+
+  .yield-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .yield-actions,
+  .search-button {
+    width: 100%;
+  }
+}

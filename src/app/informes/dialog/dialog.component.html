@@ -1,25 +1,38 @@
-<div class="dialog-windows">
-  <mat-dialog-content class="dialog-content">
-    <button mat-icon-button class="close-btn" mat-dialog-close aria-label="Cerrar">
-      <mat-icon>close</mat-icon>
-    </button>
-
-    <h4>{{ data.titulo || 'Detalles del informe' }}</h4>
-
-    <div class="content-container">
-      <p *ngIf="data.fecha">
-        <strong>Fecha:</strong> {{ formattedDate }}
-      </p>
-      
-      <iframe [src]="data.archivo" frameborder="0"></iframe>
+<div class="pdfd">
+  <header class="pdfd__header">
+    <div class="pdfd__titleWrap">
+      <div class="pdfd__eyebrow">DOCUMENTO TÉCNICO</div>
+      <h2 class="pdfd__title">{{ data.titulo }}</h2>
+      <div class="pdfd__meta" *ngIf="data.fecha">Fecha: {{ formattedDate }}</div>
     </div>
 
-  </mat-dialog-content>
-  <div mat-dialog-actions style="padding: 20px; padding-right: 30px;">
-    <a *ngIf="data.archivo" mat-flat-button color="primary" 
-       [href]="data.archivo" 
-       download="{{ data.nombreOriginal || 'informe' }}">
-      Descargar
-    </a>
-  </div>
+    <div class="pdfd__actions">
+      <a class="pdfd__btn pdfd__btn--ghost" [attr.href]="data.archivo" target="_blank" rel="noopener noreferrer">
+        Abrir en pestaña
+      </a>
+      <button type="button" class="pdfd__close" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <section class="pdfd__body">
+    <ngx-extended-pdf-viewer
+      class="pdfd__viewer"
+      [src]="data.archivo"
+      useBrowserLocale="true"
+      [height]="'100%'"
+      [zoom]="'page-width'"
+      [textLayer]="true"
+      [showHandToolButton]="true"
+      [showSidebarButton]="false"
+      [showFindButton]="true"
+      [showPagingButtons]="true"
+      [showZoomButtons]="true"
+      [showPresentationModeButton]="false"
+      [showPrintButton]="true"
+      [showDownloadButton]="true"
+      backgroundColor="#f3f4f6">
+    </ngx-extended-pdf-viewer>
+  </section>
 </div>

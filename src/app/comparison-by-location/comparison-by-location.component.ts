@@ -22,7 +22,7 @@ import {
 } from '@angular/material/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
-import { WeatherService } from '../services/weather.service';
+import { WeatherService, WeatherStation } from '../services/weather.service';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
@@ -31,7 +31,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Injectable()
 export class CustomDateAdapter extends NativeDateAdapter {
-  override parse(value: any): Date | null {
+  override parse(value: unknown): Date | null {
     if (typeof value === 'string' && value.indexOf('/') > -1) {
       const [day, month, year] = value.split('/');
       const date = new Date(+year, +month - 1, +day);
@@ -46,12 +46,6 @@ export class CustomDateAdapter extends NativeDateAdapter {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   }
-}
-
-interface Station {
-  id: string;
-  Identificacion: string;
-  nombre: string;
 }
 
 interface WeatherRecord {
@@ -111,7 +105,7 @@ const MY_DATE_FORMATS = {
 })
 export class ComparisonByLocationComponent implements OnInit {
   form!: FormGroup;
-  stations: Station[] = [];
+  stations: WeatherStation[] = [];
   comparisonYears: number[] = [];
   lineChartData: ChartData<'line', number[]> = { labels: [], datasets: [] };
   barChartData: ChartData<'bar', number[]> = { labels: [], datasets: [] };
@@ -125,23 +119,17 @@ export class ComparisonByLocationComponent implements OnInit {
       y: {
         position: 'left',
         display: true,
-        ticks: { color: '#f8f5d7' },
-        grid: { color: 'rgba(248, 245, 215, 0.1)' }
-      },
-      y1: {
-        position: 'right',
-        display: false,
-        ticks: { color: '#f8f5d7' },
-        grid: { color: 'rgba(248, 245, 215, 0.1)' }
+        ticks: { color: '#111827', font: { weight: '700' } },
+        grid: { color: 'rgba(17,24,39,.10)' }
       },
       x: {
-        ticks: { color: '#f8f5d7' },
-        grid: { color: 'rgba(248, 245, 215, 0.1)' }
+        ticks: { color: '#111827', font: { weight: '700' } },
+        grid: { color: 'rgba(17,24,39,.10)' }
       }
     },
     plugins: {
       legend: {
-        labels: { color: '#f8f5d7' }
+        labels: { color: '#111827', font: { weight: '700' } }
       }
     }
   };
@@ -149,7 +137,7 @@ export class ComparisonByLocationComponent implements OnInit {
   variables = [
     { key: 'temp_max', label: 'Temperatura máxima (°C)' },
     { key: 'temp_min', label: 'Temperatura mínima (°C)' },
-    { key: 'HR', label: 'Humedad relativa (% promedio)' },
+    { key: 'HR', label: 'Humedad relativa media (%)' },
     { key: 'rr_24', label: 'Lluvia (mm)' },
     { key: 'presion_media_24', label: 'Presión atmosférica (hPa)' },
     { key: 'viento_medio', label: 'Velocidad de viento (km/h)' },
@@ -158,15 +146,19 @@ export class ComparisonByLocationComponent implements OnInit {
     { key: 'hum_hoja_hs', label: 'Hoja mojada (mm)' }
   ];
 
+  readonly data: Record<string, unknown>;
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<ComparisonByLocationComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
+    @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
+  ) {
+    this.data = dialogData ?? {};
+  }
 
   ngOnInit() {
-    this.weatherService.getStationsAll().subscribe(res => this.stations = res as Station[]);
+    this.weatherService.getStationsAll().subscribe(res => this.stations = res);
     const currentYear = new Date().getFullYear();
     for (let y = 2006; y <= currentYear; y++) {
       this.comparisonYears.push(y);
@@ -191,14 +183,46 @@ export class ComparisonByLocationComponent implements OnInit {
     return start && end && start > end ? { invalidRange: true } : null;
   }
 
+  private coerceDate(value: Date | string): Date {
+    if (value instanceof Date) {
+      return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    }
+
+    if (typeof value === 'string' && value.includes('/')) {
+      const [day, month, year] = value.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    if (typeof value === 'string' && value.includes('-')) {
+      const [year, month, day] = value.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    return new Date(value);
+  }
+
+  private resetCharts(): void {
+    this.chartLabels = [];
+    this.lineChartData = { labels: [], datasets: [] };
+    this.barChartData = { labels: [], datasets: [] };
+  }
+
   onSubmit(): void {
     if (this.form.invalid) return;
     this.isLoading = true;
+    this.resetCharts();
 
     const { estacion, fechaDesde, fechaHasta, compStation, variable, formato } = this.form.value; // 
 
-    const dFrom = new Date(fechaDesde);
-    const dTo = new Date(fechaHasta);
+    const dFrom = this.coerceDate(fechaDesde);
+    const dTo = this.coerceDate(fechaHasta);
+
+    if (isNaN(dFrom.getTime()) || isNaN(dTo.getTime())) {
+      this.isLoading = false;
+      this.resetCharts();
+      console.error('Fechas inválidas en comparación por localidad', { fechaDesde, fechaHasta });
+      return;
+    }
 
     const cFrom = new Date(compStation, dFrom.getMonth(), dFrom.getDate());
     const yearDiff = dTo.getFullYear() - dFrom.getFullYear();
@@ -212,14 +236,21 @@ export class ComparisonByLocationComponent implements OnInit {
     };
 
     forkJoin({
-      base: this.weatherService.getWeatherDataDiary(formatDate(dFrom), formatDate(dTo), estacion),
-      comp: this.weatherService.getWeatherDataDiary(formatDate(dFrom), formatDate(dTo), compStation)
-    }).subscribe(({ base, comp }) => {
-      const baseStation = this.stations.find(s => s.Identificacion === estacion)?.nombre || estacion;
-      const compStationName = this.stations.find(s => s.Identificacion === compStation)?.nombre || compStation;
+      base: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), estacion),
+      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), compStation)
+    }).subscribe({
+      next: ({ base, comp }) => {
+        const baseStation = this.stations.find(s => s.Identificacion === estacion)?.nombre || estacion;
+        const compStationName = this.stations.find(s => s.Identificacion === compStation)?.nombre || compStation;
 
-      this.applyBuildCharts(base.data, comp.data, baseStation, compStationName, variable, formato);
-      this.isLoading = false;
+        this.applyBuildCharts(base.data, comp.data, baseStation, compStationName, variable, formato);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.resetCharts();
+        console.error('Error al calcular comparación por localidad', error);
+      }
     });
   }
 

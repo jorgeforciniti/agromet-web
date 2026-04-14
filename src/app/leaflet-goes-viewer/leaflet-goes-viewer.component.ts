@@ -5,12 +5,12 @@ import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { GeoJsonObject } from 'geojson';
-import { WeatherForecastComponent } from '../weather-forecast/weather-forecast.component';
-import { WeatherService } from '../services/weather.service'; // Añadir este import
-import { FeatureCollection, Feature, Geometry } from 'geojson';
+import { WeatherService, WeatherStation } from '../services/weather.service';
+import { FeatureCollection, Feature, Point } from 'geojson';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
 
 interface LayerOption {
   name: string;
@@ -28,10 +28,39 @@ interface BaseMapOption {
   maxZoom: number;
 }
 
+interface StationFeatureProperties {
+  id: string;
+  nombre: string;
+  temperatura: string;
+  lat: number;
+  lon: number;
+  altitud: string;
+  humedad: string;
+  lluvia: string;
+}
+
+interface FirmsCsvRow {
+  latitude: string;
+  longitude: string;
+  bright_ti4: string;
+  confidence: string;
+  acq_date?: string;
+  acq_time?: string;
+}
+
+interface FireFeatureProperties {
+  brightness: number;
+  confidence: number;
+  acq_date: string;
+  acq_time: string;
+}
+
+type FireGeoJson = FeatureCollection<Point, FireFeatureProperties>;
+
 // Clases de leyendas (sin cambios)
 class LegendControl extends L.Control {
   private component: LeafletGoesViewerComponent;
-  
+
   constructor(component: LeafletGoesViewerComponent, options?: L.ControlOptions) {
     super(options);
     this.component = component;
@@ -39,7 +68,6 @@ class LegendControl extends L.Control {
 
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
-    const grades = [25, 45, 65, 85];
     const labels = [];
 
     labels.push('<strong>Temperatura (°C)</strong>');
@@ -195,9 +223,9 @@ class WindLegendControl extends L.Control {
   imports: [
     CommonModule,
     FormsModule,
-    WeatherForecastComponent,
     MatSelectModule,
     MatFormFieldModule,
+    MatIconModule,
     MatOptionModule
   ],
   templateUrl: './leaflet-goes-viewer.component.html',
@@ -217,7 +245,22 @@ export class LeafletGoesViewerComponent implements OnInit {
   public loadingGifUrl: string = 'assets/icons/ZKZg.gif';
   private stationsLayer: L.GeoJSON | undefined;
   public selectedStationId: string | null = null;
-  
+  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
+
+  private redIcon = L.icon({
+    iconUrl: 'assets/icons/red-marker.png',
+    iconSize: [25, 25],
+    iconAnchor: [25, 25],
+    popupAnchor: [0, -40]
+  });
+
+  private blueIcon = L.icon({
+    iconUrl: 'assets/icons/blue-marker.png',
+    iconSize: [30, 30],
+    iconAnchor: [30, 30],
+    popupAnchor: [0, -40]
+  });
+
   private focusBounds: L.LatLngBounds = L.latLngBounds(
     L.latLng(-25.994679, -66.390178),
     L.latLng(-28.092109, -63.895287)
@@ -294,33 +337,35 @@ export class LeafletGoesViewerComponent implements OnInit {
 
   constructor(private http: HttpClient,
     private weatherService: WeatherService // Inyectar servicio
-) {
-    
+  ) {
+
   }
 
   async ngOnInit(): Promise<void> {
     this.initMap();
     await this.loadProvinces();
-    await this.loadStations(); // Nuevo método
+    await this.loadStations();
     this.loadLatestData();
+
+    setTimeout(() => {
+      this.map?.invalidateSize();
+    }, 200);
   }
 
   private async loadStations(): Promise<void> {
     try {
-      const stations = await firstValueFrom(
-        this.weatherService.getStations() // Usar servicio existente
-      );
+      const stations = await firstValueFrom(this.weatherService.getStations());
 
       this.stationsLayer = L.geoJSON(this.createStationsGeoJSON(stations), {
         pointToLayer: (feature, latlng) => {
-          return L.circleMarker(latlng, {
-            radius: 6,
-            fillColor: this.getStationColor(feature.properties.id),
-            color: '#333',
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.7
+          const customIcon = L.icon({
+            iconUrl: 'assets/icons/red-marker.png',
+            iconSize: [25, 25],      // ajustá el tamaño según necesidad
+            iconAnchor: [25, 25],    // el punto que “apunta” al lugar exacto
+            popupAnchor: [0, -40]    // posición relativa del popup
           });
+
+          return L.marker(latlng, { icon: customIcon });
         },
         onEachFeature: (feature, layer) => {
           layer.bindPopup(`
@@ -336,9 +381,11 @@ export class LeafletGoesViewerComponent implements OnInit {
               </div>
             </div>
           `);
-          
+
           layer.on('click', () => {
             this.selectedStationId = feature.properties.id;
+            const marker = layer as L.Marker;
+            this.map?.flyTo(marker.getLatLng(), 10);
             this.highlightSelectedStation();
           });
         }
@@ -348,12 +395,12 @@ export class LeafletGoesViewerComponent implements OnInit {
         this.stationsLayer.addTo(this.map);
         this.stationsLayer.setZIndex(3);
       }
-    } catch (error) {
-      console.error('Error cargando estaciones:', error);
+    } catch {
+      this.errorMessage = 'No se pudieron cargar las estaciones';
     }
   }
 
-  private createStationsGeoJSON(stations: any[]): FeatureCollection {
+  private createStationsGeoJSON(stations: WeatherStation[]): FeatureCollection<Point, StationFeatureProperties> {
     return {
       type: 'FeatureCollection',
       features: stations.map(station => ({
@@ -364,7 +411,7 @@ export class LeafletGoesViewerComponent implements OnInit {
             parseFloat(station.lon),  // Mantener como número
             parseFloat(station.lat)   // Mantener como número
           ]
-        } as Geometry,
+        } as Point,
         properties: {
           id: station.Identificacion,
           nombre: station.nombre,
@@ -375,9 +422,9 @@ export class LeafletGoesViewerComponent implements OnInit {
           humedad: station.hum_af ? Number(station.hum_af).toFixed(0) : 'N/D',
           lluvia: station.RR_dia ? Number(station.RR_dia).toFixed(1) : 'N/D'
         }
-      })) as Feature<Geometry>[]
+      })) as Feature<Point, StationFeatureProperties>[]
     };
-  }  
+  }
   public getStationColor(stationId: string): string {
     return stationId === this.selectedStationId ? '#0084ff' : '#ff0000';
   }
@@ -385,15 +432,32 @@ export class LeafletGoesViewerComponent implements OnInit {
   public highlightSelectedStation(): void {
     if (this.stationsLayer) {
       this.stationsLayer.eachLayer(layer => {
-        if (layer instanceof L.CircleMarker) {
-          const stationId = (layer.feature as any).properties.id;
-          layer.setStyle({
-            fillColor: this.getStationColor(stationId)
-          });
+        const marker = layer as L.Marker;
+        const props = marker.feature?.properties as StationFeatureProperties | undefined;
+        if (!props) return;
+        if (props.id === this.selectedStationId) {
+          marker.setIcon(this.blueIcon);
+        } else {
+          marker.setIcon(this.redIcon);
         }
       });
     }
   }
+
+  private toggleStations(show: boolean): void {
+    if (!this.stationsLayer || !this.map) return;
+
+    if (show) {
+      if (!this.map.hasLayer(this.stationsLayer)) {
+        this.stationsLayer.addTo(this.map).setZIndex(3);
+      }
+    } else {
+      if (this.map.hasLayer(this.stationsLayer)) {
+        this.map.removeLayer(this.stationsLayer);
+      }
+    }
+  }
+
 
   private initMap(): void {
     const center: L.LatLng = this.focusBounds.getCenter();
@@ -401,14 +465,33 @@ export class LeafletGoesViewerComponent implements OnInit {
       center: center,
       zoom: 6,
       maxBounds: this.focusBounds,
-      maxBoundsViscosity: 0.0
+      maxBoundsViscosity: 0.0,
+      scrollWheelZoom: false  // Desactivar zoom por rueda
     });
 
-    // Inicializar con el mapa base seleccionado
     this.setBaseMap(this.selectedBaseMap);
     this.map.fitBounds(this.focusBounds);
-  }
 
+    // Mostrar mensaje si gira la rueda sin Ctrl
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (!e.ctrlKey) {
+        this.map?.getContainer().classList.add('ctrl-zoom-message');
+        clearTimeout(this.ctrlZoomTimeout);
+        this.ctrlZoomTimeout = setTimeout(() => {
+          this.map?.getContainer().classList.remove('ctrl-zoom-message');
+        }, 1000);
+      }
+    });
+
+    // Habilitar zoom si Ctrl está presionado
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        this.map?.scrollWheelZoom.enable();
+      } else {
+        this.map?.scrollWheelZoom.disable();
+      }
+    });
+  }
   private async loadProvinces(): Promise<void> {
     try {
       const provincesUrl = '../../assets/shapes/provincias.geojson';
@@ -434,8 +517,7 @@ export class LeafletGoesViewerComponent implements OnInit {
         this.provincesLayer.addTo(this.map);
         this.provincesLayer.setZIndex(2); // Provincias en el frente
       }
-    } catch (error) {
-      console.error('Error al cargar provincias:', error);
+    } catch {
       this.errorMessage = 'No se pudieron cargar los límites provinciales';
     }
   }
@@ -443,6 +525,10 @@ export class LeafletGoesViewerComponent implements OnInit {
   public setLayer(layerKey: string): void {
     this.selectedLayer = layerKey;
     this.loadLatestData();
+
+    // 👉 Ocultar estaciones solo para “incendios”
+    const hideStations = layerKey === 'incendios';
+    this.toggleStations(!hideStations);
   }
 
   public setBaseMap(baseMapKey: string): void {
@@ -471,57 +557,56 @@ export class LeafletGoesViewerComponent implements OnInit {
     }
   }
 
-private async loadLatestData(): Promise<void> {
-  this.isLoading = true;
-  this.errorMessage = null;
+  private async loadLatestData(): Promise<void> {
+    this.isLoading = true;
+    this.errorMessage = null;
 
-  // Remover la capa anterior inmediatamente
-  if (this.baseLayer && this.map) {
-    this.map.removeLayer(this.baseLayer);
-    this.baseLayer = undefined;
-  }
-
-  // Remover la leyenda
-  if (this.legend && this.map) {
-    this.map.removeControl(this.legend);
-    this.legend = undefined;
-  }
-
-  try {
-    const layer = this.layers[this.selectedLayer];
-    const currentDate = this.getCurrentDateString();
-
-    if (layer.isGeoJSON) {
-      const geojsonUrl = layer.url(currentDate, '');
-      const geojsonData = await firstValueFrom(this.http.get(geojsonUrl));
-      this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
-      return;
+    // Remover la capa anterior inmediatamente
+    if (this.baseLayer && this.map) {
+      this.map.removeLayer(this.baseLayer);
+      this.baseLayer = undefined;
     }
 
-    if (layer.isCSV) {
-      const csvUrl = layer.url(currentDate, '');
-      const csvData = await firstValueFrom(this.http.get(csvUrl, { responseType: 'text' }));
-      const geojsonData = this.csvToGeoJSON(csvData);
-      this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
-      return;
+    // Remover la leyenda
+    if (this.legend && this.map) {
+      this.map.removeControl(this.legend);
+      this.legend = undefined;
     }
 
-    if (layer.isTileLayer) {
-      this.displayTileLayer(layer.url(currentDate, ''), layer.attribution, currentDate);
-      return;
-    }
+    try {
+      const layer = this.layers[this.selectedLayer];
+      const currentDate = this.getCurrentDateString();
 
-    this.errorMessage = `No se encontraron datos para ${layer.name}`;
-  } catch (error: unknown) {
-    console.error('Error al cargar los datos:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Desconocido';
-    this.errorMessage = 'Error al cargar los datos: ' + errorMessage;
-  } finally {
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 500);
+      if (layer.isGeoJSON) {
+        const geojsonUrl = layer.url(currentDate, '');
+        const geojsonData = await firstValueFrom(this.http.get<FireGeoJson>(geojsonUrl));
+        this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
+        return;
+      }
+
+      if (layer.isCSV) {
+        const csvUrl = layer.url(currentDate, '');
+        const csvData = await firstValueFrom(this.http.get(csvUrl, { responseType: 'text' }));
+        const geojsonData = this.csvToGeoJSON(csvData);
+        this.displayGeoJSON(geojsonData, layer.attribution, currentDate);
+        return;
+      }
+
+      if (layer.isTileLayer) {
+        this.displayTileLayer(layer.url(currentDate, ''), layer.attribution, currentDate);
+        return;
+      }
+
+      this.errorMessage = `No se encontraron datos para ${layer.name}`;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Desconocido';
+      this.errorMessage = 'Error al cargar los datos: ' + errorMessage;
+    } finally {
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500);
+    }
   }
-}
 
   private getCurrentDateString(): string {
     const now = new Date();
@@ -538,20 +623,18 @@ private async loadLatestData(): Promise<void> {
     return '#00ff00';
   }
 
-  private csvToGeoJSON(csv: string): any {
+  private csvToGeoJSON(csv: string): FireGeoJson {
     if (!csv || csv.trim() === '') {
-      console.warn('El CSV está vacío');
       return { type: 'FeatureCollection', features: [] };
     }
 
     const lines = csv.trim().split('\n');
     if (lines.length <= 1) {
-      console.warn('El CSV no contiene datos válidos');
       return { type: 'FeatureCollection', features: [] };
     }
 
     const headers = lines[0].split(',').map(header => header.trim());
-    const features = [];
+    const features: Feature<Point, FireFeatureProperties>[] = [];
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -559,19 +642,18 @@ private async loadLatestData(): Promise<void> {
 
       const values = line.split(',').map(value => value.trim());
       if (values.length !== headers.length) {
-        console.warn(`Fila ${i} tiene un número incorrecto de columnas: ${line}`);
         continue;
       }
 
-      const row: any = {};
+      const row = {} as Record<string, string>;
       headers.forEach((header, index) => {
         row[header] = values[index];
       });
+      const csvRow = row as unknown as FirmsCsvRow;
 
-      const lat = parseFloat(row.latitude);
-      const lon = parseFloat(row.longitude);
+      const lat = parseFloat(csvRow.latitude);
+      const lon = parseFloat(csvRow.longitude);
       if (isNaN(lat) || isNaN(lon)) {
-        console.warn(`Fila ${i} tiene latitud o longitud inválida: lat=${row.latitude}, lon=${row.longitude}`);
         continue;
       }
 
@@ -584,15 +666,14 @@ private async loadLatestData(): Promise<void> {
         continue;
       }
 
-      const brightnessKelvin = parseFloat(row.bright_ti4);
+      const brightnessKelvin = parseFloat(csvRow.bright_ti4);
       const brightnessCelsius = brightnessKelvin - 273.15;
-      const confidence = row.confidence === 'h' ? 100 : row.confidence === 'n' ? 50 : parseInt(row.confidence);
+      const confidence = csvRow.confidence === 'h' ? 100 : csvRow.confidence === 'n' ? 50 : parseInt(csvRow.confidence);
       if (isNaN(brightnessCelsius) || isNaN(confidence)) {
-        console.warn(`Fila ${i} tiene brillo o confianza inválida: bright_ti4=${row.bright_ti4}, confidence=${row.confidence}`);
         continue;
       }
 
-      const feature = {
+      const feature: Feature<Point, FireFeatureProperties> = {
         type: 'Feature',
         geometry: {
           type: 'Point',
@@ -601,22 +682,21 @@ private async loadLatestData(): Promise<void> {
         properties: {
           brightness: brightnessCelsius,
           confidence: confidence,
-          acq_date: row.acq_date || 'Desconocido',
-          acq_time: row.acq_time || 'Desconocido'
+          acq_date: csvRow.acq_date || 'Desconocido',
+          acq_time: csvRow.acq_time || 'Desconocido'
         }
       };
       features.push(feature);
     }
 
-    console.log(`Se procesaron ${features.length} incendios dentro del bbox`);
     return {
       type: 'FeatureCollection',
       features: features
     };
   }
 
-  private displayGeoJSON(geojson: any, attribution: string, date: string): void {
-    this.currentDateTime = `${date.substring(6,8)}/${date.substring(4,6)}/${date.substring(0,4)}`;
+  private displayGeoJSON(geojson: FireGeoJson, attribution: string, date: string): void {
+    this.currentDateTime = `${date.substring(6, 8)}/${date.substring(4, 6)}/${date.substring(0, 4)}`;
     this.updateGeoJSONLayer(geojson, attribution);
     this.addLegend();
     this.isLoading = false;
@@ -624,7 +704,7 @@ private async loadLatestData(): Promise<void> {
   }
 
   private displayTileLayer(url: string, attribution: string, date: string): void {
-    this.currentDateTime = `${date.substring(6,8)}/${date.substring(4,6)}/${date.substring(0,4)}`;
+    this.currentDateTime = `${date.substring(6, 8)}/${date.substring(4, 6)}/${date.substring(0, 4)}`;
     this.updateTileLayer(url, attribution);
     this.isLoading = false;
 
@@ -709,7 +789,7 @@ private async loadLatestData(): Promise<void> {
     document.head.appendChild(style);
   }
 
-  private updateGeoJSONLayer(geojson: any, attribution: string): void {
+  private updateGeoJSONLayer(geojson: FireGeoJson, attribution: string): void {
     if (this.baseLayer) {
       this.map?.removeLayer(this.baseLayer);
     }
@@ -753,38 +833,40 @@ private async loadLatestData(): Promise<void> {
     }
   }
 
-private updateTileLayer(url: string, attribution: string): void {
-  if (this.baseLayer) {
-    this.map?.removeLayer(this.baseLayer);
-  }
+  private updateTileLayer(url: string, attribution: string): void {
+    if (this.baseLayer) {
+      this.map?.removeLayer(this.baseLayer);
+    }
 
-  this.baseLayer = L.tileLayer(url, {
-    attribution: attribution,
-    opacity: 1,
-    maxZoom: 18,
-    pane: 'overlayPane'
-  });
+    this.baseLayer = L.tileLayer(url, {
+      attribution: attribution,
+      opacity: 1,
+      maxZoom: 18,
+      pane: 'overlayPane'
+    });
 
-  this.baseLayer.on('error', () => {
-    console.error(`Error al cargar la capa de teselas para ${this.selectedLayer}`);
-    this.errorMessage = 'Error al cargar la capa';
-  });
+    this.baseLayer.on('error', () => {
+      this.errorMessage = 'Error al cargar la capa';
+    });
 
-  this.baseLayer.addTo(this.map!);
-  this.baseLayer.setOpacity(1); // Forzar opacidad completa
+    this.baseLayer.addTo(this.map!);
+    this.baseLayer.setOpacity(1); // Forzar opacidad completa
 
-  if (this.map) {
-    (this.baseLayer as any).getPane().style.zIndex = 401;
-  }
+    if (this.map && this.baseLayer instanceof L.TileLayer) {
+      const pane = this.baseLayer.getPane();
+      if (pane) {
+        pane.style.zIndex = '401';
+      }
+    }
 
-  if (this.map && this.baseMapLayer) {
-    this.baseMapLayer.setZIndex(0);
-    this.baseLayer.setZIndex(1);
-    if (this.provincesLayer) {
-      this.provincesLayer.setZIndex(2);
+    if (this.map && this.baseMapLayer) {
+      this.baseMapLayer.setZIndex(0);
+      this.baseLayer.setZIndex(1);
+      if (this.provincesLayer) {
+        this.provincesLayer.setZIndex(2);
+      }
     }
   }
-}
 
   get layerKeys(): string[] {
     return Object.keys(this.layers);

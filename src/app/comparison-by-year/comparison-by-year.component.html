@@ -1,93 +1,84 @@
-<h2 mat-dialog-title>Comparar periodos entre años</h2>
-  <button mat-icon-button class="close-btn" (click)="close()">
-    <mat-icon>close</mat-icon>
-    </button>
+<mat-dialog-content class="comparison-dialog">
+  <div class="scroll-container">
+    <div class="dialog-header">
+      <div>
+        <div class="dialog-eyebrow">COMPARATIVA HISTÓRICA</div>
+        <h2 class="titulo">Comparar períodos entre años</h2>
+      </div>
 
-
-<form [formGroup]="form" (ngSubmit)="onSubmit()" mat-dialog-content>
-    <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Estación</mat-label>
-        <mat-select formControlName="estacion">
-            <mat-option *ngFor="let st of stations" [value]="st.Identificacion">
-                {{ st.Identificacion }} – {{ st.nombre }}
-            </mat-option>
-        </mat-select>
-    </mat-form-field>
-
-    <div class="row">
-        <mat-form-field appearance="fill">
-            <mat-label>Desde</mat-label>
-            <input matInput [matDatepicker]="dp1" formControlName="fechaDesde">
-            <mat-datepicker-toggle matSuffix [for]="dp1"></mat-datepicker-toggle>
-            <mat-datepicker #dp1></mat-datepicker>
-            <mat-error *ngIf="form.get('fechaDesde')?.hasError('required')">
-                Fecha requerida
-            </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-            <mat-label>Hasta</mat-label>
-            <input matInput [matDatepicker]="dp2" formControlName="fechaHasta">
-            <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
-            <mat-datepicker #dp2></mat-datepicker>
-            <mat-error *ngIf="form.get('fechaHasta')?.errors">
-                {{ form.get('fechaHasta')?.hasError('required') ? 'Fecha requerida' : 'Rango inválido' }}
-            </mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="fill">
-            <mat-label>Año comparación</mat-label>
-            <mat-select formControlName="compYear">
-                <mat-option *ngFor="let y of comparisonYears" [value]="y">
-                    {{ y }}
-                </mat-option>
-            </mat-select>
-        </mat-form-field>
-        <div class="row">
-            <mat-form-field appearance="outline">
-                <mat-label>Formato</mat-label>
-                <mat-select formControlName="formato">
-                  <mat-option value="diario">Diario</mat-option>
-                  <mat-option value="decadico">Decádico</mat-option>
-                  <mat-option value="mensual">Mensual</mat-option>
-                </mat-select>
-              </mat-form-field>
-        </div>
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
 
-    <mat-radio-group formControlName="variable" class="vars-grid">
-        <mat-radio-button *ngFor="let v of variables" [value]="v.key" class="radio-option">
-            <span class="radio-label">{{ v.label }}</span>
-        </mat-radio-button>
-    </mat-radio-group>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-section">
+      <div class="form-grid-compact">
+        <mat-form-field appearance="fill">
+          <mat-label>Estación</mat-label>
+          <select matNativeControl formControlName="estacion">
+            <option *ngFor="let st of stations" [value]="st.Identificacion">
+              {{ st.Identificacion }} - {{ st.nombre }}
+            </option>
+          </select>
+        </mat-form-field>
 
-    <div class="actions">
-        <button mat-raised-button 
-                color="primary" 
-                type="submit" 
-                class="search-button"
-                [disabled]="isLoading">
+        <mat-form-field appearance="fill">
+          <mat-label>Desde</mat-label>
+          <input matInput [matDatepicker]="dp1" formControlName="fechaDesde">
+          <mat-datepicker-toggle matSuffix [for]="dp1"></mat-datepicker-toggle>
+          <mat-datepicker #dp1></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Hasta</mat-label>
+          <input matInput [matDatepicker]="dp2" formControlName="fechaHasta">
+          <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+          <mat-datepicker #dp2></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Año de comparación</mat-label>
+          <select matNativeControl formControlName="compYear">
+            <option *ngFor="let y of comparisonYears" [value]="y">
+              {{ y }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Formato</mat-label>
+          <select matNativeControl formControlName="formato">
+            <option value="diario">Diario</option>
+            <option value="decadico">Decádico</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </mat-form-field>
+      </div>
+
+      <mat-radio-group formControlName="variable" class="vars-grid">
+        <mat-radio-button *ngFor="let v of variables" [value]="v.key" class="radio-option">
+          <span class="radio-label">{{ v.label }}</span>
+        </mat-radio-button>
+      </mat-radio-group>
+
+      <div class="actions">
+        <button mat-raised-button color="primary" type="submit" class="search-button" [disabled]="isLoading">
           <mat-icon>search</mat-icon>
-          {{ 'Comparar' }}
+          Comparar
         </button>
       </div>
-      
-</form>
+    </form>
 
-<mat-dialog-content>
-    <div class="chart-container" *ngIf="lineChartData?.datasets?.length">
-        <canvas baseChart
-          [data]="lineChartData"
-          [options]="chartOptions"
-          chartType="line">
-        </canvas>
+    <div class="chart-section">
+      <div class="chart-container" *ngIf="lineChartData?.datasets?.length">
+        <canvas baseChart [data]="lineChartData" [options]="chartOptions" chartType="line"></canvas>
       </div>
-      
+
       <div class="chart-container" *ngIf="barChartData?.datasets?.length">
-        <canvas baseChart
-          [data]="barChartData"
-          [options]="chartOptions"
-          chartType="bar">
-        </canvas>
+        <canvas baseChart [data]="barChartData" [options]="chartOptions" chartType="bar"></canvas>
       </div>
-  </mat-dialog-content>
-<mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+    </div>
+
+    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+  </div>
+</mat-dialog-content>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,17 +7,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faTwitter, faYoutube, faInstagram, faFacebook } from '@fortawesome/free-brands-svg-icons';
-import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
-import { AuthComponent } from './auth/auth.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
-import { environment } from '../app/environments/environment';
-
 
 @Component({
   selector: 'app-root',
@@ -37,18 +30,20 @@ import { environment } from '../app/environments/environment';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'agromet-web';
-  
+  private readonly onScroll = this.onWindowScroll.bind(this);
+
   constructor(library: FaIconLibrary, public dialog: MatDialog) {
     library.addIcons(faTwitter, faYoutube, faInstagram, faFacebook);
   }
 
   ngOnInit(): void {
-    window.addEventListener('scroll', this.onWindowScroll.bind(this));
-    setTimeout(() => {
-      window.location.reload();
-    }, 900000);
+    window.addEventListener('scroll', this.onScroll);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.onScroll);
   }
 
   onWindowScroll(): void {
@@ -63,22 +58,32 @@ export class AppComponent implements OnInit {
     }
   }
 
-  openDialog(): void {
-    const dialogRef = this.dialog.open(AuthComponent, {
-      width: '50%', 
+  
+  async openDiseaseDebugDialog(): Promise<void> {
+    const { DiseaseConditionsDialogComponent } = await import('./disease-conditions-dialog/disease-conditions-dialog.component');
+
+    this.dialog.open(DiseaseConditionsDialogComponent, {
+      width: 'min(1120px, 95vw)',
       maxWidth: '95vw',
-      panelClass: 'custom-dialog-container',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
+    });
+  }
+  async openDialog(): Promise<void> {
+    const { AuthComponent } = await import('./auth/auth.component');
+
+    this.dialog.open(AuthComponent, {
+      width: 'min(460px, 94vw)',
+      maxWidth: '94vw',
+      panelClass: 'auth-dialog',
+      autoFocus: false,
+      restoreFocus: false,
       data: {
-        info: 'Información extra para el diálogo'
+        info: 'Ingreso a usuarios'
       }
     });
   }
 }
-
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideRouter([]),
-    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
-    provideAuth(() => getAuth())
-  ]
-});

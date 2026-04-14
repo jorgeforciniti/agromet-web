@@ -1,27 +1,29 @@
-<div class="temp-map-dialog">
-  <div class="dialog-header">
-    <h2>Mapa de Precipitaciones</h2>
-    <button mat-icon-button (click)="close()"><mat-icon>close</mat-icon></button>
-  </div>
-  <div class="dialog-content">
-    <form [formGroup]="form" class="form-controls">
+<mat-dialog-content>
+  <div class="scroll-container" [formGroup]="form">
+    <div class="dialog-body-wrapper">
+      <h2 class="titulo">Mapa de Precipitaciones</h2>
 
-      <!-- Controles condicionales (solo si hoy=false) -->
-      <div *ngIf="!hoy" class="date-controls">
-        <mat-form-field>
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <!-- Controles solo si hoy=false -->
+      <div class="form-grid" *ngIf="!hoy">
+        <mat-form-field appearance="fill">
           <mat-label>Desde</mat-label>
           <input matInput [matDatepicker]="desdePicker" formControlName="desde">
           <mat-datepicker-toggle matSuffix [for]="desdePicker"></mat-datepicker-toggle>
           <mat-datepicker #desdePicker></mat-datepicker>
         </mat-form-field>
-        <mat-form-field>
+
+        <mat-form-field appearance="fill">
           <mat-label>Hasta</mat-label>
           <input matInput [matDatepicker]="hastaPicker" formControlName="hasta">
           <mat-datepicker-toggle matSuffix [for]="hastaPicker"></mat-datepicker-toggle>
           <mat-datepicker #hastaPicker></mat-datepicker>
         </mat-form-field>
-        <!-- Selector de mapa base (siempre visible) -->
-        <mat-form-field>
+
+        <mat-form-field appearance="fill">
           <mat-label>Mapa Base</mat-label>
           <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange($event)">
             <mat-option value="osm">OpenStreetMap</mat-option>
@@ -29,24 +31,33 @@
           </mat-select>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" (click)="loadData()" [disabled]="loading || form.invalid">
-          <mat-icon>ac_unit</mat-icon>
-          {{ loading ? 'Cargando...' : 'Cargar' }}
-        </button>
+        <div class="actions">
+          <button mat-raised-button color="primary"
+                  (click)="loadData()"
+                  [disabled]="loading || form.invalid"
+                  class="search-button">
+            <mat-icon *ngIf="!loading">water_drop</mat-icon>
+            <mat-progress-spinner *ngIf="loading" mode="indeterminate" diameter="18"></mat-progress-spinner>
+            {{ loading ? 'Cargando...' : 'Cargar' }}
+          </button>
+        </div>
       </div>
-    </form>
-    <div class="map-title">
-      <span *ngIf="hoy">Precipitaciones - Hoy</span>
-      <span *ngIf="!hoy">Precipitaciones - Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta |
-        date:'dd/MM/yyyy' }}</span>
-    </div>
-    <div class="map-container" id="mapContainer">
-      <!-- Overlay de carga (funciona con la variable 'loading') -->
-      <div *ngIf="loading" class="map-loader-overlay">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Cargando datos...</p>
-      </div>
-    </div>
 
+      <div class="map-title">
+        <span *ngIf="hoy">Precipitaciones - Hoy</span>
+        <span *ngIf="!hoy">
+          Precipitaciones - Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+
+      <div class="map-wrap">
+        <div class="map-container" id="mapContainer">
+          <div *ngIf="loading" class="map-loader-overlay">
+            <mat-progress-spinner diameter="50" mode="indeterminate"></mat-progress-spinner>
+            <span>Cargando datos...</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</mat-dialog-content>

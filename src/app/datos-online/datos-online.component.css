@@ -1,166 +1,350 @@
-/* cuerpo con scroll vertical */
-@import "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+/* =============================
+   Datos Online â€“ UI alineada a dialogs (TOKENS)
+   ============================= */
 
-.container {
-  max-height: 95vh;
-  height: 90vh;
-  border-radius: 8px;
-}
-
-.viewer-container {
-  position: relative;
-  background-color: #1e1e1e;
-  padding: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  color: #f8f5d7;
-}
-
-/* título */
-.titulo {
-  font-size: 2rem;
-  font-weight: bold;
-  padding-left: 25px;
-  margin-bottom: 20px;
-}
-
-/* loader overlay */
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+:host {
+  display: block;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+  min-height: 0;
+}
+
+/* Contenedor general del modal */
+.container {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  overflow: hidden;
+}
+
+/* BotÃ³n cerrar â€“ mismo patrÃ³n que dialogs */
+.do-close {
+  position: absolute;
+  right: calc(22px + env(safe-area-inset-right));
+  top: calc(14px + env(safe-area-inset-top));
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+  cursor: pointer;
+  z-index: 100;
+}
+
+.do-close:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+/* Contenido */
+.viewer-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* CLAVE */
+  overflow: auto;
+  /* ya lo tenÃ©s */
+  overflow-x: auto;
+  /* por las dudas (deja x habilitado) */
+  padding: 2px;
+  /* âœ… faltaba */
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  --topbar-h: 76px;
+  scroll-padding-top: var(--topbar-h);
+}
+
+/* Topbar (tÃ­tulo + controls) */
+.do-topbar {
+  position: static;
+  /* no sticky */
+  top: 0;
+  z-index: 30;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  border-bottom: 1px solid var(--border);
+}
+
+/* TÃ­tulo */
+.titulo {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
   align-items: center;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top: 5px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-text {
-  color: white;
-  margin-top: 15px;
-  font-size: 16px;
-}
-
-/* controles */
-.controls {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-}
-
 .control-group {
-  display: flex;
-  align-items: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .control-label {
-  margin-right: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  color: white;
+  color: var(--muted);
+  font-weight: 700;
 }
 
-.select-wrapper {
-  width: 190px;
-  padding: 4px;
-  border-radius: 4px;
+/* Selects con tokens */
+.controls select,
+.variable-selector select {
+  appearance: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+  outline: none;
 }
 
-/* mapa */
-.map-wrapper {
-  position: relative;
-  text-align: center;
-  height: 400px;
+.controls select:focus,
+.variable-selector select:focus {
+  border-color: rgba(79, 121, 50, .6);
+  box-shadow: 0 0 0 3px rgba(79, 121, 50, .14);
+}
+
+/* =============================
+   Top grid: Mapa | GrÃ¡fico
+   ============================= */
+
+.contenido-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  /* âœ… clave */
+  gap: 14px;
+  align-items: stretch;
+  min-width: 0;
+  /* âœ… evita desbordes raros */
+}
+
+/* Map y chart cards */
+.map-column,
+.chart-column {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  min-height: 0;
+}
+
+/* Map */
+#mapDatosOnline {
   width: 100%;
-  margin: 0 auto 1rem;
+  height: clamp(280px, 42vh, 430px);
+  min-height: 280px;
 }
 
-/* tabla */
+.chart-box {
+  flex: 1 1 auto;
+  min-height: 240px;
+  height: clamp(240px, 38vh, 430px);
+  /* en vez de max-height */
+  background: rgba(17, 24, 39, .02);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.chart-column {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-column h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+/* Selector variable */
+.variable-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(17, 24, 39, .03);
+  border: 1px solid var(--border);
+}
+
+.variable-selector.is-disabled {
+  opacity: .55;
+}
+
+.rango-fechas {
+  margin-left: auto;
+  font-size: .9rem;
+  color: var(--muted);
+}
+
+#graficoVariables {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Texto helper */
+.selector-text {
+  font-style: italic;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+/* =============================
+   Tabla abajo (clara)
+   ============================= */
+
+.tabla-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  overflow: visible;
+  /* clave */
+  max-height: none;
+}
+
+.tabla-scroll-x {
+  overflow: visible;
+  /* <- clave: no rompas sticky */
+  -webkit-overflow-scrolling: touch;
+  border-radius: 14px;
+  /* mantiene redondeo */
+}
+
 .tabla-datos {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
+  min-width: 820px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* HEADER STICKY: fijo cuando llega arriba del scroll principal */
+.tabla-datos thead th {
+  position: sticky;
+  top: 0;
+  /* <- clave */
+  z-index: 50;
+  /* por encima de filas */
+  background: #111;
+  /* negro */
+  color: #fff;
+  /* letras blancas */
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  padding: 10px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .18);
 }
 
 .tabla-datos td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.tabla-datos th {
-  background-color: #4a4a4a;
-  font-weight: bold;
-}
-
-/* responsive */
-@media (max-width: 768px) {
-  .map-wrapper {
-    height: 50vh;
-    min-height: 250px;
-  }
-
-  .controls {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .select-wrapper {
-    width: 100%;
-    margin-bottom: 1rem;
-  }
-}
-
-#map {
-  height: 100%;
-  width: 100%;
-  z-index: 1;
-  background-color: #ccc;
-  /* Color de fondo temporal para depuración */
-  min-height: 500px;
-}
-
-/* Aquí apuntamos al nuevo id */
-#mapDatosOnline {
-  height: 100%;
-  width: 100%;
-  z-index: 1;
-  background-color: #ccc;
-  /* temporal */
-  min-height: 500px;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
   background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  color: #f8f5d7;
-  cursor: pointer;
-  z-index: 1001;
+  /* <- clave */
+  background-clip: padding-box;
 }
 
-.close-btn:hover {
-  color: #ff5555;
+.tabla-datos tbody tr:nth-child(odd) td {
+  background: #f3f4f6;
+}
+
+.tabla-datos tbody tr:nth-child(even) td {
+  background: #d4d4d4;
+}
+
+.tabla-datos thead tr {
+  background: #252525;
+}
+
+.tabla-datos td {
+  background-clip: padding-box;
+}
+
+.tabla-datos tbody tr:hover td {
+  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, .04);
+}
+
+.derecha {
+  text-align: right;
+}
+
+.do-dialog .mat-mdc-dialog-content {
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  scrollbar-gutter: stable;
+}
+
+.do-dialog .mat-mdc-dialog-surface {
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
+  overflow: hidden !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+
+/* =============================
+   Responsive (REAL)
+   ============================= */
+
+@media (max-width: 1100px) {
+  .contenido-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  #mapDatosOnline {
+    height: clamp(260px, 40vh, 360px);
+  }
+
+  .chart-box {
+    height: clamp(260px, 36vh, 360px);
+  }
+}
+
+@media (max-width: 620px) {
+
+  /* 1) NO crees scroll anidado en la tabla */
+  .tabla-wrapper{
+    margin-top: 12px;
+    overflow: visible;     /* <- clave */
+  }
+
+  /* 2) PermitÃ­ que el scroll horizontal exista si hace falta */
+  .viewer-container{
+    overflow-y: auto;
+    overflow-x: auto;      /* <- NO hidden */
+  }
+
+  /* 3) Sticky normal */
+  .tabla-datos thead th{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  /* 4) (Solo si en iOS sigue fallando) desactivar momentum scroll */
+  .viewer-container{
+    -webkit-overflow-scrolling: auto;  /* <- iOS fix clÃ¡sico para sticky */
+  }
+}
+.do-close:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
+  outline-offset: 2px;
 }

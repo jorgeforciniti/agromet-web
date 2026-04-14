@@ -1,40 +1,50 @@
 /* You can add global styles to this file, and also import other style files */
 
-/*@import 'leaflet/dist/leaflet.css';*/
+@import './styles/dialog-theme.scss';
+@import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
+@import './styles/tokens.scss';
 
 
-html, body { height: 100%; }
-body { 
-    background-color: #30461a; /* Color gris */
-    margin: 0; 
-    font-family: Roboto, "Helvetica Neue", sans-serif; 
+html,
+body {
+  height: 100%;
 }
 
-::ng-deep .custom-dialog-container {
-    padding: 0;
-    margin: 0;
-    flex: 1; /* Permite que el contenido ocupe todo el espacio disponible */
-    display: flex;
-    flex-direction: column;
-    height: 100%;    
-    background-color: #1e1e1e;
-    border-radius: 12px;
-  }
+body {
+  background-color: var(--bg);
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+}
 
-  ::ng-deep .custom-dialog-class .mat-dialog-container {
-    padding: 0; /* Elimina el relleno predeterminado */
-    height: 100%; /* Fuerza al contenedor a usar toda la altura */
-    display: flex;
-    flex-direction: column;
-  }
+.custom-dialog-container {
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  /* Permite que el contenido ocupe todo el espacio disponible */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+}
 
-  ::ng-deep .custom-dialog-class .mat-dialog-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    margin: 0;
-    height: 100%;
+.custom-dialog-class .mat-dialog-container {
+  padding: 0;
+  /* Elimina el relleno predeterminado */
+  height: 100%;
+  /* Fuerza al contenedor a usar toda la altura */
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-dialog-class .mat-dialog-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  height: 100%;
 }
 
 .custom-dialog-class .content-container {
@@ -51,66 +61,53 @@ body {
 
 /* ==== Fecha: texto blanco ===== */
 input[type="date"] {
-    color: #f8f5d7 !important;
-    caret-color: #ffcc00 !important;  /* opcional, para que la línea de edición también sea visible */
-  }
-  
-  /* WebKit / Blink (Chrome, Edge, Safari) */
-  input[type="date"]::-webkit-datetime-edit,
-  input[type="date"]::-webkit-datetime-edit-text,
-  input[type="date"]::-webkit-datetime-edit-month-field,
-  input[type="date"]::-webkit-datetime-edit-day-field,
-  input[type="date"]::-webkit-datetime-edit-year-field {
-    color: #fff !important;
-  }
-  
-  /* Firefox */
-  input[type="date"]::-moz-placeholder { /* placeholder nativo */
-    color: #fff !important;
-  }
-  input[type="date"]::-moz-calendar-picker-indicator { /* icono calendario */
-    filter: invert(1);
-  }
+  color: #eee !important;
+  caret-color: #ffcc00 !important;
+  /* opcional, para que la línea de edición también sea visible */
+}
 
-  .mat-tab-group .mat-tab-label {
-    color: #f0f0f0 !important;
-  }
-  .mat-tab-group .mat-ink-bar {
-    background-color: #f0f0f0 !important;
-  }
+/* WebKit / Blink (Chrome, Edge, Safari) */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #fff !important;
+}
 
-  .custom-dark-table {
-    background-color: #2c2c2c;  /* fondo de la envoltura*/
-  
-    /* Aplica fondo oscuro al header y celdas */
-    .mat-header-row, .mat-row {
-      background-color: #2c2c2c;
-    }
-  
-    /* Color de texto en headers y celdas */
-    .mat-header-cell, .mat-cell {
-      color: #f8f5d7;
-    }
-  
-    /* Si quieres bordes o líneas con color claro, opcional: */
-    .mat-header-cell, .mat-cell {
-      border-bottom: 1px solid rgba(248, 245, 215, 0.2);
-    }
-  }
+/* Firefox */
+input[type="date"]::-moz-placeholder {
+  /* placeholder nativo */
+  color: #fff !important;
+}
 
-  :host ::ng-deep .custom-dark-table {
-    background-color: #2c2c2c;
-  
-    .mat-header-row, .mat-row {
-      background-color: #2c2c2c;
-    }
-  
-    .mat-header-cell, .mat-cell {
-      color: #f8f5d7;
-    }
-  }
-  
-  /* styles.css */
+input[type="date"]::-moz-calendar-picker-indicator {
+  /* icono calendario */
+  filter: invert(1);
+}
+
+.mat-tab-group .mat-tab-label {
+  color: #f0f0f0 !important;
+}
+
+.mat-tab-group .mat-ink-bar {
+  background-color: #f0f0f0 !important;
+}
+
+.custom-dark-table {
+  background-color: #2c2c2c;
+}
+
+.custom-dark-table .mat-header-row,
+.custom-dark-table .mat-row {
+  background-color: #2c2c2c;
+}
+
+.custom-dark-table .mat-header-cell,
+.custom-dark-table .mat-cell {
+  color: #f8f5d7;
+  border-bottom: 1px solid rgba(248, 245, 215, 0.2);
+}
 
 .mat-mdc-text-field .mat-mdc-input-element,
 .mat-mdc-text-field .mat-mdc-text-field-input {
@@ -120,11 +117,6 @@ input[type="date"] {
 /* placeholder */
 .mat-mdc-text-field .mat-mdc-text-field-input::placeholder {
   color: #bbb !important;
-}
-
-/* datepicker toggle icon */
-.mat-datepicker-toggle .mat-icon {
-  color: #eee !important;
 }
 
 /* 1) Inputs de Angular Material (matInput) */
@@ -144,7 +136,7 @@ textarea[matInput]::placeholder {
   color: #eee !important;
 }
 
-/* 4) Icono datepicker */
+/* Datepicker toggle icon */
 .mat-datepicker-toggle .mat-icon {
   color: #eee !important;
 }
@@ -154,33 +146,409 @@ textarea[matInput]::placeholder {
 
 /* Fondo oscuro para el panel del datepicker */
 .mat-datepicker-content {
-    background-color: #333333 !important; /* Gris oscuro */
+  background-color: #333333 !important;
+  /* Gris oscuro */
 }
 
 /* Fondo oscuro para el calendario */
 .mat-calendar {
-    background-color: #333333 !important;
+  background-color: #333333 !important;
 }
 
 /* Color del texto para que sea legible */
 .mat-calendar-body-cell-content,
 .mat-calendar-period-button,
 .mat-calendar-arrow {
-    color: #ffffff !important; /* Texto blanco */
+  color: #ffffff !important;
+  /* Texto blanco */
 }
 
 /* Fondo de las celdas del calendario */
 .mat-calendar-body-cell-content {
-    background-color: #333333 !important;
+  background-color: #333333 !important;
 }
 
 /* Fondo para el día seleccionado */
 .mat-calendar-body-selected {
-    background-color: #1976d2 !important; /* Azul para el día seleccionado */
-    color: #ffffff !important;
+  background-color: #1976d2 !important;
+  /* Azul para el día seleccionado */
+  color: #ffffff !important;
 }
 
 /* Borde para el día actual */
 .mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
-    border: 1px solid #1976d2 !important;
+  border: 1px solid #1976d2 !important;
+}
+
+.mat-raised-button.my-custom {
+  background-color: #2e7d32 !important;
+  color: #fff !important;
+  border-radius: 24px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1.1rem !important;
+  transition: background-color 200ms ease-out !important;
+}
+
+.mat-raised-button.my-custom:hover {
+  background-color: #276c28 !important;
+}
+
+.custom-info-btn {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.custom-info-btn:hover {
+  background-color: #ffffff;
+  color: #3f51b5;
+  /* color primaria contrastante */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.custom-info-btn mat-icon {
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.main-content {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  /* o un padding reducido como 10px si querés espacio mínimo */
+}
+
+@media (min-width: 1400px) {
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text);
+  text-align: left;
+}
+.close-btn {
+  position: absolute !important;
+  top: 15px !important;
+  right: 15px !important;
+  font-size: 1.5rem !important;
+  font-weight: bold !important;
+  color: #fcfaa5 !important;
+  background-color: transparent !important;
+  border: 2px solid transparent !important;
+  border-radius: 50% !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  z-index: 1001 !important;
+}
+
+.close-btn:hover {
+  background-color: #fcfaa5 !important;
+  color: #3e3c2f !important;
+  border-color: #fcfaa5 !important;
+  transform: scale(1.1) !important;
+}
+
+.titulo {
+  padding-left: 25px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fcfaa5;
+  margin-bottom: 20px;
+}
+
+/* Botón de búsqueda */
+.search-button {
+  background-color: #3f51b5 !important;
+  /* Amarillo para el botón */
+  color: #f8f5d7 !important;
+  padding: 0.8rem 1.5rem !important;
+  border-radius: 10px !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.search-button:hover {
+  background-color: #3f51dd !important;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.8rem !important;
+    font-weight: bold !important;
+    margin-top: .5rem !important;
+    margin-bottom: 1rem !important;
+  }
+}
+
+.btn {
+  background: var(--brand);
+  color: #fff;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover { background: var(--brand-600); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+
+.btn--accent { background: var(--accent); }
+.btn--accent:hover { background: var(--accent-600); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.btn--ghost:hover { background: rgba(17,24,39,.04); }
+
+.cdk-overlay-pane {
+  max-width: 96vw !important;
+}
+
+.mat-mdc-dialog-container,
+.mat-mdc-dialog-surface,
+.mdc-dialog__surface {
+  overflow-x: hidden !important;
+}
+
+.mat-mdc-dialog-content {
+  overflow-x: hidden !important;
+}
+
+/* A veces el culpable es el propio "surface" sumando padding/border */
+.mat-mdc-dialog-surface {
+  box-sizing: border-box !important;
+}
+
+/* === FIX DEFINITIVO: el componente dentro del dialog debe estirar y permitir overflow === */
+.do-dialog .mat-mdc-dialog-surface{
+  display: flex !important;         /* 🔥 */
+  flex-direction: column !important;
+}
+
+/* el primer hijo es tu componente (app-datos-online) */
+.do-dialog .mat-mdc-dialog-surface > *{
+  flex: 1 1 auto !important;        /* 🔥 */
+  min-height: 0 !important;         /* 🔥 permite que el hijo scrollee */
+  height: 100% !important;          /* 🔥 referencia real para tu .container */
+}
+
+/* opcional, pero ayuda si hay wrappers */
+.do-dialog .mdc-dialog__content,
+.do-dialog .mat-mdc-dialog-content{
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+.do-dialog .mat-mdc-dialog-content{
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+/* ================================
+   OVERRIDE: do-dialog (tema claro)
+   Esto pisa el tema oscuro global
+   ================================ */
+
+/* Inputs matInput dentro de do-dialog */
+.do-dialog input[matInput],
+.do-dialog textarea[matInput],
+.do-dialog .mat-datepicker-input{
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+}
+
+.do-dialog input[matInput]::placeholder,
+.do-dialog textarea[matInput]::placeholder{
+  color: rgba(17,24,39,.55) !important;
+}
+
+/* Icono del datepicker dentro de do-dialog */
+.do-dialog .mat-datepicker-toggle .mat-icon{
+  color: rgba(17,24,39,.85) !important;
+}
+
+/* Calendario: vos lo tenés oscuro GLOBAL (.mat-datepicker-content / .mat-calendar) */
+.do-dialog .mat-datepicker-content,
+.do-dialog .mat-calendar{
+  background: #fff !important;
+  color: rgba(17,24,39,.92) !important;
+}
+
+.do-dialog .mat-calendar-body-cell-content,
+.do-dialog .mat-calendar-period-button,
+.do-dialog .mat-calendar-arrow{
+  color: rgba(17,24,39,.88) !important;
+}
+
+.do-dialog .mat-calendar-body-cell-content{
+  background: #fff !important; /* tu global lo ponía gris */
+}
+
+.do-dialog .mat-calendar-body-selected .mat-calendar-body-cell-content{
+  background: rgba(79,121,50,.95) !important;
+  color: #fff !important;
+}
+
+.do-dialog .mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content{
+  border-color: rgba(79,121,50,.60) !important;
+}
+
+/* Botón X y título: tu global los vuelve amarillos */
+.do-dialog .close-btn{
+  color: rgba(17,24,39,.85) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+}
+.do-dialog .close-btn:hover{
+  background: rgba(17,24,39,.04) !important;
+  color: rgba(17,24,39,.92) !important;
+  transform: none !important;
+}
+
+.do-dialog .titulo{
+  color: rgba(17,24,39,.92) !important;
+}
+
+/* ================================
+   Tabla dentro de do-dialog
+   header negro + sticky + full width
+   ================================ */
+.do-dialog table.mat-mdc-table{
+  width: 100% !important;
+}
+
+.do-dialog .mat-mdc-table .mat-mdc-header-row{
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 70 !important;
+}
+
+.do-dialog .mat-mdc-table .mat-mdc-header-cell{
+  background: #111 !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  border-bottom: 1px solid rgba(255,255,255,.12) !important;
+}
+
+/* Zebra suave (si querés mantenerlo) */
+.do-dialog .mat-mdc-table .mat-mdc-row:nth-child(odd)  .mat-mdc-cell{ background: #f3f4f6 !important; }
+.do-dialog .mat-mdc-table .mat-mdc-row:nth-child(even) .mat-mdc-cell{ background: #d4d4d4 !important; }
+
+/* Chart full width dentro de do-dialog */
+.do-dialog .chart-wrapper{ width: 100% !important; }
+.do-dialog .chart-wrapper canvas{
+  width: 100% !important;
+  display: block;
+}
+
+/* ===== Instrucciones: estilo claro + acento por nivel ===== */
+.cdk-overlay-pane.instr-dialog .mat-mdc-dialog-surface,
+.cdk-overlay-pane.instr-dialog .mdc-dialog__surface{
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+
+  /* acento default por si no llega nivel */
+  border-top: 6px solid rgba(17,24,39,.10);
+}
+
+/* contenido */
+.cdk-overlay-pane.instr-dialog .mat-mdc-dialog-content{
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* wrap interno (tus clases del template) */
+.cdk-overlay-pane.instr-dialog .instr-wrap{
+  padding: 16px;
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Título con acento */
+.cdk-overlay-pane.instr-dialog .instr-title{
+  margin: 0;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--text) !important;
+  padding-left: 12px;
+  border-left: 6px solid var(--instr-accent, rgba(17,24,39,.18));
+}
+
+/* lista */
+.cdk-overlay-pane.instr-dialog .instr-list,
+.cdk-overlay-pane.instr-dialog .instr-empty{
+  margin: 0;
+  color: rgba(17,24,39,.85);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.cdk-overlay-pane.instr-dialog .instr-actions{
+  display:flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.cdk-overlay-pane.instr-dialog .instr-close{
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cdk-overlay-pane.instr-dialog .instr-close:hover{
+  background: rgba(17,24,39,.04);
+}
+
+/* ===== Colores por nivel (3 amarillo, 4 naranja, 5 rojo) ===== */
+.cdk-overlay-pane.instr-level-3 { --instr-accent: #facc15; }  /* amarillo */
+.cdk-overlay-pane.instr-level-4 { --instr-accent: #fb923c; }  /* naranja */
+.cdk-overlay-pane.instr-level-5 { --instr-accent: #ef4444; }  /* rojo */
+
+/* Aplicar el acento también al borde superior del dialog */
+.cdk-overlay-pane.instr-level-3 .mat-mdc-dialog-surface,
+.cdk-overlay-pane.instr-level-3 .mdc-dialog__surface{ border-top-color: var(--instr-accent) !important; }
+.cdk-overlay-pane.instr-level-4 .mat-mdc-dialog-surface,
+.cdk-overlay-pane.instr-level-4 .mdc-dialog__surface{ border-top-color: var(--instr-accent) !important; }
+.cdk-overlay-pane.instr-level-5 .mat-mdc-dialog-surface,
+.cdk-overlay-pane.instr-level-5 .mdc-dialog__surface{ border-top-color: var(--instr-accent) !important; }
+
+/* ===== Mobile: que el overlay no achique el dialog ===== */
+@media (max-width: 768px){
+  .cdk-overlay-pane{
+    width: 96vw !important;
+    max-width: 96vw !important;
+    margin: 0 !important;
+  }
+
+  /* Asegura que el surface pueda ocupar ese ancho */
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface{
+    max-width: 96vw !important;
+  }
 }

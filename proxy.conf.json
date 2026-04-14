@@ -1,0 +1,8 @@
+{
+  "/PDFS": {
+    "target": "https://agromet.eeaoc.gob.ar",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
+  }
+}

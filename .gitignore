@@ -40,3 +40,8 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Local artifacts and backups
+/artifacts/
+*.zip
+src/assets/videos/inicio.mp4

@@ -1,31 +1,18 @@
-<div class="about-us-container">
-    <h1 class="title">🌦️ Bienvenidos a la web de la sección Agrometeorología de la EEAOC</h1>
-    <div class="content">
-        <div class="image-left">
-            <img src="../../assets/images/bienvenida/heliofanografo.JPG" alt="Heliofanógrafo" />
-        </div>
-        <div class="text">
-            <h3>Información climática de la provincia de Tucumán para una agricultura más eficiente</h3>
-            <p>
-                La Sección de Agrometeorología de la EEAOC (Estación Experimental Agroindustrial Obispo Colombres),
-                ubicada en Tucumán, Argentina, se especializa en ofrecer servicios integrales y datos precisos sobre el
-                clima y su impacto en la agricultura. <br>A través de nuestra página web, proporcionamos información
-                actualizada en tiempo real, pronósticos específicos para el sector agropecuario, herramientas para la
-                gestión de riesgos climáticos y recursos de investigación aplicados a la agroindustria.<br>
-                Ponemos a disposición una amplia gama de contenidos, que incluyen datos meteorológicos, artículos especializados, informes
-                meteorológicos detallados y estudios científicos enfocados en la realidad de la región. Nuestro objetivo
-                es proporcionar a agricultores, investigadores y al público en general acceso a información confiable y
-                relevante sobre las condiciones climáticas en Tucumán y el Noroeste Argentino (NOA).<br>
-                Te invitamos a explorar nuestras secciones, donde podrás encontrar datos meteorológicos históricos, en
-                tiempo real, y descubrir investigaciones clave que influyen directamente en el desarrollo del sector
-                agrícola.
-            </p>
-        </div>
-        <div class="image-right">
-            <img src="../../assets/images/bienvenida/estacion_ec.JPG" alt="Estación automática de El Colmenar" />
-        </div>
+<div class="bienvenida-wrapper">
+  <div class="hero-container">
+    <video #heroVideo class="hero-bg" autoplay muted loop playsinline preload="auto" poster="assets/images/fallback.jpg">
+      <source src="assets/videos/inicio.mp4" type="video/mp4">
+      Tu navegador no soporta video HTML5.
+    </video>
+
+    <div class="hero-overlay">
+      <div class="hero-eyebrow">MONITOREO AGROMETEOROLÓGICO</div>
+      <h1 class="hero-title">Agrometeorología en tiempo real para Tucumán y el NOA</h1>
+      <h2 class="hero-subtext">Bienvenidos a la sección Agrometeorología de la EEAOC.</h2>
+      <p class="hero-subtext">Información climática de Tucumán para una agricultura más eficiente y mejor seguimiento territorial.</p>
+      <div class="hero-cta">
+        <button type="button" class="btn btn--accent" (click)="openDialog()">Saber más</button>
+      </div>
     </div>
-    <div class="fondo-boton">
-        <button class="btn" (click)="openDialog()">Saber más</button>
-    </div>
+  </div>
 </div>

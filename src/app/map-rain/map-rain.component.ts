@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable } from 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
-import { WeatherService } from '../services/weather.service';
+import { WeatherDataApiResponse, WeatherService } from '../services/weather.service';
 import { MatSelectChange } from '@angular/material/select';
 import { MatDialogRef } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
@@ -22,9 +22,12 @@ import { MAT_DATE_FORMATS, DateAdapter, NativeDateAdapter } from '@angular/mater
 import { ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog'; // Añade esta importación
 
+import { GestureHandling } from 'leaflet-gesture-handling';
+L.Map.addInitHook('addHandler', 'gestureHandling', GestureHandling);
+
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
-  override parse(value: any): Date | null {
+  override parse(value: unknown): Date | null {
     if (typeof value === 'string' && value.includes('/')) {
       const [dd, mm, yyyy] = value.split('/').map(v => Number(v));
       if ([dd, mm, yyyy].every(n => !isNaN(n))) {
@@ -51,6 +54,16 @@ export const MY_DATE_FORMATS = {
     monthYearA11yLabel: 'MMMM yyyy'
   },
 };
+
+interface RainMapRecord {
+  lat: number | string;
+  lon: number | string;
+  nombre: string;
+  totalLluvia: number | string;
+  maxLluvia: number | string;
+  registrosLluvia: number | string;
+  frecuenciaDato: number | string;
+}
 
 @Component({
   selector: 'app-map-rain',
@@ -79,7 +92,8 @@ export const MY_DATE_FORMATS = {
 export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   hoy: boolean = false;
   form: FormGroup;
-  map: any;
+  map?: L.Map;
+  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   baseMapsList = [
     {
       label: 'OpenStreetMap',
@@ -97,10 +111,10 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   ];
   currentBaseLayer = this.baseMapsList[0].layer;
-  rainData: any[] = [];
+  rainData: RainMapRecord[] = [];
   rainSubscription: Subscription | undefined;
   markersLayer = L.layerGroup();
-  provincesLayer: L.GeoJSON<any> | null = null;
+  provincesLayer: L.GeoJSON | null = null;
   loading = false;
 
   constructor(
@@ -130,11 +144,40 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit() {
-    this.map = L.map('mapContainer',).setView([-27, -65], 8);
+    this.map = L.map('mapContainer', {
+      center: [-27, -65],
+      zoom: 8,
+      maxBoundsViscosity: 0.0,
+      scrollWheelZoom: false  // Desactivar zoom por rueda
+    });
+
     this.currentBaseLayer.addTo(this.map);
     this.markersLayer.addTo(this.map);
     await this.loadProvinces();
     this.addLegend(); // Add the color scale legend to the map
+
+    setTimeout(() => this.map?.invalidateSize(), 50);
+    
+    // Mostrar mensaje si gira la rueda sin Ctrl
+    if (!this.map) return;
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (!e.ctrlKey) {
+        this.map?.getContainer().classList.add('ctrl-zoom-message');
+        clearTimeout(this.ctrlZoomTimeout);
+        this.ctrlZoomTimeout = setTimeout(() => {
+          this.map?.getContainer().classList.remove('ctrl-zoom-message');
+        }, 1000);
+      }
+    });
+
+    // Habilitar zoom si Ctrl está presionado
+    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        this.map?.scrollWheelZoom.enable();
+      } else {
+        this.map?.scrollWheelZoom.disable();
+      }
+    });
   }
 
   private async loadProvinces(): Promise<void> {
@@ -161,7 +204,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onBaseMapChange(event?: MatSelectChange): void {
     const selectedBase = this.baseMapsList.find(b => b.value === this.form.value.baseMap);
-    if (selectedBase) {
+    if (selectedBase && this.map) {
       this.map.removeLayer(this.currentBaseLayer);
       this.currentBaseLayer = selectedBase.layer;
       this.currentBaseLayer.addTo(this.map);
@@ -173,8 +216,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.markersLayer.clearLayers();
 
     if (this.hoy) {
-      this.rainSubscription = this.weatherService.getAlerts().subscribe({
-        next: (resp: any) => {
+      this.rainSubscription = this.weatherService.getAlerts<RainMapRecord>().subscribe({
+        next: (resp) => {
           this.rainData = resp.data;
           this.plotRain();
           this.loading = false; // Desactiva el spinner al finalizar
@@ -186,8 +229,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       const desde = this.formatDate(this.form.value.desde);
       const hasta = this.formatDate(this.form.value.hasta);
-      this.rainSubscription = this.weatherService.getRains(desde, hasta).subscribe({
-        next: (resp: any) => {
+      this.rainSubscription = this.weatherService.getRains<RainMapRecord>(desde, hasta).subscribe({
+        next: (resp) => {
           this.rainData = resp.data;
           this.plotRain();
           this.loading = false;
@@ -205,19 +248,25 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.rainData.forEach(d => {
       if (!d.lat || !d.lon) return;
 
-      const color = this.getRainColor(parseFloat(d.totalLluvia), parseInt(d.registrosLluvia));
-      const marker = L.circleMarker([d.lat, d.lon], {
+      const totalLluvia = parseFloat(String(d.totalLluvia));
+      const registrosLluvia = parseInt(String(d.registrosLluvia), 10);
+      const maxLluvia = parseFloat(String(d.maxLluvia));
+      const frecuenciaDato = parseFloat(String(d.frecuenciaDato));
+      const lat = Number(d.lat);
+      const lon = Number(d.lon);
+      const color = this.getRainColor(totalLluvia, registrosLluvia);
+      const marker = L.circleMarker([lat, lon], {
         radius: 8,
         fillColor: color,
         color: '#000',
         weight: 1,
         fillOpacity: 0.8
       }).bindPopup(`
-        <b>${d.nombre}</b><br>
-        Total Lluvia: ${d.totalLluvia} mm<br>
-        Max Lluvia: ${d.maxLluvia} mm<br>
-        Horas de Lluvia: ${d.registrosLluvia * d.frecuenciaDato / 60}
-      `);
+          <b>${d.nombre}</b><br>
+          Total Lluvia: ${totalLluvia.toFixed(1)} mm<br>
+          Max Lluvia: ${maxLluvia.toFixed(1)} mm<br>
+          Horas de Lluvia: ${((registrosLluvia * frecuenciaDato) / 60).toFixed(1)}
+        `);
       this.markersLayer.addLayer(marker);
     });
   }
@@ -248,7 +297,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       return div;
     };
 
-    legend.addTo(this.map);
+    if (this.map) legend.addTo(this.map);
   }
 
   private formatDate(date: Date): string {
@@ -261,6 +310,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.rainSubscription?.unsubscribe();
+    if (this.ctrlZoomTimeout) clearTimeout(this.ctrlZoomTimeout);
   }
 
   close(): void {

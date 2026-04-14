@@ -1,36 +1,125 @@
-.dialog-content {
-  background-color: #3e3c2f;
-  color: #f8f5d7;
-  padding: 20px;
-  text-align: justify;
-  font-family: 'Arial', sans-serif;
-  font-size: 16px;
+:host ::ng-deep .about-dialog .mat-mdc-dialog-surface {
+  border-radius: 24px !important;
+  background: transparent !important;
+  overflow: hidden !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
 }
 
+:host ::ng-deep .about-dialog .mat-mdc-dialog-content {
+  padding: 0 !important;
+  margin: 0 !important;
+}
 .dialog-windows {
-  background-color: #30461a;
-  color: #f8f5d7;
-  padding: 20px;
-  text-align: justify;
-  font-family: 'Arial', sans-serif;
-  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  width: min(880px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: 90vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18);
 }
 
-button {
-  background-color: #f8f5d7;
-  color: #3e3c2f;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 20px;
-  font-weight: bold;
+.dialog-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(255,255,255,.88);
+  border-bottom: 1px solid color-mix(in srgb, var(--mod-data) 12%, var(--border));
+  padding: 18px 20px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dialog-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-data) 18%, var(--border));
+  background: rgba(255,255,255,.92);
+  color: color-mix(in srgb, var(--mod-data) 66%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.dialog-title {
+  margin: 10px 0 0;
+  font-size: 1.24rem;
+  line-height: 1.08;
+  font-weight: 900;
+}
+
+.dialog-close {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: var(--text);
   cursor: pointer;
-  margin-top: 15px;
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
-button:hover {
-  background-color: #363e2f;
-  color: #f8f5d7;
-  border-color: #f8f5d7;
-  border-style: solid;
-  border-width: 1px;
+.dialog-close:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
+  outline-offset: 2px;
+}
+
+.dialog-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.dialog-body p {
+  margin: 0 0 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: rgba(17,24,39,.86);
+  line-height: 1.65;
+}
+
+.dialog-body p:last-child {
+  margin-bottom: 0;
+}
+
+.dialog-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: rgba(255,255,255,.88);
+  border-top: 1px solid color-mix(in srgb, var(--mod-data) 12%, var(--border));
+  padding: 14px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.dialog-footer .btn {
+  min-height: 40px;
+}
+
+@media (max-width: 760px) {
+  .dialog-windows {
+    width: min(100vw - 16px, 100vw);
+    max-width: calc(100vw - 16px);
+    border-radius: 18px;
+  }
+
+  .dialog-header,
+  .dialog-body,
+  .dialog-footer {
+    padding-inline: 14px;
+  }
 }

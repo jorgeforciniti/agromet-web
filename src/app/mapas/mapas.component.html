@@ -1,54 +1,87 @@
-<div class="container">
-  <div class="mapas-container">
-    <h2 class="titulo">mapas</h2>
+<div class="dm">
+  <div class="dm__main">
+    <div class="dm__intro">
+      <div>
+        <div class="dm__eyebrow">CAPAS PRINCIPALES</div>
+        <h3 class="dm__headline">Mapas para lectura espacial y monitoreo territorial</h3>
+      </div>
+      <p class="dm__lead">Accedé a visualizaciones temáticas para interpretar rápidamente precipitaciones, temperaturas y eventos de helada.</p>
+    </div>
 
-    <div class="grid-container">
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/mapas/lluviasmensuales.png" alt="Temperatura">
-        <mat-card-content>
-          <h3>Precipitaciones mensuales</h3>
-          <p>Exhibe la distribución de las lluvias acumuladas en uno o más meses en diferentes localidades de la
-            provincia y su comparación con el valor normal de cada localidad.</p>
+    <div class="dm__grid">
+      <mat-card class="dm-card dm-card--primary">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/mapas/lluviasmensuales.png" alt="Lluvias mensuales" />
+          <div class="dm-card__badge">PRECIPITACIONES</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Cobertura mensual</div>
+          <h3 class="dm-card__title">Precipitaciones</h3>
+          <p class="dm-card__sub">Mapa de acumulados mensuales para seguir distribución territorial y contrastes espaciales.</p>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openMapRainMonthly()">Ver más</button>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openMapRainMonthly()">Ver mapa</button>
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/mapas/temperaturas.png" alt="Precipitación">
-        <mat-card-content>
-          <h3>Temperatura del aire</h3>
-          <p>Construye un mapa con valores extremos y medios de máximas y mínimas para un período especificado.</p>
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/mapas/temperaturas.png" alt="Temperaturas" />
+          <div class="dm-card__badge">TEMPERATURA</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Extremos y medias</div>
+          <h3 class="dm-card__title">Temperaturas</h3>
+          <p class="dm-card__sub">Distribución de máximas, mínimas y promedios para ubicar comportamientos relevantes.</p>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openMapTemperature()">Ver más</button>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openMapTemperature()">Ver mapa</button>
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="card">
-        <img mat-card-image src="../../assets/images/mapas/heladas.png" alt="Viento">
-        <mat-card-content>
-          <h3>Heladas meteorológicas</h3>
-          <p>Para un período elegido genera un mapa con intensidad, duración y frecuencia de heladas meteorológicas.</p>
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/mapas/heladas.png" alt="Heladas" />
+          <div class="dm-card__badge">RIESGO</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Impacto térmico</div>
+          <h3 class="dm-card__title">Heladas</h3>
+          <p class="dm-card__sub">Lectura espacial de intensidad y duración para identificar zonas más expuestas.</p>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary" (click)="openMapFrost()">Ver más</button>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openMapFrost()">Ver mapa</button>
         </mat-card-actions>
       </mat-card>
-
     </div>
   </div>
-  <div class="sidebar">
-    <h2>Más mapas...</h2>
-    <a href="#" (click)="openMapRains(); $event.preventDefault()">
-      <p>⭐ Precipitaciones diarias: Permite conocer la distribución de las lluvias acumuladas, para un período
-        determinado, en diferentes localidades de la provincia.</p>
-    </a>
 
-    <a href="#" class="disabled-link">
-      <p>⭐ Precipitaciones máximas en 24 horas: Permite conocer la distribución de las lluvias máximas en 24 horas en
-        diferentes localidades de la provincia, para un rango de fechas determinado.</p>
-    </a>
-  </div>
+  <aside class="dm__side">
+    <div class="dm__header">
+      <div class="dm__eyebrow dm__eyebrow--side">MAPAS COMPLEMENTARIOS</div>
+      <h2 class="dm__title">Más capas para explorar</h2>
+      <p class="dm__side-copy">Accesos a mapas adicionales y próximas visualizaciones para ampliar el análisis espacial.</p>
+    </div>
+
+    <ul class="dm-links">
+      <li>
+        <button type="button" class="dm-link" (click)="openMapRains()">
+          <mat-icon inline>water_drop</mat-icon>
+          <span>
+            <strong>Lluvias diarias:</strong> distribución de lluvias acumuladas por período.
+          </span>
+        </button>
+      </li>
+
+      <li>
+        <span class="dm-link dm-link--disabled">
+          <mat-icon inline>cloud</mat-icon>
+          <span>
+            <strong>Lluvias máximas 24h:</strong> distribución de máximos diarios por localidad.
+            <span class="dm-soon">Próximamente</span>
+          </span>
+        </span>
+      </li>
+    </ul>
+  </aside>
 </div>

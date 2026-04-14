@@ -10,28 +10,6 @@
       <img src="assets/images/logos/header-bottom.png" alt="Barra inferior" class="bar">
     </div>
   </header>
-
-  <!-- Menú que se oculta al hacer scroll -->
-<!--  <mat-toolbar color="primary" class="fixed-toolbar">
-    <span class="spacer"></span>
-    <div class="menu-desktop">
-      <button mat-button routerLink="/">Inicio</button>
-      <button mat-button routerLink="/servicios">Nuestros servicios</button>
-      <button mat-button routerLink="/publicaciones">Publicaciones</button>
-      <button mat-button routerLink="/contacto">Contacto</button>
-    </div>
-    <div class="menu-mobile">
-      <button mat-icon-button [matMenuTriggerFor]="menu">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item routerLink="/">Inicio</button>
-        <button mat-menu-item routerLink="/servicios">Nuestros servicios</button>
-        <button mat-menu-item routerLink="/publicaciones">Publicaciones</button>
-        <button mat-menu-item routerLink="/contacto">Contacto</button>
-      </mat-menu>
-    </div>
-  </mat-toolbar>-->
 </div>
 
 <!-- Contenido principal de la aplicación -->
@@ -39,37 +17,51 @@
   <router-outlet></router-outlet>
 </main>
 
-<footer style="background-color: #3D550C; padding: 20px; color: white; font-family: Arial, sans-serif;">
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 500px; display: flex; align-items: center;">
-      <img src="assets/images/logos/logo_eeaoc_blanco.png" alt="Logo EEAOC" style="height: 60px; margin-right: 10px;">
-      <div>
-        <strong>ESTACION EXPERIMENTAL AGROINDUSTRIAL OBISPO COLOMBRES</strong><br>
-        William Cross 3150<br>
+<footer class="footer">
+  <div class="footer-column footer-logo-texto">
+
+    <img src="assets/images/logos/somos.png" alt="Logo EEAOC">
+
+    <div>
+      <p>William Cross 3150<br>
         Las Talitas - Tucumán - Argentina<br>
-        Tel: (54 381) 452 1000 - FAX: (54 381) 452 1008
+        Tel: (54 381) 452 1000 - FAX: (54 381) 452 1008</p>
+    </div>
+  </div>
+  <div class="footer-column footer-logo-texto">
+    <strong><br>Sección<br>Agrometeorología</strong>
+    <p>Tel: (54 381) 452 1060<br>
+      Tel: (54 381) 452 1012<br><br>
+      mail: jorgeforciniti&#64;eeaoc.org.ar</p>
+  </div>
+
+  <div class="footer-column footer-qr">
+    <img src="assets/images/qr/qrandroid.png" alt="QR Android">
+  </div>
+  <div class="footer-column footer-qr">
+    <img src="assets/images/qr/qrios.png" alt="QR iOS">
+  </div>
+
+  <div class="footer-column footer-instituciones">
+    <!-- Redes sociales -->
+    <div class="footer-contacto">
+      <div class="iconos">
+        <a class="social-link" href="https://www.facebook.com/EEAOCOFICIAL/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><fa-icon class="social-icon" [icon]="['fab', 'facebook']"
+            size="2x"></fa-icon></a>
+        <a class="social-link" href="https://twitter.com/eeaocoficial" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><fa-icon class="social-icon" [icon]="['fab', 'twitter']"
+            size="2x"></fa-icon></a>
+        <a class="social-link" href="https://www.youtube.com/channel/UC5cr5skGsAzBIoNO_c8KhBg" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><fa-icon class="social-icon"
+            [icon]="['fab', 'youtube']" size="2x"></fa-icon></a>
+        <a class="social-link" href="https://www.instagram.com/eeaocoficial/?hl=es-la" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><fa-icon class="social-icon"
+            [icon]="['fab', 'instagram']" size="2x"></fa-icon></a>
       </div>
     </div>
-    <div style="flex: 1; min-width: 200px; text-align: center;">
-      <p><strong>Su consulta o sugerencia aquí</strong></p>
-      <div style="flex: 1; min-width: 200px; text-align: center;">
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'facebook']" size="2x"></fa-icon></a>
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'twitter']" size="2x"></fa-icon></a>
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'youtube']" size="2x"></fa-icon></a>
-        <a href="#" style="color: white; margin: 0 5px;"><fa-icon [icon]="['fab', 'instagram']" size="2x"></fa-icon></a>
-      </div>
-      <br>
-    </div>
-    <div style="flex: 1; min-width: 100px; text-align: center;">
-      <img src="assets/images/qr/qrandroid.png" alt="QR Android" style="height: 150px; margin-right: 60px;">
-    </div>
-    <div style="flex: 1; min-width: 100px; text-align: center;">
-      <img src="assets/images/qr/qrios.png" alt="QR iOS" style="height: 150px; margin-right: 20px;">
-    </div>
-    <div style="flex: 1; min-width: 200px; text-align: right;">
-      <a href="https://www.conicet.gov.ar/"><img src="assets/images/logos/itanoatransparente.png" alt="Logo Conicet" style="height: 80px; margin-right: 10px;"></a>
-      <img src="assets/images/logos/tucuman.png" alt="Logo Tucumán" style="height: 80px; margin-right: 10px;">
-      <img src="assets/images/logos/paradigmax.png" alt="Logo Ambiental" style="height: 80px;">
+
+    <!-- Logos institucionales alineados horizontal -->
+    <div class="logos-institucionales">
+<!--      <a href="https://itanoa.conicet.gov.ar/" target="_blank" rel="noopener noreferrer" ><img src="assets/images/logos/itanoatransparente.png" alt="Conicet"></a>-->
+      <img src="assets/images/logos/tucuman.png" alt="Tucumán">
+      <img src="assets/images/logos/paradigmax.png" alt="Ambiente">
     </div>
   </div>
 </footer>

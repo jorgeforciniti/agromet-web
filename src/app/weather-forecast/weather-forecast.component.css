@@ -1,468 +1,342 @@
-/* Contenedor general */
+/* ========= Base (usa tokens globales) ========= */
 .forecast-wrapper {
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* Estados de carga y error */
 .loading,
 .error {
+  padding: 12px;
   text-align: center;
-  padding: 1em;
-  font-size: 1rem;
+  font: 1rem/1.2 var(--font-sans);
 }
+
 .error {
-  color: #e57373;
+  color: #ef4444;
 }
 
-/* Contenedor principal estilo tarjeta */
+/* Card contenedora (clara) */
 .forecast-container {
-  background-color: #252525;
-  color: #f1f1f1;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  padding: 0.8em;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: 12px;
+  width: 100%;
+  overflow: hidden;
 }
 
-/* Header: selector de estación y datos en tiempo real */
-.forecast-header {
+/* La segunda card (antes duplicabas forecast-container) */
+.forecast-content-card {
+  margin-top: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* ========= Station widget (destacado, pero claro) ========= */
+.station-widget {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(79, 121, 50, .10), transparent);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.realtime-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: .92rem;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.station-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.station-icon {
+  color: var(--brand);
+}
+
+.station-title {
+  margin: 0;
+  font: 800 1.05rem var(--font-sans);
+  color: var(--text);
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.now-icon {
+  width: 34px;
+  height: 34px;
+}
+
+/* Selector */
+.station-select {
+  width: min(320px, 100%);
+}
+
+/* ========= Métricas ========= */
+.station-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.metric {
+  min-height: 78px;
+  background: rgba(17, 24, 39, .03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.8em;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Leyenda: Datos en tiempo real */
-.realtime-label {
-  font-size: 1rem;
-  font-weight: 500;
-  color: white;
-  margin: 0.3rem 0;
+.metric mat-icon {
+  color: var(--brand);
+}
+
+.metric .value {
+  font-weight: 900;
+  font-size: .98rem;
+}
+
+.metric .label {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.station-sun {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.station-sun mat-icon {
+  color: #f59e0b;
+}
+
+/* ========= Pronóstico ========= */
+.forecast-title {
+  font: 800 .98rem var(--font-sans);
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.forecast-title span {
+  font-weight: 900;
   text-transform: uppercase;
 }
 
-.station-label {
-  font-weight: 600;
-}
-
-.station-select {
-  padding: 0.3em 0.5em;
-  border-radius: 4px;
-  border: none;
-  background-color: #f2f2f2;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-/* Estilo para el mat-select */
-.station-select-wrapper {
-  width: 250px;
-  margin: 0.3rem 0;
-}
-
-::ng-deep .mat-mdc-select-value {
-  color: white !important;
-}
-
-::ng-deep .mat-mdc-option {
-  color: #333;
-}
-
-::ng-deep .mat-mdc-form-field-label {
-  color: white !important;
-}
-
-::ng-deep .mat-mdc-text-field-wrapper {
-  background-color: transparent;
-}
-
-::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-ripple {
-  background-color: #007bff;
-}
-
-::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-focus-overlay {
-  background-color: transparent;
-}
-
-/* Datos en tiempo real */
-.realtime-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2.5rem;
-  padding-left: 2em;
-  border-bottom: 1px solid #555;
-  font-size: 0.85rem;
-  color: #f1f1f1;
-}
-
-.realtime-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3em;
-}
-
-.realtime-item fa-icon {
-  color: #ccc;
-  font-size: 1rem;
-}
-
-/* Sección de Alertas */
-.alert-section {
-  margin: 0.5em 0;
-  padding: 1em;
-  background-color: #2b2b2b;
-  border-radius: 8px;
-  border: 1px solid #444;
-}
-
-.alert-title {
-  font-size: 1.1rem;
-  color: #ffeb3b;
-  margin: 0 0 1em 0;
-  padding-bottom: 0.5em;
-  border-bottom: 1px solid #555;
-}
-
-.alert-card {
-  padding: 1em;
-  margin-bottom: 1em;
-  border-radius: 6px;
-  background: #333;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.alert-level-3 { border-left: 6px solid #FFD700;color: #FFD700; }
-.alert-level-4 { border-left: 6px solid #FF8C00;color: #FF8C00; }
-.alert-level-5 { border-left: 6px solid #FF4500;color: #FF4500; }
-.alert-short { border-left: 6px solid #00BFFF;color: #00BFFF; }
-
-.alert-description {
-  font-size: 0.9rem;
-  line-height: 1.1;
-  color: #ddd;
-  margin: 0.5em 0;
-}
-
-.alert-instruction {
-  background: #3a3a3a;
-  padding: 0.8em;
-  border-radius: 4px;
-  margin-top: 1em;
-  font-size: 0.85rem;
-  white-space: pre-wrap;
-  font-family: monospace;
-}
-
-.alert-period {
-  display: flex;
-  gap: 0.5em;
-  font-size: 0.9rem;
-  color: #bbb;
-  margin: 0.5em 0;
-}
-
-.alert-region {
-  font-weight: bold;
-  margin: 0.5em 0;
-}
-
-/* Sección Pronóstico */
-.forecast-content {
-  margin-top: 0.3em;
-}
-
-.forecast-title {
-  font-size: 0.95rem;
-  margin-bottom: 0.3em;
-  font-weight: 600;
-}
-
-/* Lista de días - Versión ajustada */
 .week-forecast {
   display: flex;
-  gap: 0.2em;
-  margin-bottom: 0.5em;
-  flex-wrap: nowrap;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 0.2em;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  scrollbar-gutter: stable;
 }
 
-/* Tarjetas de día - Versión estrecha */
 .day-card {
-  flex: 0 0 70px;
-  background-color: #353535;
-  border-radius: 4px;
-  padding: 0.2em;
+  flex: 0 0 76px;
+  min-width: 76px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 8px 6px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.2s;
-  min-width: 70px;
-  margin: 0 2px;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
 
 .day-card:hover {
-  background-color: #3f3f3f;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .day-card.active {
-  background-color: #474747;
-  border: 3px solid #6ec6ff;
+  border-color: rgba(79, 121, 50, .7);
+  box-shadow: 0 0 0 3px rgba(79, 121, 50, .18);
 }
 
 .day-name {
-  font-size: 0.75rem;
-  margin-bottom: 0;
-  text-transform: capitalize;
+  font-size: .78rem;
+  color: var(--muted);
+  margin: 0;
 }
 
 .day-temps {
   display: flex;
+  gap: 4px;
   justify-content: center;
-  gap: 0.1em;
-}
-
-.temp {
-  font-size: 0.75rem;
+  font-weight: 900;
 }
 
 .min-temp {
-  color: #2196f3;
+  color: #2563eb;
 }
 
 .max-temp {
-  color: #f44336;
+  color: #ef4444;
 }
 
-/* Detalles del día */
 .day-details {
-  background-color: #2c2c2c;
-  border-radius: 4px;
-  padding: 0.5em;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
 }
 
-.day-details-title {
-  margin: 0 0 0.3em;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-/* Intervalos (time period) con iconos */
-.time-period {
-  margin: 0.3em 0;
-  padding: 0.3em;
-  background-color: #3a3a3a;
-  border-radius: 4px;
-}
-
-.tp-header {
-  display: flex;
-  align-items: center;
-  gap: 0.4em;
-  margin-bottom: 0.2em;
-}
-
-.tp-hour {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.tp-icon img {
-  width: 25px;
-  height: 25px;
-  display: block;
-}
-
-.tp-desc {
-  font-size: 0.8rem;
-  line-height: 1.2;
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.tp-desc > span {
-  white-space: nowrap;
-}
-
-/* Fuente de datos */
-.forecast-source {
-  text-align: right;
-  font-size: 0.7rem;
-  margin-top: 0.3em;
-  color: #bbb;
-}
-
-/* NUEVO: Estilos para el Pronóstico Horario Estilo Google Weather */
 .hourly-forecast-container {
-  margin-top: 0.8em;
-  background-color: #333; /* Fondo ligeramente diferente para destacar */
-  border-radius: 6px;
-  padding: 0.8em 0.5em;
+  margin-top: 10px;
+  background: rgba(17, 24, 39, .03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
 }
 
 .hourly-forecast-scroll {
-  display: flex;
-  overflow-x: auto;
-  gap: 0.5em; /* Espacio entre items horarios */
-  padding-bottom: 0.5em; /* Espacio para la barra de scroll si aparece */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 10px;
+  overflow: visible;
+  /* ✅ sin scroll horizontal */
+  padding-bottom: 0;
 }
 
 .hourly-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  background-color: #3E3E3E; /* Color de fondo de cada item horario */
-  border-radius: 4px;
-  padding: 0.6em 0.4em;
-  min-width: 65px; /* Ancho mínimo de cada item */
+  min-width: 74px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 8px 6px;
   text-align: center;
-  color: #f1f1f1;
 }
 
 .hourly-time {
-  font-size: 0.8rem;
-  font-weight: 500;
-  margin-bottom: 0.4em;
+  font-size: .75rem;
+  color: var(--muted);
 }
 
 .hourly-icon img {
-  width: 35px; /* Tamaño del icono del clima */
-  height: 35px;
-  margin-bottom: 0.1em;
+  width: 34px;
+  height: 34px;
 }
 
 .hourly-temp {
-  font-size: 0.95rem;
-  font-weight: bold;
-  margin-bottom: 0.3em;
+  font-weight: 900;
+  margin: 4px 0 0;
 }
 
-.hourly-wind {
-  font-size: 0.95rem;
-  margin-bottom: 0.3em;
-  color: rgb(147, 202, 52);
-}
-
-.hourly-rain {
-  font-size: 0.7rem;
-  color: #87CEEB; /* Azul claro para la probabilidad de lluvia */
-  display: flex;
-  align-items: center;
-  gap: 0.3em;
-}
-
-.hourly-rain fa-icon {
-  font-size: 0.75rem;
-}
-
-/* Estilización de la barra de scroll horizontal (opcional, para Webkit) */
-.hourly-forecast-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.hourly-forecast-scroll::-webkit-scrollbar-track {
-  background: #2c2c2c;
-  border-radius: 3px;
-}
-
-.hourly-forecast-scroll::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 3px;
-}
-
-.hourly-forecast-scroll::-webkit-scrollbar-thumb:hover {
-  background: #6E6E6E;
+.forecast-source {
+  text-align: right;
+  font-size: .75rem;
+  color: var(--muted);
+  margin-top: 8px;
 }
 
 #temperatureChart {
-  margin-top: 0.2em;
-  background-color: #2c2c2c;
-  border-radius: 4px;
-  padding: 0.5em;
-  max-height: 200px !important;
+  background: rgba(17, 24, 39, .04);
+  /* leve gris azulado */
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .5rem;
 }
 
-/* Estilos personalizados para el mat-form-field */
-.station-select-wrapper .mat-mdc-form-field {
-  --mdc-filled-text-field-container-color: #252525; /* Color de fondo */
-  --mdc-filled-text-field-label-text-color: rgba(255, 255, 255, 0.6); /* Color del label */
-  --mdc-filled-text-field-input-text-color: #fff; /* Color del texto seleccionado */
-  --mat-select-disabled-trigger-text-color: rgba(255, 255, 255, 0.38);
-  --mat-select-trigger-text-color: #fff;
+/* ========= Material overrides (CLARO) ========= */
+:host ::ng-deep .mat-mdc-select-value {
+  color: var(--text) !important;
 }
 
-/* Flecha del select */
-.station-select-wrapper .mat-mdc-select-arrow {
-  color: #fff;
+:host ::ng-deep .mat-mdc-form-field-label {
+  color: var(--muted) !important;
 }
 
-/* Borde y subrayado */
-.station-select-wrapper .mdc-line-ripple::before {
-  border-bottom-color: rgba(255, 255, 255, 0.42);
+:host ::ng-deep .mat-mdc-text-field-wrapper {
+  background: transparent !important;
 }
 
-.station-select-wrapper .mdc-line-ripple::after {
-  border-bottom-color: #fff;
+/* ===== Detalle del día: tarjetas | gráfico (ESTABLE y sin recortes) ===== */
+
+/* ===== Grid maestro del pronóstico ===== */
+.forecast-grid{
+  display: grid;
+  grid-template-columns: 480px 1fr;      /* más aire para la izquierda */
+  height: clamp(360px, 42vh, 520px);     /* menos alto total */
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "week  chart"
+    "hours chart";
+  gap: 12px;
 }
 
-/* Opciones del dropdown */
-.station-select-wrapper .mat-mdc-select-panel {
-  background-color: #353535;
+.forecast-week{ grid-area: week; min-width: 0; }
+.forecast-hours{ grid-area: hours; min-width: 0; min-height: 0; overflow: auto; }
+.forecast-chart{ grid-area: chart; min-width: 0; min-height: 0; }
+
+.chart-card{
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  background: rgba(17,24,39,.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px;  /* antes 10px */
 }
 
-/* Items del dropdown */
-.station-select-wrapper .mat-mdc-option {
-  color: #fff;
-  background-color: #353535;
+/* ✅ IMPORTANTÍSIMO: que el canvas LLENE el contenedor */
+.chart-card canvas{
+  flex: 1 1 auto;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
-/* Item hover */
-.station-select-wrapper .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
-  background-color: #454545;
+.forecast-content-card{
+  overflow: hidden;          /* ✅ nada se sale del contenedor redondeado */
 }
 
-/* Item seleccionado */
-.station-select-wrapper .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
-  background-color: #3a3a3a;
+.forecast-grid,
+.forecast-chart,
+.chart-card{
+  min-width: 0;
+  min-height: 0;             /* ✅ evita overflow raro en grids */
 }
-/* Responsive */
-@media (max-width: 768px) {
-  .forecast-header {
-    gap: 0.5rem;
+
+/* Mobile: apilar, y dar altura fija al gráfico */
+@media (max-width: 900px){
+  .forecast-grid{
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 320px;
+    grid-template-areas:
+      "week"
+      "hours"
+      "chart";
+    height: auto;
   }
-  
-  .realtime-footer {
-    gap: 0.8rem;
-  }
-  
-  .day-card {
-    flex: 0 0 65px;
-    min-width: 65px;
-  }
-}
-
-@media (max-width: 480px) {
-  .forecast-container {
-    padding: 0.6em;
-  }
-  
-  .alert-section {
-    padding: 0.8em;
-  }
-  
-  .hourly-item {
-    min-width: 60px;
-    padding: 0.4em;
-  }
-  
-  .realtime-item {
-    font-size: 0.8rem;
-  }
-  
-  .station-select-wrapper {
-    max-width: 100%;
+  .forecast-chart .chart-card{
+    height: 320px;
   }
 }
