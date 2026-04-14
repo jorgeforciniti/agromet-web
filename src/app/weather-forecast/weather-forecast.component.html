@@ -1,4 +1,4 @@
-<!-- Contenedor general -->
+﻿<!-- Contenedor general -->
 <div class="forecast-wrapper">
   <!-- Estados de carga y error -->
   <div *ngIf="loading" class="loading">
@@ -12,7 +12,7 @@
   <div class="forecast-container" *ngIf="!loading && !error && weatherData">
     <!-- Header -->
 
-    <!-- ───── Station Widget ───── -->
+    <!-- ----- Station Widget ----- -->
     <div *ngIf="mode === 'realtime' || mode === 'full'">
       <section class="station-widget station-realtime-card">
 
@@ -62,7 +62,7 @@
 
       </section>
     </div>
-    <!-- ──── /Station Widget ──── -->
+    <!-- â”€â”€â”€â”€ /Station Widget â”€â”€â”€â”€ -->
     <!-- Pronóstico -->
     <div *ngIf="mode === 'forecast' || mode === 'full'">
       <div class="forecast-content-card">
@@ -133,3 +133,5 @@
 </div>
       </div>
     </div>
+
+

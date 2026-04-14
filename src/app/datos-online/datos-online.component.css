@@ -1,5 +1,5 @@
-/* =============================
-   Datos Online â€“ UI alineada a dialogs (TOKENS)
+﻿/* =============================
+   Datos Online Ã¢â‚¬â€œ UI alineada a dialogs (TOKENS)
    ============================= */
 
 :host {
@@ -14,9 +14,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
-/* BotÃ³n cerrar â€“ mismo patrÃ³n que dialogs */
+/* BotÃƒÂ³n cerrar Ã¢â‚¬â€œ mismo patrÃƒÂ³n que dialogs */
 .do-close {
   position: absolute;
   right: calc(22px + env(safe-area-inset-right));
@@ -40,30 +42,29 @@
 .viewer-container {
   flex: 1 1 auto;
   min-height: 0;
-  /* CLAVE */
   overflow: auto;
-  /* ya lo tenÃ©s */
   overflow-x: auto;
-  /* por las dudas (deja x habilitado) */
-  padding: 2px;
-  /* âœ… faltaba */
+  padding: 0 0 14px;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   --topbar-h: 76px;
   scroll-padding-top: var(--topbar-h);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* Topbar (tÃ­tulo + controls) */
+/* Topbar (tÃƒÂ­tulo + controls) */
 .do-topbar {
   position: static;
-  /* no sticky */
   top: 0;
   z-index: 30;
   background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
   border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
 }
 
-/* TÃ­tulo */
+/* TÃƒÂ­tulo */
 .titulo {
   margin: 0;
   font-size: 1.25rem;
@@ -110,17 +111,17 @@
 }
 
 /* =============================
-   Top grid: Mapa | GrÃ¡fico
+   Top grid: Mapa | GrÃƒÂ¡fico
    ============================= */
 
 .contenido-wrapper {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-  /* âœ… clave */
+  /* Ã¢Å“â€¦ clave */
   gap: 14px;
   align-items: stretch;
   min-width: 0;
-  /* âœ… evita desbordes raros */
+  /* Ã¢Å“â€¦ evita desbordes raros */
 }
 
 /* Map y chart cards */
@@ -205,13 +206,8 @@
    Tabla abajo (clara)
    ============================= */
 
-.tabla-wrapper {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
-  overflow: visible;
-  /* clave */
-  max-height: none;
+.tabla-wrapper {-height: none;
+  margin-bottom: 2px;
 }
 
 .tabla-scroll-x {
@@ -326,10 +322,10 @@
     overflow: visible;     /* <- clave */
   }
 
-  /* 2) PermitÃ­ que el scroll horizontal exista si hace falta */
+  /* 2) PermitÃƒÂ­ que el scroll horizontal exista si hace falta */
   .viewer-container{
     overflow-y: auto;
-    overflow-x: auto;      /* <- NO hidden */
+    overflow-x: auto;
   }
 
   /* 3) Sticky normal */
@@ -341,10 +337,11 @@
 
   /* 4) (Solo si en iOS sigue fallando) desactivar momentum scroll */
   .viewer-container{
-    -webkit-overflow-scrolling: auto;  /* <- iOS fix clÃ¡sico para sticky */
+    -webkit-overflow-scrolling: auto;  /* <- iOS fix clÃƒÂ¡sico para sticky */
   }
 }
 .do-close:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
 }
+

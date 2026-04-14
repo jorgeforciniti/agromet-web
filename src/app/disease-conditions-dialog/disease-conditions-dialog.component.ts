@@ -48,6 +48,8 @@ interface SummaryItem {
   tone: string;
 }
 
+const DISEASES_REQUIRING_LEAF_WETNESS = new Set([1, 2, 3, 4, 5, 9, 10, 11, 14, 15, 16]);
+
 const DISEASE_DATE_FORMATS = {
   parse: {
     dateInput: 'DD/MM/YYYY',
@@ -160,6 +162,14 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   isLoading = false;
   readonly diseaseGroups = DISEASE_GROUPS;
 
+  get selectedStationData(): WeatherStation | undefined {
+    return this.stations.find(station => station.Identificacion === this.selectedStation);
+  }
+
+  get hasLeafWetnessSensor(): boolean {
+    return this.flagEnabled(this.selectedStationData?.isSoil);
+  }
+
   constructor(
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<DiseaseConditionsDialogComponent>
@@ -183,6 +193,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         this.stations = [...stations]
           .filter(st => st.Identificacion !== '20')
           .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        this.ensureDiseaseSelectionIsValid();
         this.loadReport();
       },
       error: () => {
@@ -202,6 +213,12 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const disease = this.selectedDisease;
     const fromDate = this.coerceDate(this.fromDate);
     const toDate = this.coerceDate(this.toDate);
+
+    if (!this.isDiseaseAvailableForStation(Number(disease), station)) {
+      this.resetReport();
+      this.loadError = 'La estación seleccionada no cuenta con sensor de humedad foliar para evaluar esa enfermedad.';
+      return;
+    }
 
     if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime()) || fromDate > toDate) {
       this.resetReport();
@@ -384,10 +401,48 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     return row.date;
   }
 
+  onStationChange(): void {
+    this.ensureDiseaseSelectionIsValid();
+  }
+
+  isDiseaseOptionDisabled(diseaseCode: number): boolean {
+    return !this.isDiseaseAvailableForStation(diseaseCode, this.selectedStation);
+  }
+
   private resetReport(): void {
     this.rows = [];
     this.columns = [];
     this.summaryItems = [];
+  }
+
+  private ensureDiseaseSelectionIsValid(): void {
+    const currentCode = Number(this.selectedDisease);
+    if (this.isDiseaseAvailableForStation(currentCode, this.selectedStation)) {
+      return;
+    }
+
+    const fallback = this.diseaseGroups
+      .flatMap(group => group.options)
+      .find(option => this.isDiseaseAvailableForStation(option.code, this.selectedStation));
+
+    if (fallback) {
+      this.selectedDisease = fallback.code;
+    }
+  }
+
+  private isDiseaseAvailableForStation(diseaseCode: number, stationId: string): boolean {
+    const station = this.stations.find(item => item.Identificacion === stationId);
+    const hasLeafWetnessSensor = this.flagEnabled(station?.isSoil);
+
+    if (DISEASES_REQUIRING_LEAF_WETNESS.has(diseaseCode) && !hasLeafWetnessSensor) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private flagEnabled(value: number | string | undefined): boolean {
+    return String(value ?? '0') === '1';
   }
 
   private getColumns(diseaseCode: number): DiseaseColumn[] {

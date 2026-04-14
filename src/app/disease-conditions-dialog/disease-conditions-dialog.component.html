@@ -19,7 +19,7 @@
       <div class="native-grid">
         <div class="native-field">
           <label for="disease-station">Estacion</label>
-          <select id="disease-station" name="station" [(ngModel)]="selectedStation" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
+          <select id="disease-station" name="station" [(ngModel)]="selectedStation" (ngModelChange)="onStationChange()" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
             <option *ngFor="let station of stations" [ngValue]="station.Identificacion">
               {{ station.Identificacion }} - {{ station.nombre }}
             </option>
@@ -30,7 +30,7 @@
           <label for="disease-code">Enfermedad</label>
           <select id="disease-code" name="disease" [(ngModel)]="selectedDisease" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
             <optgroup *ngFor="let group of diseaseGroups" [label]="group.label">
-              <option *ngFor="let option of group.options" [ngValue]="option.code">
+              <option *ngFor="let option of group.options" [ngValue]="option.code" [disabled]="isDiseaseOptionDisabled(option.code)">
                 {{ option.label }}
               </option>
             </optgroup>
@@ -53,6 +53,11 @@
         </button>
       </div>
     </form>
+
+    <p class="disease-note" *ngIf="!hasLeafWetnessSensor">
+      <mat-icon>info</mat-icon>
+      La estación seleccionada no tiene sensor de humedad foliar. Solo se habilitan enfermedades que no dependen de ese sensor.
+    </p>
 
     <div class="disease-summary" *ngIf="rows.length">
       <div class="disease-summary__card">

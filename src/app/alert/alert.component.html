@@ -98,6 +98,32 @@
         </div>
       </div>
     </div>
+
+    <div class="special-alerts special-alerts--embedded" *ngIf="showRainAlert || showFrostAlert">
+      <div class="special-alerts__header">
+        <div class="special-alerts__title">
+          <mat-icon>notifications</mat-icon>
+          Accesos especiales
+        </div>
+        <div class="special-alerts__hint">Monitoreo puntual de lluvia y helada dentro del mismo panel de alertas.</div>
+      </div>
+
+      <div class="alert-btn-group">
+        <button *ngIf="showRainAlert" mat-raised-button class="alert-btn rain-alert" (click)="openRainDialog()">
+          <mat-icon>umbrella</mat-icon>
+          Aviso de lluvia
+        </button>
+
+        <button
+          *ngIf="showFrostAlert"
+          mat-raised-button
+          [ngClass]="['alert-btn', 'frost-alert', getFrostClass(frostAlertLevel)]"
+          (click)="openFrostDialog()">
+          <mat-icon>ac_unit</mat-icon>
+          Aviso de helada
+        </button>
+      </div>
+    </div>
   </div>
 
   <div *ngFor="let t of tempExtremes" class="temp-banner" [ngClass]="getTempClass(t.level)">
@@ -105,29 +131,4 @@
     <span class="banner-text">{{ composeBannerText(t) }}</span>
   </div>
 
-  <div class="special-alerts" *ngIf="showRainAlert || showFrostAlert">
-    <div class="special-alerts__header">
-      <div class="special-alerts__title">
-        <mat-icon>notifications</mat-icon>
-        Avisos especiales
-      </div>
-      <div class="special-alerts__hint">Accesos directos a monitoreo puntual de lluvia y helada.</div>
-    </div>
-
-    <div class="alert-btn-group">
-      <button *ngIf="showRainAlert" mat-raised-button class="alert-btn rain-alert" (click)="openRainDialog()">
-        <mat-icon>umbrella</mat-icon>
-        Aviso de lluvia
-      </button>
-
-      <button
-        *ngIf="showFrostAlert"
-        mat-raised-button
-        [ngClass]="['alert-btn', 'frost-alert', getFrostClass(frostAlertLevel)]"
-        (click)="openFrostDialog()">
-        <mat-icon>ac_unit</mat-icon>
-        Aviso de helada
-      </button>
-    </div>
-  </div>
 </div>

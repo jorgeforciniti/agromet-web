@@ -87,6 +87,21 @@ interface WeatherSummaryRecord {
   tempMaxMedia: number;
   tempMinMedia: number;
   amplitudTermica: number;
+  diasHelada: number;
+  horasHelada: number;
+  horasTMenor18: number;
+  horasTMayor32: number;
+  humedadMaxAbs: number;
+  humedadMinAbs: number;
+  humedadMaxMedia: number;
+  humedadMinMedia: number;
+  amplitudHigrica: number;
+  horasMenor20: number;
+  horasMenor40: number;
+  horasMayor80: number;
+  horasMayor90: number;
+  horasHumedadHoja: number;
+  evapotranspiracion: number;
   lluvia: number;
   lluviaMaxDiaria: number;
   diasLluvia: number;
@@ -166,20 +181,6 @@ export class WeatherDashboardComponent implements OnInit {
   truncatedDiaryData: WeatherDiaryRecord[] = [];
   showLimitMessage = false;
 
-  displayedColumns: string[] = [
-    'fecha',
-    'temp_max',
-    'temp_min',
-    'HR_max',
-    'HR_min',
-    'rr_24',
-    'viento_medio',
-    'viento_max',
-    'rad_solar_media',
-    'et',
-    'hum_hoja_hs'
-  ];
-
   chartConfig: ChartConfiguration<'line' | 'bar', number[], string> = {
     type: 'line',
     data: { labels: [], datasets: [] },
@@ -198,6 +199,41 @@ export class WeatherDashboardComponent implements OnInit {
     et: false,
     humHoja: false
   };
+
+  get selectedStationData(): WeatherStation | undefined {
+    return this.stations.find(station => station.Identificacion === this.weatherForm?.value?.station);
+  }
+
+  get hasLeafWetnessSensor(): boolean {
+    return this.flagEnabled(this.selectedStationData?.isSoil);
+  }
+
+  get hasRadiationSensor(): boolean {
+    return this.flagEnabled(this.selectedStationData?.isRadiation);
+  }
+
+  get visibleDisplayedColumns(): string[] {
+    const columns = [
+      'fecha',
+      'temp_max',
+      'temp_min',
+      'HR_max',
+      'HR_min',
+      'rr_24',
+      'viento_medio',
+      'viento_max'
+    ];
+
+    if (this.hasRadiationSensor) {
+      columns.push('rad_solar_media', 'et');
+    }
+
+    if (this.hasLeafWetnessSensor) {
+      columns.push('hum_hoja_hs');
+    }
+
+    return columns;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -258,6 +294,7 @@ export class WeatherDashboardComponent implements OnInit {
         this.weatherForm.patchValue({
           station: initialStation.Identificacion
         });
+        this.syncVariableAvailability();
       }
     } catch (error) {
       console.error('Error loading stations:', error);
@@ -311,6 +348,8 @@ export class WeatherDashboardComponent implements OnInit {
   }
 
   public setupCharts(): void {
+    this.syncVariableAvailability();
+
     const labels = this.diaryData.map(d => d.fecha);
     const datasets: ChartDataset<'line' | 'bar', number[]>[] = [];
 
@@ -540,6 +579,25 @@ export class WeatherDashboardComponent implements OnInit {
     if (tab === 'charts' && this.diaryData.length > 0) {
       setTimeout(() => this.setupCharts(), 50);
     }
+  }
+
+  onStationChange(): void {
+    this.syncVariableAvailability();
+  }
+
+  private syncVariableAvailability(): void {
+    if (!this.hasRadiationSensor) {
+      this.selectedVariables.radSolar = false;
+      this.selectedVariables.et = false;
+    }
+
+    if (!this.hasLeafWetnessSensor) {
+      this.selectedVariables.humHoja = false;
+    }
+  }
+
+  private flagEnabled(value: number | string | undefined): boolean {
+    return String(value ?? '0') === '1';
   }
 
   getTabName(tabKey: string): string {

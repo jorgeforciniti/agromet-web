@@ -22,6 +22,8 @@ export interface WeatherStation {
   totalLluvia?: string;
   minimaTemperatura?: string;
   tiempo?: string;
+  isSoil?: number | string;
+  isRadiation?: number | string;
 }
 
 export interface WeatherAlertStation extends WeatherStation {

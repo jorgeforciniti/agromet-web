@@ -353,6 +353,11 @@
   .alert-columns {
     grid-template-columns: 1fr;
   }
+
+  .special-alerts__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 760px) {
@@ -415,10 +420,18 @@
   padding: 14px 16px;
 }
 
+.special-alerts--embedded {
+  margin-top: 16px;
+  border-style: dashed;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), color-mix(in srgb, var(--mod-alert) 4%, white));
+}
+
 .special-alerts__header {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-bottom: 12px;
 }
 
@@ -433,6 +446,7 @@
 .special-alerts__hint {
   color: var(--muted);
   font-size: .9rem;
+  max-width: 48ch;
 }
 
 .alert-btn-group {
