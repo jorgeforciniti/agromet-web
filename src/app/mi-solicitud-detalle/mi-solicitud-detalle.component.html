@@ -1,0 +1,270 @@
+<section class="detalle-page">
+  <div class="detalle-card">
+
+    <header class="page-head">
+      <div>
+        <div class="kicker">DETALLE DE SOLICITUD</div>
+        <h1>Seguimiento de solicitud</h1>
+        <p>Consulte el estado y los movimientos registrados para este pedido.</p>
+      </div>
+
+      <div class="head-actions">
+        <a routerLink="/mis-solicitudes" class="btn btn-secondary">Volver a mis solicitudes</a>
+        <a routerLink="/solicitudes" class="btn">Nueva solicitud</a>
+      </div>
+    </header>
+
+    <div class="loading" *ngIf="cargando">
+      Cargando detalle...
+    </div>
+
+    <div class="error-box" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <ng-container *ngIf="!cargando && !error && solicitud">
+
+      <section class="summary">
+        <div>
+          <div class="codigo">{{ solicitud.codigo_solicitud }}</div>
+          <h2>{{ servicioTexto() }}</h2>
+          <p>{{ solicitud.fecha_solicitud }}</p>
+        </div>
+
+        <span class="estado" [class]="'estado estado-' + solicitud.estado">
+          {{ estadoTexto(solicitud.estado) }}
+        </span>
+      </section>
+
+      <section class="bloque">
+        <h3>Datos del solicitante</h3>
+
+        <div class="grid">
+          <div>
+            <strong>Nombre</strong>
+            <span>{{ solicitud.solicitante_nombre }}</span>
+          </div>
+
+          <div>
+            <strong>Email</strong>
+            <span>{{ solicitud.solicitante_email }}</span>
+          </div>
+
+          <div>
+            <strong>Institucion / Empresa</strong>
+            <span>{{ solicitud.solicitante_institucion || 'No indicada' }}</span>
+          </div>
+
+          <div>
+            <strong>CUIT</strong>
+            <span>{{ solicitud.solicitante_cuit || 'No indicado' }}</span>
+          </div>
+
+          <div>
+            <strong>Condición IVA</strong>
+            <span>{{ solicitud.solicitante_condicion_iva || 'No indicada' }}</span>
+          </div>
+
+          <div>
+            <strong>Area / Seccion</strong>
+            <span>{{ solicitud.solicitante_area || 'No indicada' }}</span>
+          </div>
+
+          <div>
+            <strong>Telefono</strong>
+            <span>{{ solicitud.solicitante_telefono || 'No indicado' }}</span>
+          </div>
+
+          <div>
+            <strong>Origen</strong>
+            <span>{{ solicitud.origen }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h3>Detalle del pedido</h3>
+
+        <div class="grid">
+          <div>
+            <strong>Tipo de solicitud</strong>
+            <span>{{ solicitud.tipo_solicitud }}</span>
+          </div>
+
+          <div>
+            <strong>Prioridad</strong>
+            <span>{{ solicitud.prioridad }}</span>
+          </div>
+
+          <div>
+            <strong>Servicio solicitado</strong>
+            <span>{{ servicioTexto() }}</span>
+          </div>
+
+          <div>
+            <strong>Localidad / zona</strong>
+            <span>{{ solicitud.localidad_zona || 'No indicada' }}</span>
+          </div>
+
+          <div>
+            <strong>Fecha desde</strong>
+            <span>{{ solicitud.fecha_desde || 'No indicada' }}</span>
+          </div>
+
+          <div>
+            <strong>Fecha hasta</strong>
+            <span>{{ solicitud.fecha_hasta || 'No indicada' }}</span>
+          </div>
+        </div>
+
+        <div class="descripcion">
+          <strong>Descripcion</strong>
+          <p>{{ solicitud.descripcion }}</p>
+        </div>
+
+        <div class="descripcion" *ngIf="solicitud.finalidad">
+          <strong>Finalidad</strong>
+          <p>{{ solicitud.finalidad }}</p>
+        </div>
+      </section>
+
+      <section class="bloque" *ngIf="solicitud.estado_pago && solicitud.estado_pago !== 'no_aplica'">
+        <h3>Información de pago</h3>
+
+        <div class="grid">
+          <div>
+            <strong>Estado de pago</strong>
+            <span>{{ solicitud.estado_pago }}</span>
+          </div>
+
+          <div>
+            <strong>Fecha límite de pago</strong>
+            <span>{{ solicitud.fecha_limite_pago || 'No indicada' }}</span>
+          </div>
+        </div>
+
+        <div class="descripcion" *ngIf="solicitud.instrucciones_pago">
+          <strong>Instrucciones de pago</strong>
+          <p>{{ solicitud.instrucciones_pago }}</p>
+        </div>
+
+        <div class="comprobante-box" *ngIf="puedeSubirComprobante()">
+          <h4>Cargar comprobante de pago</h4>
+
+          <p>
+            Suba el comprobante para que Agrometeorologia pueda verificar el pago y continuar con el proceso.
+          </p>
+
+          <label>
+            Archivo PDF, JPG o PNG
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onArchivoComprobanteSeleccionado($event)">
+          </label>
+
+          <label>
+            Comentario opcional
+            <textarea rows="3" [(ngModel)]="descripcionComprobante"></textarea>
+          </label>
+
+          <button type="button" (click)="subirComprobante()" [disabled]="subiendoComprobante">
+            {{ subiendoComprobante ? 'Subiendo...' : 'Subir comprobante' }}
+          </button>
+
+          <div class="ok-msg" *ngIf="mensajeComprobante">
+            {{ mensajeComprobante }}
+          </div>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h3>Fechas de gestion</h3>
+
+        <div class="grid">
+          <div>
+            <strong>Inicio de elaboracion</strong>
+            <span>{{ solicitud.fecha_inicio || 'Pendiente' }}</span>
+          </div>
+
+          <div>
+            <strong>Finalizacion</strong>
+            <span>{{ solicitud.fecha_finalizacion || 'Pendiente' }}</span>
+          </div>
+
+          <div>
+            <strong>Entrega</strong>
+            <span>{{ solicitud.fecha_entrega || 'Pendiente' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="bloque" *ngIf="solicitud.respuesta_entregada || adjuntos.length > 0">
+        <h3>Respuesta entregada</h3>
+
+        <div class="descripcion" *ngIf="solicitud.respuesta_entregada">
+          <strong>Respuesta</strong>
+          <p>{{ solicitud.respuesta_entregada }}</p>
+        </div>
+
+        <div class="documentos-principales" *ngIf="documentosPrincipales().length > 0">
+          <h4>Documentación disponible</h4>
+
+          <article class="documento-principal" *ngFor="let a of documentosPrincipales()">
+            <div>
+              <strong>{{ tipoAdjuntoTexto(a.tipo) }}</strong>
+              <span>{{ a.nombre_original }}</span>
+              <p *ngIf="a.descripcion">{{ a.descripcion }}</p>
+            </div>
+
+            <button type="button" (click)="descargarAdjunto(a)">
+              Descargar
+            </button>
+          </article>
+        </div>
+
+        <div class="adjuntos" *ngIf="otrosAdjuntosVisibles().length > 0">
+          <h4>Otros archivos disponibles</h4>
+
+          <article class="adjunto" *ngFor="let a of otrosAdjuntosVisibles()">
+            <div>
+              <strong>{{ a.nombre_original }}</strong>
+              <span>{{ tipoAdjuntoTexto(a.tipo) }} · {{ a.fecha_subida }}</span>
+              <p *ngIf="a.descripcion">{{ a.descripcion }}</p>
+            </div>
+
+            <button type="button" (click)="descargarAdjunto(a)">
+              Descargar
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h3>Historial</h3>
+
+        <div class="empty" *ngIf="movimientos.length === 0">
+          No hay movimientos registrados.
+        </div>
+
+        <div class="timeline" *ngIf="movimientos.length > 0">
+          <article class="mov" *ngFor="let m of movimientos">
+            <div class="dot"></div>
+
+            <div>
+              <strong>{{ m.fecha_movimiento }}</strong>
+
+              <p *ngIf="m.estado_nuevo">
+                Estado:
+                <span>{{ m.estado_anterior || 'sin estado anterior' }}</span>
+                →
+                <span>{{ m.estado_nuevo }}</span>
+              </p>
+
+              <p>{{ m.comentario }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </ng-container>
+
+  </div>
+</section>

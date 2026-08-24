@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
@@ -231,7 +231,7 @@ class WindLegendControl extends L.Control {
   templateUrl: './leaflet-goes-viewer.component.html',
   styleUrls: ['./leaflet-goes-viewer.component.css']
 })
-export class LeafletGoesViewerComponent implements OnInit {
+export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   private map: L.Map | undefined;
   private baseLayer: L.ImageOverlay | L.GeoJSON | L.TileLayer | undefined;
   private baseMapLayer: L.TileLayer | undefined; // Mapa base
@@ -243,9 +243,17 @@ export class LeafletGoesViewerComponent implements OnInit {
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
   public loadingGifUrl: string = 'assets/icons/ZKZg.gif';
+  public radarIsPlaying: boolean = true;
+  public radarFrameDelay: number = 900;
+  public radarHasRecentEchoes: boolean | null = null;
   private stationsLayer: L.GeoJSON | undefined;
   public selectedStationId: string | null = null;
   private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
+  private rainViewerHost: string = '';
+  private rainViewerPath: string = '';
+  private rainViewerFrames: Array<{ time: number; path: string }> = [];
+  private rainViewerAnimationIndex: number = 0;
+  private rainViewerAnimationTimer?: ReturnType<typeof setInterval>;
 
   private redIcon = L.icon({
     iconUrl: 'assets/icons/red-marker.png',
@@ -350,6 +358,10 @@ export class LeafletGoesViewerComponent implements OnInit {
     setTimeout(() => {
       this.map?.invalidateSize();
     }, 200);
+  }
+
+  ngOnDestroy(): void {
+    this.stopRainViewerAnimation();
   }
 
   private async loadStations(): Promise<void> {
@@ -524,6 +536,10 @@ export class LeafletGoesViewerComponent implements OnInit {
 
   public setLayer(layerKey: string): void {
     this.selectedLayer = layerKey;
+    if (layerKey !== 'radar_lluvia') {
+      this.stopRainViewerAnimation();
+      this.radarHasRecentEchoes = null;
+    }
     this.loadLatestData();
 
     // 👉 Ocultar estaciones solo para “incendios”
@@ -560,6 +576,7 @@ export class LeafletGoesViewerComponent implements OnInit {
   private async loadLatestData(): Promise<void> {
     this.isLoading = true;
     this.errorMessage = null;
+    this.stopRainViewerAnimation();
 
     // Remover la capa anterior inmediatamente
     if (this.baseLayer && this.map) {
@@ -593,6 +610,11 @@ export class LeafletGoesViewerComponent implements OnInit {
       }
 
       if (layer.isTileLayer) {
+        if (this.selectedLayer === 'radar_lluvia') {
+          await this.startRainViewerAnimation(layer.attribution);
+          return;
+        }
+
         this.displayTileLayer(layer.url(currentDate, ''), layer.attribution, currentDate);
         return;
       }
@@ -614,6 +636,205 @@ export class LeafletGoesViewerComponent implements OnInit {
     const MM = String(now.getUTCMonth() + 1).padStart(2, '0');
     const dd = String(now.getUTCDate()).padStart(2, '0');
     return `${yyyy}${MM}${dd}`;
+  }
+
+  public toggleRainViewerAnimation(): void {
+    if (this.selectedLayer !== 'radar_lluvia') return;
+
+    if (this.radarIsPlaying) {
+      this.stopRainViewerAnimation(false);
+      return;
+    }
+
+    this.radarIsPlaying = true;
+    this.resumeRainViewerAnimation();
+  }
+
+  public setRainViewerSpeed(delay: number | string): void {
+    this.radarFrameDelay = Number(delay);
+    if (this.selectedLayer === 'radar_lluvia' && this.radarIsPlaying) {
+      this.resumeRainViewerAnimation();
+    }
+  }
+
+  private async loadRainViewerFrames(): Promise<Array<{ time: number; path: string }>> {
+    const apiUrl = 'https://api.rainviewer.com/public/weather-maps.json';
+    const data = await firstValueFrom(this.http.get<any>(apiUrl));
+
+    const host = data?.host;
+    const frames = data?.radar?.past ?? [];
+
+    if (!host || !frames.length) {
+      throw new Error('RainViewer no devolvió frames de radar');
+    }
+
+    const lastFrame = frames[frames.length - 1];
+    this.rainViewerHost = host;
+    this.rainViewerPath = lastFrame.path;
+
+    return frames.slice(-8).map((frame: { time: number; path: string }) => ({
+      time: frame.time,
+      path: frame.path
+    }));
+  }
+
+  private buildRainViewerTileUrl(path: string): string {
+    return `${this.rainViewerHost}${path}/256/{z}/{x}/{y}/2/1_1.png`;
+  }
+
+  private async startRainViewerAnimation(attribution: string): Promise<void> {
+    this.rainViewerFrames = await this.loadRainViewerFrames();
+    this.radarHasRecentEchoes = null;
+
+    if (!this.rainViewerFrames.length) {
+      throw new Error('RainViewer no devolvió frames de radar');
+    }
+
+    this.rainViewerAnimationIndex = this.rainViewerFrames.length - 1;
+    this.radarIsPlaying = true;
+    this.renderRainViewerFrame(attribution);
+    this.map?.fitBounds(this.focusBounds);
+    this.evaluateRainViewerEchoes();
+
+    if (this.rainViewerFrames.length === 1) {
+      this.radarIsPlaying = false;
+      return;
+    }
+
+    this.resumeRainViewerAnimation();
+  }
+
+  private renderRainViewerFrame(attribution: string): void {
+    const frame = this.rainViewerFrames[this.rainViewerAnimationIndex];
+    if (!frame) return;
+
+    this.currentDateTime = this.formatUnixTimestamp(frame.time);
+    this.updateTileLayer(this.buildRainViewerTileUrl(frame.path), attribution);
+    this.isLoading = false;
+
+    if (this.legend && this.map) {
+      this.map.removeControl(this.legend);
+      this.legend = undefined;
+    }
+  }
+
+  private resumeRainViewerAnimation(): void {
+    this.stopRainViewerAnimation(false);
+
+    if (!this.radarIsPlaying || this.rainViewerFrames.length <= 1) {
+      return;
+    }
+
+    this.rainViewerAnimationTimer = setInterval(() => {
+      this.rainViewerAnimationIndex =
+        (this.rainViewerAnimationIndex + 1) % this.rainViewerFrames.length;
+      this.renderRainViewerFrame('RainViewer');
+    }, this.radarFrameDelay);
+  }
+
+  private stopRainViewerAnimation(resetPlayState: boolean = true): void {
+    if (this.rainViewerAnimationTimer) {
+      clearInterval(this.rainViewerAnimationTimer);
+      this.rainViewerAnimationTimer = undefined;
+    }
+
+    if (resetPlayState) {
+      this.radarIsPlaying = false;
+    }
+  }
+
+  private formatUnixTimestamp(unixTime: number): string {
+    const date = new Date(unixTime * 1000);
+    const dd = String(date.getUTCDate()).padStart(2, '0');
+    const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const yyyy = date.getUTCFullYear();
+    const hh = String(date.getUTCHours()).padStart(2, '0');
+    const min = String(date.getUTCMinutes()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min} UTC`;
+  }
+
+  private async evaluateRainViewerEchoes(): Promise<void> {
+    try {
+      this.radarHasRecentEchoes = await this.detectRainViewerEchoesInFocusArea();
+    } catch {
+      this.radarHasRecentEchoes = null;
+    }
+  }
+
+  private async detectRainViewerEchoesInFocusArea(): Promise<boolean> {
+    const framesToCheck = this.rainViewerFrames.slice(-4);
+    const bounds = this.focusBounds;
+    const samplePoints = [
+      bounds.getCenter(),
+      bounds.getNorthWest(),
+      bounds.getNorthEast(),
+      bounds.getSouthWest(),
+      bounds.getSouthEast()
+    ];
+    const zoom = 6;
+
+    for (const frame of framesToCheck) {
+      for (const point of samplePoints) {
+        const { x, y } = this.latLngToTile(point.lat, point.lng, zoom);
+        const tileUrl = `${this.rainViewerHost}${frame.path}/256/${zoom}/${x}/${y}/2/1_1.png`;
+        const hasEcho = await this.tileHasVisibleRadar(tileUrl);
+        if (hasEcho) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number } {
+    const latRad = (lat * Math.PI) / 180;
+    const n = Math.pow(2, zoom);
+    const x = Math.floor(((lng + 180) / 360) * n);
+    const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n);
+    return { x, y };
+  }
+
+  private tileHasVisibleRadar(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+
+          if (!ctx) {
+            resolve(false);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0);
+          const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          let opaquePixels = 0;
+
+          for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 24) {
+              opaquePixels += 1;
+              if (opaquePixels > 50) {
+                resolve(true);
+                return;
+              }
+            }
+          }
+
+          resolve(false);
+        } catch {
+          resolve(false);
+        }
+      };
+
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
   }
 
   public getColorForTemperature(temperature: number): string {
@@ -714,6 +935,11 @@ export class LeafletGoesViewerComponent implements OnInit {
       this.addPrecipitationLegend();
     } else if (this.selectedLayer === 'vientos') {
       this.addWindLegend();
+    } else if (this.selectedLayer === 'radar_lluvia') {
+      if (this.legend && this.map) {
+        this.map.removeControl(this.legend);
+        this.legend = undefined;
+      }
     } else if (this.legend && this.map) {
       this.map.removeControl(this.legend);
       this.legend = undefined;
@@ -838,12 +1064,19 @@ export class LeafletGoesViewerComponent implements OnInit {
       this.map?.removeLayer(this.baseLayer);
     }
 
-    this.baseLayer = L.tileLayer(url, {
+    const tileOptions: L.TileLayerOptions = {
       attribution: attribution,
       opacity: 1,
       maxZoom: 18,
       pane: 'overlayPane'
-    });
+    };
+
+    if (this.selectedLayer === 'radar_lluvia') {
+      tileOptions.maxNativeZoom = 7;
+      tileOptions.maxZoom = 18;
+    }
+
+    this.baseLayer = L.tileLayer(url, tileOptions);
 
     this.baseLayer.on('error', () => {
       this.errorMessage = 'Error al cargar la capa';

@@ -1,0 +1,417 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+:host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
+  width: min(1400px, 97vw) !important;
+  max-width: 97vw !important;
+  height: 95vh !important;
+  max-height: 95vh !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+:host ::ng-deep .do-dialog .mat-mdc-dialog-content {
+  height: 100% !important;
+  max-height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  background: transparent !important;
+}
+
+.phenology-dialog {
+  padding: 0;
+  margin: 0;
+}
+
+.phenology-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--mod-stats) 14%, transparent), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99));
+}
+
+.dialog-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+}
+
+.dialog-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
+  background: rgba(255,255,255,.92);
+  color: color-mix(in srgb, var(--mod-stats) 66%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.titulo {
+  margin: 8px 0 6px;
+  font-size: 1.3rem;
+  line-height: 1.08;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.dialog-lead {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--muted);
+  line-height: 1.42;
+  font-size: .98rem;
+}
+
+.close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.close-btn:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+.close-btn:focus-visible,
+.search-button:focus-visible,
+.kc-toggle:focus-within {
+  outline: 3px solid color-mix(in srgb, var(--mod-stats) 18%, white);
+  outline-offset: 2px;
+}
+
+.phenology-form,
+.phenology-note,
+.phenology-error,
+.phenology-summary,
+.chart-card,
+.table-wrapper {
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  border-radius: 18px;
+  background: rgba(255,255,255,.88);
+  box-shadow: var(--shadow-sm);
+}
+
+.phenology-form {
+  padding: 14px;
+}
+
+.phenology-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.35fr) minmax(170px, .8fr) minmax(280px, 1.25fr) minmax(180px, .8fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.kc-toggle {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.95));
+  color: var(--text);
+  font-weight: 700;
+}
+
+.kc-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: color-mix(in srgb, var(--mod-stats) 80%, #2563eb);
+}
+
+.search-button {
+  min-height: 52px;
+  border-radius: 12px;
+  font-weight: 800;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.stage-editor {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.stage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
+}
+
+.stage-card > * {
+  height: auto;
+  min-height: 0;
+}
+
+.stage-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.stage-index {
+  color: color-mix(in srgb, var(--mod-stats) 68%, #475467);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.stage-card strong {
+  color: var(--text);
+  font-size: .98rem;
+  line-height: 1.2;
+}
+
+.phenology-note,
+.phenology-error {
+  margin: 0;
+  padding: 10px 12px;
+  display: inline-flex;
+  align-items: start;
+  gap: 8px;
+  color: var(--muted);
+  line-height: 1.38;
+}
+
+.phenology-error {
+  color: #991b1b;
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.phenology-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.summary-card {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+}
+
+.summary-card--warn {
+  border-color: rgba(220, 38, 38, .25);
+  background: linear-gradient(180deg, rgba(255,245,245,.98), rgba(255,250,250,.95));
+}
+
+.summary-card span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.summary-card strong {
+  color: var(--text);
+  font-size: .96rem;
+  font-weight: 900;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.chart-card {
+  padding: 12px;
+}
+
+.chart-card__header h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.chart-card__header p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.chart-container {
+  height: 300px;
+}
+
+.table-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.phenology-table {
+  width: 100%;
+  min-width: 1200px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.phenology-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #111827;
+  color: #fff;
+  font-weight: 900;
+}
+
+.phenology-table th,
+.phenology-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.phenology-table tbody td {
+  color: var(--text);
+  font-weight: 700;
+  background: rgba(255,255,255,.88);
+}
+
+.phenology-table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.balance-negative {
+  color: #b91c1c !important;
+}
+
+:host ::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-floating-label {
+  color: rgba(17,24,39,.70) !important;
+  font-weight: 700;
+}
+
+:host ::ng-deep .mat-mdc-form-field .mdc-text-field__input,
+:host ::ng-deep .mat-mdc-form-field select {
+  color: rgba(17,24,39,.92) !important;
+  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+  font-weight: 700;
+}
+
+:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+:host ::ng-deep .mat-mdc-text-field-wrapper {
+  min-height: 52px !important;
+}
+
+:host ::ng-deep .mat-mdc-form-field-infix {
+  min-height: 52px !important;
+  padding-top: 14px !important;
+  padding-bottom: 10px !important;
+}
+
+@media (max-width: 1100px) {
+  .phenology-grid,
+  .phenology-summary,
+  .chart-grid,
+  .stage-editor {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  :host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    height: 96vh !important;
+    max-height: 96vh !important;
+    border-radius: 18px !important;
+  }
+
+  .phenology-shell {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .dialog-header {
+    gap: 10px;
+    padding-bottom: 8px;
+  }
+
+  .dialog-eyebrow {
+    min-height: 24px;
+    padding: 0 10px;
+    font-size: .68rem;
+  }
+
+  .titulo {
+    margin: 6px 0 4px;
+    font-size: 1.1rem;
+  }
+
+  .dialog-lead {
+    font-size: .9rem;
+    line-height: 1.32;
+  }
+
+  .phenology-grid,
+  .phenology-summary,
+  .chart-grid,
+  .stage-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .phenology-form,
+  .chart-card {
+    padding: 10px;
+  }
+
+  .chart-container {
+    height: 260px;
+  }
+
+  .phenology-table {
+    min-width: 980px;
+  }
+}

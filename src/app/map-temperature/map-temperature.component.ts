@@ -16,7 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { finalize } from 'rxjs/operators';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { NativeDateAdapter } from '@angular/material/core';
 import { Injectable } from '@angular/core';
@@ -282,21 +282,42 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     const diffTime = hastaDate.getTime() - desdeDate.getTime();
     const totalDias = Math.floor(diffTime / (1000 * 3600 * 24)) + 1;
 
-    this.weatherService.getTMinMax<TemperatureData>(desde, hasta).subscribe({
-      next: (res) => {
-        if (res.status === 'success' && res.data) {
+    this.weatherService.getTMinMax<TemperatureData>(desde, hasta)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (res) => {
+          if (res.status !== 'success' || !res.data?.length) {
+            this.errorMessage = 'Sin datos para el período seleccionado.';
+            return;
+          }
+
           const data: TemperatureData[] = res.data.filter(d => {
-            // Solo aplicar filtro para temperaturas absolutas
+            const raw = d[variable];
+
+            // Convertimos a número (sirve si viene string)
+            const value = raw == null ? NaN : Number(raw);
+
+            // Si no es un número válido, descartamos
+            if (!Number.isFinite(value)) return false;
+
+            // Solo filtrar rango en ABS (como ya hacías)
             if (variable === 'abs_min_temp' || variable === 'abs_max_temp') {
-              const value = d[variable] as number;
-              return value >= -25 && value <= 50 && value != null; // Filtramos valores fuera de rango
+              return value >= -25 && value <= 50;
             }
-            return true; // Mantenemos todos los datos para otras variables
+
+            return true;
           });
+
           data.forEach((d: TemperatureData) => {
-            const value = d[variable] as number;
+            const raw = d[variable];
+            const value = raw == null ? NaN : Number(raw);
+
+            // Guardas extra
+            if (!Number.isFinite(value)) return;
+            if (!Number.isFinite(d.lat) || !Number.isFinite(d.lon)) return;
+
             const color = this.getColor(value);
-            const varLabel = this.variables.find(v => v.key === variable)!.label;
+            const varLabel = this.variables.find(v => v.key === variable)?.label ?? variable;
 
             const countRecords = Number(d['count_records']) || 0;
             const recordsColor = this.getRecordsColor(countRecords, totalDias);
@@ -307,20 +328,28 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
               color: '#333',
               weight: 1,
               fillOpacity: 0.9
-            }).bindPopup(`<b>${d.nombre}</b><br><br>
-            <span style="padding: 2px 5px; border-radius: 3px;">${varLabel}: ${value.toFixed(1)}°C</span><br>
-            <span style="background: ${recordsColor}; padding: 2px 5px; border-radius: 3px;">Registros: ${countRecords} de ${totalDias}</span>
-          `)
+            })
+              .bindPopup(
+                `<b>${d.nombre}</b><br><br>
+             <span style="padding:2px 5px;border-radius:3px;">
+               ${varLabel}: ${value.toFixed(1)}°C
+             </span><br>
+             <span style="background:${recordsColor};padding:2px 5px;border-radius:3px;">
+               Registros: ${countRecords} de ${totalDias}
+             </span>`
+              )
               .addTo(this.layerGroup);
           });
+
+          // (Opcional) si querés centrar el mapa en los puntos:
+          // const bounds = L.latLngBounds(data.map(d => [d.lat, d.lon] as [number, number]));
+          // if (bounds.isValid()) this.map.fitBounds(bounds, { padding: [30, 30] });
+        },
+        error: (err) => {
+          console.error('Error en API:', err);
+          this.errorMessage = 'Error al consultar datos de temperatura.';
         }
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error en API:', error);
-        this.loading = false;
-      }
-    });
+      });
   }
 
   private getRecordsColor(count: number, totalDays: number): string {
@@ -369,6 +398,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
   }
 
   private getColor(temperature: number): string {
+    if (!Number.isFinite(temperature)) return 'rgb(128,128,128)'; // gris fallback
     // Escala fija desde -5°C a 40°C
     const clampedTemp = Math.max(-5, Math.min(35, temperature));
     const p = (clampedTemp + 5) / 40; // Normalizar a rango 0-1

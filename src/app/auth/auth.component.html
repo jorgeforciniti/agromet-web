@@ -10,20 +10,26 @@
       <h2>{{ isLoginMode ? 'Ingresar a tu cuenta' : 'Crear una cuenta' }}</h2>
       <p>
         {{ isLoginMode
-          ? 'Accede a tus herramientas y seguimientos personalizados.'
-          : 'Regístrate para guardar accesos y continuar tu trabajo.' }}
+        ? 'Accede a tus herramientas y seguimientos personalizados.'
+        : 'Regístrate para guardar accesos y continuar tu trabajo.' }}
       </p>
     </div>
 
     <form class="auth-form" [formGroup]="authForm" (ngSubmit)="onSubmit()">
       <label class="field-label" for="auth-email">Correo electrónico</label>
-      <input id="auth-email" type="email" formControlName="email" placeholder="nombre@dominio.com" autocomplete="username">
+      <input id="auth-email" type="email" formControlName="email" placeholder="nombre@dominio.com"
+        autocomplete="username">
 
       <label class="field-label" for="auth-password">Contraseña</label>
-      <input id="auth-password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+      <input id="auth-password" type="password" formControlName="password" placeholder="Mínimo 6 caracteres"
+        autocomplete="current-password">
 
       <button class="btn btn--primary" type="submit">
         {{ isLoginMode ? 'Ingresar' : 'Registrarme' }}
+      </button>
+      
+      <button *ngIf="isLoginMode" class="link-btn" type="button" (click)="forgotPassword()">
+        Olvidé mi contraseña
       </button>
     </form>
 
@@ -32,6 +38,8 @@
     </button>
 
     <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+    <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
 
     <button class="toggle-btn" type="button" (click)="toggleMode()">
       {{ isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}

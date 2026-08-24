@@ -9,6 +9,7 @@ import { InformesComponent } from '../informes/informes.component';
 import { LeafletGoesViewerComponent } from '../leaflet-goes-viewer/leaflet-goes-viewer.component';
 import { WeatherForecastComponent } from '../weather-forecast/weather-forecast.component';
 import { AlertComponent } from '../alert/alert.component';
+import { Router } from '@angular/router';
 
 type SummaryItem = {
   title: string;
@@ -38,11 +39,12 @@ type SummaryItem = {
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
+  constructor(private router: Router) { }
   readonly summaryCards: SummaryItem[] = [
     {
       title: 'Alertas y avisos',
       eyebrow: 'ESTADO ACTUAL',
-      subtitle: 'Avisos vigentes y seguimiento por región',
+      subtitle: 'Avisos vigentes del Servicio Meteorológico Nacional y seguimiento por región',
       icon: 'warning_amber',
       colorVar: 'var(--mod-alert)',
       actionLabel: 'Ver alertas',
@@ -68,13 +70,32 @@ export class HomeComponent {
     },
     {
       title: 'Informes agrometeorológicos',
-      eyebrow: 'PUBLICACIONES',
       subtitle: 'Boletines, reportes y publicaciones técnicas',
       icon: 'description',
       colorVar: 'var(--mod-reports)',
       actionLabel: 'Explorar',
       targetId: 'sec-informes'
     },
+/*
+  {
+      title: 'Solicitar información',
+      eyebrow: 'TRÁMITE FORMAL',
+      subtitle: 'Inicie un pedido formal de datos, informes o consultas técnicas',
+      icon: 'assignment',
+      colorVar: 'var(--mod-request)',
+      actionLabel: 'Solicitar',
+      targetId: 'ruta-solicitudes'
+    },
+    {
+      title: 'Mis solicitudes',
+      eyebrow: 'SEGUIMIENTO',
+      subtitle: 'Revise estados, pagos, respuestas y archivos entregados',
+      icon: 'fact_check',
+      colorVar: 'var(--mod-track)',
+      actionLabel: 'Consultar',
+      targetId: 'ruta-mis-solicitudes'
+    },
+*/
     {
       title: 'Mapas interactivos',
       eyebrow: 'HERRAMIENTAS',
@@ -90,6 +111,16 @@ export class HomeComponent {
   readonly quickSummaries: SummaryItem[] = this.summaryCards.slice(1);
 
   scrollTo(targetId: string) {
+    if (targetId === 'ruta-solicitudes') {
+      this.router.navigate(['/solicitudes']);
+      return;
+    }
+
+    if (targetId === 'ruta-mis-solicitudes') {
+      this.router.navigate(['/mis-solicitudes']);
+      return;
+    }
+
     const el = document.getElementById(targetId);
     if (!el) return;
 
@@ -98,4 +129,5 @@ export class HomeComponent {
     const absoluteY = rect.top + window.scrollY;
     window.scrollTo({ top: absoluteY - headerOffset, behavior: 'smooth' });
   }
+
 }

@@ -1,4 +1,4 @@
-  <div class="viewer-container">
+﻿  <div class="viewer-container">
     <h2 class="panel-title"><mat-icon>satellite_alt</mat-icon> Visor de Imágenes Satelitales</h2>
     <div class="controls">
       <div class="control-group">
@@ -19,7 +19,7 @@
           <mat-form-field appearance="outline" class="select-wrapper">
             <mat-label>Selecciona un mapa base</mat-label>
             <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="setBaseMap(selectedBaseMap)"
-              aria-label="Selección de mapa base">
+              aria-label="SelecciÃ³n de mapa base">
               <mat-option value="satellite">Satelital</mat-option>
               <mat-option value="osm">OSM Estándar</mat-option>
             </mat-select>
@@ -31,7 +31,7 @@
     <div class="map-wrapper">
       <div id="map"></div>
 
-      <!-- Overlay de carga - Versión mejorada -->
+      <!-- Overlay de carga - VersiÃ³n mejorada -->
       <div *ngIf="isLoading" class="loading-overlay">
         <div class="spinner-container">
           <div class="spinner"></div>

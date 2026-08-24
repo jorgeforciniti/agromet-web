@@ -1,22 +1,56 @@
-import { inject, Injectable } from '@angular/core';
-import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
-import { user } from 'rxfire/auth';
-import { Observable } from 'rxjs';
+import { inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
+import {
+  Auth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+  User,
+  user,
+  GoogleAuthProvider,
+  signInWithPopup
+} from '@angular/fire/auth';
+import { Observable, firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class AuthService {
-  
+
   private auth = inject(Auth); // ✅ en vez de usar constructor
+  private injector = inject(Injector);
 
   async login(email: string, password: string) {
-    return await signInWithEmailAndPassword(this.auth, email, password);
+    return await runInInjectionContext(this.injector, () =>
+      signInWithEmailAndPassword(this.auth, email, password)
+    );
   }
 
   async register(email: string, password: string) {
-    return await createUserWithEmailAndPassword(this.auth, email, password);
+    return await runInInjectionContext(this.injector, () =>
+      createUserWithEmailAndPassword(this.auth, email, password)
+    );
+  }
+
+  async resetPassword(email: string) {
+    return await runInInjectionContext(this.injector, () =>
+      sendPasswordResetEmail(this.auth, email)
+    );
+  }
+
+  async logout() {
+    return await runInInjectionContext(this.injector, () =>
+      signOut(this.auth)
+    );
+  }
+
+  async loginWithGoogle() {
+    const provider = new GoogleAuthProvider();
+
+    return await runInInjectionContext(this.injector, () =>
+      signInWithPopup(this.auth, provider)
+    );
   }
 
   // ✅ Devuelve un observable del usuario autenticado
@@ -24,8 +58,9 @@ export class AuthService {
     return user(this.auth);
   }
 
-  // ✅ Método para cerrar sesión
-  async logout() {
-    return await signOut(this.auth);
+  async getCurrentUser(): Promise<User | null> {
+    return await firstValueFrom(this.getUserObservable());
   }
+
+
 }

@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 import { OpenWeatherForecastItem, OpenWeatherForecastResponse, OpenWeatherNowResponse, WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
 import { SunriseSunsetService } from '../services/sunrise-sunset.service';
 import { WeatherData, Forecast, TimeSpecificForecast } from '../models/weather-data';
 import { FormsModule } from '@angular/forms';
@@ -58,115 +59,23 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
   rtUpdated: Date | null = null;
   rtStationName: string = '';
 
-  periodoEnCastellano(period: string): string {
-    switch (period) {
-      case 'early_morning': return 'Madrugada';
-      case 'morning': return 'Mañana';
-      case 'afternoon': return 'Tarde';
-      case 'night': return 'Noche';
-      default: return period;
-    }
-  }
-
-  private createTemperatureChart(): void {
-    if (!this.selectedDay) return;
-    const canvas = this.temperatureChartCanvas?.nativeElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    if (this.temperatureChart) {
-      this.temperatureChart.destroy();
-      this.temperatureChart = null;
-    }
-
-    const labels = this.selectedDay.intervals.map(interval => interval.hour);
-    const temperatures = this.selectedDay.intervals.map(interval => interval.temperature);
-
-
-    const lineColor = this.cssVar('--brand', '#6d28d9');
-    const textColor = this.cssVar('--text', '#111827');
-    const mutedColor = this.cssVar('--muted', '#6b7280');
-    const gridColor = 'rgba(17,24,39,.08)';
-
-    this.temperatureChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Temperatura',
-          data: temperatures,
-
-          borderColor: lineColor,
-          backgroundColor: lineColor + '22', // alpha suave (si no te gusta, lo cambiamos)
-          borderWidth: 2,
-
-          pointRadius: 2.5,
-          pointHoverRadius: 4,
-          pointBackgroundColor: lineColor,
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 1,
-
-          tension: 0.35,
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            ticks: {
-              color: mutedColor,
-              maxTicksLimit: 6,
-              font: { size: 11 }
-            },
-            grid: { color: gridColor }
-          },
-          y: {
-            ticks: {
-              color: mutedColor,
-              callback: (value) => {
-                const n = Number(value);
-                return isNaN(n) ? '' : n.toFixed(1);
-              }
-            },
-            grid: { color: gridColor }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          title: {
-            display: true,
-            text: 'Pronóstico de Temperatura Horaria (°C)',
-            color: textColor,
-            font: { weight: 700, size: 12 }
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.parsed.y.toFixed(1)} °C`
-            }
-          }
-        }
-      }
-    });
-  }
-
-  private cssVar(name: string, fallback: string) {
-    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return v || fallback;
-  }
-
   constructor(
     private weatherService: WeatherService,
     private sunriseSunsetService: SunriseSunsetService,
     private changeDetectorRef: ChangeDetectorRef,
-    private library: FaIconLibrary,
+    private stationService: StationService,
+    private library: FaIconLibrary
   ) {
     library.addIcons(faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faSun, faMoon, faEye);
   }
 
   ngOnInit() {
+    this.stationService.selectedStation$.subscribe(station => {
+      this.selectedStation = station;
+      if (station) {
+        this.updateStationData();
+      }
+    });
     this.loadStations();
   }
 
@@ -176,8 +85,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
 
 
   selectStation(station: WeatherStation): void {
-    this.selectedStation = station;
-    this.updateStationData();
+    this.stationService.setSelectedStation(station);
     this.stationSelected.emit(station.Identificacion);
   }
 
@@ -329,31 +237,18 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
     this.weatherService.getStations().subscribe({
       next: (data) => {
         this.stations = data;
-        const defaultStation = this.stations.find(
-          station => station.Identificacion === '2049' ||
-            station.nombre?.toLowerCase().includes('colmenar')
-        );
-        this.selectedStation = defaultStation || (this.stations.length > 0 ? this.stations[0] : null);
-        if (this.selectedStation) {
-          const lat = parseFloat(this.selectedStation.lat);
-          const lon = parseFloat(this.selectedStation.lon);
-          if (!isNaN(lat) && !isNaN(lon)) {
-            this.getWeatherForecast(lat, lon);
-            this.updateStationData();
-          } else {
-            this.error = 'Coordenadas inválidas para la estación por defecto.';
-            this.loading = false;
-          }
-        } else {
-          this.error = 'No hay estaciones disponibles o no se pudo seleccionar una por defecto.';
-          this.loading = false;
+        if (!this.stationService.getSelectedStation()) {
+          const defaultStation = this.stations.find(
+            station => station.Identificacion === '2049' ||
+              station.nombre?.toLowerCase().includes('colmenar')
+          );
+          const stationToSelect = defaultStation || (this.stations.length > 0 ? this.stations[0] : null);
+          this.stationService.setSelectedStation(stationToSelect);
         }
-        this.changeDetectorRef.detectChanges();
       },
       error: () => {
-        this.error = 'No se pudieron cargar las estaciones';
+        this.error = 'Error al cargar las estaciones';
         this.loading = false;
-        this.changeDetectorRef.detectChanges();
       }
     });
   }
@@ -375,7 +270,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
         speed: isNaN(rawSpeed) || rawSpeed > 390 ? undefined : rawSpeed
       };
       this.rtUpdated = this.selectedStation.fecha_I ? new Date(this.selectedStation.fecha_I) : null;
-      this.rtStationName = this.selectedStation.nombre || 'Estación desconocida';
+      this.rtStationName = this.selectedStation.nombre || 'EstaciÃ³n desconocida';
 
       this.getWeatherForecast(lat, lon);
       this.loadNowWeather(lat, lon);
@@ -406,7 +301,93 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
     });
   }
 
+  private cssVar(name: string, fallback: string) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  private createTemperatureChart(): void {
+    if (!this.selectedDay) return;
+    const canvas = this.temperatureChartCanvas?.nativeElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (this.temperatureChart) {
+      this.temperatureChart.destroy();
+      this.temperatureChart = null;
+    }
+
+    const labels = this.selectedDay.intervals.map(interval => interval.hour);
+    const temperatures = this.selectedDay.intervals.map(interval => interval.temperature);
+
+    const lineColor = this.cssVar('--brand', '#6d28d9');
+    const textColor = this.cssVar('--text', '#111827');
+    const mutedColor = this.cssVar('--muted', '#6b7280');
+    const gridColor = 'rgba(17,24,39,.08)';
+
+    this.temperatureChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Temperatura',
+          data: temperatures,
+          borderColor: lineColor,
+          backgroundColor: lineColor + '22',
+          borderWidth: 2,
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          pointBackgroundColor: lineColor,
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1,
+          tension: 0.35,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: {
+              color: mutedColor,
+              maxTicksLimit: 6,
+              font: { size: 11 }
+            },
+            grid: { color: gridColor }
+          },
+          y: {
+            ticks: {
+              color: mutedColor,
+              callback: (value) => {
+                const n = Number(value);
+                return isNaN(n) ? '' : n.toFixed(1);
+              }
+            },
+            grid: { color: gridColor }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: 'Pronóstico de Temperatura Horaria (°C)',
+            color: textColor,
+            font: { weight: 700, size: 12 }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.parsed.y.toFixed(1)} °C`
+            }
+          }
+        }
+      }
+    });
+  }
+
   private scheduleChartRender() {
     setTimeout(() => this.createTemperatureChart(), 0);
   }
 }
+

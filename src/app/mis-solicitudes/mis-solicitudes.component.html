@@ -1,0 +1,110 @@
+<section class="mis-page">
+  <div class="mis-card">
+    <header class="page-head">
+      <div>
+        <div class="kicker">SEGUIMIENTO</div>
+        <h1>Mis solicitudes</h1>
+        <p>Consulte el estado de las solicitudes registradas con su usuario.</p>
+      </div>
+
+      <div class="head-actions">
+        <a routerLink="/solicitudes" class="btn">Nueva solicitud</a>
+        <a routerLink="/" class="btn btn-secondary">Inicio</a>
+      </div>
+    </header>
+
+    <div class="loading" *ngIf="cargando">
+      Cargando solicitudes...
+    </div>
+
+    <div class="error-box" *ngIf="error">
+      {{ error }}
+
+      <div class="error-actions" *ngIf="!usuarioLogueado">
+        <a routerLink="/auth" class="btn">Iniciar sesion</a>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!cargando && !error && solicitudes.length === 0">
+      <h2>No hay solicitudes registradas</h2>
+      <p>Todavia no se encontraron solicitudes asociadas a su usuario.</p>
+      <a routerLink="/solicitudes" class="btn">Crear primera solicitud</a>
+    </div>
+
+    <div class="list" *ngIf="!cargando && !error && solicitudes.length > 0">
+      <article class="sol-card" *ngFor="let s of solicitudes">
+        <div class="sol-top">
+          <div>
+            <div class="codigo">{{ s.codigo_solicitud }}</div>
+            <h2>{{ servicioTexto(s) }}</h2>
+          </div>
+
+          <span class="estado" [class]="'estado estado-' + s.estado">
+            {{ estadoTexto(s.estado) }}
+          </span>
+        </div>
+
+        <div class="meta-grid">
+          <div>
+            <strong>Fecha de solicitud</strong>
+            <span>{{ s.fecha_solicitud }}</span>
+          </div>
+
+          <div>
+            <strong>Tipo</strong>
+            <span>{{ s.tipo_solicitud }}</span>
+          </div>
+
+          <div>
+            <strong>Origen</strong>
+            <span>{{ s.origen }}</span>
+          </div>
+
+          <div>
+            <strong>Prioridad</strong>
+            <span>{{ s.prioridad }}</span>
+          </div>
+
+          <div>
+            <strong>Localidad / zona</strong>
+            <span>{{ s.localidad_zona || 'No indicada' }}</span>
+          </div>
+
+          <div>
+            <strong>Periodo</strong>
+            <span>
+              {{ s.fecha_desde || 'Sin fecha desde' }}
+              -
+              {{ s.fecha_hasta || 'Sin fecha hasta' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="descripcion">
+          <strong>Descripcion</strong>
+          <p>{{ s.descripcion }}</p>
+        </div>
+
+        <div class="fechas-estado">
+          <div *ngIf="s.fecha_inicio">
+            <strong>Inicio</strong>
+            <span>{{ s.fecha_inicio }}</span>
+          </div>
+
+          <div *ngIf="s.fecha_finalizacion">
+            <strong>Finalizacion</strong>
+            <span>{{ s.fecha_finalizacion }}</span>
+          </div>
+
+          <div *ngIf="s.fecha_entrega">
+            <strong>Entrega</strong>
+            <span>{{ s.fecha_entrega }}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a [routerLink]="['/mis-solicitudes', s.id]" class="btn">Ver detalle</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

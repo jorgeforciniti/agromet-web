@@ -1,0 +1,178 @@
+<mat-dialog-content class="phenology-dialog">
+  <div class="phenology-shell">
+    <div class="dialog-header">
+      <div>
+        <div class="dialog-eyebrow">CONSULTA FENOLÓGICA</div>
+        <h2 class="titulo">Meteorología por estadíos del cultivo</h2>
+        <p class="dialog-lead">
+          Reorganiza la serie diaria según hitos fenológicos del lote y resume lluvia, ETo,
+          demanda hídrica ajustada con Kc, humectación foliar, radiación y extremos térmicos.
+        </p>
+      </div>
+
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="calculate()" class="phenology-form">
+      <div class="phenology-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Estación</mat-label>
+          <select matNativeControl formControlName="station">
+            <option *ngFor="let station of stations" [value]="station.Identificacion">
+              {{ station.Identificacion }} - {{ station.nombre }}
+            </option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Cultivo</mat-label>
+          <select matNativeControl formControlName="crop">
+            <option *ngFor="let crop of cropPresets" [value]="crop.key">{{ crop.label }}</option>
+          </select>
+        </mat-form-field>
+
+        <label class="kc-toggle">
+          <input type="checkbox" formControlName="applyKc">
+          <span>Aplicar Kc a la ETo para estimar demanda hídrica</span>
+        </label>
+
+        <button mat-raised-button color="primary" class="search-button" type="submit" [disabled]="isLoading">
+          <mat-icon>query_stats</mat-icon>
+          Analizar campaña
+        </button>
+      </div>
+
+      <div class="stage-editor">
+        <div class="stage-card" *ngFor="let idx of [0,1,2,3,4,5]">
+          <ng-container *ngIf="showMilestone(idx)">
+            <div class="stage-card__head">
+              <span class="stage-index">Hito {{ idx + 1 }}</span>
+              <strong>{{ milestoneLabel(idx) }}</strong>
+            </div>
+
+            <mat-form-field appearance="fill">
+              <mat-label>Fecha</mat-label>
+              <input matInput [matDatepicker]="picker" [formControlName]="'m' + (idx + 1)">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="showKc(idx)" appearance="fill">
+              <mat-label>{{ kcLabel(idx) }}</mat-label>
+              <input matInput type="number" min="0" step="0.01" [formControlName]="'kc' + (idx + 1)">
+            </mat-form-field>
+          </ng-container>
+        </div>
+      </div>
+    </form>
+
+    <p class="phenology-note">
+      <mat-icon>info</mat-icon>
+      La lógica replica la herramienta PHP histórica sobre `datos-diarios`, pero agrega balance hídrico simple
+      por etapa, cobertura de datos y curvas acumuladas para detectar más rápido los tramos críticos.
+    </p>
+
+    <div class="phenology-error" *ngIf="loadError">
+      <mat-icon>error</mat-icon>
+      <span>{{ loadError }}</span>
+    </div>
+
+    <div class="phenology-summary" *ngIf="totals">
+      <div class="summary-card">
+        <span>Estación</span>
+        <strong>{{ totals.stationName }}</strong>
+      </div>
+      <div class="summary-card">
+        <span>Cultivo</span>
+        <strong>{{ totals.cropLabel }}</strong>
+      </div>
+      <div class="summary-card">
+        <span>Período</span>
+        <strong>{{ formatDisplayDate(totals.start) }} a {{ formatDisplayDate(totals.end) }}</strong>
+      </div>
+      <div class="summary-card">
+        <span>Lluvia acumulada</span>
+        <strong>{{ totals.rain | number:'1.1-1' }} mm</strong>
+      </div>
+      <div class="summary-card">
+        <span>Demanda ET x Kc</span>
+        <strong>{{ totals.demand | number:'1.1-1' }} mm</strong>
+      </div>
+      <div class="summary-card" [class.summary-card--warn]="totals.balance < 0">
+        <span>Balance simple</span>
+        <strong>{{ totals.balance | number:'1.1-1' }} mm</strong>
+      </div>
+      <div class="summary-card">
+        <span>Días con datos</span>
+        <strong>{{ totals.validDays }} / {{ totals.totalDays }}</strong>
+      </div>
+    </div>
+
+    <div class="chart-grid" *ngIf="summaries.length">
+      <section class="chart-card">
+        <div class="chart-card__header">
+          <h3>Lluvia vs demanda por etapa</h3>
+          <p>Comparación directa entre oferta hídrica y demanda estimada del cultivo.</p>
+        </div>
+        <div class="chart-container">
+          <canvas baseChart [data]="stageChartData" [options]="stageChartOptions" chartType="bar"></canvas>
+        </div>
+      </section>
+
+      <section class="chart-card">
+        <div class="chart-card__header">
+          <h3>Acumulados de campaña</h3>
+          <p>Seguimiento de la trayectoria diaria para detectar quiebres dentro del ciclo.</p>
+        </div>
+        <div class="chart-container">
+          <canvas baseChart [data]="cumulativeChartData" [options]="cumulativeChartOptions" chartType="line"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <div class="table-wrapper" *ngIf="summaries.length">
+      <table class="phenology-table">
+        <thead>
+          <tr>
+            <th>Etapa</th>
+            <th>Período</th>
+            <th>Días</th>
+            <th>Cobertura</th>
+            <th>Kc</th>
+            <th>Lluvia</th>
+            <th>Demanda</th>
+            <th>Balance</th>
+            <th>Hum. hoja</th>
+            <th>Rad. media</th>
+            <th>Tmax media</th>
+            <th>Tmin media</th>
+            <th>Días ≥ 35 °C</th>
+            <th>Días ≤ 0 °C</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stage of summaries; trackBy: trackByStage">
+            <td>{{ stage.label }}</td>
+            <td>{{ formatDisplayDate(stage.start) }}<br>{{ formatDisplayDate(stage.end) }}</td>
+            <td>{{ stage.dataDays }} / {{ stage.spanDays }}</td>
+            <td>{{ stage.coverage | number:'1.0-0' }} %</td>
+            <td>{{ stage.kc | number:'1.2-2' }}</td>
+            <td>{{ stage.rain | number:'1.1-1' }} mm</td>
+            <td>{{ stage.demand | number:'1.1-1' }} mm</td>
+            <td [class.balance-negative]="stage.balance < 0">{{ stage.balance | number:'1.1-1' }} mm</td>
+            <td>{{ stage.leafWetnessHours | number:'1.1-1' }} h</td>
+            <td>{{ stage.avgRadiation == null ? '---' : (stage.avgRadiation | number:'1.1-1') }}</td>
+            <td>{{ stage.avgTempMax == null ? '---' : (stage.avgTempMax | number:'1.1-1') }}</td>
+            <td>{{ stage.avgTempMin == null ? '---' : (stage.avgTempMin | number:'1.1-1') }}</td>
+            <td>{{ stage.hotDays }}</td>
+            <td>{{ stage.frostDays }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+  </div>
+</mat-dialog-content>

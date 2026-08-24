@@ -146,5 +146,19 @@ export class DatosMeteorologicosComponent implements OnInit {
       restoreFocus: false
     });
   }
+
+  async openPhenologyWeatherDialog(): Promise<void> {
+    const { PhenologyWeatherDialogComponent } = await import('../phenology-weather-dialog/phenology-weather-dialog.component');
+
+    this.dialog.open(PhenologyWeatherDialogComponent, {
+      width: 'min(1400px, 97vw)',
+      maxWidth: '97vw',
+      height: '95vh',
+      maxHeight: '95vh',
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
+    });
+  }
 }
 

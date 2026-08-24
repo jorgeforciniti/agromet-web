@@ -1,9 +1,13 @@
-/* ========= Base (usa tokens globales) ========= */
-.forecast-wrapper {
+﻿.forecast-wrapper {
   width: 100%;
   max-width: 100%;
   padding: 16px;
   box-sizing: border-box;
+}
+
+.forecast-wrapper--realtime,
+.forecast-wrapper--forecast {
+  padding: 0;
 }
 
 .loading,
@@ -17,46 +21,64 @@
   color: #ef4444;
 }
 
-/* Card contenedora (clara) */
 .forecast-container {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: var(--shadow-sm);
   padding: 14px;
   width: 100%;
   overflow: hidden;
 }
 
-/* La segunda card (antes duplicabas forecast-container) */
-.forecast-content-card {
-  margin-top: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px;
-  overflow: hidden;
+.forecast-wrapper--realtime .forecast-container,
+.forecast-wrapper--forecast .forecast-container {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
-/* ========= Station widget (destacado, pero claro) ========= */
+.forecast-content-card {
+  margin-top: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.98));
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  border-radius: 16px;
+  padding: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.forecast-wrapper--forecast .forecast-content-card {
+  margin-top: 0;
+}
+
 .station-widget {
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(79, 121, 50, .10), transparent);
-  padding: 12px;
-  margin-bottom: 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  background:
+    radial-gradient(circle at top right, rgba(79,121,50,.12), transparent 36%),
+    linear-gradient(180deg, rgba(79,121,50,.08), rgba(255,255,255,.98));
+  padding: 14px;
+  margin-bottom: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .realtime-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  font-size: .92rem;
-  font-style: italic;
-  color: var(--muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  background: rgba(255,255,255,.88);
+  color: color-mix(in srgb, var(--brand) 72%, #475467);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .station-header {
@@ -64,7 +86,7 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .station-icon {
@@ -73,7 +95,7 @@
 
 .station-title {
   margin: 0;
-  font: 800 1.05rem var(--font-sans);
+  font: 900 1.12rem var(--font-sans);
   color: var(--text);
   flex: 1 1 auto;
   display: inline-flex;
@@ -86,24 +108,22 @@
   height: 34px;
 }
 
-/* Selector */
 .station-select {
   width: min(320px, 100%);
 }
 
-/* ========= Métricas ========= */
 .station-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .metric {
-  min-height: 78px;
-  background: rgba(17, 24, 39, .03);
+  min-height: 86px;
+  background: rgba(255,255,255,.78);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 10px;
   text-align: center;
   display: flex;
@@ -113,7 +133,8 @@
   gap: 6px;
 }
 
-.metric mat-icon {
+.metric mat-icon,
+.metric fa-icon {
   color: var(--brand);
 }
 
@@ -127,22 +148,28 @@
   font-size: .78rem;
 }
 
+.metric--wide {
+  grid-column: 1 / -1;
+  min-height: 72px;
+}
+
 .station-sun {
   display: flex;
-  justify-content: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 10px;
   color: var(--muted);
-  font-size: .92rem;
+  font-size: .86rem;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(0,0,0,.08);
 }
 
 .station-sun mat-icon {
   color: #f59e0b;
 }
 
-/* ========= Pronóstico ========= */
 .forecast-title {
-  font: 800 .98rem var(--font-sans);
-  margin: 0 0 10px;
+  font: 900 1.04rem var(--font-sans);
+  margin: 0 0 6px;
   color: var(--text);
 }
 
@@ -151,25 +178,31 @@
   text-transform: uppercase;
 }
 
+.forecast-lead {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.4;
+}
+
 .week-forecast {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
   padding-bottom: 8px;
-  margin-bottom: 10px;
   scrollbar-gutter: stable;
 }
 
 .day-card {
-  flex: 0 0 76px;
-  min-width: 76px;
+  flex: 0 0 88px;
+  min-width: 88px;
   border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 8px 6px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+  border-radius: 14px;
+  padding: 10px 8px;
   text-align: center;
   cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
 
 .day-card:hover {
@@ -178,8 +211,9 @@
 }
 
 .day-card.active {
-  border-color: rgba(79, 121, 50, .7);
-  box-shadow: 0 0 0 3px rgba(79, 121, 50, .18);
+  border-color: rgba(79,121,50,.58);
+  background: linear-gradient(180deg, rgba(79,121,50,.12), rgba(255,255,255,.96));
+  box-shadow: 0 0 0 3px rgba(79,121,50,.16);
 }
 
 .day-name {
@@ -203,17 +237,19 @@
   color: #ef4444;
 }
 
-.day-details {
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
+.day-details-title {
+  margin: 0 0 10px;
+  font-size: .9rem;
+  font-weight: 800;
+  color: var(--text);
 }
 
 .hourly-forecast-container {
   margin-top: 10px;
-  background: rgba(17, 24, 39, .03);
+  background: linear-gradient(180deg, rgba(17,24,39,.025), rgba(248,250,252,.96));
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 14px;
+  padding: 12px;
 }
 
 .hourly-forecast-scroll {
@@ -221,17 +257,16 @@
   grid-template-columns: repeat(2, minmax(120px, 1fr));
   gap: 10px;
   overflow: visible;
-  /* ✅ sin scroll horizontal */
-  padding-bottom: 0;
 }
 
 .hourly-item {
   min-width: 74px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid var(--border);
-  background: var(--surface);
-  padding: 8px 6px;
+  background: rgba(255,255,255,.94);
+  padding: 10px 8px;
   text-align: center;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, .04);
 }
 
 .hourly-time {
@@ -244,6 +279,12 @@
   height: 34px;
 }
 
+.hourly-rain,
+.hourly-wind {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
 .hourly-temp {
   font-weight: 900;
   margin: 4px 0 0;
@@ -253,18 +294,16 @@
   text-align: right;
   font-size: .75rem;
   color: var(--muted);
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 #temperatureChart {
-  background: rgba(17, 24, 39, .04);
-  /* leve gris azulado */
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(79,121,50,.06), rgba(255,255,255,.9));
+  border: 1px solid color-mix(in srgb, var(--brand) 10%, var(--border));
+  border-radius: 12px;
   padding: .5rem;
 }
 
-/* ========= Material overrides (CLARO) ========= */
 :host ::ng-deep .mat-mdc-select-value {
   color: var(--text) !important;
 }
@@ -277,57 +316,50 @@
   background: transparent !important;
 }
 
-/* ===== Detalle del día: tarjetas | gráfico (ESTABLE y sin recortes) ===== */
-
-/* ===== Grid maestro del pronóstico ===== */
-.forecast-grid{
+.forecast-grid {
   display: grid;
-  grid-template-columns: 480px 1fr;      /* más aire para la izquierda */
-  height: clamp(360px, 42vh, 520px);     /* menos alto total */
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  height: clamp(390px, 46vh, 560px);
   grid-template-rows: auto 1fr;
   grid-template-areas:
-    "week  chart"
+    "week chart"
     "hours chart";
-  gap: 12px;
+  gap: 14px;
 }
 
-.forecast-week{ grid-area: week; min-width: 0; }
-.forecast-hours{ grid-area: hours; min-width: 0; min-height: 0; overflow: auto; }
-.forecast-chart{ grid-area: chart; min-width: 0; min-height: 0; }
+.forecast-week { grid-area: week; min-width: 0; }
+.forecast-hours { grid-area: hours; min-width: 0; min-height: 0; overflow: auto; }
+.forecast-chart { grid-area: chart; min-width: 0; min-height: 0; }
 
-.chart-card{
+.chart-card {
   height: 100%;
   min-height: 0;
   display: flex;
   overflow: hidden;
-  background: rgba(17,24,39,.03);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px;  /* antes 10px */
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+  border: 1px solid color-mix(in srgb, var(--brand) 12%, var(--border));
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: var(--shadow-sm);
 }
 
-/* ✅ IMPORTANTÍSIMO: que el canvas LLENE el contenedor */
-.chart-card canvas{
+.chart-card canvas {
   flex: 1 1 auto;
   width: 100% !important;
   height: 100% !important;
   display: block;
 }
 
-.forecast-content-card{
-  overflow: hidden;          /* ✅ nada se sale del contenedor redondeado */
-}
-
+.forecast-content-card,
 .forecast-grid,
 .forecast-chart,
-.chart-card{
+.chart-card {
   min-width: 0;
-  min-height: 0;             /* ✅ evita overflow raro en grids */
+  min-height: 0;
 }
 
-/* Mobile: apilar, y dar altura fija al gráfico */
-@media (max-width: 900px){
-  .forecast-grid{
+@media (max-width: 900px) {
+  .forecast-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 320px;
     grid-template-areas:
@@ -336,7 +368,22 @@
       "chart";
     height: auto;
   }
-  .forecast-chart .chart-card{
+
+  .forecast-chart .chart-card {
     height: 320px;
+  }
+}
+
+@media (max-width: 620px) {
+  .station-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metric--wide {
+    grid-column: auto;
+  }
+
+  .hourly-forecast-scroll {
+    grid-template-columns: 1fr 1fr;
   }
 }

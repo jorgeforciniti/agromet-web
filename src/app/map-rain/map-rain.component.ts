@@ -65,6 +65,12 @@ interface RainMapRecord {
   frecuenciaDato: number | string;
 }
 
+interface RainScale {
+  min: number;
+  max: number;
+  color: string;
+}
+
 @Component({
   selector: 'app-map-rain',
   templateUrl: './map-rain.component.html',
@@ -116,6 +122,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   markersLayer = L.layerGroup();
   provincesLayer: L.GeoJSON | null = null;
   loading = false;
+  rainScales: RainScale[] = [];
+  maxRainValue: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -245,6 +253,9 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   plotRain(): void {
     if (!this.rainData || this.rainData.length === 0) return;
 
+    // Calculate dynamic scales based on actual data
+    this.calculateDynamicScales();
+
     this.rainData.forEach(d => {
       if (!d.lat || !d.lon) return;
 
@@ -269,35 +280,126 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
         `);
       this.markersLayer.addLayer(marker);
     });
+
+    // Update legend with new scales
+    this.updateLegend();
+  }
+
+  private calculateDynamicScales(): void {
+    // Extract all precipitation values excluding 0 and low values
+    const precipitationValues = this.rainData
+      .map(d => parseFloat(String(d.totalLluvia)))
+      .filter(v => v > 0)
+      .sort((a, b) => a - b);
+
+    if (precipitationValues.length === 0) {
+      this.rainScales = [];
+      this.maxRainValue = 0;
+      return;
+    }
+
+    this.maxRainValue = precipitationValues[precipitationValues.length - 1];
+
+    // Define color palette for progressive scales
+    const colors = ['#90EE90', '#87CEEB', '#4169E1', '#2424da', '#06068a'];
+
+    // Calculate percentile-based intervals
+    // We'll create up to 5 scales based on percentiles: 20%, 40%, 60%, 80%, 100%
+    const scales: RainScale[] = [];
+    
+    // Always add the "no rain" case
+    scales.push({ min: 0, max: 0, color: '#D3D3D3' }); // Gray for 0mm
+
+    if (precipitationValues.length > 0) {
+      // Add minimum to trace rain
+      const minValue = precipitationValues[0];
+      if (minValue > 0) {
+        scales.push({ min: 0.001, max: minValue, color: '#90EE90' }); // Light green for trace
+      }
+
+      // Calculate intervals using percentiles
+      const stepSize = Math.ceil(precipitationValues.length / 5);
+      let lastMax = minValue;
+
+      for (let i = 1; i < 5 && i * stepSize < precipitationValues.length; i++) {
+        const index = Math.min((i * stepSize) - 1, precipitationValues.length - 1);
+        const currentMax = precipitationValues[index];
+        
+        if (currentMax > lastMax) {
+          const colorIndex = Math.min(i, colors.length - 1);
+          scales.push({ min: lastMax, max: currentMax, color: colors[colorIndex] });
+          lastMax = currentMax;
+        }
+      }
+
+      // Add the final scale to max value
+      const finalColorIndex = Math.min(4, colors.length - 1);
+      scales.push({ min: lastMax, max: this.maxRainValue, color: colors[finalColorIndex] });
+    }
+
+    this.rainScales = scales;
   }
 
   getRainColor(totalLluvia: number, registrosLluvia: number): string {
     if (totalLluvia === 0) return 'gray';
-    if (registrosLluvia === 0 && totalLluvia > 0) return 'lightgreen'; // Dew or negligible rain
-    if (totalLluvia < 0.3) return 'lightgreen';
-    if (totalLluvia >= 0.5 && totalLluvia <= 10) return 'lightblue';
-    if (totalLluvia > 10 && totalLluvia <= 50) return 'deepskyblue';
-    if (totalLluvia > 50) return 'blue';
-    return 'gray'; // Default
+    if (registrosLluvia === 0 && totalLluvia > 0) return '#90EE90'; // Light green for dew
+
+    // Find the appropriate scale for this value
+    for (const scale of this.rainScales) {
+      if (totalLluvia >= scale.min && totalLluvia <= scale.max) {
+        return scale.color;
+      }
+    }
+
+    // Fallback color if no scale matches
+    return 'gray';
   }
 
   private addLegend(): void {
     const legend = new L.Control({ position: 'bottomright' });
+    const self = this;
 
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'info legend');
+      div.id = 'rainLegend';
       div.innerHTML = `
         <strong>Precipitaciones</strong><br>
-        <i style="background:gray"></i> 0 mm<br>
-        <i style="background:lightgreen"></i> < 0.3 mm (rocío)<br>
-        <i style="background:lightblue"></i> 0.5 - 10 mm<br>
-        <i style="background:deepskyblue"></i> 10 - 50 mm<br>
-        <i style="background:blue"></i> > 50 mm
+        <p style="font-size: 12px; margin: 5px 0;">Cargando datos...</p>
       `;
       return div;
     };
 
-    if (this.map) legend.addTo(this.map);
+    if (this.map) {
+      legend.addTo(this.map);
+    }
+  }
+
+  private updateLegend(): void {
+    const legendDiv = document.getElementById('rainLegend');
+    if (!legendDiv) return;
+
+    let html = '<strong>Precipitaciones</strong><br>';
+
+    // Add static entries
+    html += '<i style="background:#D3D3D3"></i> 0 mm<br>';
+
+    // Add dynamic scales
+    for (const scale of this.rainScales) {
+      if (scale.min === 0 && scale.max === 0) continue; // Skip zero entry
+      
+      let label = '';
+      if (scale.min === 0.001) {
+        label = `< ${scale.max.toFixed(1)} mm (rocío)`;
+      } else if (scale.max === this.maxRainValue) {
+        label = `${scale.min.toFixed(1)} - ${scale.max.toFixed(1)} mm`;
+      } else {
+        label = `${scale.min.toFixed(1)} - ${scale.max.toFixed(1)} mm`;
+      }
+
+      html += `<i style="background:${scale.color}"></i> ${label}<br>`;
+    }
+
+    legendDiv.innerHTML = html;
   }
 
   private formatDate(date: Date): string {

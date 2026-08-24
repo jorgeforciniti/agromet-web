@@ -194,6 +194,32 @@ input::placeholder {
   cursor: pointer;
 }
 
+.link-btn {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--mod-data) 78%, #1f2937);
+  font-weight: 900;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-top: -2px;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.success-message {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(47, 107, 53, .22);
+  border-radius: 14px;
+  background: rgba(238, 246, 239, .95);
+  color: #2f6b35;
+  font-size: .88rem;
+  line-height: 1.35;
+}
+
 @media (max-width: 480px) {
   :host ::ng-deep .auth-dialog .mat-mdc-dialog-surface {
     max-height: calc(100vh - 20px) !important;

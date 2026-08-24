@@ -1,0 +1,159 @@
+<section class="solicitudes-page">
+    <div class="solicitudes-card">
+        <div class="page-head">
+            <div>
+                <div class="kicker">SOLICITUD FORMAL</div>
+                <h1>Solicitud de informacion agrometeorologica</h1>
+                <p>
+                    Complete el formulario para solicitar datos, informes o consultas tecnicas a la Seccion
+                    Agrometeorologia.
+                </p>
+            </div>
+        </div>
+
+        <div class="ok-box" *ngIf="codigoGenerado">
+            <h2>Solicitud registrada correctamente</h2>
+            <p>Codigo de solicitud:</p>
+            <strong>{{ codigoGenerado }}</strong>
+            <p>Tambien recibira una confirmacion por correo electronico.</p>
+
+            <div class="ok-actions">
+                <button type="button" (click)="nuevaSolicitud()">Realizar otra solicitud</button>
+                <a routerLink="/mis-solicitudes" class="secondary-link">Mis solicitudes</a>
+                <a routerLink="/" class="secondary-link">Volver al inicio</a>
+            </div>
+        </div>
+
+        <div class="error-box" *ngIf="error">
+            {{ error }}
+        </div>
+
+        <form *ngIf="!codigoGenerado" [formGroup]="form" (ngSubmit)="enviar()" class="form-grid">
+
+            <h2>Datos del solicitante</h2>
+
+            <label>
+                Nombre y apellido *
+                <input type="text" formControlName="solicitante_nombre">
+                <span *ngIf="campoInvalido('solicitante_nombre')">Campo obligatorio.</span>
+            </label>
+
+            <label>
+                Email *
+                <input type="email" formControlName="solicitante_email">
+                <span *ngIf="campoInvalido('solicitante_email')">Ingrese un email valido.</span>
+            </label>
+
+            <label>
+                Institucion / Empresa
+                <input type="text" formControlName="solicitante_institucion">
+            </label>
+
+            <label>
+                CUIT
+                <input type="text" formControlName="solicitante_cuit" placeholder="Ejemplo: 30-62647102-8">
+            </label>
+
+            <label>
+                Condición frente al IVA
+                <select formControlName="solicitante_condicion_iva">
+                    <option value="">No especificada</option>
+                    <option value="responsable_inscripto">Responsable inscripto</option>
+                    <option value="monotributista">Monotributista</option>
+                    <option value="exento">Exento</option>
+                    <option value="consumidor_final">Consumidor final</option>
+                    <option value="no_responsable">No responsable</option>
+                </select>
+            </label>
+
+            <label>
+                Area / Seccion
+                <input type="text" formControlName="solicitante_area">
+            </label>
+
+            <label>
+                Telefono
+                <input type="text" formControlName="solicitante_telefono">
+            </label>
+
+            <label>
+                Origen *
+                <select formControlName="origen">
+                    <option value="externo">Externo</option>
+                    <option value="interno_eeaoc">Interno EEAOC</option>
+                    <option value="organismo_publico">Organismo publico</option>
+                    <option value="judicial">Judicial / administrativo</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </label>
+
+            <h2>Detalle de la solicitud</h2>
+
+            <label>
+                Tipo de solicitud *
+                <select formControlName="tipo_solicitud">
+                    <option value="informe">Informe</option>
+                    <option value="datos">Datos meteorologicos</option>
+                    <option value="consulta">Consulta tecnica</option>
+                    <option value="judicial">Informe judicial / administrativo</option>
+                    <option value="organismo_oficial">Organismo oficial</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </label>
+
+            <label>
+                Prioridad
+                <select formControlName="prioridad">
+                    <option value="normal">Normal</option>
+                    <option value="urgente">Urgente</option>
+                    <option value="critica">Critica</option>
+                </select>
+            </label>
+
+            <label class="full">
+                Servicio solicitado
+                <select formControlName="servicio_id">
+                    <option value="">Seleccione una opcion</option>
+                    <option *ngFor="let s of servicios" [value]="s.id">
+                        {{ s.categoria }} - {{ s.nombre }}
+                    </option>
+                </select>
+                <small *ngIf="cargandoServicios">Cargando servicios...</small>
+            </label>
+
+            <label class="full">
+                Localidad, zona o estacion solicitada
+                <input type="text" formControlName="localidad_zona">
+            </label>
+
+            <label>
+                Fecha desde
+                <input type="date" formControlName="fecha_desde">
+                <small>Seleccione la fecha inicial del periodo solicitado.</small>
+            </label>
+
+            <label>
+                Fecha hasta
+                <input type="date" formControlName="fecha_hasta">
+                <small>Seleccione la fecha final del periodo solicitado.</small>
+            </label>
+
+            <label class="full">
+                Descripcion del pedido *
+                <textarea rows="6" formControlName="descripcion"></textarea>
+                <span *ngIf="campoInvalido('descripcion')">Campo obligatorio.</span>
+            </label>
+
+            <label class="full">
+                Finalidad del pedido
+                <textarea rows="4" formControlName="finalidad"></textarea>
+            </label>
+
+            <div class="actions full">
+                <button type="submit" [disabled]="enviando">
+                    {{ enviando ? 'Enviando...' : 'Enviar solicitud' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</section>

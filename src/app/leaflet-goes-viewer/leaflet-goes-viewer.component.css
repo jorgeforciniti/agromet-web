@@ -25,6 +25,75 @@
   margin: 6px 0 12px;
 }
 
+.radar-toolbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: -2px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(246,249,255,0.94));
+}
+
+.radar-actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.radar-btn{
+  border: 1px solid rgba(95, 122, 82, 0.24);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(96, 140, 76, 0.14), rgba(96, 140, 76, 0.24));
+  color: var(--text);
+  font-weight: 800;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.radar-speed{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.radar-speed select{
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  padding: 7px 10px;
+  font-weight: 700;
+}
+
+.radar-status{
+  display: flex;
+  align-items: center;
+}
+
+.radar-chip{
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 800;
+  background: rgba(63, 160, 79, 0.12);
+  color: #2d7f39;
+  border: 1px solid rgba(63, 160, 79, 0.2);
+}
+
+.radar-chip--muted{
+  background: rgba(107, 119, 140, 0.12);
+  color: #5d6b80;
+  border-color: rgba(107, 119, 140, 0.18);
+}
+
 .control-group{
   display: flex;
   align-items: center;
@@ -65,4 +134,7 @@
 @media (max-width: 620px){
   .select-wrapper{ width: 100%; }
   .map-wrapper{ height: 55vh; min-height: 360px; }
+  .radar-toolbar{
+    align-items: flex-start;
+  }
 }

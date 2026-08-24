@@ -17,6 +17,7 @@ export class AuthComponent {
   authForm: FormGroup;
   isLoginMode = true;
   errorMessage = '';
+  successMessage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -37,6 +38,7 @@ export class AuthComponent {
   toggleMode(): void {
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = '';
+    this.successMessage = '';
   }
 
   async onSubmit(): Promise<void> {
@@ -46,6 +48,9 @@ export class AuthComponent {
     }
 
     const { email, password } = this.authForm.value;
+
+    this.errorMessage = '';
+    this.successMessage = '';
 
     try {
       if (this.isLoginMode) {
@@ -75,5 +80,32 @@ export class AuthComponent {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  async forgotPassword(): Promise<void> {
+    const email = this.authForm.get('email')?.value;
+
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!email) {
+      this.errorMessage = 'Ingrese su correo electrónico para recuperar la contraseña.';
+      this.authForm.get('email')?.markAsTouched();
+      return;
+    }
+
+    if (this.authForm.get('email')?.invalid) {
+      this.errorMessage = 'Ingrese un correo electrónico válido.';
+      this.authForm.get('email')?.markAsTouched();
+      return;
+    }
+
+    try {
+      await this.authService.resetPassword(email);
+      this.successMessage = 'Le enviamos un correo con las instrucciones para restablecer su contraseña.';
+    } catch (error: unknown) {
+      this.errorMessage = this.getErrorMessage(error);
+      console.error('Error al restablecer contraseña', error);
+    }
   }
 }

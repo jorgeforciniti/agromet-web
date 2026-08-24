@@ -1,5 +1,9 @@
 ﻿<!-- Contenedor general -->
-<div class="forecast-wrapper">
+<div
+  class="forecast-wrapper"
+  [class.forecast-wrapper--realtime]="mode === 'realtime'"
+  [class.forecast-wrapper--forecast]="mode === 'forecast'"
+  [class.forecast-wrapper--full]="mode === 'full'">
   <!-- Estados de carga y error -->
   <div *ngIf="loading" class="loading">
     Cargando...
@@ -42,15 +46,31 @@
         </header>
 
         <div class="station-metrics">
-          <div class="metric"><mat-icon>thermostat</mat-icon><span class="value">{{ rtTemperature }} °C</span></div>
-          <div class="metric"><fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon><span class="value">{{ rtRain }}
-              mm</span>
+          <div class="metric">
+            <mat-icon>thermostat</mat-icon>
+            <span class="value">{{ rtTemperature }} °C</span>
+            <span class="label">Temperatura</span>
           </div>
-          <div class="metric"><mat-icon>water_drop</mat-icon><span class="value">{{ rtHumidity }} %</span></div>
-          <div class="metric"><mat-icon>air</mat-icon><span class="value">{{ rtWind?.direction }} {{ rtWind?.speed }}
-              km/h</span></div>
-          <div class="metric"><mat-icon>schedule</mat-icon><span class="value">{{ rtUpdated | date:'dd-MM-YY HH:mm'
-              }}</span></div>
+          <div class="metric">
+            <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
+            <span class="value">{{ rtRain }} mm</span>
+            <span class="label">Lluvia</span>
+          </div>
+          <div class="metric">
+            <mat-icon>water_drop</mat-icon>
+            <span class="value">{{ rtHumidity }} %</span>
+            <span class="label">Humedad</span>
+          </div>
+          <div class="metric">
+            <mat-icon>air</mat-icon>
+            <span class="value">{{ rtWind?.direction }} {{ rtWind?.speed }} km/h</span>
+            <span class="label">Viento</span>
+          </div>
+          <div class="metric metric--wide">
+            <mat-icon>schedule</mat-icon>
+            <span class="value">{{ rtUpdated | date:'dd-MM-YY HH:mm' }}</span>
+            <span class="label">Última actualización</span>
+          </div>
         </div>
 
         <footer class="station-sun">
@@ -67,70 +87,69 @@
     <div *ngIf="mode === 'forecast' || mode === 'full'">
       <div class="forecast-content-card">
         <div class="forecast-content">
-  <div class="forecast-title">
-    Pronóstico para los próximos días para <span>{{ selectedStation?.nombre || 'la estación seleccionada' }}</span>
-  </div>
-
-  <!-- Grid principal: días, detalle horario y gráfico -->
-  <div class="forecast-grid" *ngIf="selectedDay">
-
-    <!-- IZQ / ARRIBA: días -->
-    <div class="forecast-week">
-      <div class="week-forecast">
-        <div *ngFor="let day of weatherData?.forecast; let i = index"
-             class="day-card"
-             [class.active]="selectedDayIndex === i"
-             (click)="selectDay(day, i)"
-             (keydown.enter)="selectDay(day, i)"
-             tabindex="0">
-          <div class="day-name">{{ getDayName(day.date) }}</div>
-          <div class="tp-icon">
-            <img [src]="'https://openweathermap.org/img/wn/' + day.intervals[0].weather.icon + '.png'"
-                 alt="weather icon">
+          <div class="forecast-title">
+            Pronóstico para los próximos días para <span>{{ selectedStation?.nombre || 'la estación seleccionada' }}</span>
           </div>
-          <div class="day-temps">
-            <span class="min-temp">{{ day.temp_min.toFixed(0) }}°</span>
-            <span class="max-temp">{{ day.temp_max.toFixed(0) }}°</span>
-          </div>
-        </div>
-      </div>
-    </div>
+          <p class="forecast-lead">Seguimiento operativo con días clave, detalle horario y evolución térmica.</p>
 
-    <!-- IZQ / ABAJO: horas -->
-    <div class="forecast-hours" *ngIf="selectedDay">
-      <div class="day-details-title">
-        Pronóstico para el día {{ selectedDay.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
-      </div>
+          <!-- Grid principal: días, detalle horario y gráfico -->
+          <div class="forecast-grid" *ngIf="selectedDay">
 
-      <div class="hourly-forecast-container">
-        <div class="hourly-forecast-scroll">
-          <div *ngFor="let interval of selectedDay.intervals" class="hourly-item">
-            <div class="hourly-time">{{ interval.hour }}</div>
-            <div class="hourly-icon">
-              <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'" alt="weather icon">
+            <!-- IZQ / ARRIBA: días -->
+            <div class="forecast-week">
+              <div class="week-forecast">
+                <div *ngFor="let day of weatherData?.forecast; let i = index"
+                    class="day-card"
+                    [class.active]="selectedDayIndex === i"
+                    (click)="selectDay(day, i)"
+                    (keydown.enter)="selectDay(day, i)"
+                    tabindex="0">
+                  <div class="day-name">{{ getDayName(day.date) }}</div>
+                  <div class="tp-icon">
+                    <img [src]="'https://openweathermap.org/img/wn/' + day.intervals[0].weather.icon + '.png'"
+                        alt="weather icon">
+                  </div>
+                  <div class="day-temps">
+                    <span class="min-temp">{{ day.temp_min.toFixed(0) }}°</span>
+                    <span class="max-temp">{{ day.temp_max.toFixed(0) }}°</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="hourly-rain">
-              <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
-              {{ interval.rain_prob }}%
+
+            <!-- IZQ / ABAJO: horas -->
+            <div class="forecast-hours" *ngIf="selectedDay">
+              <div class="day-details-title">
+                Pronóstico para el día {{ selectedDay.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
+              </div>
+
+              <div class="hourly-forecast-container">
+                <div class="hourly-forecast-scroll">
+                  <div *ngFor="let interval of selectedDay.intervals" class="hourly-item">
+                    <div class="hourly-time">{{ interval.hour }}</div>
+                    <div class="hourly-icon">
+                      <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'" alt="weather icon">
+                    </div>
+                    <div class="hourly-rain">
+                      <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
+                      {{ interval.rain_prob }}%
+                    </div>
+                    <div class="hourly-temp">{{ interval.temperature.toFixed(0) }}°C</div>
+                    <div class="hourly-wind">{{ interval.wind.speed }} km/h</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="hourly-temp">{{ interval.temperature.toFixed(0) }}°C</div>
-            <div class="hourly-wind">{{ interval.wind.speed }} km/h</div>
+
+            <!-- DER (SPAN): gráfico -->
+            <div class="forecast-chart">
+              <div class="chart-card">
+                <canvas #temperatureChart></canvas>
+              </div>
+            </div>
           </div>
+          <div class="forecast-source">Fuente: OpenWeatherMap</div>
         </div>
-      </div>
-    </div>
-
-    <!-- DER (SPAN): gráfico -->
-    <div class="forecast-chart">
-      <div class="chart-card">
-        <canvas #temperatureChart></canvas>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="forecast-source">Fuente: OpenWeatherMap</div>
-</div>
       </div>
     </div>
 

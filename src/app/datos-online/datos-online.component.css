@@ -206,7 +206,12 @@
    Tabla abajo (clara)
    ============================= */
 
-.tabla-wrapper {-height: none;
+.tabla-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  overflow: visible;
+  max-height: none;
   margin-bottom: 2px;
 }
 
@@ -344,4 +349,6 @@
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
 }
+
+
 
