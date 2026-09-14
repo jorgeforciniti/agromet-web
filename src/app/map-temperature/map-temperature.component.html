@@ -49,11 +49,24 @@
         {{ currentVariableLabel }} - Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta | date:'dd/MM/yyyy' }}
       </div>
 
-      <div class="map-wrap">
-        <div class="map-container" id="mapContainer">
-          <div *ngIf="loading" class="map-loader-overlay">
-            <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
-            <span>Cargando datos...</span>
+      <div class="map-layout">
+        <div class="zone-checklist" aria-label="Zonas productivas">
+          <mat-checkbox *ngFor="let zone of zoneLayers"
+                        [checked]="zone.selected"
+                        (change)="toggleZoneLayer(zone, $event.checked)">
+            {{ zone.label }}
+          </mat-checkbox>
+          <div class="zone-reference">
+            Zonas agrícolas procesadas por la Sección SRySIG de la EEAOC
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div class="map-container" id="mapContainer">
+            <div *ngIf="loading" class="map-loader-overlay">
+              <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+              <span>Cargando datos...</span>
+            </div>
           </div>
         </div>
       </div>

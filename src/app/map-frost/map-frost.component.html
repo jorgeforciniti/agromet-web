@@ -50,13 +50,26 @@
 
       <mat-tab-group class="tabs">
         <mat-tab label="Mapa">
-          <div class="map-wrap">
-            <div class="map-container" id="mapContainer">
-              <div id="mapfrost"></div>
+          <div class="map-layout">
+            <div class="zone-checklist" aria-label="Zonas productivas">
+              <mat-checkbox *ngFor="let zone of zoneLayers"
+                            [checked]="zone.selected"
+                            (change)="toggleZoneLayer(zone, $event.checked)">
+                {{ zone.label }}
+              </mat-checkbox>
+              <div class="zone-reference">
+                Zonas agrícolas procesadas por la Sección SRySIG de la EEAOC
+              </div>
+            </div>
 
-              <div *ngIf="loading" class="map-loader-overlay">
-                <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
-                <span>Cargando datos...</span>
+            <div class="map-wrap">
+              <div class="map-container" id="mapContainer">
+                <div id="mapfrost"></div>
+
+                <div *ngIf="loading" class="map-loader-overlay">
+                  <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+                  <span>Cargando datos...</span>
+                </div>
               </div>
             </div>
           </div>

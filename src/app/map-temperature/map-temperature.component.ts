@@ -21,6 +21,8 @@ import { MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { NativeDateAdapter } from '@angular/material/core';
 import { Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { KmzLayerService } from '../services/kmz-layer.service';
 
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
@@ -47,6 +49,14 @@ interface TemperatureData {
   lon: number;
   nombre: string;
   [key: string]: string | number;
+}
+
+interface TemperatureZoneLayer {
+  label: string;
+  file: string;
+  color: string;
+  selected: boolean;
+  layer?: L.GeoJSON;
 }
 
 export function dmyDateValidator(): ValidatorFn {
@@ -98,7 +108,8 @@ export const MY_DATE_FORMATS = {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCheckboxModule
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },
@@ -114,6 +125,13 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
   private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   layerGroup!: L.LayerGroup;
   provincesLayer!: L.GeoJSON;
+  zoneLayers: TemperatureZoneLayer[] = [
+    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
+    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
+    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
+    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
+    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
+  ];
   baseMaps: { [key: string]: L.TileLayer } = {};
   loading = false;
   errorMessage?: string;
@@ -135,7 +153,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private weatherService: WeatherService,
-    private dialogRef: MatDialogRef<MapTemperatureComponent>
+    private dialogRef: MatDialogRef<MapTemperatureComponent>,
+    private kmzLayerService: KmzLayerService
   ) { }
 
   ngOnInit() {
@@ -166,9 +185,12 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
       { attribution: '&copy; Satélite' }
     );
     this.baseMaps['osm'].addTo(this.map);
+    this.map.createPane('zonePane').style.zIndex = '450';
+    this.map.createPane('temperatureMarkersPane').style.zIndex = '600';
 
     // Cargar provincias
     await this.loadProvinces();
+    await this.loadZoneLayers();
 
     // Grupo de marcadores
     this.layerGroup = L.layerGroup().addTo(this.map);
@@ -195,6 +217,37 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
         this.map?.scrollWheelZoom.disable();
       }
     });
+  }
+
+  private async loadZoneLayers(): Promise<void> {
+    await Promise.all(this.zoneLayers.map(async zone => {
+      try {
+        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
+        zone.layer = L.geoJSON(data, {
+          pane: 'zonePane',
+          style: {
+            color: zone.color,
+            weight: 2,
+            opacity: 0.9,
+            fillColor: zone.color,
+            fillOpacity: 0.35
+          }
+        });
+      } catch (error) {
+        console.error(`Error al cargar ${zone.file}:`, error);
+      }
+    }));
+  }
+
+  toggleZoneLayer(zone: TemperatureZoneLayer, selected: boolean): void {
+    zone.selected = selected;
+    if (!this.map || !zone.layer) return;
+
+    if (selected) {
+      zone.layer.addTo(this.map);
+    } else {
+      this.map.removeLayer(zone.layer);
+    }
   }
 
   private async loadProvinces(): Promise<void> {
@@ -323,11 +376,12 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
             const recordsColor = this.getRecordsColor(countRecords, totalDias);
 
             L.circleMarker([d.lat, d.lon], {
+              pane: 'temperatureMarkersPane',
               radius: 6,
               fillColor: color,
               color: '#333',
               weight: 1,
-              fillOpacity: 0.9
+              fillOpacity: 1
             })
               .bindPopup(
                 `<b>${d.nombre}</b><br><br>

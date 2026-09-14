@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import {
@@ -19,6 +20,7 @@ import * as L from 'leaflet';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
 import { firstValueFrom } from 'rxjs';
 import { GeoJsonObject } from 'geojson';
+import { KmzLayerService } from '../services/kmz-layer.service';
 
 // Interfaces based on your provided JSON structure and rain-campaign-dialog.component.ts
 interface RainRecord {
@@ -46,6 +48,14 @@ interface Month {
   label: string;
 }
 
+interface RainZoneLayer {
+  label: string;
+  file: string;
+  color: string;
+  selected: boolean;
+  layer?: L.GeoJSON;
+}
+
 @Component({
   selector: 'app-rain-monthly-map',
   standalone: true,
@@ -60,6 +70,7 @@ interface Month {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatCheckboxModule,
   ],
   templateUrl: './map-rain-monthly.component.html',
   styleUrls: ['./map-rain-monthly.component.css'],
@@ -68,6 +79,13 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   public map!: L.Map;
   public errorMessage: string | null = null;
   private stationsLayerGroup: L.LayerGroup = L.layerGroup();
+  public zoneLayers: RainZoneLayer[] = [
+    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
+    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
+    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
+    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
+    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
+  ];
   public isLoading = false;
   private provincesLayer: L.GeoJSON | undefined;
   public noDataForSelection = false;
@@ -107,6 +125,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   constructor(
     private weatherService: WeatherService,
     private http: HttpClient,
+    private kmzLayerService: KmzLayerService,
     public dialogRef: MatDialogRef<MapRainMonthlyComponent>,
     @Inject(MAT_DIALOG_DATA) public data: RainMonthlyMapDialogData
   ) { }
@@ -134,6 +153,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   async ngAfterViewInit(): Promise<void> {
     this.initMap();
     await this.loadProvinces();
+    await this.loadZoneLayers();
 
     this.dialogRef.afterOpened().subscribe(() => {
       setTimeout(() => {
@@ -159,6 +179,8 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
         maxBoundsViscosity: 0.0,
         scrollWheelZoom: false  // Desactivar zoom por rueda
       });
+      this.map.createPane('zonePane').style.zIndex = '450';
+      this.map.createPane('rainMarkersPane').style.zIndex = '600';
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -204,6 +226,37 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       }
     });
 
+  }
+
+  private async loadZoneLayers(): Promise<void> {
+    await Promise.all(this.zoneLayers.map(async zone => {
+      try {
+        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
+        zone.layer = L.geoJSON(data, {
+          pane: 'zonePane',
+          style: {
+            color: zone.color,
+            weight: 2,
+            opacity: 0.9,
+            fillColor: zone.color,
+            fillOpacity: 0.35
+          }
+        });
+      } catch (error) {
+        console.error(`Error al cargar ${zone.file}:`, error);
+      }
+    }));
+  }
+
+  public toggleZoneLayer(zone: RainZoneLayer, selected: boolean): void {
+    zone.selected = selected;
+    if (!this.map || !zone.layer) return;
+
+    if (selected) {
+      zone.layer.addTo(this.map);
+    } else {
+      this.map.removeLayer(zone.layer);
+    }
   }
 
   onBaseMapChange(): void {
@@ -252,6 +305,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
                 if (!hasMissingDataInPeriod && periodMonths > 0 && sumNormal > 0) {
                   const color = this.getRainColor(sumValue, sumNormal);
                   const marker = L.circleMarker([station.lat, station.lon], {
+                    pane: 'rainMarkersPane',
                     radius: 8,
                     fillColor: color,
                     color: '#000',

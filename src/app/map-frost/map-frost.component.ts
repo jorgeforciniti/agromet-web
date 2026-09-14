@@ -24,6 +24,8 @@ import { MAT_DATE_FORMATS } from '@angular/material/core';
 import { NativeDateAdapter, DateAdapter } from '@angular/material/core';
 import { ViewEncapsulation } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { KmzLayerService } from '../services/kmz-layer.service';
 
 export const MY_DATE_FORMATS = {
   parse: {
@@ -80,6 +82,14 @@ interface FrostMapRecord {
   FUH?: string | Date | null;
 }
 
+interface FrostZoneLayer {
+  label: string;
+  file: string;
+  color: string;
+  selected: boolean;
+  layer?: L.GeoJSON;
+}
+
 export class DmyDateAdapter extends NativeDateAdapter {
   override parse(value: unknown, parseFormat?: string): Date | null {
     if (typeof value === 'string' && value.includes('/')) {
@@ -121,7 +131,8 @@ export class DmyDateAdapter extends NativeDateAdapter {
     ReactiveFormsModule,
     MatProgressSpinnerModule,
     MatTabsModule,
-    HttpClientModule
+    HttpClientModule,
+    MatCheckboxModule
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },    // ← nuevo
@@ -168,12 +179,20 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   markersLayer = L.layerGroup();
   provincesLayer: L.GeoJSON | null = null;
   loading = false;
+  zoneLayers: FrostZoneLayer[] = [
+    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
+    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
+    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
+    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
+    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
+  ];
 
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<MapFrostComponent>,
     private http: HttpClient, // Añadir HttpClient
+    private kmzLayerService: KmzLayerService,
     private dateAdapter: DateAdapter<Date>, // Añadir DateAdapter
     @Inject(MAT_DIALOG_DATA) @Optional() public data: { hoy?: boolean } | null
 
@@ -210,9 +229,12 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       scrollWheelZoom: false  // Desactivar zoom por rueda
     });
     this.currentBaseLayer.addTo(this.mapa);
+    this.mapa.createPane('zonePane').style.zIndex = '450';
+    this.mapa.createPane('frostMarkersPane').style.zIndex = '600';
     this.markersLayer.addTo(this.mapa);
 
     await this.loadProvinces(); // Cargar provincias al inicio
+    await this.loadZoneLayers();
 
     // Mostrar mensaje si gira la rueda sin Ctrl
     if (!this.mapa) return;
@@ -236,6 +258,37 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.addLegend();
     setTimeout(() => this.mapa?.invalidateSize(), 50);
+  }
+
+  private async loadZoneLayers(): Promise<void> {
+    await Promise.all(this.zoneLayers.map(async zone => {
+      try {
+        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
+        zone.layer = L.geoJSON(data, {
+          pane: 'zonePane',
+          style: {
+            color: zone.color,
+            weight: 2,
+            opacity: 0.9,
+            fillColor: zone.color,
+            fillOpacity: 0.35
+          }
+        });
+      } catch (error) {
+        console.error(`Error al cargar ${zone.file}:`, error);
+      }
+    }));
+  }
+
+  toggleZoneLayer(zone: FrostZoneLayer, selected: boolean): void {
+    zone.selected = selected;
+    if (!this.mapa || !zone.layer) return;
+
+    if (selected) {
+      zone.layer.addTo(this.mapa);
+    } else {
+      this.mapa.removeLayer(zone.layer);
+    }
   }
 
   private async loadProvinces(): Promise<void> {
@@ -328,11 +381,12 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       const lat = Number(d.lat);
       const lon = Number(d.lon);
       const marker = L.circleMarker([lat, lon], {
+        pane: 'frostMarkersPane',
         radius: 8,
         fillColor: color,
         color: '#000',
         weight: 1,
-        fillOpacity: 0.8
+        fillOpacity: 1
       }).bindPopup(`
         <b>${d.nombre}</b><br>
         MinAbs: ${d.minAbs}°C<br>

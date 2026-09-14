@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { FeatureCollection } from 'geojson';
 import { CommonModule } from '@angular/common';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -21,6 +22,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MAT_DATE_FORMATS, DateAdapter, NativeDateAdapter } from '@angular/material/core';
 import { ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog'; // Añade esta importación
+import { KmzLayerService } from '../services/kmz-layer.service';
 
 import { GestureHandling } from 'leaflet-gesture-handling';
 L.Map.addInitHook('addHandler', 'gestureHandling', GestureHandling);
@@ -58,6 +60,7 @@ export const MY_DATE_FORMATS = {
 interface RainMapRecord {
   lat: number | string;
   lon: number | string;
+  habilitada: number;
   nombre: string;
   totalLluvia: number | string;
   maxLluvia: number | string;
@@ -69,6 +72,14 @@ interface RainScale {
   min: number;
   max: number;
   color: string;
+}
+
+interface RainZoneLayer {
+  label: string;
+  file: string;
+  color: string;
+  selected: boolean;
+  layer?: L.GeoJSON;
 }
 
 @Component({
@@ -88,6 +99,7 @@ interface RainScale {
     ReactiveFormsModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    MatCheckboxModule,
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter }, // Cambiar NativeDateAdapter por DmyDateAdapter
@@ -120,6 +132,13 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   rainData: RainMapRecord[] = [];
   rainSubscription: Subscription | undefined;
   markersLayer = L.layerGroup();
+  zoneLayers: RainZoneLayer[] = [
+    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
+    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
+    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
+    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
+    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
+  ];
   provincesLayer: L.GeoJSON | null = null;
   loading = false;
   rainScales: RainScale[] = [];
@@ -130,6 +149,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<MapRainComponent>,
     private http: HttpClient,
+    private kmzLayerService: KmzLayerService,
     private dateAdapter: DateAdapter<Date>,
     @Inject(MAT_DIALOG_DATA) public data: { hoy: boolean }
   ) {
@@ -160,8 +180,11 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.currentBaseLayer.addTo(this.map);
+    this.map.createPane('zonePane').style.zIndex = '450';
+    this.map.createPane('rainMarkersPane').style.zIndex = '600';
     this.markersLayer.addTo(this.map);
     await this.loadProvinces();
+    await this.loadZoneLayers();
     this.addLegend(); // Add the color scale legend to the map
 
     setTimeout(() => this.map?.invalidateSize(), 50);
@@ -186,6 +209,37 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map?.scrollWheelZoom.disable();
       }
     });
+  }
+
+  private async loadZoneLayers(): Promise<void> {
+    await Promise.all(this.zoneLayers.map(async zone => {
+      try {
+        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
+        zone.layer = L.geoJSON(data, {
+          pane: 'zonePane',
+          style: {
+            color: zone.color,
+            weight: 2,
+            opacity: 0.9,
+            fillColor: zone.color,
+            fillOpacity: 0.35
+          }
+        });
+      } catch (error) {
+        console.error(`Error al cargar ${zone.file}:`, error);
+      }
+    }));
+  }
+
+  toggleZoneLayer(zone: RainZoneLayer, selected: boolean): void {
+    zone.selected = selected;
+    if (!this.map || !zone.layer) return;
+
+    if (selected) {
+      zone.layer.addTo(this.map);
+    } else {
+      this.map.removeLayer(zone.layer);
+    }
   }
 
   private async loadProvinces(): Promise<void> {
@@ -226,7 +280,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.hoy) {
       this.rainSubscription = this.weatherService.getAlerts<RainMapRecord>().subscribe({
         next: (resp) => {
-          this.rainData = resp.data;
+          this.rainData = resp.data.filter(station => station.habilitada > 0);
           this.plotRain();
           this.loading = false; // Desactiva el spinner al finalizar
         },
@@ -239,7 +293,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       const hasta = this.formatDate(this.form.value.hasta);
       this.rainSubscription = this.weatherService.getRains<RainMapRecord>(desde, hasta).subscribe({
         next: (resp) => {
-          this.rainData = resp.data;
+          this.rainData = resp.data.filter(station => station.habilitada > 0);
           this.plotRain();
           this.loading = false;
         },
@@ -267,11 +321,12 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       const lon = Number(d.lon);
       const color = this.getRainColor(totalLluvia, registrosLluvia);
       const marker = L.circleMarker([lat, lon], {
+        pane: 'rainMarkersPane',
         radius: 8,
         fillColor: color,
         color: '#000',
         weight: 1,
-        fillOpacity: 0.8
+        fillOpacity: 1
       }).bindPopup(`
           <b>${d.nombre}</b><br>
           Total Lluvia: ${totalLluvia.toFixed(1)} mm<br>
