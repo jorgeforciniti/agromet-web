@@ -28,9 +28,12 @@
   border-radius: 999px;
 
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: rgba(255,255,255,.92);
   color: var(--text);
   cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
   z-index: 100;
 }
 

@@ -1,6 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
 
-@import './styles/dialog-theme.scss';
 @import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 @import './styles/tokens.scss';
 
@@ -144,28 +143,26 @@ textarea[matInput]::placeholder {
 /************************************************************************/
 
 
-/* Fondo oscuro para el panel del datepicker */
+/* Fondo blanco para el panel del datepicker */
 .mat-datepicker-content {
-  background-color: #333333 !important;
-  /* Gris oscuro */
+  background-color: #ffffff !important;
 }
 
-/* Fondo oscuro para el calendario */
+/* Fondo blanco para el calendario */
 .mat-calendar {
-  background-color: #333333 !important;
+  background-color: #ffffff !important;
 }
 
 /* Color del texto para que sea legible */
 .mat-calendar-body-cell-content,
 .mat-calendar-period-button,
 .mat-calendar-arrow {
-  color: #ffffff !important;
-  /* Texto blanco */
+  color: #333333 !important;
 }
 
 /* Fondo de las celdas del calendario */
 .mat-calendar-body-cell-content {
-  background-color: #333333 !important;
+  background-color: #ffffff !important;
 }
 
 /* Fondo para el día seleccionado */
@@ -237,29 +234,6 @@ textarea[matInput]::placeholder {
   color: var(--text);
   text-align: left;
 }
-.close-btn {
-  position: absolute !important;
-  top: 15px !important;
-  right: 15px !important;
-  font-size: 1.5rem !important;
-  font-weight: bold !important;
-  color: #fcfaa5 !important;
-  background-color: transparent !important;
-  border: 2px solid transparent !important;
-  border-radius: 50% !important;
-  padding: 4px 10px !important;
-  cursor: pointer !important;
-  transition: all 0.3s ease !important;
-  z-index: 1001 !important;
-}
-
-.close-btn:hover {
-  background-color: #fcfaa5 !important;
-  color: #3e3c2f !important;
-  border-color: #fcfaa5 !important;
-  transform: scale(1.1) !important;
-}
-
 .titulo {
   padding-left: 25px;
   font-size: 1.8rem;
@@ -384,44 +358,6 @@ textarea[matInput]::placeholder {
 /* Icono del datepicker dentro de do-dialog */
 .do-dialog .mat-datepicker-toggle .mat-icon{
   color: rgba(17,24,39,.85) !important;
-}
-
-/* Calendario: vos lo tenés oscuro GLOBAL (.mat-datepicker-content / .mat-calendar) */
-.do-dialog .mat-datepicker-content,
-.do-dialog .mat-calendar{
-  background: #fff !important;
-  color: rgba(17,24,39,.92) !important;
-}
-
-.do-dialog .mat-calendar-body-cell-content,
-.do-dialog .mat-calendar-period-button,
-.do-dialog .mat-calendar-arrow{
-  color: rgba(17,24,39,.88) !important;
-}
-
-.do-dialog .mat-calendar-body-cell-content{
-  background: #fff !important; /* tu global lo ponía gris */
-}
-
-.do-dialog .mat-calendar-body-selected .mat-calendar-body-cell-content{
-  background: rgba(79,121,50,.95) !important;
-  color: #fff !important;
-}
-
-.do-dialog .mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content{
-  border-color: rgba(79,121,50,.60) !important;
-}
-
-/* Botón X y título: tu global los vuelve amarillos */
-.do-dialog .close-btn{
-  color: rgba(17,24,39,.85) !important;
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-}
-.do-dialog .close-btn:hover{
-  background: rgba(17,24,39,.04) !important;
-  color: rgba(17,24,39,.92) !important;
-  transform: none !important;
 }
 
 .do-dialog .titulo{

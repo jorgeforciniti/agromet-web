@@ -1,6 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 
 interface WelcomeDialogData {
   [key: string]: unknown;
@@ -8,7 +9,7 @@ interface WelcomeDialogData {
 
 @Component({
   selector: 'app-dialog',
-  imports: [],
+  imports: [MatIconModule],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.css'
 })

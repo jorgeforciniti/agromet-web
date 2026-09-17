@@ -84,6 +84,7 @@
   cursor: pointer;
   display: grid;
   place-items: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .pdfd__btn:focus-visible,

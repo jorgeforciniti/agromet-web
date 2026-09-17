@@ -76,9 +76,10 @@
   border-radius: 999px;
 
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: rgba(255,255,255,.92);
   color: var(--text);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
   z-index: 100;
 }
 .close-btn mat-icon,
@@ -392,32 +393,6 @@ mat-tab-nav-panel{
   margin: 0;
   font-size: .85rem;
   color: var(--muted);
-}
-
-/* =========================
-   Datepicker (overlay via panelClass="do-datepicker")
-   ========================= */
-::ng-deep .do-datepicker .mat-datepicker-content,
-::ng-deep .do-datepicker .mat-calendar{
-  background: #fff !important;
-  color: rgba(17,24,39,.92) !important;
-}
-::ng-deep .do-datepicker .mat-calendar-table-header,
-::ng-deep .do-datepicker .mat-calendar-body-label{
-  color: rgba(17,24,39,.70) !important;
-  font-weight: 800;
-}
-::ng-deep .do-datepicker .mat-calendar-body-cell-content{
-  color: rgba(17,24,39,.88) !important;
-}
-::ng-deep .do-datepicker .mat-calendar-body-selected .mat-calendar-body-cell-content{
-  background: rgba(79,121,50,.95) !important;
-  color: #fff !important;
-}
-::ng-deep .do-datepicker .mat-calendar-arrow,
-::ng-deep .do-datepicker .mat-calendar-previous-button,
-::ng-deep .do-datepicker .mat-calendar-next-button{
-  color: rgba(17,24,39,.85) !important;
 }
 
 /* =========================
