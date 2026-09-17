@@ -86,7 +86,7 @@
   border-radius: 999px;
   border: 1px solid var(--border);
   background: rgba(255,255,255,.92);
-  color: var(--text) !important;
+  color: var(--text);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -94,7 +94,7 @@
 }
 
 .close-btn:hover {
-  background: rgba(17, 24, 39, .04) !important;
+  background: rgba(17, 24, 39, .04);
 }
 
 .close-btn:focus-visible {

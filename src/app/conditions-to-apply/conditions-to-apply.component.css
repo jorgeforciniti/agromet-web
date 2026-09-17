@@ -5,6 +5,7 @@
 }
 
 .container {
+  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -443,26 +444,6 @@ mat-form-field.select-wrapper {
   background: rgba(17, 24, 39, .10);
 }
 
-/* X como los otros dialogs */
-.close-btn {
-  position: absolute !important;
-  right: calc(14px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-
-  border: 1px solid var(--border);
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  cursor: pointer;
-  z-index: 1100;
-}
-
-.close-btn:hover {
-  background: rgba(17, 24, 39, .04) !important;
-}
-
 /* ícono info consistente (no el “(”) */
 .info-mini {
   width: 22px;
@@ -520,24 +501,6 @@ mat-form-field.select-wrapper {
   position: sticky;
   top: 0;
   z-index: 5;
-}
-
-/* 3) X fija estilo dialogs */
-.close-btn{
-  position: sticky;
-  top: 10px;
-  margin-left: auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17,24,39,.9);
-  cursor: pointer;
-  z-index: 1000;
-}
-.close-btn:hover{
-  background: rgba(17,24,39,.04);
 }
 
 /* 4) Menos amontonado: labels arriba */
@@ -610,21 +573,6 @@ mat-form-field.select-wrapper{
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
-
-.close-btn{
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17,24,39,.92);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor: pointer;
-  flex: 0 0 auto;
-}
-.close-btn:hover{ background: rgba(17,24,39,.04); }
 
 /* el body scrollea */
 .viewer-container{
@@ -757,30 +705,6 @@ mat-form-field.select-wrapper{
 .no-apto-row{
   background-color: #c0392b;
   color: #fff;
-}
-
-/* 1) X fija + estilo dialog */
-.container{
-  position: relative; /* para el absolute de la X */
-  padding: 0;
-}
-
-.close-btn{
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17,24,39,.90);
-  font-weight: 900;
-  cursor: pointer;
-  z-index: 1200;
-}
-.close-btn:hover{
-  background: rgba(17,24,39,.04);
 }
 
 /* 2) Controles en grid (menos amontonado) */
@@ -921,21 +845,6 @@ mat-form-field.date-field{ width: 100%; }
   padding: 4px 0 12px 0;
 }
 
-.do-close{
-  position: absolute;
-  right: 14px;
-  top: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17,24,39,.85);
-  cursor: pointer;
-  z-index: 60;
-}
-.do-close:hover{ background: rgba(17,24,39,.04); }
-
 /* ===== Menos amontonamiento: labels arriba + grid ===== */
 .controls{
   display: grid;
@@ -1025,22 +934,6 @@ mat-form-field.date-field{ width: 100%; }
 .th-info:hover{ background: rgba(255,255,255,.18); }
 
 
-/* X fija arriba a la derecha, sin ocupar ancho */
-.do-close{
-  position: sticky;
-  top: 10px;
-  margin-left: auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17,24,39,.9);
-  cursor: pointer;
-  z-index: 50;
-}
-.do-close:hover{ background: rgba(17,24,39,.04); }
-
 /* Controles en grid (evita amontonamiento) */
 .controls-grid{
   display: grid;
@@ -1126,20 +1019,6 @@ mat-form-field.date-field{ width: 100%; }
   color: rgba(17,24,39,.9);
 }
 
-/* X fija y del tamaño correcto (sin ocupar ancho) */
-.close-btn{
-  position: absolute;
-  right: calc(14px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  z-index: 1200;
-}
 .viewer-container{ position: relative; padding-top: 14px; }
 
 /* Ajuste de título para no pelearse con la X */
@@ -1237,20 +1116,20 @@ mat-form-field.date-field{ width: 100%; }
 .container{ position: relative; }
 
 .do-close{
-  position: sticky;
-  top: 10px;
-  margin-left: auto;
-  align-self: flex-end;
+  position: absolute;
+  right: calc(14px + env(safe-area-inset-right));
+  top: calc(14px + env(safe-area-inset-top));
 
   width: 40px;
   height: 40px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17,24,39,.9);
-  font-size: 18px;
-  font-weight: 900;
+  background: rgba(255,255,255,.92);
+  color: var(--text);
   cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
   z-index: 50;
 }
 .do-close:hover{ background: rgba(17,24,39,.04); }

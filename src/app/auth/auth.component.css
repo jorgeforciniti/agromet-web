@@ -53,7 +53,7 @@
   height: 40px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.92);
   color: var(--text);
   display: grid;
   place-items: center;

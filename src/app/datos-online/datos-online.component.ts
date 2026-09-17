@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
@@ -58,7 +59,7 @@ interface ChartWeatherRow extends HourlyWeatherRow {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule],
+  imports: [CommonModule, FormsModule, MatDialogModule, MatIconModule],
   templateUrl: './datos-online.component.html',
   styleUrls: ['./datos-online.component.css']
 })
