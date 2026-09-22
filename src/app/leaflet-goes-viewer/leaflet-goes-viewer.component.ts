@@ -281,8 +281,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     north: 90
   };
 
-  private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
-  private nasaFirmsMapKey = '05a7411727303e238b4b425a1b7fef16';
+  private tileProxyBase = 'https://agromet.eeaoc.gob.ar/services';
 
   public baseMaps: Record<string, BaseMapOption> = {
     osm: {
@@ -303,7 +302,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     precipitacion: {
       name: 'Precipitación',
       url: (date: string, time: string) => {
-        return `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
+        return `${this.tileProxyBase}/tile-owm.php?layer=precipitation_new&z={z}&x={x}&y={y}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -311,7 +310,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     nubosidad: {
       name: 'Nubosidad',
       url: (date: string, time: string) => {
-        return `https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
+        return `${this.tileProxyBase}/tile-owm.php?layer=clouds_new&z={z}&x={x}&y={y}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -319,7 +318,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     temperatura: {
       name: 'Temperatura de la Superficie',
       url: (date: string, time: string) => {
-        return `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
+        return `${this.tileProxyBase}/tile-owm.php?layer=temp_new&z={z}&x={x}&y={y}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -327,8 +326,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     incendios: {
       name: 'Incendios (VIIRS_NOAA21_NRT)',
       url: (date: string, time: string) => {
-        const formattedDate = `${date.substring(0, 4)}-${date.substring(4, 6)}-${date.substring(6, 8)}`;
-        return `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${this.nasaFirmsMapKey}/VIIRS_NOAA21_NRT/world/1/${formattedDate}`;
+        return `${this.tileProxyBase}/tile-firms.php?date=${date}`;
       },
       attribution: 'NASA FIRMS (VIIRS_NOAA21_NRT Fire Data)',
       isCSV: true
@@ -336,7 +334,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     vientos: {
       name: 'Vientos',
       url: (date: string, time: string) => {
-        return `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
+        return `${this.tileProxyBase}/tile-owm.php?layer=wind_new&z={z}&x={x}&y={y}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true

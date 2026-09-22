@@ -227,21 +227,6 @@ export class WeatherService {
     return this.http.get<StatusDataApiResponse<TDisease>>(url);
   }
 
-  getSmnAlerts(lat: number, lon: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}`;
-    return this.http.get<SmnAlertByAreaResponse>(url);
-  }
-
-  getSmnAlertByCoords(lat: number, lon: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=1`;
-    return this.http.get<SmnAlertByAreaResponse>(url);
-  }
-
-  getSmnShortTermAlertByCoords(lat: number, lon: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta.php?lat=${lat}&lon=${lon}&tipo=2`;
-    return this.http.get<SmnAlertByAreaResponse>(url);
-  }
-
   getSmnAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
     const url = this.stationsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=1`;
     return this.http.get<SmnAlertByAreaResponse>(url);
