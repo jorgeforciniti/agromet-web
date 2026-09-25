@@ -1,24 +1,18 @@
 <div class="alert-container">
   <div class="alert-section" *ngIf="smnAlertsByArea">
     <div class="alert-title-row">
-      <div>
-        <div class="alert-kicker">RIESGO METEOROLÓGICO</div>
-        <div class="alert-title">
-          <mat-icon>warning_amber</mat-icon>
-          Alertas meteorológicas
-          <span class="alert-title__source">SMN</span>
-        </div>
+      <div class="alert-kicker">RIESGO METEOROLÓGICO</div>
+      <div class="alert-title">
+        <mat-icon>warning_amber</mat-icon>
+        Alertas meteorológicas
+        <span class="alert-title__source">SMN</span>
       </div>
-      <p class="alert-intro">Resumen operativo por región con detalle de vigencia y acciones recomendadas.</p>
     </div>
 
     <ng-container *ngIf="!smnAlertsByArea[3373]?.length && !smnAlertsByArea[3375]?.length">
       <div class="no-alerts-message">
         <mat-icon>check_circle</mat-icon>
-        <div>
-          <strong>Sin alertas meteorológicas vigentes.</strong>
-          <span>No hay eventos activos para Tucumán ni Valles Calchaquíes en este momento.</span>
-        </div>
+        <span><strong>Sin alertas vigentes.</strong> No hay eventos activos para Tucumán ni Valles Calchaquíes.</span>
       </div>
     </ng-container>
 
@@ -105,7 +99,6 @@
           <mat-icon>notifications</mat-icon>
           Accesos especiales
         </div>
-        <div class="special-alerts__hint">Monitoreo puntual de lluvia y helada dentro del mismo panel de alertas.</div>
       </div>
 
       <div class="alert-btn-group">

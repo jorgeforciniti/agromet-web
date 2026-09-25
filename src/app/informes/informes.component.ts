@@ -1,18 +1,11 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatRadioModule } from '@angular/material/radio';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { DatosService, Informe } from '../services/datos.service';
+import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
-interface InformeViewModel extends Informe {
-  safeArchivo?: SafeResourceUrl;
-}
-
-type InformeDialogInput = Partial<InformeViewModel> & {
+type InformeDialogInput = Partial<Informe> & {
   nombreOriginal?: string;
   nombre?: string;
   file?: string;
@@ -21,23 +14,26 @@ type InformeDialogInput = Partial<InformeViewModel> & {
   url?: string;
 };
 
+interface CategoryMeta {
+  label: string;
+  color: string;
+}
+
 @Component({
   selector: 'app-informes',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    MatRadioModule,
     MatDialogModule,
-    MatFormFieldModule,
-    MatIconModule
+    MatIconModule,
+    ScrollRevealDirective
   ],
   templateUrl: './informes.component.html',
   styleUrls: ['./informes.component.css']
 })
 export class InformesComponent implements OnInit {
-  datos: InformeViewModel[] = [];
-  filteredDatos: InformeViewModel[] = [];
+  datos: Informe[] = [];
+  filteredDatos: Informe[] = [];
 
   tiposInformes = [
     { value: '', viewValue: 'Todos' },
@@ -50,30 +46,46 @@ export class InformesComponent implements OnInit {
     { value: 'et', viewValue: 'Estadísticas agrometeorológicas' }
   ];
 
-  selectedCategoria = '';
+  private readonly categoryMeta: Record<string, CategoryMeta> = {
+    ll: { label: 'Lluvias', color: '#2563eb' },
+    he: { label: 'Heladas', color: '#7c3aed' },
+    bo: { label: 'Boletín', color: '#4f7932' },
+    co: { label: 'Congresos', color: '#64748b' },
+    ad: { label: 'Adversidades', color: '#dc2626' },
+    rv: { label: 'Revistas', color: '#db2777' },
+    et: { label: 'Estadísticas', color: '#0d9488' }
+  };
 
-  @ViewChild('scrollContainer', { static: false }) scrollContainer!: ElementRef;
+  selectedCategoria = '';
+  loading = true;
 
   constructor(
     private datosService: DatosService,
-    private sanitizer: DomSanitizer,
     private dialog: MatDialog
   ) { }
 
   ngOnInit() {
-    this.datosService.getInformes().subscribe(resp => {
-      this.datos = resp.data.map((inf) => ({
-        ...inf,
-        safeArchivo: this.sanitizeUrl(inf.archivo)
-      }));
-      this.applyFilter();
+    this.datosService.getInformes().subscribe({
+      next: resp => {
+        this.datos = resp.data;
+        this.applyFilter();
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
+  }
+
+  selectCategoria(value: string): void {
+    this.selectedCategoria = value;
+    this.applyFilter();
   }
 
   applyFilter() {
     if (this.selectedCategoria === '') {
       const categorias = ['ll', 'he', 'bo', 'co', 'ad', 'rv', 'et'];
-      const agrupados: InformeViewModel[] = [];
+      const agrupados: Informe[] = [];
 
       categorias.forEach(cat => {
         const ultimosTres = this.datos
@@ -91,9 +103,15 @@ export class InformesComponent implements OnInit {
     }
   }
 
-  sanitizeUrl(archivo: string): SafeResourceUrl {
-    const url = `https://agromet.eeaoc.gob.ar/PDFS/${archivo}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  categoriaLabel(categoria: string): string {
+    return this.categoryMeta[categoria]?.label ?? categoria;
+  }
+
+  chipColor(categoria: string): string {
+    if (!categoria) {
+      return 'var(--brand)';
+    }
+    return this.categoryMeta[categoria]?.color ?? 'var(--mod-reports)';
   }
 
   async openDialog(informe: InformeDialogInput): Promise<void> {
@@ -132,23 +150,5 @@ export class InformesComponent implements OnInit {
       autoFocus: false,
       restoreFocus: false
     });
-  }
-
-  scrollLeft(): void {
-    this.scrollContainer.nativeElement.scrollLeft -= 300;
-  }
-
-  scrollRight(): void {
-    this.scrollContainer.nativeElement.scrollLeft += 300;
-  }
-
-  onCategoriaChange(): void {
-    this.applyFilter();
-
-    setTimeout(() => {
-      if (this.scrollContainer?.nativeElement) {
-        this.scrollContainer.nativeElement.scrollLeft = 0;
-      }
-    }, 50);
   }
 }

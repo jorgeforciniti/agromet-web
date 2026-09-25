@@ -4,11 +4,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-datos-meteorologicos',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatDialogModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatDialogModule, MatIconModule, ScrollRevealDirective],
   templateUrl: './datos-meteorologicos.component.html',
   styleUrls: ['./datos-meteorologicos.component.css']
 })

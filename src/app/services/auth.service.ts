@@ -46,16 +46,16 @@ export class AuthService {
   }
 
   async loginWithGoogle() {
-    const provider = new GoogleAuthProvider();
-
-    return await runInInjectionContext(this.injector, () =>
-      signInWithPopup(this.auth, provider)
-    );
+    return await runInInjectionContext(this.injector, () => {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      return signInWithPopup(this.auth, provider);
+    });
   }
 
   // ✅ Devuelve un observable del usuario autenticado
   getUserObservable(): Observable<User | null> {
-    return user(this.auth);
+    return runInInjectionContext(this.injector, () => user(this.auth));
   }
 
   async getCurrentUser(): Promise<User | null> {

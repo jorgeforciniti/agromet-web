@@ -9,7 +9,7 @@
     </div>
 
     <div class="dm__grid">
-      <mat-card class="dm-card dm-card--primary">
+      <mat-card class="dm-card dm-card--primary tap-feedback" [appScrollReveal]="0">
         <div class="dm-card__media">
           <img class="dm-card__img" src="../../assets/images/mapas/lluviasmensuales.png" alt="Lluvias mensuales" />
           <div class="dm-card__badge">PRECIPITACIONES</div>
@@ -24,9 +24,9 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="dm-card">
+      <mat-card class="dm-card tap-feedback" [appScrollReveal]="80">
         <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/mapas/temperaturas.png" alt="Temperaturas" />
+          <img class="dm-card__img" src="../../assets/images/mapas/temperaturas.png" alt="Temperaturas" loading="lazy" />
           <div class="dm-card__badge">TEMPERATURA</div>
         </div>
         <mat-card-content class="dm-card__body">
@@ -39,9 +39,9 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="dm-card">
+      <mat-card class="dm-card tap-feedback" [appScrollReveal]="160">
         <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/mapas/heladas.png" alt="Heladas" />
+          <img class="dm-card__img" src="../../assets/images/mapas/heladas.png" alt="Heladas" loading="lazy" />
           <div class="dm-card__badge">RIESGO</div>
         </div>
         <mat-card-content class="dm-card__body">
@@ -65,7 +65,7 @@
 
     <ul class="dm-links">
       <li>
-        <button type="button" class="dm-link" (click)="openMapRains()">
+        <button type="button" class="dm-link tap-feedback" (click)="openMapRains()">
           <mat-icon inline>water_drop</mat-icon>
           <span>
             <strong>Lluvias diarias:</strong> distribución de lluvias acumuladas por período.

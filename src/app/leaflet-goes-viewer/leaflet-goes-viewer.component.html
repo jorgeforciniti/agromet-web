@@ -1,42 +1,44 @@
 ﻿  <div class="viewer-container">
     <h2 class="panel-title"><mat-icon>satellite_alt</mat-icon> Visor de Imágenes Satelitales</h2>
-    <div class="controls">
-      <div class="control-group">
-        <label class="control-label">Capa:
-          <mat-form-field appearance="outline" class="select-wrapper">
-            <mat-label>Selecciona una capa</mat-label>
+
+    <div class="map-wrapper">
+      <div id="map"></div>
+
+      <div class="map-toolbar">
+        <label class="map-toolbar__field">
+          <span>Capa</span>
+          <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
             <mat-select [(ngModel)]="selectedLayer" (selectionChange)="setLayer($event.value)"
-              title="Seleccioná una capa">
+              aria-label="Seleccioná una capa" title="Seleccioná una capa">
               <mat-option *ngFor="let key of layerKeys" [value]="key">
                 {{ layers[key].name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </label>
-      </div>
-      <div class="control-group">
-        <label class="control-label">Mapa Base:
-          <mat-form-field appearance="outline" class="select-wrapper">
-            <mat-label>Selecciona un mapa base</mat-label>
+        <label class="map-toolbar__field">
+          <span>Base</span>
+          <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
             <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="setBaseMap(selectedBaseMap)"
-              aria-label="SelecciÃ³n de mapa base">
+              aria-label="Selección de mapa base">
               <mat-option value="satellite">Satelital</mat-option>
               <mat-option value="osm">OSM Estándar</mat-option>
             </mat-select>
           </mat-form-field>
         </label>
       </div>
-    </div>
 
-    <div class="map-wrapper">
-      <div id="map"></div>
-
-      <!-- Overlay de carga - VersiÃ³n mejorada -->
+      <!-- Overlay de carga -->
       <div *ngIf="isLoading" class="loading-overlay">
         <div class="spinner-container">
           <div class="spinner"></div>
           <p class="loading-text">Cargando capa...</p>
         </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="map-error">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
       </div>
     </div>
 

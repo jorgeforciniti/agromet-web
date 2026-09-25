@@ -25,7 +25,7 @@
   flex-direction: column !important;
   min-height: 0 !important;
   overflow: auto !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
   padding: 0 !important;
   margin: 0 !important;
   background: transparent !important;
@@ -37,7 +37,7 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   padding: 16px;
   box-sizing: border-box;
 
@@ -198,9 +198,24 @@
 ::ng-deep .tabs .mat-mdc-tab-body-wrapper{
   flex: 1 1 auto;
   min-height: 0;
+  /* Material anima la altura de este wrapper con JS y le pone overflow:hidden por
+     defecto; si mide mal (por el resto de la cadena flex con min-height:0), recorta
+     contenido real. overflow:visible ignora esa altura calculada para efectos de
+     recorte, dejando que .scroll-container sea el único que decide qué se ve. */
+  overflow: visible !important;
 }
+/* Material le pone overflow:auto a .mat-mdc-tab-body-content (para que cada tab pueda
+   scrollear su contenido de forma independiente) y overflow:hidden a .mat-mdc-tab-body
+   (para animar el cambio de tab). Ambos crean scroll anidado: el contenido del tab
+   scrollea solo, mientras el header/formulario de arriba queda fijo, y si el contenido
+   no entra ni siquiera ese scroll interno alcanza a mostrarlo todo. Los dejamos visible
+   para que .scroll-container sea el único que decide qué se corta y cómo se scrollea. */
 ::ng-deep .tabs .mat-mdc-tab-body-content{
   height: 100%;
+  overflow: visible !important;
+}
+::ng-deep .tabs .mat-mdc-tab-body{
+  overflow: visible !important;
 }
 
 /* Map */
@@ -254,10 +269,24 @@
 
 .table-scroll{
   width: 100%;
-  overflow: auto;
+  position: relative;
+  /* Scroll horizontal propio con degradé en los bordes (avisa que hay más columnas
+     y desaparece solo al llegar al final); el vertical sigue siendo el de .scroll-container */
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
+    linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0,
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255, 255, 255, .99));
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%, 100% 100%;
+  background-attachment: local, local, scroll, scroll, local;
 }
 
 .heladas-table{

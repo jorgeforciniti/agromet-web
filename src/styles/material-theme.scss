@@ -1,0 +1,93 @@
+// Tema de Angular Material propio, alineado a la identidad institucional de la EEAOC
+// (reemplaza el prebuilt-theme "azure-blue" que dejaba los mat-button/mat-radio
+// "color=primary" en azul de Material en vez del verde --brand del sitio).
+@use '@angular/material' as mat;
+@use 'sass:color';
+
+@include mat.core();
+
+// --brand (#4f7932) de src/styles/tokens.scss
+$brand-base: #4f7932;
+
+$brand-palette: (
+  50: color.scale($brand-base, $lightness: 85%),
+  100: color.scale($brand-base, $lightness: 70%),
+  200: color.scale($brand-base, $lightness: 55%),
+  300: color.scale($brand-base, $lightness: 38%),
+  400: color.scale($brand-base, $lightness: 20%),
+  500: $brand-base,
+  600: color.scale($brand-base, $lightness: -12%),
+  700: color.scale($brand-base, $lightness: -22%),
+  800: color.scale($brand-base, $lightness: -32%),
+  900: color.scale($brand-base, $lightness: -42%),
+  A100: color.scale($brand-base, $lightness: 70%),
+  A200: color.scale($brand-base, $lightness: 55%),
+  A400: color.scale($brand-base, $lightness: -12%),
+  A700: color.scale($brand-base, $lightness: -32%),
+  contrast: (
+    50: rgba(black, .87),
+    100: rgba(black, .87),
+    200: rgba(black, .87),
+    300: rgba(black, .87),
+    400: rgba(black, .87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, .87),
+    A200: rgba(black, .87),
+    A400: white,
+    A700: white,
+  ),
+);
+
+// --accent (#0284c7) de src/styles/tokens.scss
+$accent-base: #0284c7;
+
+$accent-palette: (
+  50: color.scale($accent-base, $lightness: 85%),
+  100: color.scale($accent-base, $lightness: 70%),
+  200: color.scale($accent-base, $lightness: 55%),
+  300: color.scale($accent-base, $lightness: 38%),
+  400: color.scale($accent-base, $lightness: 20%),
+  500: $accent-base,
+  600: color.scale($accent-base, $lightness: -12%),
+  700: color.scale($accent-base, $lightness: -22%),
+  800: color.scale($accent-base, $lightness: -32%),
+  900: color.scale($accent-base, $lightness: -42%),
+  A100: color.scale($accent-base, $lightness: 70%),
+  A200: color.scale($accent-base, $lightness: 55%),
+  A400: color.scale($accent-base, $lightness: -12%),
+  A700: color.scale($accent-base, $lightness: -32%),
+  contrast: (
+    50: rgba(black, .87),
+    100: rgba(black, .87),
+    200: rgba(black, .87),
+    300: rgba(black, .87),
+    400: white,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(black, .87),
+    A200: rgba(black, .87),
+    A400: white,
+    A700: white,
+  ),
+);
+
+$app-primary: mat.m2-define-palette($brand-palette, 500, 300, 700);
+$app-accent: mat.m2-define-palette($accent-palette, 500, 300, 700);
+$app-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$app-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $app-primary,
+    accent: $app-accent,
+    warn: $app-warn,
+  ),
+));
+
+@include mat.all-component-themes($app-theme);

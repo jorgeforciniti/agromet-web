@@ -89,6 +89,16 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
     this.stationSelected.emit(station.Identificacion);
   }
 
+  /**
+   * El mat-select por defecto compara por referencia de objeto. La estación seleccionada
+   * puede llegar desde StationService con una instancia distinta (ej. elegida en el mapa,
+   * que trae su propia copia de la lista de estaciones) aunque sea la misma estación real,
+   * así que comparamos por Identificacion en vez de por referencia.
+   */
+  compareStations(a: WeatherStation | null, b: WeatherStation | null): boolean {
+    return (a?.Identificacion ?? null) === (b?.Identificacion ?? null);
+  }
+
   getWeatherForecast(lat: number, lon: number): void {
     this.loading = true;
     this.weatherService.getOpenWeatherForecast(lat, lon).subscribe({

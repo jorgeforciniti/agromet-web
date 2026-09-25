@@ -1,67 +1,15 @@
-<div class="header-container">
-  <header class="header">
-    <div class="header-content">
-      <a href="https://www.eeaoc.gob.ar/">
-        <img src="assets/images/logos/logo_eeaoc.png" alt="Logo EEAOC" class="logo">
-      </a>
-      <app-navbar></app-navbar>
-    </div>
-    <div class="header-bar">
-      <img src="assets/images/logos/header-bottom.png" alt="Barra inferior" class="bar">
-    </div>
-  </header>
-</div>
+<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+
+<app-header></app-header>
 
 <!-- Contenido principal de la aplicación -->
-<main class="main-content">
+<main class="main-content" id="main-content" tabindex="-1">
   <router-outlet></router-outlet>
 </main>
 
-<footer class="footer">
-  <div class="footer-column footer-logo-texto">
+<p class="global-disclaimer">
+  Los datos e información publicados son de carácter provisorio y pueden estar sujetos a revisión. La EEAOC no
+  asume responsabilidad por su uso, interpretación o aplicación.
+</p>
 
-    <img src="assets/images/logos/somos.png" alt="Logo EEAOC">
-
-    <div>
-      <p>William Cross 3150<br>
-        Las Talitas - Tucumán - Argentina<br>
-        Tel: (54 381) 452 1000 - FAX: (54 381) 452 1008</p>
-    </div>
-  </div>
-  <div class="footer-column footer-logo-texto">
-    <strong><br>Sección<br>Agrometeorología</strong>
-    <p>Tel: (54 381) 452 1060<br>
-      Tel: (54 381) 452 1012<br><br>
-      mail: jorgeforciniti&#64;eeaoc.org.ar</p>
-  </div>
-
-  <div class="footer-column footer-qr">
-    <img src="assets/images/qr/qrandroid.png" alt="QR Android">
-  </div>
-  <div class="footer-column footer-qr">
-    <img src="assets/images/qr/qrios.png" alt="QR iOS">
-  </div>
-
-  <div class="footer-column footer-instituciones">
-    <!-- Redes sociales -->
-    <div class="footer-contacto">
-      <div class="iconos">
-        <a class="social-link" href="https://www.facebook.com/EEAOCOFICIAL/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><fa-icon class="social-icon" [icon]="['fab', 'facebook']"
-            size="2x"></fa-icon></a>
-        <a class="social-link" href="https://twitter.com/eeaocoficial" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><fa-icon class="social-icon" [icon]="['fab', 'twitter']"
-            size="2x"></fa-icon></a>
-        <a class="social-link" href="https://www.youtube.com/channel/UC5cr5skGsAzBIoNO_c8KhBg" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><fa-icon class="social-icon"
-            [icon]="['fab', 'youtube']" size="2x"></fa-icon></a>
-        <a class="social-link" href="https://www.instagram.com/eeaocoficial/?hl=es-la" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><fa-icon class="social-icon"
-            [icon]="['fab', 'instagram']" size="2x"></fa-icon></a>
-      </div>
-    </div>
-
-    <!-- Logos institucionales alineados horizontal -->
-    <div class="logos-institucionales">
-<!--      <a href="https://itanoa.conicet.gov.ar/" target="_blank" rel="noopener noreferrer" ><img src="assets/images/logos/itanoatransparente.png" alt="Conicet"></a>-->
-      <img src="assets/images/logos/tucuman.png" alt="Tucumán">
-      <img src="assets/images/logos/paradigmax.png" alt="Ambiente">
-    </div>
-  </div>
-</footer>
+<app-footer></app-footer>

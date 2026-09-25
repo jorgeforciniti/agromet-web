@@ -281,17 +281,29 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
           <div>ID: ${props.id}</div>
           <div>Altura: ${props.alt} msnm</div>
           <div>Fecha: ${props.fecha_i}</div>
-          <div>Temp: ${this.fmt(props.temp_af)} °C</div>
-          <div>Hum: ${this.fmt(props.hum_af)}%</div>
-          <div>Precip: ${this.fmt(props.rr_dia)} mm</div>
-          <div>Viento medio: ${this.fmt(props.viento_medio)} km/h</div>
-          <div>Ráfaga: ${this.fmt(props.viento_max)} km/h</div>
+          <div>Temp: ${this.fmt(props.temp_af, 'temp')} °C</div>
+          <div>Hum: ${this.fmt(props.hum_af, 'hum')}%</div>
+          <div>Precip: ${this.fmt(props.rr_dia, 'rain')} mm</div>
+          <div>Viento medio: ${this.fmt(props.viento_medio, 'wind')} km/h</div>
+          <div>Ráfaga: ${this.fmt(props.viento_max, 'wind')} km/h</div>
         </div>
       </div>`;
   }
 
-  public fmt(v: string | number | null | undefined): string {
-    return String(v) === '10000' || String(v) === '10000.0' ? '---' : (v != null ? String(v) : '');
+  public fmt(v: string | number | null | undefined, kind?: 'temp' | 'hum' | 'wind' | 'rain'): string {
+    if (String(v) === '10000' || String(v) === '10000.0') return '---';
+    if (v == null) return '';
+
+    // Descarta lecturas fuera de rango físico posible (valores de error del sensor,
+    // ej. 1802.6 °C / 255 % / 410.4 km/h vistos en producción) en vez de mostrarlas tal cual.
+    const n = Number(v);
+    if (kind && !isNaN(n)) {
+      if (kind === 'temp' && (n < -25 || n > 55)) return '---';
+      if (kind === 'hum' && (n < 0 || n > 100)) return '---';
+      if (kind === 'wind' && (n < 0 || n > 390)) return '---';
+      if (kind === 'rain' && (n < 0 || n > 400)) return '---';
+    }
+    return String(v);
   }
   /** Cierra el diálogo */
   public closeWindow(): void {

@@ -1,0 +1,299 @@
+.page-estado-actual {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.quick-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 800;
+  font-size: .84rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-nav a:hover {
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+  color: var(--brand-600);
+}
+
+.section {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  scroll-margin-top: 190px;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.section:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(16, 24, 40, .08);
+  border-color: color-mix(in srgb, var(--moduleColor, var(--brand)) 22%, var(--border));
+}
+
+.section::after {
+  content: "";
+  position: absolute;
+  top: -36px;
+  right: -54px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--moduleColor, var(--brand)) 12%, white) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.section-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--moduleColor, var(--brand)) 5%, white), rgba(255, 255, 255, .98));
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  background: var(--moduleColor, var(--brand));
+}
+
+.section-title {
+  margin: 8px 0 0;
+  font-size: 1.24rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.08;
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--moduleColor, var(--brand)) 16%, var(--border));
+  background: rgba(255, 255, 255, .84);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: color-mix(in srgb, var(--moduleColor, var(--brand)) 60%, #3f4750);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+}
+
+.section-loading {
+  padding: 18px 14px;
+  color: var(--muted);
+  font-weight: 700;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .82), color-mix(in srgb, var(--moduleColor, var(--brand)) 4%, white));
+}
+
+/* Color por módulo (tokens globales) */
+.section--alertas {
+  --moduleColor: var(--mod-alert);
+}
+
+.section--datos {
+  --moduleColor: var(--mod-data);
+}
+
+.section--alertas .section-header {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-alert) 7%, white), rgba(255, 255, 255, .98));
+}
+
+.section--datos .section-header {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 7%, white), rgba(255, 255, 255, .98));
+}
+
+@media (max-width: 760px) {
+  .page-estado-actual {
+    gap: 18px;
+  }
+
+  .section {
+    scroll-margin-top: 210px;
+  }
+
+  .section-header {
+    padding: 14px;
+  }
+
+  .section-title {
+    font-size: 1.14rem;
+  }
+
+  .section-loading {
+    padding: 16px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section {
+    transition: none;
+  }
+}
+
+.dash2-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) 1.4fr;
+  grid-template-areas:
+    "left right"
+    "forecast forecast";
+  gap: 20px;
+  padding: 18px;
+}
+
+.dash2-left {
+  grid-area: left;
+}
+
+.dash2-right {
+  grid-area: right;
+  min-height: 680px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 6%, white), rgba(255, 255, 255, .99));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash2-forecast {
+  grid-area: forecast;
+}
+
+.dash2-left,
+.dash2-forecast {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255, 255, 255, .99));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+
+.dash2-left,
+.dash2-right,
+.dash2-forecast {
+  position: relative;
+  overflow: hidden;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.dash2-left::after,
+.dash2-right::after,
+.dash2-forecast::after {
+  content: "";
+  position: absolute;
+  top: -42px;
+  right: -46px;
+  width: 148px;
+  height: 148px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--mod-data) 10%, white) 0%, rgba(255, 255, 255, 0) 72%);
+  pointer-events: none;
+}
+
+.dash2-left:hover,
+.dash2-right:hover,
+.dash2-forecast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(15, 23, 42, .08);
+  border-color: color-mix(in srgb, var(--mod-data) 22%, var(--border));
+}
+
+.dash2-left app-weather-forecast,
+.dash2-forecast app-weather-forecast {
+  display: block;
+  padding: 16px 18px 18px;
+  background: rgba(255, 255, 255, .56);
+}
+
+.dash2-left app-weather-forecast {
+  max-height: 520px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.dash2-right app-leaflet-goes-viewer {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 420px;
+  margin: 14px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .72), rgba(241, 245, 249, .92));
+}
+
+@media (max-width: 1100px) {
+  .dash2-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right"
+      "forecast";
+  }
+
+  .dash2-right {
+    min-height: 480px;
+  }
+
+  /* En una sola columna ya no hace falta emparejar el alto con el mapa:
+     que el panel crezca con la página en vez de scrollear por su cuenta. */
+  .dash2-left app-weather-forecast {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 760px) {
+  .dash2-grid {
+    padding: 12px;
+    gap: 14px;
+  }
+
+  .dash2-left,
+  .dash2-forecast {
+    padding: 0;
+  }
+
+  .dash2-right {
+    min-height: 400px;
+  }
+
+  .dash2-left app-weather-forecast,
+  .dash2-forecast app-weather-forecast {
+    padding: 12px 14px 14px;
+  }
+
+  .dash2-right app-leaflet-goes-viewer {
+    margin: 10px;
+    border-radius: 14px;
+  }
+}

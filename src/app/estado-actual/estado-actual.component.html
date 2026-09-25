@@ -1,0 +1,42 @@
+<div class="page-estado-actual">
+  <nav class="quick-nav" aria-label="Ir a sección">
+    <a href="#sec-alertas" (click)="scrollToSection($event, 'sec-alertas')">Alertas</a>
+    <a href="#sec-datos" (click)="scrollToSection($event, 'sec-datos')">Datos y pronóstico</a>
+  </nav>
+
+  <section class="section section--alertas" id="sec-alertas">
+    <header class="section-header">
+      <div class="section-kicker">QUÉ ESTÁ PASANDO AHORA</div>
+      <h2 class="section-title">Alertas y avisos del SMN</h2>
+    </header>
+    @defer (on viewport) {
+    <app-alert></app-alert>
+    } @placeholder {
+    <div class="section-loading">Cargando alertas...</div>
+    }
+  </section>
+
+  <section class="section section--datos" id="sec-datos">
+    <header class="section-header">
+      <div class="section-kicker">MONITOREO OPERATIVO</div>
+      <h2 class="section-title">Datos actuales y pronóstico</h2>
+    </header>
+    @defer (on viewport) {
+    <div class="dash2-grid">
+      <div class="dash2-left">
+        <app-weather-forecast mode="realtime"></app-weather-forecast>
+      </div>
+
+      <div class="dash2-right">
+        <app-leaflet-goes-viewer></app-leaflet-goes-viewer>
+      </div>
+
+      <div class="dash2-forecast">
+        <app-weather-forecast mode="forecast"></app-weather-forecast>
+      </div>
+    </div>
+    } @placeholder {
+    <div class="section-loading">Cargando datos meteorológicos...</div>
+    }
+  </section>
+</div>

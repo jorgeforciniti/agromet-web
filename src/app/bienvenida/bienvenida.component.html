@@ -1,18 +1,108 @@
 <div class="bienvenida-wrapper">
-  <div class="hero-container">
-    <video #heroVideo class="hero-bg" autoplay muted loop playsinline preload="auto" poster="assets/images/fallback.jpg">
-      <source src="assets/videos/inicio.mp4" type="video/mp4">
-      Tu navegador no soporta video HTML5.
-    </video>
-
-    <div class="hero-overlay">
+  <div class="hero">
+    <div class="hero-intro">
       <div class="hero-eyebrow">MONITOREO AGROMETEOROLÓGICO</div>
       <h1 class="hero-title">Agrometeorología en tiempo real para Tucumán y el NOA</h1>
-      <h2 class="hero-subtext">Bienvenidos a la sección Agrometeorología de la EEAOC.</h2>
-      <p class="hero-subtext">Información climática de Tucumán para una agricultura más eficiente y mejor seguimiento territorial.</p>
-      <div class="hero-cta">
-        <button type="button" class="btn btn--accent" (click)="openDialog()">Saber más</button>
-      </div>
+      <p class="hero-subtext">Información climática de Tucumán para una agricultura más eficiente y mejor seguimiento
+        territorial.</p>
+      <button type="button" class="btn btn--accent hero-more" (click)="openDialog()">Saber más sobre la sección</button>
     </div>
+
+    <div class="hero-cards">
+      <div class="hero-card hero-card--conditions" [appScrollReveal]="0">
+        <div class="hero-card__head">
+          <mat-icon>thermostat</mat-icon>
+          <span>Condiciones actuales</span>
+        </div>
+
+        <ng-container *ngIf="!loadingConditions && currentStation; else conditionsPlaceholder">
+          <div class="conditions-location">
+            <button type="button" class="conditions-nav tap-feedback" (click)="previousStation()"
+              [disabled]="stations.length < 2" aria-label="Estación anterior">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <div class="conditions-location__text">
+              <strong class="conditions-station-name" [title]="currentStation.nombre">{{ currentStation.nombre }}</strong>
+              <span [title]="locationLabel(currentStation)">
+                {{ locationLabel(currentStation) }}<ng-container *ngIf="zonaLabel(currentStation.zona)"> · {{ zonaLabel(currentStation.zona) }}</ng-container>
+              </span>
+            </div>
+
+            <button type="button" class="conditions-nav tap-feedback" (click)="nextStation()"
+              [disabled]="stations.length < 2" aria-label="Estación siguiente">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <div class="conditions-grid">
+            <div class="conditions-metric">
+              <mat-icon>thermostat</mat-icon>
+              <span class="value">{{ currentTemp !== null ? (currentTemp + ' °C') : '—' }}</span>
+              <span class="label">Temperatura</span>
+            </div>
+            <div class="conditions-metric">
+              <mat-icon>water_drop</mat-icon>
+              <span class="value">{{ currentHumidity !== null ? (currentHumidity + ' %') : '—' }}</span>
+              <span class="label">Humedad</span>
+            </div>
+            <div class="conditions-metric">
+              <mat-icon>air</mat-icon>
+              <span class="value">{{ currentWindSpeed !== null ? (currentWindSpeed + ' km/h ' + (currentStation.direc || '')) : '—' }}</span>
+              <span class="label">Viento</span>
+            </div>
+            <div class="conditions-metric">
+              <mat-icon>wb_sunny</mat-icon>
+              <span class="value">{{ loadingUv ? '…' : (uvIndex !== null ? (uvIndex | number:'1.1-1') : '—') }}</span>
+              <span class="label">Índice UV</span>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #conditionsPlaceholder>
+          <div class="hero-card__sk-group" aria-hidden="true" aria-busy="true">
+            <div class="hero-card__skeleton hero-card__skeleton--value"></div>
+            <div class="hero-card__skeleton hero-card__skeleton--compare"></div>
+          </div>
+        </ng-template>
+
+        <a class="hero-card__link tap-feedback" routerLink="/estado-actual" (click)="goToCurrentStation()">
+          Ver estado actual <mat-icon>arrow_outward</mat-icon>
+        </a>
+      </div>
+
+      <button type="button" class="hero-card hero-card--frost tap-feedback" [appScrollReveal]="80"
+        [class.hero-card--frost-active]="!loadingFrost && frostSummary && frostSummary.count > 0"
+        (click)="openFrostMapDialog()">
+        <div class="hero-card__head">
+          <mat-icon>ac_unit</mat-icon>
+          <span>Heladas</span>
+        </div>
+
+        <ng-container *ngIf="!loadingFrost && frostSummary; else frostPlaceholder">
+          <ng-container *ngIf="frostSummary!.count > 0; else sinHeladas">
+            <div class="hero-card__value"><span [appCountUp]="frostSummary!.count" countUpSuffix=" estaciones bajo cero"></span></div>
+            <div class="hero-card__compare">Mínima: {{ frostSummary!.lowest }} °C en {{ frostSummary!.lowestStation }}</div>
+          </ng-container>
+          <ng-template #sinHeladas>
+            <div class="hero-card__value">Sin heladas registradas</div>
+            <div class="hero-card__compare">Ninguna estación bajo 0 °C en las últimas 24 h</div>
+          </ng-template>
+        </ng-container>
+        <ng-template #frostPlaceholder>
+          <div class="hero-card__sk-group" *ngIf="loadingFrost" aria-hidden="true" aria-busy="true">
+            <div class="hero-card__skeleton hero-card__skeleton--value"></div>
+            <div class="hero-card__skeleton hero-card__skeleton--compare"></div>
+          </div>
+        </ng-template>
+
+        <span class="hero-card__link">Ver mapa de heladas <mat-icon>arrow_outward</mat-icon></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-alert" *ngIf="alertText" role="status">
+    <mat-icon>warning_amber</mat-icon>
+    <span>{{ alertText }}</span>
+    <a routerLink="/estado-actual">Ver detalle</a>
   </div>
 </div>

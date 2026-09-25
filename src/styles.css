@@ -9,6 +9,71 @@ body {
   height: 100%;
 }
 
+/* =========================
+   Skeleton loaders
+   ========================= */
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(90deg,
+    rgba(17, 24, 39, .07) 25%,
+    rgba(17, 24, 39, .13) 37%,
+    rgba(17, 24, 39, .07) 63%);
+  background-size: 400% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    opacity: .65;
+  }
+}
+
+/* =========================
+   Scroll reveal (appScrollReveal)
+   ========================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .55s cubic-bezier(.22, .61, .36, 1), transform .55s cubic-bezier(.22, .61, .36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* =========================
+   Feedback táctil (tap/press) para tarjetas y botones interactivos
+   ========================= */
+.tap-feedback {
+  transition: transform .12s ease;
+}
+
+.tap-feedback:active {
+  transform: scale(.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tap-feedback:active {
+    transform: none;
+  }
+}
+
 body {
   background-color: var(--bg);
   margin: 0;
@@ -244,16 +309,15 @@ textarea[matInput]::placeholder {
 
 /* Botón de búsqueda */
 .search-button {
-  background-color: #3f51b5 !important;
-  /* Amarillo para el botón */
-  color: #f8f5d7 !important;
+  background-color: var(--brand) !important;
+  color: #ffffff !important;
   padding: 0.8rem 1.5rem !important;
   border-radius: 10px !important;
   transition: background-color 0.3s ease !important;
 }
 
 .search-button:hover {
-  background-color: #3f51dd !important;
+  background-color: var(--brand-600) !important;
 }
 
 @media (max-width: 768px) {

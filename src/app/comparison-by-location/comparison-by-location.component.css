@@ -111,9 +111,19 @@
 
 .vars-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 8px;
-  margin: 12px 0;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 2px 8px;
+  margin: 8px 0;
+}
+
+/* Radios más compactos: son un selector secundario, el gráfico es el contenido
+   principal del diálogo y necesita más alto disponible. */
+:host ::ng-deep .vars-grid .mdc-radio {
+  padding: 8px;
+}
+
+:host ::ng-deep .vars-grid .mat-mdc-radio-button .mdc-form-field {
+  font-size: .88rem;
 }
 
 .radio-label {
@@ -157,7 +167,7 @@
 }
 
 .actions {
-  padding-top: 8px;
+  padding-top: 4px;
 }
 
 .search-button {
@@ -181,7 +191,7 @@
 
 .chart-container {
   flex: 1 1 auto;
-  min-height: 360px;
+  min-height: 460px;
   border: 1px solid var(--border);
   border-radius: 16px;
   background: rgba(255,255,255,.9);

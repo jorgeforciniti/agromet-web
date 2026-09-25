@@ -1,0 +1,76 @@
+<div class="page-estaciones">
+  <header class="section-header">
+    <div class="section-kicker">RED PROVINCIAL</div>
+    <h2 class="section-title">Red de estaciones meteorológicas</h2>
+    <p class="section-summary" *ngIf="!loading">
+      {{ totalCount }} estaciones activas en la red
+    </p>
+  </header>
+
+  <div class="estaciones-map-wrapper">
+    <div id="estaciones-map"></div>
+  </div>
+
+  <div class="estaciones-list" *ngIf="!loading; else cargando">
+    <div class="estaciones-empty" *ngIf="error">{{ error }}</div>
+
+    <div class="table-scroll-x" *ngIf="!error">
+      <table class="estaciones-table">
+        <thead>
+          <tr>
+            <th>Estación</th>
+            <th>Temperatura</th>
+            <th>Humedad</th>
+            <th>Lluvia hoy</th>
+            <th>Actualizado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of stations" [class.selected]="s.Identificacion === selectedStationId"
+            (click)="selectStation(s.Identificacion)" (keydown.enter)="selectStation(s.Identificacion)" tabindex="0">
+            <td class="station-name">
+              <mat-icon>location_on</mat-icon>
+              <span class="station-name__text">
+                <strong>{{ s.nombre }}</strong>
+                <span class="station-name__meta">
+                  {{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container>
+                </span>
+              </span>
+            </td>
+            <td>{{ s.temp !== null ? (s.temp.toFixed(1) + ' °C') : '—' }}</td>
+            <td>{{ s.hum !== null ? (s.hum.toFixed(0) + ' %') : '—' }}</td>
+            <td>{{ s.rain !== null ? (s.rain.toFixed(1) + ' mm') : '—' }}</td>
+            <td>{{ s.updated ? (s.updated | date:'dd/MM HH:mm') : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <ng-template #cargando>
+    <div class="estaciones-list" aria-hidden="true" aria-busy="true">
+      <div class="table-scroll-x">
+        <table class="estaciones-table">
+          <thead>
+            <tr>
+              <th>Estación</th>
+              <th>Temperatura</th>
+              <th>Humedad</th>
+              <th>Lluvia hoy</th>
+              <th>Actualizado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9]">
+              <td><span class="skeleton sk-cell" style="width:70%"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-template>
+</div>

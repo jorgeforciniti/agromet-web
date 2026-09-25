@@ -17,6 +17,70 @@
   font: 1rem/1.2 var(--font-sans);
 }
 
+/* =========================
+   Skeleton (mismas dimensiones que el contenido real, para que no "salte" el layout)
+   ========================= */
+.skeleton-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sk-pill {
+  width: 220px;
+  height: 26px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.sk-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.sk-title {
+  height: 20px;
+  width: 55%;
+  border-radius: 6px;
+}
+
+.sk-metric {
+  min-height: 86px;
+  border-radius: 14px;
+}
+
+.sk-metric--wide {
+  grid-column: 1 / -1;
+  min-height: 72px;
+}
+
+.sk-lead {
+  height: 18px;
+  width: 70%;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+
+.sk-day-card {
+  flex: 0 0 94px;
+  min-width: 94px;
+  height: 140px;
+  border-radius: 16px;
+}
+
+.sk-hourly-item {
+  min-width: 74px;
+  height: 118px;
+  border-radius: 14px;
+}
+
+.sk-chart {
+  height: 100%;
+  min-height: 240px;
+  border-radius: 16px;
+}
+
 .error {
   color: #ef4444;
 }
@@ -52,6 +116,11 @@
 
 .forecast-wrapper--forecast .forecast-content-card {
   margin-top: 0;
+  /* Que la tarjeta se ajuste al contenido (ya limitado en .forecast-grid)
+     en vez de estirarse y dejar relleno vacío a los costados. */
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .station-widget {
@@ -189,44 +258,77 @@
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 2px 2px 8px;
   scrollbar-gutter: stable;
 }
 
 .day-card {
-  flex: 0 0 88px;
-  min-width: 88px;
+  position: relative;
+  flex: 0 0 94px;
+  min-width: 94px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-  border-radius: 14px;
-  padding: 10px 8px;
+  border-radius: 16px;
+  padding: 10px 8px 12px;
   text-align: center;
   cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
 }
 
 .day-card:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
 .day-card.active {
-  border-color: rgba(79,121,50,.58);
-  background: linear-gradient(180deg, rgba(79,121,50,.12), rgba(255,255,255,.96));
-  box-shadow: 0 0 0 3px rgba(79,121,50,.16);
+  border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 12%, white), rgba(255,255,255,.98));
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.day-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-600));
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
 }
 
 .day-name {
-  font-size: .78rem;
+  font-size: .82rem;
+  font-weight: 800;
   color: var(--muted);
-  margin: 0;
+  text-transform: capitalize;
+}
+
+.day-card.active .day-name {
+  color: var(--brand-600);
+}
+
+.tp-icon img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  margin: 2px auto;
 }
 
 .day-temps {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   justify-content: center;
   font-weight: 900;
+  font-size: .94rem;
 }
 
 .min-temp {
@@ -318,7 +420,8 @@
 
 .forecast-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 420px) 1fr;
+  grid-template-columns: minmax(320px, 460px) minmax(360px, 760px);
+  justify-content: center;
   height: clamp(390px, 46vh, 560px);
   grid-template-rows: auto 1fr;
   grid-template-areas:
@@ -367,6 +470,12 @@
       "hours"
       "chart";
     height: auto;
+  }
+
+  /* En una sola columna "hours" ya no compite en altura con el gráfico:
+     que fluya con la página en vez de scrollear en su propia cajita. */
+  .forecast-hours {
+    overflow: visible;
   }
 
   .forecast-chart .chart-card {

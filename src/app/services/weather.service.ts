@@ -6,7 +6,11 @@ export interface WeatherStation {
   id?: string;
   Identificacion: string;
   nombre: string;
+  Localidad?: string;
+  departamento?: string;
   provincia?: string;
+  /** 1 = Llanura Tucumana, 2 = Pedemonte Tucumano, 3|4 = Valles Intermontanos, 5 = Provincias Adyacentes */
+  zona?: string;
   lat: string;
   lon: string;
   alt?: number;
@@ -24,6 +28,14 @@ export interface WeatherStation {
   tiempo?: string;
   isSoil?: number | string;
   isRadiation?: number | string;
+}
+
+export interface OpenWeatherUvResponse {
+  lat: number;
+  lon: number;
+  date_iso: string;
+  date: number;
+  value: number;
 }
 
 export interface WeatherAlertStation extends WeatherStation {
@@ -181,6 +193,10 @@ export interface DiseaseApiRecord {
 export class WeatherService {
   private stationsUrl = 'https://agromet.eeaoc.gob.ar/services/';
 
+  // No hay proxy PHP para el índice UV: se llama a OpenWeatherMap directo,
+  // misma API key ya usada en leaflet-goes-viewer.component.ts.
+  private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
+
   constructor(private http: HttpClient) { }
 
   getOpenWeatherForecast(lat: number, lon: number): Observable<OpenWeatherForecastResponse> {
@@ -189,6 +205,12 @@ export class WeatherService {
 
   getOpenWeatherNow(lat: number, lon: number): Observable<OpenWeatherNowResponse> {
     return this.http.get<OpenWeatherNowResponse>(this.stationsUrl +`now.php`, { params: { lat, lon } });
+  }
+
+  getUvIndex(lat: number, lon: number): Observable<OpenWeatherUvResponse> {
+    return this.http.get<OpenWeatherUvResponse>('https://api.openweathermap.org/data/2.5/uvi', {
+      params: { lat, lon, appid: this.openWeatherMapApiKey }
+    });
   }
 
   getStations(): Observable<WeatherStation[]> {

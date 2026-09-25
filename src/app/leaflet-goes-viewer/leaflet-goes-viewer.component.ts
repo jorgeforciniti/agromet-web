@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { GeoJsonObject } from 'geojson';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
 import { FeatureCollection, Feature, Point } from 'geojson';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -248,6 +249,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   public radarHasRecentEchoes: boolean | null = null;
   private stationsLayer: L.GeoJSON | undefined;
   public selectedStationId: string | null = null;
+  private stations: WeatherStation[] = [];
+  private stationServiceSub?: Subscription;
   private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   private rainViewerHost: string = '';
   private rainViewerPath: string = '';
@@ -281,7 +284,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     north: 90
   };
 
-  private tileProxyBase = 'https://agromet.eeaoc.gob.ar/services';
+  private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
+  private nasaFirmsMapKey = '05a7411727303e238b4b425a1b7fef16';
 
   public baseMaps: Record<string, BaseMapOption> = {
     osm: {
@@ -302,7 +306,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     precipitacion: {
       name: 'Precipitación',
       url: (date: string, time: string) => {
-        return `${this.tileProxyBase}/tile-owm.php?layer=precipitation_new&z={z}&x={x}&y={y}`;
+        return `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -310,7 +314,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     nubosidad: {
       name: 'Nubosidad',
       url: (date: string, time: string) => {
-        return `${this.tileProxyBase}/tile-owm.php?layer=clouds_new&z={z}&x={x}&y={y}`;
+        return `https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -318,7 +322,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     temperatura: {
       name: 'Temperatura de la Superficie',
       url: (date: string, time: string) => {
-        return `${this.tileProxyBase}/tile-owm.php?layer=temp_new&z={z}&x={x}&y={y}`;
+        return `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -326,7 +330,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     incendios: {
       name: 'Incendios (VIIRS_NOAA21_NRT)',
       url: (date: string, time: string) => {
-        return `${this.tileProxyBase}/tile-firms.php?date=${date}`;
+        const formattedDate = `${date.substring(0, 4)}-${date.substring(4, 6)}-${date.substring(6, 8)}`;
+        return `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${this.nasaFirmsMapKey}/VIIRS_NOAA21_NRT/world/1/${formattedDate}`;
       },
       attribution: 'NASA FIRMS (VIIRS_NOAA21_NRT Fire Data)',
       isCSV: true
@@ -334,7 +339,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     vientos: {
       name: 'Vientos',
       url: (date: string, time: string) => {
-        return `${this.tileProxyBase}/tile-owm.php?layer=wind_new&z={z}&x={x}&y={y}`;
+        return `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${this.openWeatherMapApiKey}`;
       },
       attribution: 'OpenWeatherMap',
       isTileLayer: true
@@ -342,7 +347,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   };
 
   constructor(private http: HttpClient,
-    private weatherService: WeatherService // Inyectar servicio
+    private weatherService: WeatherService, // Inyectar servicio
+    private stationService: StationService
   ) {
 
   }
@@ -353,6 +359,15 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     await this.loadStations();
     this.loadLatestData();
 
+    // Sincroniza con la estación elegida en el selector de "Estado actual" (weather-forecast):
+    // si cambia desde ahí, resalta el marcador correspondiente en el mapa y actualiza/mueve
+    // el popup (si no, quedaba "pegado" en la última estación clickeada manualmente).
+    this.stationServiceSub = this.stationService.selectedStation$.subscribe(station => {
+      this.selectedStationId = station?.Identificacion ?? null;
+      this.highlightSelectedStation();
+      this.syncPopupToSelectedStation();
+    });
+
     setTimeout(() => {
       this.map?.invalidateSize();
     }, 200);
@@ -360,11 +375,13 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopRainViewerAnimation();
+    this.stationServiceSub?.unsubscribe();
   }
 
   private async loadStations(): Promise<void> {
     try {
       const stations = await firstValueFrom(this.weatherService.getStations());
+      this.stations = stations;
 
       this.stationsLayer = L.geoJSON(this.createStationsGeoJSON(stations), {
         pointToLayer: (feature, latlng) => {
@@ -395,8 +412,13 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
           layer.on('click', () => {
             this.selectedStationId = feature.properties.id;
             const marker = layer as L.Marker;
-            this.map?.flyTo(marker.getLatLng(), 10);
+            this.map?.panTo(marker.getLatLng());
             this.highlightSelectedStation();
+
+            const fullStation = this.stations.find(s => s.Identificacion === feature.properties.id);
+            if (fullStation) {
+              this.stationService.setSelectedStation(fullStation);
+            }
           });
         }
       });
@@ -452,6 +474,36 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  /**
+   * Si ya había un popup abierto (de un click manual anterior en el mapa), lo mueve a la
+   * estación recién seleccionada en vez de dejarlo "pegado" en la anterior. Si no había
+   * ninguno abierto (ej. selección por defecto al cargar la página), no fuerza uno nuevo.
+   * De cualquier forma, centra el mapa en la estación elegida.
+   */
+  private syncPopupToSelectedStation(): void {
+    if (!this.stationsLayer) return;
+
+    let anyPopupWasOpen = false;
+    this.stationsLayer.eachLayer(layer => {
+      if ((layer as L.Marker).isPopupOpen()) anyPopupWasOpen = true;
+    });
+
+    this.stationsLayer.eachLayer(layer => {
+      const marker = layer as L.Marker;
+      const props = marker.feature?.properties as StationFeatureProperties | undefined;
+      if (!props) return;
+
+      if (props.id === this.selectedStationId) {
+        if (anyPopupWasOpen) {
+          marker.openPopup();
+        }
+        this.map?.panTo(marker.getLatLng());
+      } else if (marker.isPopupOpen()) {
+        marker.closePopup();
+      }
+    });
   }
 
   private toggleStations(show: boolean): void {
@@ -986,12 +1038,17 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   }
 
   private appendLegendStyle(): void {
+    if (document.getElementById('leaflet-goes-viewer-legend-style')) {
+      return;
+    }
+
     const style = document.createElement('style');
+    style.id = 'leaflet-goes-viewer-legend-style';
     style.innerHTML = `
       .info.legend {
         background: white;
         padding: 6px 8px;
-        font: 14px/16px Arial, Helvetica, sans-serif;
+        font: 14px/16px var(--font-sans, Arial, Helvetica, sans-serif);
         box-shadow: 0 0 15px rgba(0,0,0,0.2);
         border-radius: 5px;
         line-height: 18px;

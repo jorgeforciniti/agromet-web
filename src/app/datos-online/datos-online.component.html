@@ -1,5 +1,5 @@
 ﻿<div class="container">
-  <button class="do-close" (click)="closeWindow()"><mat-icon>close</mat-icon></button>
+  <button class="do-close" (click)="closeWindow()" aria-label="Cerrar diálogo"><mat-icon>close</mat-icon></button>
 
   <div class="viewer-container">
     <div class="do-topbar">
@@ -7,8 +7,8 @@
 
       <div class="controls" *ngIf="!loading && !error">
         <div class="control-group">
-          <label class="control-label">Mapa Base:</label>
-          <select [(ngModel)]="selectedBaseMap" (ngModelChange)="setBaseMap($event)">
+          <label class="control-label" for="baseMapSelect">Mapa Base:</label>
+          <select id="baseMapSelect" [(ngModel)]="selectedBaseMap" (ngModelChange)="setBaseMap($event)">
             <option *ngFor="let key of baseMapKeys" [ngValue]="key">
               {{ baseMaps[key].name }}
             </option>
@@ -77,11 +77,11 @@
               <td>{{ est.identificacion }}</td>
               <td>{{ est.nombre }}</td>
               <td>{{ formatFecha(est.fecha_i) }}</td>
-              <td class="derecha">{{ fmt(est.temp_af) }}</td>
-              <td class="derecha">{{ fmt(est.hum_af) }}</td>
-              <td class="derecha">{{ fmt(est.rr_dia) }}</td>
-              <td class="derecha">{{ fmt(est.viento_medio) }}</td>
-              <td class="derecha">{{ fmt(est.viento_max) }}</td>
+              <td class="derecha">{{ fmt(est.temp_af, 'temp') }}</td>
+              <td class="derecha">{{ fmt(est.hum_af, 'hum') }}</td>
+              <td class="derecha">{{ fmt(est.rr_dia, 'rain') }}</td>
+              <td class="derecha">{{ fmt(est.viento_medio, 'wind') }}</td>
+              <td class="derecha">{{ fmt(est.viento_max, 'wind') }}</td>
             </tr>
           </tbody>
         </table>

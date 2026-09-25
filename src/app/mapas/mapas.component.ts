@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
 
 @Component({
@@ -9,7 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [
     MatCardModule,
     MatDialogModule,
-    MatIconModule
+    MatIconModule,
+    ScrollRevealDirective
   ],
   templateUrl: './mapas.component.html',
   styleUrl: './mapas.component.css',

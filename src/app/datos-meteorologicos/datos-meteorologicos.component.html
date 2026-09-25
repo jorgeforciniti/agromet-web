@@ -9,7 +9,7 @@
     </div>
 
     <div class="dm__grid">
-      <mat-card class="dm-card dm-card--primary">
+      <mat-card class="dm-card dm-card--primary tap-feedback" [appScrollReveal]="0">
         <div class="dm-card__media">
           <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/datostiemporeal.jpeg"
                alt="Estación meteorológica operativa en tiempo real">
@@ -25,10 +25,10 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="dm-card">
+      <mat-card class="dm-card tap-feedback" [appScrollReveal]="80">
         <div class="dm-card__media">
           <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/estacion_mr.jpg"
-               alt="Consulta de datos meteorológicos por localidad">
+               alt="Consulta de datos meteorológicos por localidad" loading="lazy">
           <div class="dm-card__badge">LOCALIDADES</div>
         </div>
         <mat-card-content class="dm-card__body">
@@ -41,10 +41,10 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="dm-card">
+      <mat-card class="dm-card tap-feedback" [appScrollReveal]="160">
         <div class="dm-card__media">
           <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/tormenta.png"
-               alt="Evolución de lluvias por campaña agrícola">
+               alt="Evolución de lluvias por campaña agrícola" loading="lazy">
           <div class="dm-card__badge">ACUMULADOS</div>
         </div>
         <mat-card-content class="dm-card__body">
@@ -57,10 +57,10 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="dm-card">
+      <mat-card class="dm-card tap-feedback" [appScrollReveal]="240">
         <div class="dm-card__media">
           <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/aplicacion.png"
-               alt="Condiciones para aplicación de agroquímicos">
+               alt="Condiciones para aplicación de agroquímicos" loading="lazy">
           <div class="dm-card__badge">DECISIÓN</div>
         </div>
         <mat-card-content class="dm-card__body">
@@ -73,10 +73,10 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card class="dm-card">
+      <mat-card class="dm-card tap-feedback" [appScrollReveal]="320">
         <div class="dm-card__media">
           <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/condiciones-enfermedades-card.svg"
-               alt="Condiciones predisponentes para enfermedades en cultivos">
+               alt="Condiciones predisponentes para enfermedades en cultivos" loading="lazy">
           <div class="dm-card__badge">SANIDAD</div>
         </div>
         <mat-card-content class="dm-card__body">
@@ -117,25 +117,25 @@
 
     <ul class="dm-links">
       <li>
-        <button type="button" class="dm-link" (click)="openComparisonByYear()">
+        <button type="button" class="dm-link tap-feedback" (click)="openComparisonByYear()">
           <mat-icon inline>insights</mat-icon>
           <span>Comparación de datos entre años</span>
         </button>
       </li>
       <li>
-        <button type="button" class="dm-link" (click)="openComparisonByLocation()">
+        <button type="button" class="dm-link tap-feedback" (click)="openComparisonByLocation()">
           <mat-icon inline>compare</mat-icon>
           <span>Comparación entre localidades</span>
         </button>
       </li>
       <li>
-        <button type="button" class="dm-link" (click)="openChillHoursDialog()">
+        <button type="button" class="dm-link tap-feedback" (click)="openChillHoursDialog()">
           <mat-icon inline>hourglass_empty</mat-icon>
           <span>Horas de frío</span>
         </button>
       </li>
       <li>
-        <button type="button" class="dm-link" (click)="openThermalSumDialog()">
+        <button type="button" class="dm-link tap-feedback" (click)="openThermalSumDialog()">
           <mat-icon inline>functions</mat-icon>
           <span>Sumas térmicas</span>
         </button>
@@ -147,7 +147,7 @@
         </span>
       </li>
       <li>
-        <button type="button" class="dm-link" (click)="openSoyYieldDialog()">
+        <button type="button" class="dm-link tap-feedback" (click)="openSoyYieldDialog()">
           <mat-icon inline>agriculture</mat-icon>
           <span>Estimador de rindes de soja</span>
         </button>

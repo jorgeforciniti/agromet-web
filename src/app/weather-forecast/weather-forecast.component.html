@@ -5,8 +5,37 @@
   [class.forecast-wrapper--forecast]="mode === 'forecast'"
   [class.forecast-wrapper--full]="mode === 'full'">
   <!-- Estados de carga y error -->
-  <div *ngIf="loading" class="loading">
-    Cargando...
+  <div *ngIf="loading" class="skeleton-block" aria-hidden="true" aria-busy="true">
+    <section class="station-widget" *ngIf="mode === 'realtime' || mode === 'full'">
+      <div class="skeleton sk-pill"></div>
+      <header class="station-header">
+        <div class="skeleton sk-icon"></div>
+        <div class="skeleton sk-title"></div>
+      </header>
+      <div class="station-metrics">
+        <div class="skeleton sk-metric" *ngFor="let i of [0,1,2,3]"></div>
+        <div class="skeleton sk-metric sk-metric--wide"></div>
+      </div>
+    </section>
+
+    <div class="forecast-content-card" *ngIf="mode === 'forecast' || mode === 'full'">
+      <div class="skeleton sk-lead"></div>
+      <div class="forecast-grid">
+        <div class="forecast-week">
+          <div class="week-forecast">
+            <div class="skeleton sk-day-card" *ngFor="let i of [0,1,2,3,4,5,6]"></div>
+          </div>
+        </div>
+        <div class="forecast-hours">
+          <div class="hourly-forecast-scroll">
+            <div class="skeleton sk-hourly-item" *ngFor="let i of [0,1,2,3]"></div>
+          </div>
+        </div>
+        <div class="forecast-chart">
+          <div class="skeleton sk-chart"></div>
+        </div>
+      </div>
+    </div>
   </div>
   <div *ngIf="error" class="error">
     {{ error }}
@@ -37,7 +66,7 @@
           <mat-form-field appearance="outline" class="station-select">
             <mat-label>Selecciona estación</mat-label>
             <mat-select [(ngModel)]="selectedStation" (selectionChange)="selectStation($event.value)"
-              [panelClass]="'full-screen-select'">
+              [compareWith]="compareStations" [panelClass]="'full-screen-select'">
               <mat-option *ngFor="let st of stations" [value]="st">
                 {{ st.nombre }}
               </mat-option>
@@ -98,16 +127,17 @@
             <!-- IZQ / ARRIBA: días -->
             <div class="forecast-week">
               <div class="week-forecast">
-                <div *ngFor="let day of weatherData?.forecast; let i = index"
+                <div *ngFor="let day of weatherData.forecast; let i = index"
                     class="day-card"
                     [class.active]="selectedDayIndex === i"
                     (click)="selectDay(day, i)"
                     (keydown.enter)="selectDay(day, i)"
                     tabindex="0">
+                  <span class="day-badge" *ngIf="i === 0">HOY</span>
                   <div class="day-name">{{ getDayName(day.date) }}</div>
                   <div class="tp-icon">
                     <img [src]="'https://openweathermap.org/img/wn/' + day.intervals[0].weather.icon + '.png'"
-                        alt="weather icon">
+                        [alt]="day.intervals[0].weather.description" loading="lazy">
                   </div>
                   <div class="day-temps">
                     <span class="min-temp">{{ day.temp_min.toFixed(0) }}°</span>
@@ -128,7 +158,8 @@
                   <div *ngFor="let interval of selectedDay.intervals" class="hourly-item">
                     <div class="hourly-time">{{ interval.hour }}</div>
                     <div class="hourly-icon">
-                      <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'" alt="weather icon">
+                      <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'"
+                        [alt]="interval.weather.description" loading="lazy">
                     </div>
                     <div class="hourly-rain">
                       <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>

@@ -20,7 +20,7 @@
   padding: 0 !important;
   margin: 0 !important;
   overflow: auto !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
   background: transparent !important;
 }
 
@@ -279,9 +279,21 @@
 }
 
 .table-wrapper {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
+  /* Scroll horizontal propio con degradé en los bordes (avisa que hay más columnas
+     y desaparece solo al llegar al final); vertical sigue sin scroll anidado. */
+  position: relative;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
+    linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 .phenology-table {

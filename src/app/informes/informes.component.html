@@ -1,56 +1,51 @@
 <section class="informes-section">
   <div class="informes-wrapper">
     <div class="informes-head">
-      <div>
-        <div class="informes-eyebrow">BIBLIOTECA TÉCNICA</div>
-        <h3 class="informes-title">Informes y publicaciones recientes</h3>
-      </div>
-      <p class="informes-copy">Explorá boletines, reportes y documentos técnicos con filtros por temática y acceso rápido al PDF.</p>
+      <div class="informes-eyebrow">BIBLIOTECA TÉCNICA</div>
+      <h3 class="informes-title">Informes y publicaciones recientes</h3>
+      <p class="informes-copy">Explorá boletines, reportes y documentos técnicos con filtros por temática y acceso
+        rápido al PDF.</p>
     </div>
 
-    <div class="filters">
-      <mat-radio-group [(ngModel)]="selectedCategoria" (ngModelChange)="onCategoriaChange()" aria-label="Tipo de informe">
-        <mat-radio-button *ngFor="let tipo of tiposInformes" [value]="tipo.value">
-          {{ tipo.viewValue }}
-        </mat-radio-button>
-      </mat-radio-group>
-    </div>
-
-    <div class="informes-scroll-wrapper">
-      <button class="scroll-left" (click)="scrollLeft()" aria-label="Desplazar informes hacia la izquierda">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-
-      <div class="informes-container" #scrollContainer>
-        <div class="informe-card" *ngFor="let informe of filteredDatos">
-          <div
-            class="thumb"
-            (click)="openDialog(informe)"
-            (keydown.enter)="openDialog(informe)"
-            (keydown.space)="openDialog(informe); $event.preventDefault()"
-            role="button"
-            tabindex="0">
-            <embed class="thumb-embed" [src]="informe.safeArchivo" type="application/pdf" />
-            <div class="thumb-overlay" aria-hidden="true"></div>
-            <div class="thumb-badge">PDF</div>
-          </div>
-
-          <div class="info">
-            <div class="meta meta--top">
-              <span class="date">{{ informe.creado }}</span>
-            </div>
-            <h3 class="title" [title]="informe.titulo">{{ informe.titulo }}</h3>
-            <button class="btn-primary" (click)="openDialog(informe)">
-              Ver informe
-              <mat-icon>arrow_outward</mat-icon>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <button class="scroll-right" (click)="scrollRight()" aria-label="Desplazar informes hacia la derecha">
-        <mat-icon>chevron_right</mat-icon>
+    <div class="filters" role="group" aria-label="Filtrar por tipo de informe">
+      <button *ngFor="let tipo of tiposInformes" type="button" class="filter-chip"
+        [class.filter-chip--active]="selectedCategoria === tipo.value" [style.--chipColor]="chipColor(tipo.value)"
+        (click)="selectCategoria(tipo.value)">
+        {{ tipo.viewValue }}
       </button>
     </div>
+
+    <ul class="informes-list" *ngIf="loading" aria-hidden="true" aria-busy="true">
+      <li class="informe-row" *ngFor="let i of [0,1,2,3,4,5]">
+        <span class="skeleton sk-badge"></span>
+        <span class="informe-row__main">
+          <span class="skeleton sk-informe-title"></span>
+          <span class="skeleton sk-informe-date"></span>
+        </span>
+        <span class="skeleton sk-informe-action"></span>
+      </li>
+    </ul>
+
+    <ul class="informes-list" *ngIf="!loading && filteredDatos.length; else sinInformes">
+      <li class="informe-row tap-feedback" [appScrollReveal]="0" *ngFor="let informe of filteredDatos">
+        <span class="informe-badge" [style.--chipColor]="chipColor(informe.categoria)">
+          {{ categoriaLabel(informe.categoria) }}
+        </span>
+
+        <button type="button" class="informe-row__main" (click)="openDialog(informe)">
+          <h3 class="informe-row__title" [title]="informe.titulo">{{ informe.titulo }}</h3>
+          <span class="informe-row__date">{{ informe.creado }}</span>
+        </button>
+
+        <button type="button" class="informe-row__action" (click)="openDialog(informe)">
+          Ver PDF
+          <mat-icon>arrow_outward</mat-icon>
+        </button>
+      </li>
+    </ul>
+
+    <ng-template #sinInformes>
+      <p class="informes-empty" *ngIf="!loading">No hay informes disponibles para este filtro.</p>
+    </ng-template>
   </div>
 </section>

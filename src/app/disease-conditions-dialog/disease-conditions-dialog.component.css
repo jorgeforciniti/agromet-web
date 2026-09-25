@@ -20,7 +20,7 @@
   padding: 0 !important;
   margin: 0 !important;
   overflow: auto !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
   background: transparent !important;
 }
 
@@ -169,7 +169,11 @@
 .info-dot:focus-visible {
   background: color-mix(in srgb, var(--mod-stats) 10%, white);
   border-color: color-mix(in srgb, var(--mod-stats) 34%, var(--border));
-  outline: none;
+}
+
+.info-dot:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-stats) 35%, white);
+  outline-offset: 2px;
 }
 
 
@@ -307,12 +311,27 @@
 }
 
 .table-wrapper {
-  flex: 1 1 auto;
-  min-height: clamp(360px, 48vh, 560px);
-  overflow: auto;
+  /* Scroll horizontal propio (no vertical: el diálogo entero sigue siendo el único
+     que scrollea verticalmente). Así el encabezado y las tarjetas de resumen quedan
+     fijos mientras se desliza la tabla, y el degradé de los costados avisa que hay
+     más columnas para ver sin necesitar JS: desaparece solo cuando ya no hay más para
+     el lado correspondiente. */
+  position: relative;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   margin-bottom: 4px;
+
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
+    linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 .disease-table {

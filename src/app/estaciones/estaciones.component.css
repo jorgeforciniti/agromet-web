@@ -1,0 +1,207 @@
+.page-estaciones {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  background: var(--brand);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  background: rgba(255, 255, 255, .84);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: color-mix(in srgb, var(--brand) 60%, #3f4750);
+}
+
+.section-title {
+  margin: 8px 0 0;
+  font-size: 1.24rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.08;
+}
+
+.section-summary {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: .92rem;
+  font-weight: 700;
+}
+
+.estaciones-map-wrapper {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  height: clamp(360px, 46vh, 520px);
+}
+
+#estaciones-map {
+  width: 100%;
+  height: 100%;
+}
+
+.estaciones-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table-scroll-x {
+  position: relative;
+  overflow-x: auto;
+
+  /* Degradé en los bordes: avisa que hay más columnas y desaparece solo al llegar al final */
+  background:
+    linear-gradient(to right, var(--surface) 30%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, var(--surface) 30%, rgba(255, 255, 255, 0)) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
+    linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+.estaciones-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+
+.estaciones-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.estaciones-table tbody tr {
+  cursor: pointer;
+  transition: background .12s ease;
+}
+
+.estaciones-table tbody tr:hover {
+  background: color-mix(in srgb, var(--brand) 5%, white);
+}
+
+.estaciones-table tbody tr.selected {
+  background: color-mix(in srgb, var(--brand) 10%, white);
+}
+
+.estaciones-table tbody tr:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 25%, white);
+  outline-offset: -2px;
+}
+
+.estaciones-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.station-name {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.station-name mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--brand);
+}
+
+.station-name__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.station-name__meta {
+  font-weight: 600;
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.estaciones-empty {
+  padding: 24px 18px;
+  color: var(--muted);
+  font-weight: 700;
+  text-align: center;
+}
+
+.sk-cell {
+  display: block;
+  width: 60%;
+  height: 14px;
+  border-radius: 4px;
+}
+
+:host ::ng-deep .station-popup h4 {
+  margin: 0 0 4px;
+  font-size: .95rem;
+}
+
+:host ::ng-deep .popup-location {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.3;
+}
+
+:host ::ng-deep .popup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: .82rem;
+}
+
+@media (max-width: 760px) {
+  .estaciones-table {
+    font-size: .82rem;
+  }
+
+  .estaciones-table thead th,
+  .estaciones-table td {
+    padding: 8px 10px;
+  }
+}

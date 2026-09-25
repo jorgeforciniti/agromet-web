@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
@@ -90,6 +90,7 @@ interface FrostZoneLayer {
   layer?: L.GeoJSON;
 }
 
+@Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
   override parse(value: unknown, parseFormat?: string): Date | null {
     if (typeof value === 'string' && value.includes('/')) {

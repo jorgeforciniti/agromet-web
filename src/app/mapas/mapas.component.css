@@ -1,6 +1,7 @@
 .dm {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(340px, 28vw, 430px);
+  align-items: start;
   gap: 16px;
   width: 100%;
 }

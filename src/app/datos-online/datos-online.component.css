@@ -219,11 +219,23 @@
 }
 
 .tabla-scroll-x {
-  overflow: visible;
-  /* <- clave: no rompas sticky */
+  position: relative;
+  overflow-x: auto;
+  overflow-y: visible;
+  /* <- clave: no rompas sticky (vertical sigue sin scroll anidado) */
   -webkit-overflow-scrolling: touch;
   border-radius: 14px;
   /* mantiene redondeo */
+
+  /* Degradé en los bordes: avisa que hay más columnas y desaparece solo al llegar al final */
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
+    linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 .tabla-datos {

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
-import { Auth, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -22,7 +21,6 @@ export class AuthComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private auth: Auth,
     private dialogRef: MatDialogRef<AuthComponent>
   ) {
     this.authForm = this.fb.group({
@@ -66,11 +64,8 @@ export class AuthComponent {
   }
 
   async loginWithGoogle(): Promise<void> {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-
     try {
-      await signInWithPopup(this.auth, provider);
+      await this.authService.loginWithGoogle();
       this.dialogRef.close();
     } catch (error: unknown) {
       this.errorMessage = this.getErrorMessage(error);

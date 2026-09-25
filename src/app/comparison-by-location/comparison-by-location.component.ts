@@ -341,12 +341,14 @@ export class ComparisonByLocationComponent implements OnInit {
     }
   }
 
+  private static readonly MONTH_ABBR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
   private groupByDecade(data: WeatherRecord[]): { [key: string]: WeatherRecord[] } {
     const decades: { [key: string]: WeatherRecord[] } = {};
     data.forEach(record => {
       const date = new Date(record.fecha);
       const year = date.getFullYear();
-      const month = date.getMonth() + 1;
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate();
       let decade: string;
       if (day <= 10) {
@@ -364,8 +366,16 @@ export class ComparisonByLocationComponent implements OnInit {
     return decades;
   }
 
+  // «2026-07-2» -> «11-20 jul 2026», legible para el eje del gráfico.
+  private formatDecadeLabel(decadeKey: string): string {
+    const [year, month, dec] = decadeKey.split('-');
+    const ranges: Record<string, string> = { '1': '01-10', '2': '11-20', '3': '21-fin' };
+    const monthAbbr = ComparisonByLocationComponent.MONTH_ABBR[Number(month) - 1] ?? month;
+    return `${ranges[dec] ?? dec} ${monthAbbr} ${year}`;
+  }
+
   private calculateDecadeValues(decades: { [key: string]: WeatherRecord[] }, key: string): { label: string, value: number }[] {
-    const result: { label: string, value: number }[] = [];
+    const result: { key: string, label: string, value: number }[] = [];
     const isAccumulative = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
     for (const decade in decades) {
       const records = decades[decade];
@@ -376,9 +386,11 @@ export class ComparisonByLocationComponent implements OnInit {
         const sum = records.reduce((sum, r) => sum + (key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number)), 0);
         value = sum / records.length;
       }
-      result.push({ label: decade, value });
+      result.push({ key: decade, label: this.formatDecadeLabel(decade), value });
     }
-    return result.sort((a, b) => a.label.localeCompare(b.label));
+    return result
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map(({ label, value }) => ({ label, value }));
   }
 
   private groupByMonth(data: WeatherRecord[]): { [key: string]: WeatherRecord[] } {

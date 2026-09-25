@@ -24,7 +24,7 @@
 
       <!-- Estación -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condStation">
           Estación:
           <button
             type="button"
@@ -36,7 +36,7 @@
             [attr.title]="tooltip('ESTACION')">i</button>
         </label>
 
-        <select [(ngModel)]="selectedStation" class="select-wrapper" (change)="searchData()">
+        <select id="condStation" [(ngModel)]="selectedStation" class="select-wrapper" (change)="searchData()">
           <option value="" disabled>-- Seleccione --</option>
           <option *ngFor="let estacion of estaciones" [value]="estacion.identificacion">
             {{ estacion.nombre }}
@@ -46,7 +46,7 @@
 
       <!-- Fecha -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condFecha">
           Fecha:
           <button
             type="button"
@@ -59,7 +59,7 @@
         </label>
 
         <mat-form-field appearance="outline" class="select-wrapper">
-          <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" name="date" (dateChange)="searchData()">
+          <input id="condFecha" matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" name="date" (dateChange)="searchData()">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker panelClass="do-datepicker"></mat-datepicker>
         </mat-form-field>
@@ -67,7 +67,7 @@
 
       <!-- Método -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condMetodo">
           Método:
           <button
             type="button"
@@ -79,14 +79,14 @@
             [attr.title]="tooltip('METODO')">i</button>
         </label>
 
-        <select [(ngModel)]="metodo" class="select-wrapper" (change)="onParamsChanged()">
+        <select id="condMetodo" [(ngModel)]="metodo" class="select-wrapper" (change)="onParamsChanged()">
           <option *ngFor="let m of metodos" [value]="m">{{ m }}</option>
         </select>
       </div>
 
       <!-- Prioridad -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condPrioridad">
           Prioridad:
           <button
             type="button"
@@ -98,14 +98,14 @@
             [attr.title]="tooltip('PRIORIDAD')">i</button>
         </label>
 
-        <select [(ngModel)]="prioridad" class="select-wrapper" (change)="onParamsChanged()">
+        <select id="condPrioridad" [(ngModel)]="prioridad" class="select-wrapper" (change)="onParamsChanged()">
           <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
         </select>
       </div>
 
       <!-- Cultivo -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condCultivo">
           Cultivo:
           <button
             type="button"
@@ -117,14 +117,14 @@
             [attr.title]="tooltip('CULTIVO')">i</button>
         </label>
 
-        <select [(ngModel)]="cultivo" class="select-wrapper" (change)="onParamsChanged()">
+        <select id="condCultivo" [(ngModel)]="cultivo" class="select-wrapper" (change)="onParamsChanged()">
           <option *ngFor="let c of cultivos" [value]="c">{{ c }}</option>
         </select>
       </div>
 
       <!-- Producto -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condProducto">
           Producto:
           <button
             type="button"
@@ -136,7 +136,7 @@
             [attr.title]="tooltip('PRODUCTO')">i</button>
         </label>
 
-        <select [(ngModel)]="tipoProducto" class="select-wrapper" (change)="onParamsChanged()">
+        <select id="condProducto" [(ngModel)]="tipoProducto" class="select-wrapper" (change)="onParamsChanged()">
           <option value="HERBICIDA">Herbicida</option>
           <option value="FUNGICIDA">Fungicida</option>
           <option value="INSECTICIDA">Insecticida</option>
@@ -145,7 +145,7 @@
 
       <!-- Gota -->
       <div class="control-group">
-        <label class="control-label">
+        <label class="control-label" for="condGota">
           Gota:
           <button
             type="button"
@@ -157,7 +157,7 @@
             [attr.title]="tooltip('GOTA')">i</button>
         </label>
 
-        <select [(ngModel)]="tamGota" class="select-wrapper" (change)="onParamsChanged()">
+        <select id="condGota" [(ngModel)]="tamGota" class="select-wrapper" (change)="onParamsChanged()">
           <option value="MUY_FINA">Muy fina</option>
           <option value="FINA">Fina</option>
           <option value="MEDIA">Media</option>
@@ -192,7 +192,7 @@
 
       <!-- GNSS -->
       <div class="control-group" *ngIf="metodo === 'DRON' || metodo === 'AVION'">
-        <label class="control-label">
+        <label class="control-label" for="condSats">
           Satélites:
           <button
             type="button"
@@ -204,7 +204,7 @@
             [attr.title]="tooltip('GNSS')">i</button>
         </label>
 
-        <input class="select-wrapper sats-input" type="number" [(ngModel)]="sats" (change)="onParamsChanged()">
+        <input id="condSats" class="select-wrapper sats-input" type="number" [(ngModel)]="sats" (change)="onParamsChanged()">
       </div>
 
       <!-- Buscar -->

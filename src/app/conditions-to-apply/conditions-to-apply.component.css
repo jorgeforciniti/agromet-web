@@ -1175,12 +1175,25 @@ mat-form-field.date-field{ width: 100%; }
 }
 
 
-/* el que scrollea para que sticky funcione */
+/* Scroll horizontal propio con degradé en los bordes (avisa que hay más columnas
+   y desaparece solo al llegar al final); vertical sigue sin scroll anidado
+   (.viewer-container es el único que scrollea verticalmente). */
 .table-scroll{
-  max-height: 52vh;              /* ajustá a gusto */
-  overflow: auto;                /* scroll vertical + horizontal si hace falta */
+  position: relative;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 12px;
+
+  background:
+    linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) 0 0,
+    linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) 100% 0,
+    linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
+    linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 /* la tabla ya no necesita overflow/rounded */

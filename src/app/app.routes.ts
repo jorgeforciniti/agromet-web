@@ -6,6 +6,26 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent)
   },
   {
+    path: 'estado-actual',
+    loadComponent: () => import('./estado-actual/estado-actual.component').then((m) => m.EstadoActualComponent)
+  },
+  {
+    path: 'mapas',
+    loadComponent: () => import('./mapas/mapas.component').then((m) => m.MapasComponent)
+  },
+  {
+    path: 'datos',
+    loadComponent: () => import('./datos-meteorologicos/datos-meteorologicos.component').then((m) => m.DatosMeteorologicosComponent)
+  },
+  {
+    path: 'informes',
+    loadComponent: () => import('./informes/informes.component').then((m) => m.InformesComponent)
+  },
+  {
+    path: 'estaciones',
+    loadComponent: () => import('./estaciones/estaciones.component').then((m) => m.EstacionesComponent)
+  },
+  {
     path: 'auth',
     loadComponent: () => import('./auth/auth.component').then((m) => m.AuthComponent)
   },
