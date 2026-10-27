@@ -25,7 +25,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 1600px;
+  max-width: var(--page-max);
   margin: 0 auto;
 }
 
@@ -84,7 +84,7 @@
   position: relative;
   z-index: 999;
   width: 100%;
-  max-width: 1600px;
+  max-width: var(--page-max);
   margin: 0 auto;
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -107,6 +107,7 @@
   color: var(--text);
   font-weight: 700;
   font-size: .92rem;
+  white-space: nowrap;
   text-decoration: none;
   border-bottom: 3px solid transparent;
   transition: color .15s ease, border-color .15s ease;
@@ -168,7 +169,11 @@
   .header-container.scrolled .header-actions {
     display: none;
   }
+}
 
+/* Los 7 ítems necesitan ~900 px en una sola línea: por debajo de eso se usa el menú
+   desplegable, aunque el resto del encabezado mantenga su diseño de escritorio. */
+@media (max-width: 960px) {
   .menu-desktop {
     display: none;
   }

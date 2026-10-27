@@ -175,10 +175,6 @@
   color: var(--muted);
   font-size: .86rem;
   line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .dm-card__actions {
@@ -193,7 +189,12 @@
   background: linear-gradient(135deg, color-mix(in srgb, var(--mod-maps) 82%, white), var(--mod-maps));
   color: #fff !important;
   border-radius: 999px;
+  /* Alto según el texto: con el alto fijo del mat-button, una etiqueta en dos
+     renglones quedaba cortada en tablets. */
+  height: auto;
+  min-height: 40px;
   padding: 8px 14px;
+  line-height: 1.2;
   font-weight: 800;
   box-shadow: var(--shadow-sm);
 }

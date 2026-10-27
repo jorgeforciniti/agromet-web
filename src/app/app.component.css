@@ -18,7 +18,7 @@
 
 /* Main Content */
 .main-content {
-  max-width: 1520px;
+  max-width: var(--page-max);
   width: 100%;
   margin: 0 auto;
   /* --header-h lo mide AppComponent en tiempo real (ResizeObserver sobre .header-container).
@@ -37,7 +37,7 @@
 }
 
 .global-disclaimer {
-  max-width: 1520px;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 4px 20px 20px;
   font-size: .82rem;
