@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
-import { Chart, ChartData, registerables } from 'chart.js';
+import { ChartData } from 'chart.js';
+import { VAR_COLOR, conAlfa } from '../charts/chart-theme';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,7 +21,6 @@ import {
 } from '@angular/material/core';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 
-Chart.register(...registerables);
 
 interface PhenologyDailyRecord {
   fecha: string;
@@ -219,7 +219,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   loadError = '';
   summaries: StageSummary[] = [];
   totals: TotalsSummary | null = null;
-  stageChartData: ChartData<'bar', number[], string> = { labels: [], datasets: [] };
+  stageChartData: ChartData<'bar', number[], string | string[]> = { labels: [], datasets: [] };
   cumulativeChartData: ChartData<'line', number[], string> = { labels: [], datasets: [] };
 
   constructor(
@@ -541,7 +541,11 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     }>,
     windows: StageWindow[]
   ): void {
-    const labels = summaries.map(item => item.label.replace(' → ', '\n'));
+    // Chart.js parte la etiqueta en renglones sólo si recibe un arreglo (un salto de línea no tiene efecto).
+    const labels = summaries.map(item => {
+      const [desde, hasta] = item.label.split(' → ');
+      return hasta ? [`${desde} →`, hasta] : item.label;
+    });
     this.stageChartData = {
       labels,
       datasets: [
@@ -549,8 +553,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
           type: 'bar',
           label: 'Lluvia acumulada (mm)',
           data: summaries.map(item => item.rain),
-          backgroundColor: 'rgba(37, 99, 235, .70)',
-          borderColor: 'rgba(37, 99, 235, 1)',
+          backgroundColor: conAlfa(VAR_COLOR.lluvia, .7),
+          borderColor: VAR_COLOR.lluvia,
           borderWidth: 1,
           borderRadius: 8
         },
@@ -558,8 +562,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
           type: 'bar',
           label: 'Demanda hídrica ET x Kc (mm)',
           data: summaries.map(item => item.demand),
-          backgroundColor: 'rgba(245, 158, 11, .72)',
-          borderColor: 'rgba(245, 158, 11, 1)',
+          backgroundColor: conAlfa(VAR_COLOR.et, .7),
+          borderColor: VAR_COLOR.et,
           borderWidth: 1,
           borderRadius: 8
         }
@@ -574,8 +578,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
           type: 'line',
           label: 'Lluvia acumulada',
           data: points.map(item => item.cumulativeRain),
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37, 99, 235, .18)',
+          borderColor: VAR_COLOR.lluvia,
+          backgroundColor: conAlfa(VAR_COLOR.lluvia, .18),
           borderWidth: 2,
           fill: false,
           tension: 0.25,
@@ -587,8 +591,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
           type: 'line',
           label: 'Demanda acumulada ET x Kc',
           data: points.map(item => item.cumulativeDemand),
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, .18)',
+          borderColor: VAR_COLOR.et,
+          backgroundColor: conAlfa(VAR_COLOR.et, .18),
           borderWidth: 2,
           fill: false,
           tension: 0.25,

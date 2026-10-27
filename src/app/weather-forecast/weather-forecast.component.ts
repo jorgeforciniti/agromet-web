@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ChangeDetectorRef, Output, EventEmitter, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 import { OpenWeatherForecastItem, OpenWeatherForecastResponse, OpenWeatherNowResponse, WeatherService, WeatherStation } from '../services/weather.service';
@@ -11,7 +11,8 @@ import { faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faSun, faMoon,
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import Chart from 'chart.js/auto';
+import { Chart } from 'chart.js';
+import { VAR_COLOR, GRID_COLOR, conAlfa, fmtNum } from '../charts/chart-theme';
 import { MatIconModule } from '@angular/material/icon';
 import { Input } from '@angular/core';
 
@@ -31,7 +32,7 @@ registerLocaleData(localeEsAr);
   templateUrl: './weather-forecast.component.html',
   styleUrls: ['./weather-forecast.component.css']
 })
-export class WeatherForecastComponent implements OnInit, AfterViewInit {
+export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() mode: 'realtime' | 'forecast' | 'full' = 'full';
   @Output() stationSelected = new EventEmitter<string>();
   @ViewChild('temperatureChart') temperatureChartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -311,6 +312,10 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.temperatureChart?.destroy();
+  }
+
   private cssVar(name: string, fallback: string) {
     const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return v || fallback;
@@ -331,10 +336,10 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
     const labels = this.selectedDay.intervals.map(interval => interval.hour);
     const temperatures = this.selectedDay.intervals.map(interval => interval.temperature);
 
-    const lineColor = this.cssVar('--brand', '#6d28d9');
+    const lineColor = VAR_COLOR.temp;
     const textColor = this.cssVar('--text', '#111827');
     const mutedColor = this.cssVar('--muted', '#6b7280');
-    const gridColor = 'rgba(17,24,39,.08)';
+    const gridColor = GRID_COLOR;
 
     this.temperatureChart = new Chart(ctx, {
       type: 'line',
@@ -344,7 +349,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
           label: 'Temperatura',
           data: temperatures,
           borderColor: lineColor,
-          backgroundColor: lineColor + '22',
+          backgroundColor: conAlfa(lineColor, .13),
           borderWidth: 2,
           pointRadius: 2.5,
           pointHoverRadius: 4,
@@ -372,7 +377,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
               color: mutedColor,
               callback: (value) => {
                 const n = Number(value);
-                return isNaN(n) ? '' : n.toFixed(1);
+                return isNaN(n) ? '' : fmtNum(n, 1);
               }
             },
             grid: { color: gridColor }
@@ -388,7 +393,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit {
           },
           tooltip: {
             callbacks: {
-              label: (context) => `${context.parsed.y.toFixed(1)} °C`
+              label: (context) => `${fmtNum(context.parsed.y, 1)} °C`
             }
           }
         }

@@ -12,7 +12,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, BarController, BarElement, Tooltip, Legend, ChartDataset } from 'chart.js';
+import { ChartDataset } from 'chart.js';
+import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
@@ -243,17 +244,6 @@ export class WeatherDashboardComponent implements OnInit {
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<WeatherDashboardComponent>
   ) {
-    Chart.register(
-      CategoryScale,
-      LinearScale,
-      LineController,
-      PointElement,
-      LineElement,
-      BarController,
-      BarElement,
-      Tooltip,
-      Legend
-    );
     this.weatherForm = this.fb.group({
       station: [''],
       desde: [''],
@@ -353,7 +343,8 @@ export class WeatherDashboardComponent implements OnInit {
   public setupCharts(): void {
     this.syncVariableAvailability();
 
-    const labels = this.diaryData.map(d => d.fecha);
+    // Fechas del eje en dd/MM, como en la tabla (la API las entrega como aaaa-mm-dd).
+    const labels = this.diaryData.map(d => /^\d{4}-\d{2}-\d{2}/.test(d.fecha) ? `${d.fecha.slice(8, 10)}/${d.fecha.slice(5, 7)}` : d.fecha);
     const datasets: ChartDataset<'line' | 'bar', number[]>[] = [];
 
     if (this.selectedVariables.temperatura) {
@@ -363,16 +354,16 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'line',
           data: this.diaryData.map(d => d.temp_max),
           yAxisID: 'yTemp',
-          borderColor: '#FF6384',
-          backgroundColor: 'rgba(255,99,132,0.2)'
+          borderColor: VAR_COLOR.tmax,
+          backgroundColor: conAlfa(VAR_COLOR.tmax, .2)
         } as ChartDataset<'line', number[]>,
         {
           label: 'Temp. Mínima (°C)',
           type: 'line',
           data: this.diaryData.map(d => d.temp_min),
           yAxisID: 'yTemp',
-          borderColor: '#36A2EB',
-          backgroundColor: 'rgba(54,162,235,0.2)'
+          borderColor: VAR_COLOR.tmin,
+          backgroundColor: conAlfa(VAR_COLOR.tmin, .2)
         } as ChartDataset<'line', number[]>
       );
     }
@@ -384,16 +375,16 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'line',
           data: this.diaryData.map(d => d.HR_max),
           yAxisID: 'yHumedad',
-          borderColor: '#4BC0C0',
-          backgroundColor: 'rgba(75,192,192,0.2)'
+          borderColor: VAR_COLOR.hrMax,
+          backgroundColor: conAlfa(VAR_COLOR.hrMax, .2)
         } as ChartDataset<'line', number[]>,
         {
           label: 'Humedad Mín (%)',
           type: 'line',
           data: this.diaryData.map(d => d.HR_min),
           yAxisID: 'yHumedad',
-          borderColor: '#FF8080',
-          backgroundColor: 'rgba(255,128,128,0.2)'
+          borderColor: VAR_COLOR.hrMin,
+          backgroundColor: conAlfa(VAR_COLOR.hrMin, .2)
         } as ChartDataset<'line', number[]>
       );
     }
@@ -405,7 +396,7 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'bar',
           data: this.diaryData.map(d => d.rr_24),
           yAxisID: 'yLluvia',
-          backgroundColor: 'blue'
+          backgroundColor: conAlfa(VAR_COLOR.lluvia, .75)
         } as ChartDataset<'bar', number[]>
       );
     }
@@ -417,7 +408,7 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'bar',
           data: this.diaryData.map(d => d.et),
           yAxisID: 'yEt',
-          backgroundColor: 'red'
+          backgroundColor: conAlfa(VAR_COLOR.et, .75)
         } as ChartDataset<'bar', number[]>
       );
     }
@@ -429,7 +420,7 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'bar',
           data: this.diaryData.map(d => d.hum_hoja_hs),
           yAxisID: 'yHumHoja',
-          backgroundColor: 'orange'
+          backgroundColor: conAlfa(VAR_COLOR.mojado, .75)
         } as ChartDataset<'bar', number[]>
       );
     }
@@ -441,16 +432,16 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'line',
           data: this.diaryData.map(d => d.viento_medio),
           yAxisID: 'yViento',
-          borderColor: '#009F40',
-          backgroundColor: 'rgba(0,159,64,0.2)'
+          borderColor: VAR_COLOR.viento,
+          backgroundColor: conAlfa(VAR_COLOR.viento, .2)
         } as ChartDataset<'line', number[]>,
         {
           label: 'Viento Máx (km/h)',
           type: 'line',
           data: this.diaryData.map(d => d.viento_max),
           yAxisID: 'yViento',
-          borderColor: '#FF9F40',
-          backgroundColor: 'rgba(255,159,64,0.2)'
+          borderColor: VAR_COLOR.rafaga,
+          backgroundColor: conAlfa(VAR_COLOR.rafaga, .2)
         } as ChartDataset<'line', number[]>
       );
     }
@@ -461,8 +452,8 @@ export class WeatherDashboardComponent implements OnInit {
           type: 'line',
           data: this.diaryData.map(d => d.rad_solar_media),
           yAxisID: 'yRad',
-          borderColor: '#9f9c00ff',
-          backgroundColor: 'rgba(255, 240, 29, 0.2)'
+          borderColor: VAR_COLOR.radiacion,
+          backgroundColor: conAlfa(VAR_COLOR.radiacion, .2)
         } as ChartDataset<'line', number[]>
       );
     }
@@ -535,7 +526,7 @@ export class WeatherDashboardComponent implements OnInit {
         position: 'right',
         title: { display: true, text: 'Viento (km/h)', color: '#111827' },
         ticks: { color: '#111827' },
-        grid: { color: 'rgba(217,24,39,.10)' }
+        grid: { color: GRID_COLOR }
       };
     }
     scales['x'] = {

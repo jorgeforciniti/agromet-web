@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -12,6 +12,7 @@ import { HttpClient } from '@angular/common/http';
 import { ChartConfiguration } from 'chart.js';
 import { FeatureCollection, Point } from 'geojson';
 import { SIN_DATO, formatValor } from '../pipes/valor.pipe';
+import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 
 // Tipo para las claves de los mapas base
 type BaseMapKey = 'satellite' | 'osm';
@@ -64,7 +65,7 @@ interface ChartWeatherRow extends HourlyWeatherRow {
   templateUrl: './datos-online.component.html',
   styleUrls: ['./datos-online.component.css']
 })
-export class DatosOnlineComponent implements OnInit, AfterViewInit {
+export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   chart: Chart | null = null;
   selectedStationId: string = '';
   selectedVariable: string = 'temp_af';
@@ -352,6 +353,22 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
   }
 
 
+  private variableColor(variable: string): string {
+    switch (variable) {
+      case 'temp_af': return VAR_COLOR.temp;
+      case 'hum_af': return VAR_COLOR.humedad;
+      case 'presion': return VAR_COLOR.presion;
+      case 'lluvia': return VAR_COLOR.lluvia;
+      case 'viento_medio': return VAR_COLOR.viento;
+      case 'viento_max': return VAR_COLOR.rafaga;
+      default: return VAR_COLOR.normal;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.chart?.destroy();
+  }
+
   getLabel(variable: string): string {
     switch (variable) {
       case 'temp_af': return 'Temperatura (°C)';
@@ -391,19 +408,17 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
     const chartType: ChartType = variable === 'lluvia' ? 'bar' : 'line';
     const kind = this.variableKind(variable);
 
-    // gradiente y colores
+    // Color de la variable según la paleta común (el mismo que en el resto de los gráficos)
     const root = getComputedStyle(document.documentElement);
-    const brand = (root.getPropertyValue('--brand') || '#4f7932').trim();      // verde
     const text = (root.getPropertyValue('--text') || '#111827').trim();
     const muted = (root.getPropertyValue('--muted') || '#6b7280').trim();
     const border = (root.getPropertyValue('--border') || '#e5e7eb').trim();
+    const colorLinea = this.variableColor(variable);
 
     const ctx = canvas.getContext('2d')!;
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, 'rgba(79,121,50,.35)');
-    gradient.addColorStop(1, 'rgba(79,121,50,.04)');
-
-    const colorLinea = brand;
+    gradient.addColorStop(0, conAlfa(colorLinea, .35));
+    gradient.addColorStop(1, conAlfa(colorLinea, .04));
 
     const config: ChartConfiguration<ChartType> = {
       type: chartType,
@@ -417,8 +432,8 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
             return shown === SIN_DATO ? null : Number(value);
           }),
           borderColor: colorLinea,
-          backgroundColor: chartType === 'bar' ? 'rgba(79,121,50,.25)' : gradient,
-          pointBackgroundColor: brand,
+          backgroundColor: chartType === 'bar' ? conAlfa(colorLinea, .6) : gradient,
+          pointBackgroundColor: colorLinea,
           pointBorderColor: '#ffffff',
           pointRadius: 3,
           pointHoverRadius: 5,
@@ -447,19 +462,20 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
             titleColor: '#fff',
             bodyColor: '#fff',
             callbacks: {
-              label: ctx => `${this.getLabel(variable)}: ${ctx.parsed.y}`
+              label: ctx => `${this.getLabel(variable)}: ${formatValor(ctx.parsed.y)}`
             }
           }
         },
         scales: {
           x: {
-            ticks: { color: muted, maxRotation: 45, minRotation: 45 },
-            grid: { color: 'rgba(17,24,39,0.06)' },
+            // Con datos cada 15 min hay cientos de etiquetas: se limita la cantidad visible.
+            ticks: { color: muted, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+            grid: { color: GRID_COLOR },
             title: { display: true, text: 'Hora', color: muted }
           },
           y: {
             ticks: { color: muted },
-            grid: { color: 'rgba(17,24,39,0.06)' }
+            grid: { color: GRID_COLOR }
           }
         }
       } as ChartOptions<ChartType>

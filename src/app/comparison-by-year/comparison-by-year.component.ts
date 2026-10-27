@@ -1,6 +1,5 @@
 import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
-import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+import { SERIE_COLOR, conAlfa } from '../charts/chart-theme';
 
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -112,7 +111,7 @@ export class ComparisonByYearComponent implements OnInit {
   chartLabels: string[] = [];
   isLoading = false;
 
-  chartOptions = {
+  chartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -328,7 +327,7 @@ export class ComparisonByYearComponent implements OnInit {
         this.barChartData = { labels: this.chartLabels, datasets: [] };
       }
     } else {
-      this.chartLabels = baseData.map(r => r.fecha.split('-').slice(1).join('/'));
+      this.chartLabels = baseData.map(r => r.fecha.split('-').slice(1).reverse().join('/'));   // dd/MM
       const valsBase = baseData.map(r => key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number));
       const valsComp = compData.map(r => key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number));
 
@@ -348,6 +347,28 @@ export class ComparisonByYearComponent implements OnInit {
         this.barChartData = { labels: this.chartLabels, datasets: [] };
       }
     }
+    this.aplicarEstiloSeries(meta.label);
+  }
+
+  /** Colores fijos para las dos series comparadas y título del eje Y con la variable y su unidad. */
+  private aplicarEstiloSeries(tituloEje: string): void {
+    const colorear = (datasets: ChartDataset<'line' | 'bar', number[]>[]) =>
+      datasets.forEach((ds, i) => {
+        const color = SERIE_COLOR[i % SERIE_COLOR.length];
+        ds.borderColor = color;
+        ds.backgroundColor = ds.type === 'bar' ? conAlfa(color, .75) : conAlfa(color, .15);
+      });
+    colorear(this.lineChartData.datasets as ChartDataset<'line' | 'bar', number[]>[]);
+    colorear(this.barChartData.datasets as ChartDataset<'line' | 'bar', number[]>[]);
+
+    // Objeto nuevo para que ng2-charts aplique el cambio de opciones.
+    this.chartOptions = {
+      ...this.chartOptions,
+      scales: {
+        ...this.chartOptions.scales,
+        y: { ...this.chartOptions.scales.y, title: { display: true, text: tituloEje, color: '#111827' } }
+      }
+    };
   }
 
   private static readonly MONTH_ABBR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];

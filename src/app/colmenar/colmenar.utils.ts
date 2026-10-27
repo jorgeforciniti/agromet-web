@@ -1,7 +1,6 @@
-import { Chart, ChartOptions, registerables } from 'chart.js';
+import { ChartOptions } from 'chart.js';
 import { IndicadorExtremo, Mensual, NormalMensual } from './colmenar.models';
-
-Chart.register(...registerables);
+import { SERIE_COLOR, VAR_COLOR } from '../charts/chart-theme';
 
 export const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 export const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -165,12 +164,12 @@ export function mensualPorMes(filas: Mensual[] | null | undefined): (Mensual | n
    Gráficos (Chart.js)
    ========================= */
 export const COLOR = {
-  tmax: '#eb6834',
-  tmin: '#2a78d6',
-  lluvia: '#2a78d6',
-  normal: '#52514e',
-  anioA: '#2a78d6',
-  anioB: '#eb6834',
+  tmax: VAR_COLOR.tmax,
+  tmin: VAR_COLOR.tmin,
+  lluvia: VAR_COLOR.lluvia,   // antes igual a tmin
+  normal: VAR_COLOR.normal,
+  anioA: SERIE_COLOR[0],
+  anioB: SERIE_COLOR[1],
   positivoTermico: '#dc2626',
   negativoTermico: '#2563eb',
   humedo: '#2563eb',
