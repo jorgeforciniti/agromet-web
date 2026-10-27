@@ -19,6 +19,13 @@ body {
   overflow-x: hidden;
 }
 
+/* Foco visible para navegación con teclado (WCAG 2.4.7). :where() no suma especificidad:
+   cualquier estilo de foco propio de un componente tiene prioridad sobre este. */
+:where(a, button, [role="button"], [role="tab"], input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
 /* =========================
    Skeleton loaders
    ========================= */
@@ -110,15 +117,6 @@ body {
 
 .search-button:hover {
   background-color: var(--brand-600) !important;
-}
-
-@media (max-width: 768px) {
-  .section-title {
-    font-size: 1.8rem !important;
-    font-weight: bold !important;
-    margin-top: .5rem !important;
-    margin-bottom: 1rem !important;
-  }
 }
 
 .btn {
@@ -257,6 +255,8 @@ body {
   float: left;
   margin-right: 8px;
   opacity: .85;
+  /* Borde fino: los rangos que el mapa pinta transparentes se ven como casilla vacía */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18);
 }
 
 .leaflet-container .legend-title {

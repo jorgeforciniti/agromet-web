@@ -195,6 +195,9 @@
 
   .map-toolbar .select-wrapper{ width: 100%; }
   .map-wrapper{ height: 55vh; min-height: 360px; }
+
+  /* La barra ocupa todo el ancho superior y tapaba el zoom: se lo baja a la esquina inferior izquierda */
+  :host ::ng-deep .leaflet-top.leaflet-left{ top: auto; bottom: 28px; }
   .radar-toolbar{
     align-items: flex-start;
   }

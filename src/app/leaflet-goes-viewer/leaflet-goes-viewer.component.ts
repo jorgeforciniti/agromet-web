@@ -144,7 +144,7 @@ class TemperatureLegendControl extends L.Control {
 class PrecipitationLegendControl extends L.Control {
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML = '<h4>Precipitación (mm)</h4>';
+    div.innerHTML = '<strong>Precipitación (mm)</strong><br>';
 
     // Usar los stops exactos de OpenWeatherMap
     const stops = [
@@ -161,12 +161,13 @@ class PrecipitationLegendControl extends L.Control {
       const { limit, color } = stops[i];
       let label: string;
 
+      const coma = (n: number) => String(n).replace('.', ',');   // coma decimal, como el resto del sitio
       if (i === 0) {
-        label = `0–${stops[1].limit}`;
+        label = `0–${coma(stops[1].limit)}`;
       } else if (i === stops.length - 1) {
-        label = `${stops[i - 1].limit}+`;
+        label = `${coma(stops[i - 1].limit)}+`;
       } else {
-        label = `${stops[i - 1].limit}–${limit}`;
+        label = `${coma(stops[i - 1].limit)}–${coma(limit)}`;
       }
 
       div.innerHTML += `
@@ -394,8 +395,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
           const customIcon = L.icon({
             iconUrl: 'assets/icons/red-marker.png',
             iconSize: [25, 25],      // ajustá el tamaño según necesidad
-            iconAnchor: [25, 25],    // el punto que “apunta” al lugar exacto
-            popupAnchor: [0, -40]    // posición relativa del popup
+            iconAnchor: [12, 25],    // centro inferior del ícono (antes [25, 25]: esquina, desplazaba la estación)
+            popupAnchor: [0, -20]    // posición relativa del popup, igual que en Red de estaciones
           });
 
           return L.marker(latlng, { icon: customIcon });
