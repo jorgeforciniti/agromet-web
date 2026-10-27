@@ -33,7 +33,7 @@
 
 .titulo {
   margin: 0 0 12px 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--text);
 }
@@ -1117,8 +1117,9 @@ mat-form-field.date-field{ width: 100%; }
 
 .do-close{
   position: absolute;
-  right: calc(14px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
+  /* A la altura de la etiqueta y fuera de la franja de la barra de desplazamiento */
+  right: calc(31px + env(safe-area-inset-right));
+  top: calc(25px + env(safe-area-inset-top));
 
   width: 40px;
   height: 40px;

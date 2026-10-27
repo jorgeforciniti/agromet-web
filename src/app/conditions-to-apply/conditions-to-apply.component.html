@@ -1,10 +1,11 @@
 <div class="container">
   <!-- X fija estilo dialogs -->
-  <button class="do-close" type="button" (click)="closeWindow()" aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+  <button class="do-close" type="button" (click)="closeWindow()" aria-label="Cerrar diálogo"><mat-icon>close</mat-icon></button>
 
   <div class="viewer-container">
 
-    <div class="titulo">Condiciones actuales para aplicación de agroquímicos</div>
+    <div class="app-dialog-eyebrow">MANEJO</div>
+    <h2 class="titulo">Condiciones actuales para aplicación de agroquímicos</h2>
 
     <div *ngIf="loadingEstaciones" class="loading-overlay">
       <div class="spinner"></div>

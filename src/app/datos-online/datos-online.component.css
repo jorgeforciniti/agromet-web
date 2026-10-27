@@ -21,8 +21,9 @@
 /* BotÃƒÂ³n cerrar Ã¢â‚¬â€œ mismo patrÃƒÂ³n que dialogs */
 .do-close {
   position: absolute;
-  right: calc(22px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
+  /* A la altura de la etiqueta y fuera de la franja de la barra de desplazamiento */
+  right: calc(31px + env(safe-area-inset-right));
+  top: calc(16px + env(safe-area-inset-top));
   width: 40px;
   height: 40px;
   border-radius: 999px;
@@ -70,7 +71,7 @@
 /* TÃƒÂ­tulo */
 .titulo {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--text);
 }

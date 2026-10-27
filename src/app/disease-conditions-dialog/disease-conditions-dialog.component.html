@@ -5,12 +5,12 @@
         <div class="dialog-eyebrow">SANIDAD VEGETAL</div>
         <h2 class="titulo">Condiciones para enfermedades</h2>
         <p class="dialog-lead">
-          Evalua condiciones meteorologicas predisponentes para distintas enfermedades a partir
-          de registros horarios de estacion.
+          Evalúa condiciones meteorológicas predisponentes para distintas enfermedades a partir
+          de registros horarios de estación.
         </p>
       </div>
 
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar dialogo">
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>
       </button>
     </div>
@@ -18,7 +18,7 @@
     <form (ngSubmit)="loadReport()" class="disease-form">
       <div class="native-grid">
         <div class="native-field">
-          <label for="disease-station">Estacion</label>
+          <label for="disease-station">Estación</label>
           <select id="disease-station" name="station" [(ngModel)]="selectedStation" (ngModelChange)="onStationChange()" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
             <option *ngFor="let station of stations" [ngValue]="station.Identificacion">
               {{ station.Identificacion }} - {{ station.nombre }}
@@ -61,7 +61,7 @@
 
     <div class="disease-summary" *ngIf="rows.length">
       <div class="disease-summary__card">
-        <span>Estacion</span>
+        <span>Estación</span>
         <strong>{{ stationLabel(appliedStation) }}</strong>
       </div>
       <div class="disease-summary__card">
@@ -78,13 +78,13 @@
         <strong>{{ selectedDiseaseLabel(appliedDisease) }}</strong>
       </div>
       <div class="disease-summary__card">
-        <span>Periodo</span>
+        <span>Período</span>
         <strong>
           {{ appliedFromDate | date:'dd/MM/yyyy' }} - {{ appliedToDate | date:'dd/MM/yyyy' }}
         </strong>
       </div>
       <div class="disease-summary__card">
-        <span>Dias evaluados</span>
+        <span>Días evaluados</span>
         <strong>{{ rows.length }}</strong>
       </div>
     </div>
@@ -111,7 +111,7 @@
           <tr>
             <th>Fecha</th>
             <th *ngFor="let column of columns" [class.align-right]="column.align === 'right'">{{ column.label }}</th>
-            <th class="classification-col">Calificacion</th>
+            <th class="classification-col">Calificación</th>
           </tr>
         </thead>
         <tbody>

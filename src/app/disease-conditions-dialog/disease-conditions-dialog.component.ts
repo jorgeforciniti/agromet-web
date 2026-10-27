@@ -67,19 +67,19 @@ const DISEASE_GROUPS: DiseaseGroup[] = [
     label: 'Soja',
     options: [
       { code: 1, label: 'Roya de la soja', crop: 'Soja', scientificName: 'Phakopsora pachyrhizi' },
-      { code: 3, label: 'Mancha marron', crop: 'Soja', scientificName: 'Septoria glycines' },
-      { code: 4, label: 'Tizon de la hoja y mancha purpura', crop: 'Soja', scientificName: 'Cercospora kikuchii' },
+      { code: 3, label: 'Mancha marrón', crop: 'Soja', scientificName: 'Septoria glycines' },
+      { code: 4, label: 'Tizón de la hoja y mancha púrpura', crop: 'Soja', scientificName: 'Cercospora kikuchii' },
       { code: 5, label: 'Mancha anillada', crop: 'Soja', scientificName: 'Corynespora cassiicola' },
-      { code: 6, label: 'Tizon bacteriano', crop: 'Soja', scientificName: 'Pseudomonas syringae pv. glycinea' }
+      { code: 6, label: 'Tizón bacteriano', crop: 'Soja', scientificName: 'Pseudomonas syringae pv. glycinea' }
     ]
   },
   {
-    label: 'Maiz',
+    label: 'Maíz',
     options: [
-      { code: 10, label: 'Tizon foliar', crop: 'Maiz', scientificName: 'Exserohilum turcicum' },
-      { code: 11, label: 'Roya polisora', crop: 'Maiz', scientificName: 'Puccinia polysora' },
-      { code: 15, label: 'Mancha gris', crop: 'Maiz', scientificName: 'Cercospora zeae-maydis' },
-      { code: 16, label: 'Fusarium', crop: 'Maiz', scientificName: 'Fusarium graminearum' }
+      { code: 10, label: 'Tizón foliar', crop: 'Maíz', scientificName: 'Exserohilum turcicum' },
+      { code: 11, label: 'Roya polisora', crop: 'Maíz', scientificName: 'Puccinia polysora' },
+      { code: 15, label: 'Mancha gris', crop: 'Maíz', scientificName: 'Cercospora zeae-maydis' },
+      { code: 16, label: 'Fusarium', crop: 'Maíz', scientificName: 'Fusarium graminearum' }
     ]
   },
   {
@@ -89,15 +89,15 @@ const DISEASE_GROUPS: DiseaseGroup[] = [
     ]
   },
   {
-    label: 'Cana de azucar',
+    label: 'Caña de azúcar',
     options: [
-      { code: 2, label: 'Roya de la cana', crop: 'Cana de azucar', scientificName: 'Puccinia melanocephala' }
+      { code: 2, label: 'Roya de la caña', crop: 'Caña de azúcar', scientificName: 'Puccinia melanocephala' }
     ]
   },
   {
-    label: 'Limon',
+    label: 'Limón',
     options: [
-      { code: 9, label: 'Melanosis', crop: 'Limon', scientificName: 'Diaporthe citri' }
+      { code: 9, label: 'Melanosis', crop: 'Limón', scientificName: 'Diaporthe citri' }
     ]
   }
 ];
@@ -197,7 +197,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         this.loadReport();
       },
       error: () => {
-        this.loadError = 'No se pudieron cargar las estaciones para el modulo fitosanitario.';
+        this.loadError = 'No se pudieron cargar las estaciones para el módulo fitosanitario.';
       }
     });
   }
@@ -269,29 +269,29 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   diseaseHelp(diseaseCode = Number(this.appliedDisease || this.selectedDisease)): string {
     switch (Number(diseaseCode)) {
       case 1:
-        return 'Roya de la soja: evalua horas de mojado, temperatura media durante el mojado y horas con humedad alta para calificar riesgo diario.';
+        return 'Roya de la soja: evalúa horas de mojado, temperatura media durante el mojado y horas con humedad alta para calificar riesgo diario.';
       case 2:
-        return 'Roya de la cana: suma lapsos de 15 minutos con 17-23 °C, humedad relativa alta y hoja mojada. Con 8 horas o mas, el dia queda apto.';
+        return 'Roya de la caña: suma lapsos de 15 minutos con 17-23 °C, humedad relativa alta y hoja mojada. Con 8 horas o más, el día queda apto.';
       case 3:
-        return 'Mancha marron: distingue progreso de enfermedad por mojado y temperatura, y dispersion por lluvia o viento fuerte.';
+        return 'Mancha marrón: distingue progreso de enfermedad por mojado y temperatura, y dispersión por lluvia o viento fuerte.';
       case 4:
-        return 'Cercospora kikuchii: separa infeccion, germinacion y dispersion segun horas favorables, mojado foliar y eventos de viento o lluvia.';
+        return 'Cercospora kikuchii: separa infección, germinación y dispersión según horas favorables, mojado foliar y eventos de viento o lluvia.';
       case 5:
-        return 'Mancha anillada: considera infeccion solo con 24 horas o mas en el rango termico y de humedad requerido.';
+        return 'Mancha anillada: considera infección solo con 24 horas o más en el rango térmico y de humedad requerido.';
       case 6:
-        return 'Tizon bacteriano: necesita temperatura favorable, lluvia y viento maximo fuerte para marcar infeccion.';
+        return 'Tizón bacteriano: necesita temperatura favorable, lluvia y viento máximo fuerte para marcar infección.';
       case 9:
-        return 'Melanosis: clasifica el dia en bajo, ligero, moderado, alto o muy alto segun horas de mojado en rangos termicos amplios y optimos.';
+        return 'Melanosis: clasifica el día en bajo, ligero, moderado, alto o muy alto según horas de mojado en rangos térmicos amplios y óptimos.';
       case 10:
-        return 'Tizon foliar: usa horas de mojado dentro de rangos amplios y optimos para escalar el riesgo diario.';
+        return 'Tizón foliar: usa horas de mojado dentro de rangos amplios y óptimos para escalar el riesgo diario.';
       case 11:
-        return 'Roya polisora: pondera mojado foliar en bandas termicas amplia, intermedia y optima para definir la categoria diaria.';
+        return 'Roya polisora: pondera mojado foliar en bandas térmicas amplia, intermedia y óptima para definir la categoría diaria.';
       case 14:
-        return 'Roya estriada: informa horas aptas por dia cuando hay mojado foliar y temperatura entre 10 y 20 °C.';
+        return 'Roya estriada: informa horas aptas por día cuando hay mojado foliar y temperatura entre 10 y 20 °C.';
       case 15:
-        return 'Mancha gris: marca condicion positiva cuando se acumulan 12 horas o mas de mojado con 22-30 °C.';
+        return 'Mancha gris: marca condición positiva cuando se acumulan 12 horas o más de mojado con 22-30 °C.';
       case 16:
-        return 'Fusarium: marca condicion positiva con 20 horas o mas de mojado y temperatura entre 25 y 28 °C.';
+        return 'Fusarium: marca condición positiva con 20 horas o más de mojado y temperatura entre 25 y 28 °C.';
       default:
         return 'Las condiciones predisponentes se calculan en forma nativa a partir de la API horaria de enfermedades.';
     }
@@ -466,33 +466,33 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         return [
           { key: 'wetHours', label: 'Hs mojado', align: 'right' },
           { key: 'wetTemp', label: 'Temp. mojado', align: 'right' },
-          { key: 'windMax', label: 'Viento max.', align: 'right' },
+          { key: 'windMax', label: 'Viento máx.', align: 'right' },
           { key: 'rain', label: 'Lluvia (mm)', align: 'right' }
         ];
       case 4:
         return [
-          { key: 'infHours', label: 'Hs infeccion', align: 'right' },
-          { key: 'gerHours', label: 'Hs germinacion', align: 'right' },
-          { key: 'windMax', label: 'Viento max.', align: 'right' },
+          { key: 'infHours', label: 'Hs infección', align: 'right' },
+          { key: 'gerHours', label: 'Hs germinación', align: 'right' },
+          { key: 'windMax', label: 'Viento máx.', align: 'right' },
           { key: 'rain', label: 'Lluvia (mm)', align: 'right' }
         ];
       case 6:
         return [
-          { key: 'infHours', label: 'Hs termicas', align: 'right' },
-          { key: 'windMax', label: 'Viento max.', align: 'right' },
+          { key: 'infHours', label: 'Hs térmicas', align: 'right' },
+          { key: 'windMax', label: 'Viento máx.', align: 'right' },
           { key: 'rain', label: 'Lluvia (mm)', align: 'right' }
         ];
       case 9:
       case 10:
         return [
           { key: 'wetWide', label: 'Hs rango amplio', align: 'right' },
-          { key: 'wetNarrow', label: 'Hs rango optimo', align: 'right' }
+          { key: 'wetNarrow', label: 'Hs rango óptimo', align: 'right' }
         ];
       case 11:
         return [
           { key: 'wetWide', label: 'Hs rango amplio', align: 'right' },
           { key: 'wetMid', label: 'Hs rango medio', align: 'right' },
-          { key: 'wetNarrow', label: 'Hs rango optimo', align: 'right' }
+          { key: 'wetNarrow', label: 'Hs rango óptimo', align: 'right' }
         ];
       case 14:
         return [
@@ -513,8 +513,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       const notApt = rows.length - apt;
       const totalHours = rows.reduce((acc, row) => acc + this.num(row.values['aptHours']), 0);
       return [
-        { label: 'Dias aptos', value: String(apt), tone: 'high' },
-        { label: 'Dias no aptos', value: String(notApt), tone: 'low' },
+        { label: 'Días aptos', value: String(apt), tone: 'high' },
+        { label: 'Días no aptos', value: String(notApt), tone: 'low' },
         { label: 'Horas aptas', value: `${this.f1(totalHours)} h`, tone: 'moderate' }
       ];
     }

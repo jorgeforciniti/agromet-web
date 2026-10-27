@@ -188,6 +188,24 @@ body {
   scrollbar-gutter: stable;
 }
 
+/* Etiqueta superior del encabezado de los dialogs (misma apariencia que .dialog-eyebrow
+   de lluvias, comparaciones y enfermedades). Clase propia y global para que no dependa
+   de qué componente sin encapsulación se cargó antes. */
+.app-dialog-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-bottom: 10px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-data) 18%, var(--border));
+  background: rgba(255,255,255,.92);
+  color: color-mix(in srgb, var(--mod-data) 66%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
 /* === FIX DEFINITIVO: el componente dentro del dialog debe estirar y permitir overflow === */
 .do-dialog .mat-mdc-dialog-surface{
   display: flex !important;         /* 🔥 */
