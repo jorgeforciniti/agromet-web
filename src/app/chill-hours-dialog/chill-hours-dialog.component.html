@@ -84,7 +84,7 @@
       <span>{{ loadError }}</span>
     </div>
 
-    <div class="table-wrapper" *ngIf="rows.length">
+    <div class="table-wrapper tabla-fija" *ngIf="rows.length">
       <table mat-table [dataSource]="rows" class="chill-table">
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>

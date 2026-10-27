@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
@@ -94,7 +95,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   private map?: L.Map;
   private baseMapLayer?: L.TileLayer;
   private stationsLayer?: L.GeoJSON;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   private focusBounds: L.LatLngBounds = L.latLngBounds(
     L.latLng(-25.994679, -66.390178),
     L.latLng(-28.092109, -63.895287)
@@ -170,7 +170,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         zoom: 5,
         maxBoundsViscosity: 0.0,
         preferCanvas: true,
-        scrollWheelZoom: false  // Desactivar zoom por rueda
+        ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
       });
       this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
@@ -186,26 +186,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (this.estaciones.length > 0) this.addMarkers(this.estaciones);
       setTimeout(() => this.map!.invalidateSize({ animate: false }), 200);
-
-      // Mostrar mensaje si gira la rueda sin Ctrl
-      this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-        if (!e.ctrlKey) {
-          this.map?.getContainer().classList.add('ctrl-zoom-message');
-          clearTimeout(this.ctrlZoomTimeout);
-          this.ctrlZoomTimeout = setTimeout(() => {
-            this.map?.getContainer().classList.remove('ctrl-zoom-message');
-          }, 1000);
-        }
-      });
-
-      // Habilitar zoom si Ctrl está presionado
-      this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-        if (e.ctrlKey) {
-          this.map?.scrollWheelZoom.enable();
-        } else {
-          this.map?.scrollWheelZoom.disable();
-        }
-      });
 
     } catch (error) {
       console.error('Error al inicializar el mapa:', error);

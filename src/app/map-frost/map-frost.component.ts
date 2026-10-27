@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
@@ -83,14 +85,6 @@ interface FrostMapRecord {
   FUH?: string | Date | null;
 }
 
-interface FrostZoneLayer {
-  label: string;
-  file: string;
-  color: string;
-  selected: boolean;
-  layer?: L.GeoJSON;
-}
-
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
   override parse(value: unknown, parseFormat?: string): Date | null {
@@ -162,7 +156,6 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
   form: FormGroup;
   mapa?: L.Map;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   baseMapsList = [
     {
       label: 'OpenStreetMap',
@@ -186,13 +179,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   markersLayer = L.layerGroup();
   provincesLayer: L.GeoJSON | null = null;
   loading = false;
-  zoneLayers: FrostZoneLayer[] = [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
-  ];
+  zoneLayers: ZonaProductiva[] = crearZonasProductivas();
 
   constructor(
     private fb: FormBuilder,
@@ -233,7 +220,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       center: this.defaultMapCenter,
       zoom: 8,
       maxBoundsViscosity: 0.0,
-      scrollWheelZoom: false  // Desactivar zoom por rueda
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
     this.currentBaseLayer.addTo(this.mapa);
@@ -244,59 +231,16 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     await this.loadProvinces(); // Cargar provincias al inicio
     await this.loadZoneLayers();
 
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    if (!this.mapa) return;
-    this.mapa.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.mapa?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.mapa?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.mapa.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.mapa?.scrollWheelZoom.enable();
-      } else {
-        this.mapa?.scrollWheelZoom.disable();
-      }
-    });
     this.addLegend();
     setTimeout(() => this.mapa?.invalidateSize(), 50);
   }
 
   private async loadZoneLayers(): Promise<void> {
-    await Promise.all(this.zoneLayers.map(async zone => {
-      try {
-        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
-        zone.layer = L.geoJSON(data, {
-          pane: 'zonePane',
-          style: {
-            color: zone.color,
-            weight: 2,
-            opacity: 0.9,
-            fillColor: zone.color,
-            fillOpacity: 0.35
-          }
-        });
-      } catch (error) {
-        console.error(`Error al cargar ${zone.file}:`, error);
-      }
-    }));
+    await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
-  toggleZoneLayer(zone: FrostZoneLayer, selected: boolean): void {
-    zone.selected = selected;
-    if (!this.mapa || !zone.layer) return;
-
-    if (selected) {
-      zone.layer.addTo(this.mapa);
-    } else {
-      this.mapa.removeLayer(zone.layer);
-    }
+  toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
+    alternarZona(this.mapa, zone, selected);
   }
 
   private async loadProvinces(): Promise<void> {
@@ -316,12 +260,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       this.provincesLayer = L.geoJSON(provincesData, {
         pane: 'provincePane',
         interactive: false,                //  ←  no bloquea los clics
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0
-        }
+        style: ESTILO_PROVINCIAS
       }).addTo(this.mapa!);
 
       // opcional: ajustar vista
@@ -480,7 +419,6 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dejarDeSeguirTamanio?.();
     this.mapa?.remove();
     this.heladasSubscription?.unsubscribe();
-    if (this.ctrlZoomTimeout) clearTimeout(this.ctrlZoomTimeout);
   }
 
   close(): void {

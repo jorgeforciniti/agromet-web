@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService, WeatherStation } from '../services/weather.service';
@@ -137,7 +138,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map = L.map('estaciones-map', {
       center: this.focusBounds.getCenter(),
       zoom: 7,
-      scrollWheelZoom: false
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
@@ -147,14 +148,6 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     }).addTo(this.map);
 
     this.map.fitBounds(this.focusBounds);
-
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
 
     setTimeout(() => this.map?.invalidateSize(), 150);
     this.renderMarkers();

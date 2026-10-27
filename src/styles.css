@@ -278,21 +278,20 @@ body {
   color: #111 !important;
 }
 
-/* Aviso al girar la rueda sin Ctrl (lo agregan los mapas con la clase ctrl-zoom-message) */
-.ctrl-zoom-message::after {
-  content: "Mantené presionada la tecla Ctrl y girá la rueda para hacer zoom";
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  width: 100%;
-  background: rgba(0, 0, 0, .7);
-  color: #fff;
-  padding: 10px 0;
-  text-align: center;
-  font-size: .9rem;
-  border-radius: 0 0 6px 6px;
-  pointer-events: none;
-  z-index: 10000;
+/* Tablas largas con encabezado fijo. El contenedor desplaza en ambos ejes y tiene altura
+   máxima: así el encabezado sticky queda visible al recorrer las filas (con sólo
+   overflow-x: auto y sin altura, el sticky no tenía efecto). !important porque cada
+   componente define overflow-y en su propio contenedor. */
+.tabla-fija {
+  max-height: min(65vh, 620px) !important;
+  overflow: auto !important;
+}
+
+.tabla-fija thead th,
+.tabla-fija th.mat-mdc-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
 /* Cifras de ancho fijo en todas las tablas: los decimales quedan encolumnados */

@@ -2,6 +2,8 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service';
@@ -51,14 +53,6 @@ interface TemperatureData {
   lon: number;
   nombre: string;
   [key: string]: string | number;
-}
-
-interface TemperatureZoneLayer {
-  label: string;
-  file: string;
-  color: string;
-  selected: boolean;
-  layer?: L.GeoJSON;
 }
 
 export function dmyDateValidator(): ValidatorFn {
@@ -126,16 +120,9 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
   public currentVariableLabel: string = '';
   form!: FormGroup;
   map!: L.Map;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   layerGroup!: L.LayerGroup;
   provincesLayer!: L.GeoJSON;
-  zoneLayers: TemperatureZoneLayer[] = [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
-  ];
+  zoneLayers: ZonaProductiva[] = crearZonasProductivas();
   baseMaps: { [key: string]: L.TileLayer } = {};
   loading = false;
   errorMessage?: string;
@@ -175,7 +162,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
       center: [-27, -65],
       zoom: 8,
       maxBoundsViscosity: 0.0,
-      scrollWheelZoom: false  // Desactivar zoom por rueda
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
@@ -201,58 +188,14 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
     this.layerGroup = L.layerGroup().addTo(this.map);
     this.addColorLegend();
     setTimeout(() => this.map?.invalidateSize(), 50);
-
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    if (!this.map) return;
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.map?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.map?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
   }
 
   private async loadZoneLayers(): Promise<void> {
-    await Promise.all(this.zoneLayers.map(async zone => {
-      try {
-        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
-        zone.layer = L.geoJSON(data, {
-          pane: 'zonePane',
-          style: {
-            color: zone.color,
-            weight: 2,
-            opacity: 0.9,
-            fillColor: zone.color,
-            fillOpacity: 0.35
-          }
-        });
-      } catch (error) {
-        console.error(`Error al cargar ${zone.file}:`, error);
-      }
-    }));
+    await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
-  toggleZoneLayer(zone: TemperatureZoneLayer, selected: boolean): void {
-    zone.selected = selected;
-    if (!this.map || !zone.layer) return;
-
-    if (selected) {
-      zone.layer.addTo(this.map);
-    } else {
-      this.map.removeLayer(zone.layer);
-    }
+  toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
+    alternarZona(this.map, zone, selected);
   }
 
   private async loadProvinces(): Promise<void> {
@@ -263,12 +206,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
       );
 
       this.provincesLayer = L.geoJSON(provincesData, {
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0
-        },
+        style: ESTILO_PROVINCIAS,
         onEachFeature: (feature, layer) => {
           // @ts-ignore
           const name = feature.properties?.nam;

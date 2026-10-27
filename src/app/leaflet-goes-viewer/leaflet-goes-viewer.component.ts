@@ -2,6 +2,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
@@ -256,7 +257,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   public selectedStationId: string | null = null;
   private stations: WeatherStation[] = [];
   private stationServiceSub?: Subscription;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   private rainViewerHost: string = '';
   private rainViewerPath: string = '';
   private rainViewerFrames: Array<{ time: number; path: string }> = [];
@@ -536,7 +536,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       zoom: 6,
       maxBounds: this.focusBounds,
       maxBoundsViscosity: 0.0,
-      scrollWheelZoom: false  // Desactivar zoom por rueda
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
@@ -547,25 +547,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.setBaseMap(this.selectedBaseMap);
     this.map.fitBounds(this.focusBounds);
 
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.map?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.map?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
   }
   private async loadProvinces(): Promise<void> {
     try {

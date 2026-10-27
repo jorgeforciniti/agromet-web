@@ -4,6 +4,7 @@ import { Feature, FeatureCollection, Point } from 'geojson';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -530,7 +531,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       this.dejarDeSeguirTamanio?.();
       this.map.remove();
     }
-    this.map = L.map('mapConditions', { center: [-26.8, -65.2], zoom: 8, preferCanvas: true });
+    this.map = L.map('mapConditions', { center: [-26.8, -65.2], zoom: 8, preferCanvas: true, ...OPCIONES_GESTOS });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

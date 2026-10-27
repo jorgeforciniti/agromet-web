@@ -17,6 +17,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
@@ -50,14 +52,6 @@ interface Month {
   label: string;
 }
 
-interface RainZoneLayer {
-  label: string;
-  file: string;
-  color: string;
-  selected: boolean;
-  layer?: L.GeoJSON;
-}
-
 @Component({
   selector: 'app-rain-monthly-map',
   standalone: true,
@@ -83,19 +77,12 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   public map!: L.Map;
   public errorMessage: string | null = null;
   private stationsLayerGroup: L.LayerGroup = L.layerGroup();
-  public zoneLayers: RainZoneLayer[] = [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
-  ];
+  public zoneLayers: ZonaProductiva[] = crearZonasProductivas();
   public isLoading = false;
   private provincesLayer: L.GeoJSON | undefined;
   public noDataForSelection = false;
   public osmLayer!: L.TileLayer;
   public satLayer!: L.TileLayer;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
 
   public selectedStartMonth!: number;
   public selectedEndMonth!: number;
@@ -182,7 +169,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
         center: this.defaultMapCenter,
         zoom: this.defaultMapZoom,
         maxBoundsViscosity: 0.0,
-        scrollWheelZoom: false  // Desactivar zoom por rueda
+        ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
       });
       this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
       this.map.createPane('zonePane').style.zIndex = '450';
@@ -212,57 +199,14 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     }
     this.updateBaseMap();
 
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.map?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.map?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
-
   }
 
   private async loadZoneLayers(): Promise<void> {
-    await Promise.all(this.zoneLayers.map(async zone => {
-      try {
-        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
-        zone.layer = L.geoJSON(data, {
-          pane: 'zonePane',
-          style: {
-            color: zone.color,
-            weight: 2,
-            opacity: 0.9,
-            fillColor: zone.color,
-            fillOpacity: 0.35
-          }
-        });
-      } catch (error) {
-        console.error(`Error al cargar ${zone.file}:`, error);
-      }
-    }));
+    await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
-  public toggleZoneLayer(zone: RainZoneLayer, selected: boolean): void {
-    zone.selected = selected;
-    if (!this.map || !zone.layer) return;
-
-    if (selected) {
-      zone.layer.addTo(this.map);
-    } else {
-      this.map.removeLayer(zone.layer);
-    }
+  public toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
+    alternarZona(this.map, zone, selected);
   }
 
   onBaseMapChange(): void {
@@ -424,12 +368,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       );
 
       this.provincesLayer = L.geoJSON(provincesData, {
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
-        },
+        style: ESTILO_PROVINCIAS,
         onEachFeature: (feature, layer) => {
           if (feature.properties && feature.properties.nam) {
             layer.bindPopup(feature.properties.nam);
