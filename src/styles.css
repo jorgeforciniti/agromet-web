@@ -233,6 +233,12 @@ body {
   flex-direction: column !important;
   min-height: 0 !important;
 }
+/* Cifras de ancho fijo en todas las tablas: los decimales quedan encolumnados */
+table th,
+table td {
+  font-variant-numeric: tabular-nums;
+}
+
 /* ================================
    Tabla dentro de do-dialog
    header negro + sticky + full width

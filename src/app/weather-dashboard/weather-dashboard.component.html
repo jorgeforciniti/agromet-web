@@ -223,52 +223,52 @@
 
               <ng-container matColumnDef="temp_max">
                 <th mat-header-cell *matHeaderCellDef>Temp. Máx (°C)</th>
-                <td mat-cell *matCellDef="let item">{{ item.temp_max | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.temp_max | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="temp_min">
                 <th mat-header-cell *matHeaderCellDef>Temp. Mín (°C)</th>
-                <td mat-cell *matCellDef="let item">{{ item.temp_min | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.temp_min | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="HR_max">
                 <th mat-header-cell *matHeaderCellDef>Humedad Máx (%)</th>
-                <td mat-cell *matCellDef="let item">{{ item.HR_max }}</td>
+                <td mat-cell *matCellDef="let item">{{ item.HR_max | valor }}</td>
               </ng-container>
 
               <ng-container matColumnDef="HR_min">
                 <th mat-header-cell *matHeaderCellDef>Humedad Mín (%)</th>
-                <td mat-cell *matCellDef="let item">{{ item.HR_min }}</td>
+                <td mat-cell *matCellDef="let item">{{ item.HR_min | valor }}</td>
               </ng-container>
 
               <ng-container matColumnDef="rr_24">
                 <th mat-header-cell *matHeaderCellDef>Lluvia (mm)</th>
-                <td mat-cell *matCellDef="let item">{{ item.rr_24 | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.rr_24 | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="viento_medio">
                 <th mat-header-cell *matHeaderCellDef>Viento Medio (km/h)</th>
-                <td mat-cell *matCellDef="let item">{{ item.viento_medio | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.viento_medio | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="viento_max">
                 <th mat-header-cell *matHeaderCellDef>Viento Máx (km/h)</th>
-                <td mat-cell *matCellDef="let item">{{ item.viento_max | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.viento_max | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="rad_solar_media">
                 <th mat-header-cell *matHeaderCellDef>Rad.Solar (W/m²)</th>
-                <td mat-cell *matCellDef="let item">{{ item.rad_solar_media | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.rad_solar_media | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="et">
                 <th mat-header-cell *matHeaderCellDef>ET (mm)</th>
-                <td mat-cell *matCellDef="let item">{{ item.et | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.et | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="hum_hoja_hs">
                 <th mat-header-cell *matHeaderCellDef>Humedad de hoja (h)</th>
-                <td mat-cell *matCellDef="let item">{{ item.hum_hoja_hs | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.hum_hoja_hs | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="visibleDisplayedColumns"></tr>

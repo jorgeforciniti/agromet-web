@@ -327,3 +327,11 @@
     padding: 8px 10px;
   }
 }
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+/* Temperatura, Humedad y Lluvia hoy */
+.estaciones-table th:nth-child(n+2):nth-child(-n+4),
+.estaciones-table td:nth-child(n+2):nth-child(-n+4) {
+  text-align: right;
+}

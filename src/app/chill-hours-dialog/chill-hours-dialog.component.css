@@ -342,3 +342,10 @@
     width: 100%;
   }
 }
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+.chill-table .mat-column-hours,
+.chill-table .mat-column-records {
+  text-align: right;
+}

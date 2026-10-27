@@ -366,5 +366,7 @@
   outline-offset: 2px;
 }
 
-
-
+/* Encabezados de columnas numéricas alineados con sus valores (td.derecha) */
+.tabla-datos thead th:nth-child(n+4) {
+  text-align: right;
+}

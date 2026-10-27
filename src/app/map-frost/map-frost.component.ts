@@ -114,6 +114,8 @@ export class DmyDateAdapter extends NativeDateAdapter {
     return super.parse(value, parseFormat);
   }
 }
+import { ValorPipe } from '../pipes/valor.pipe';
+
 @Component({
   selector: 'app-map-temperature',
   templateUrl: './map-frost.component.html',
@@ -121,6 +123,7 @@ export class DmyDateAdapter extends NativeDateAdapter {
   standalone: true,
   imports: [
     CommonModule,
+    ValorPipe,
     MatIconModule,
     MatDialogModule,
     MatFormFieldModule,

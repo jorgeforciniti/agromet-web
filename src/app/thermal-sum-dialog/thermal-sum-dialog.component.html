@@ -92,16 +92,16 @@
         </ng-container>
 
         <ng-container matColumnDef="dailyValue">
-          <th mat-header-cell *matHeaderCellDef>Suma térmica</th>
+          <th mat-header-cell *matHeaderCellDef>Suma térmica (°C·día)</th>
           <td mat-cell *matCellDef="let row" [class.is-missing]="row.insufficient">
-            {{ row.insufficient ? '---' : (row.dailyValue | number:'1.1-1') }}
+            {{ row.insufficient ? '—' : (row.dailyValue | number:'1.1-1') }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="accumulated">
-          <th mat-header-cell *matHeaderCellDef>Acumulada</th>
+          <th mat-header-cell *matHeaderCellDef>Acumulada (°C·día)</th>
           <td mat-cell *matCellDef="let row" [class.is-missing]="row.insufficient">
-            {{ row.insufficient ? '---' : (row.accumulated | number:'1.1-1') }}
+            {{ row.insufficient ? '—' : (row.accumulated | number:'1.1-1') }}
           </td>
         </ng-container>
 

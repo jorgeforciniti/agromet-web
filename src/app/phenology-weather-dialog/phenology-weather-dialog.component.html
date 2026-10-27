@@ -163,9 +163,9 @@
             <td>{{ stage.demand | number:'1.1-1' }} mm</td>
             <td [class.balance-negative]="stage.balance < 0">{{ stage.balance | number:'1.1-1' }} mm</td>
             <td>{{ stage.leafWetnessHours | number:'1.1-1' }} h</td>
-            <td>{{ stage.avgRadiation == null ? '---' : (stage.avgRadiation | number:'1.1-1') }}</td>
-            <td>{{ stage.avgTempMax == null ? '---' : (stage.avgTempMax | number:'1.1-1') }}</td>
-            <td>{{ stage.avgTempMin == null ? '---' : (stage.avgTempMin | number:'1.1-1') }}</td>
+            <td>{{ stage.avgRadiation == null ? '—' : (stage.avgRadiation | number:'1.1-1') }}</td>
+            <td>{{ stage.avgTempMax == null ? '—' : (stage.avgTempMax | number:'1.1-1') }}</td>
+            <td>{{ stage.avgTempMin == null ? '—' : (stage.avgTempMin | number:'1.1-1') }}</td>
             <td>{{ stage.hotDays }}</td>
             <td>{{ stage.frostDays }}</td>
           </tr>

@@ -139,6 +139,8 @@ type VariableSelection = {
 
 type DashboardScales = NonNullable<ChartConfiguration<'line' | 'bar', number[], string>['options']>['scales'];
 
+import { ValorPipe } from '../pipes/valor.pipe';
+
 @Component({
   selector: 'app-weather-dashboard',
   templateUrl: './weather-dashboard.component.html',
@@ -146,6 +148,7 @@ type DashboardScales = NonNullable<ChartConfiguration<'line' | 'bar', number[], 
   standalone: true,
   imports: [
     CommonModule,
+    ValorPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,

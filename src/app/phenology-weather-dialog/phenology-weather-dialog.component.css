@@ -427,3 +427,11 @@
     min-width: 980px;
   }
 }
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+/* Etapa y Período son texto; el resto, valores. */
+.phenology-table th:nth-child(n+3),
+.phenology-table td:nth-child(n+3) {
+  text-align: right;
+}

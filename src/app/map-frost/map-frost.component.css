@@ -340,3 +340,11 @@
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
 }
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+/* MinAbs, horas bajo umbral y días con helada; las fechas (FPH/FUH) quedan centradas */
+.heladas-table th:nth-child(n+2):nth-child(-n+6),
+.heladas-table td:nth-child(n+2):nth-child(-n+6) {
+  text-align: right;
+}

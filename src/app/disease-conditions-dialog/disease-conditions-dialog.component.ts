@@ -975,7 +975,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private f1(value: number): string {
-    return value.toFixed(1);
+    return value.toFixed(1).replace('.', ',');   // coma decimal, como el resto de las tablas
   }
 }
 

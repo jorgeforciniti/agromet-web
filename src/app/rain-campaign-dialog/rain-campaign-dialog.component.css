@@ -346,3 +346,14 @@
     font-size: .8rem;
   }
 }
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+.rain-table .mat-mdc-header-cell:not(.mat-column-name),
+.rain-table td.mat-mdc-cell:not(.mat-column-name) {
+  text-align: right;
+}
+
+.rain-table .mat-column-name {
+  text-align: left;
+}

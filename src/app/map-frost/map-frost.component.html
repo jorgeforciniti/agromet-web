@@ -100,11 +100,11 @@
                       [style.backgroundColor]="getColor(d.minAbs)"
                       [style.color]="getColorLetra(d.minAbs)">
                     <td>{{ d.nombre }}</td>
-                    <td>{{ d.minAbs }}</td>
-                    <td>{{ d['hsDebajo-4'] }}</td>
-                    <td>{{ d['hsDebajo-2'] }}</td>
-                    <td>{{ d.hsDebajo0 }}</td>
-                    <td>{{ d.diasHeladas }}</td>
+                    <td>{{ d.minAbs | valor }}</td>
+                    <td>{{ d['hsDebajo-4'] | valor }}</td>
+                    <td>{{ d['hsDebajo-2'] | valor }}</td>
+                    <td>{{ d.hsDebajo0 | valor }}</td>
+                    <td>{{ d.diasHeladas | valor }}</td>
                     <td>{{ d.FPH | date:'dd/MM/yyyy' }}</td>
                     <td>{{ d.FUH | date:'dd/MM/yyyy' }}</td>
                   </tr>

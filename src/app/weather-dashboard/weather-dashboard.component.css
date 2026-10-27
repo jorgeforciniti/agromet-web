@@ -424,3 +424,10 @@ mat-tab-nav-panel{
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
 }
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+.tabla-datos .mat-mdc-header-cell:not(.mat-column-fecha),
+.tabla-datos .mat-mdc-cell:not(.mat-column-fecha) {
+  text-align: right;
+}

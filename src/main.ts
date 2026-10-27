@@ -6,13 +6,19 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './app/environments/environment';
 import { provideHttpClient } from '@angular/common/http';
-import { enableProdMode } from '@angular/core';
+import { enableProdMode, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEsAr from '@angular/common/locales/es-AR';
 import * as L from 'leaflet';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 if (environment.production) {
   enableProdMode();
 }
+
+// Formato argentino para los pipes de número y fecha (coma decimal, punto de miles),
+// el mismo que ya usaban las estadísticas históricas con Intl.NumberFormat('es-AR').
+registerLocaleData(localeEsAr);
 
 // Configuración global de Leaflet para mejor rendimiento
 L.Map.mergeOptions({
@@ -27,5 +33,6 @@ bootstrapApplication(AppComponent, {
     provideAuth(() => getAuth()),
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideAnimations(),
+    { provide: LOCALE_ID, useValue: 'es-AR' },
   ],
 }).catch(err => console.error(err));

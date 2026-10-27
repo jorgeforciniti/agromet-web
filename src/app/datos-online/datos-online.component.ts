@@ -11,6 +11,7 @@ import { Chart } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { ChartConfiguration } from 'chart.js';
 import { FeatureCollection, Point } from 'geojson';
+import { SIN_DATO, formatValor } from '../pipes/valor.pipe';
 
 // Tipo para las claves de los mapas base
 type BaseMapKey = 'satellite' | 'osm';
@@ -291,19 +292,19 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
   }
 
   public fmt(v: string | number | null | undefined, kind?: 'temp' | 'hum' | 'wind' | 'rain'): string {
-    if (String(v) === '10000' || String(v) === '10000.0') return '---';
-    if (v == null) return '';
+    if (String(v) === '10000' || String(v) === '10000.0') return SIN_DATO;
+    if (v == null) return SIN_DATO;
 
     // Descarta lecturas fuera de rango físico posible (valores de error del sensor,
     // ej. 1802.6 °C / 255 % / 410.4 km/h vistos en producción) en vez de mostrarlas tal cual.
     const n = Number(v);
     if (kind && !isNaN(n)) {
-      if (kind === 'temp' && (n < -25 || n > 55)) return '---';
-      if (kind === 'hum' && (n < 0 || n > 100)) return '---';
-      if (kind === 'wind' && (n < 0 || n > 390)) return '---';
-      if (kind === 'rain' && (n < 0 || n > 400)) return '---';
+      if (kind === 'temp' && (n < -25 || n > 55)) return SIN_DATO;
+      if (kind === 'hum' && (n < 0 || n > 100)) return SIN_DATO;
+      if (kind === 'wind' && (n < 0 || n > 390)) return SIN_DATO;
+      if (kind === 'rain' && (n < 0 || n > 400)) return SIN_DATO;
     }
-    return String(v);
+    return formatValor(v);
   }
   /** Cierra el diálogo */
   public closeWindow(): void {
@@ -413,7 +414,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
           data: datos.map((d) => {
             const value = d[variable as WeatherVariableKey];
             const shown = this.fmt(value, kind);
-            return shown === '' || shown === '---' ? null : Number(value);
+            return shown === SIN_DATO ? null : Number(value);
           }),
           borderColor: colorLinea,
           backgroundColor: chartType === 'bar' ? 'rgba(79,121,50,.25)' : gradient,

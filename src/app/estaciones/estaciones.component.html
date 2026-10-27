@@ -28,17 +28,17 @@
 
         <div class="estaciones-summary__item">
           <span class="estaciones-summary__label">Temperatura</span>
-          <span class="estaciones-summary__value">{{ s.temp !== null ? (s.temp.toFixed(1) + ' °C') : '—' }}</span>
+          <span class="estaciones-summary__value">{{ s.temp !== null ? ((s.temp | number:'1.1-1') + ' °C') : '—' }}</span>
         </div>
 
         <div class="estaciones-summary__item">
           <span class="estaciones-summary__label">Humedad</span>
-          <span class="estaciones-summary__value">{{ s.hum !== null ? (s.hum.toFixed(0) + ' %') : '—' }}</span>
+          <span class="estaciones-summary__value">{{ s.hum !== null ? ((s.hum | number:'1.0-0') + ' %') : '—' }}</span>
         </div>
 
         <div class="estaciones-summary__item">
           <span class="estaciones-summary__label">Lluvia hoy</span>
-          <span class="estaciones-summary__value">{{ s.rain !== null ? (s.rain.toFixed(1) + ' mm') : '—' }}</span>
+          <span class="estaciones-summary__value">{{ s.rain !== null ? ((s.rain | number:'1.1-1') + ' mm') : '—' }}</span>
         </div>
 
         <div class="estaciones-summary__item">
@@ -79,9 +79,9 @@
                 </span>
               </span>
             </td>
-            <td>{{ s.temp !== null ? (s.temp.toFixed(1) + ' °C') : '—' }}</td>
-            <td>{{ s.hum !== null ? (s.hum.toFixed(0) + ' %') : '—' }}</td>
-            <td>{{ s.rain !== null ? (s.rain.toFixed(1) + ' mm') : '—' }}</td>
+            <td>{{ s.temp !== null ? ((s.temp | number:'1.1-1') + ' °C') : '—' }}</td>
+            <td>{{ s.hum !== null ? ((s.hum | number:'1.0-0') + ' %') : '—' }}</td>
+            <td>{{ s.rain !== null ? ((s.rain | number:'1.1-1') + ' mm') : '—' }}</td>
             <td>{{ s.updated ? (s.updated | date:'dd/MM HH:mm') : '—' }}</td>
           </tr>
         </tbody>

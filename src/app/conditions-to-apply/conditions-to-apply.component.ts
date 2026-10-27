@@ -15,6 +15,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, NativeDateAdapter } from '@angular/material/core';
 
 import localeEs from '@angular/common/locales/es';
+import { ValorPipe } from '../pipes/valor.pipe';
 registerLocaleData(localeEs);
 
 // ✅ Ajustá estos imports a tu estructura real
@@ -101,6 +102,7 @@ type InfoKey =
   standalone: true,
   imports: [
     CommonModule,
+    ValorPipe,
     FormsModule,
     MatDialogModule,
     MatDatepickerModule,
