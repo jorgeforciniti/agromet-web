@@ -71,11 +71,11 @@
 
     <div class="chart-section">
       <div class="chart-container" *ngIf="lineChartData.datasets.length">
-        <canvas baseChart [data]="lineChartData" [options]="chartOptions" chartType="line"></canvas>
+        <canvas baseChart [data]="lineChartData" [options]="chartOptions" type="line"></canvas>
       </div>
 
       <div class="chart-container" *ngIf="barChartData.datasets.length">
-        <canvas baseChart [data]="barChartData" [options]="chartOptions" chartType="bar"></canvas>
+        <canvas baseChart [data]="barChartData" [options]="chartOptions" type="bar"></canvas>
       </div>
     </div>
 

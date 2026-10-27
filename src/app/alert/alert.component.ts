@@ -186,8 +186,10 @@ export class AlertComponent implements OnInit {
     const { MapFrostComponent } = await import('../map-frost/map-frost.component');
 
     this.dialog.open(MapFrostComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       data: { hoy: true }
     });
@@ -200,8 +202,10 @@ export class AlertComponent implements OnInit {
     const { MapRainComponent } = await import('../map-rain/map-rain.component');
 
     this.dialog.open(MapRainComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       data: { hoy: true }
     });

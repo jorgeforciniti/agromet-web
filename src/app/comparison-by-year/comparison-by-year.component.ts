@@ -119,20 +119,20 @@ export class ComparisonByYearComponent implements OnInit {
       y: {
         position: 'left',
         display: true,
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { color: 'rgba(17,24,39,.10)' }
       },
       x: {
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { color: 'rgba(17,24,39,.10)' }
       }
     },
     plugins: {
       legend: {
-        labels: { color: '#111827', font: { weight: '700' } }
+        labels: { color: '#111827', font: { weight: 700 } }
       }
     }
-  };
+  } as const;
   variables = [
     { key: 'temp_max', label: 'Temperatura máxima (°C)' },
     { key: 'temp_min', label: 'Temperatura mínima (°C)' },
@@ -142,7 +142,7 @@ export class ComparisonByYearComponent implements OnInit {
     { key: 'viento_medio', label: 'Velocidad de viento (km/h)' },
     { key: 'rad_solar_media', label: 'Radiación solar (W/m²)' },
     { key: 'et', label: 'Evapotranspiración (mm)' },
-    { key: 'hum_hoja_hs', label: 'Hoja mojada (mm)' }
+    { key: 'hum_hoja_hs', label: 'Hoja mojada (h)' }
   ];
 
   readonly data: Record<string, unknown>;
@@ -355,7 +355,7 @@ export class ComparisonByYearComponent implements OnInit {
   private groupByDecade(data: WeatherRecord[]): { [key: string]: WeatherRecord[] } {
     const decades: { [key: string]: WeatherRecord[] } = {};
     data.forEach(record => {
-      const date = new Date(record.fecha);
+      const date = this.coerceDate(record.fecha);
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate();
@@ -405,7 +405,7 @@ export class ComparisonByYearComponent implements OnInit {
   private groupByMonth(data: WeatherRecord[]): { [key: string]: WeatherRecord[] } {
     const months: { [key: string]: WeatherRecord[] } = {};
     data.forEach(record => {
-      const date = new Date(record.fecha);
+      const date = this.coerceDate(record.fecha);
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
       const key = `${year}-${month.toString().padStart(2, '0')}`;

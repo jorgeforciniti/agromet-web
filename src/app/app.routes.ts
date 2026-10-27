@@ -33,10 +33,7 @@ export const routes: Routes = [
     path: 'auth',
     loadComponent: () => import('./auth/auth.component').then((m) => m.AuthComponent)
   },
-  {
-    path: 'dashboard',
-    loadComponent: () => import('./weather-dashboard/weather-dashboard.component').then((m) => m.WeatherDashboardComponent)
-  },
+  { path: 'dashboard', redirectTo: 'datos', pathMatch: 'full' },
   {
     path: 'solicitudes',
     loadComponent: () => import('./solicitudes/solicitudes.component').then((m) => m.SolicitudesComponent)

@@ -91,201 +91,6 @@ body {
   color: var(--text);
 }
 
-.custom-dialog-container {
-  padding: 0;
-  margin: 0;
-  flex: 1;
-  /* Permite que el contenido ocupe todo el espacio disponible */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: #1e1e1e;
-  border-radius: 12px;
-}
-
-.custom-dialog-class .mat-dialog-container {
-  padding: 0;
-  /* Elimina el relleno predeterminado */
-  height: 100%;
-  /* Fuerza al contenedor a usar toda la altura */
-  display: flex;
-  flex-direction: column;
-}
-
-.custom-dialog-class .mat-dialog-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-  height: 100%;
-}
-
-.custom-dialog-class .content-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.custom-dialog-class iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* ==== Fecha: texto blanco ===== */
-input[type="date"] {
-  color: #eee !important;
-  caret-color: #ffcc00 !important;
-  /* opcional, para que la línea de edición también sea visible */
-}
-
-/* WebKit / Blink (Chrome, Edge, Safari) */
-input[type="date"]::-webkit-datetime-edit,
-input[type="date"]::-webkit-datetime-edit-text,
-input[type="date"]::-webkit-datetime-edit-month-field,
-input[type="date"]::-webkit-datetime-edit-day-field,
-input[type="date"]::-webkit-datetime-edit-year-field {
-  color: #fff !important;
-}
-
-/* Firefox */
-input[type="date"]::-moz-placeholder {
-  /* placeholder nativo */
-  color: #fff !important;
-}
-
-input[type="date"]::-moz-calendar-picker-indicator {
-  /* icono calendario */
-  filter: invert(1);
-}
-
-.mat-tab-group .mat-tab-label {
-  color: #f0f0f0 !important;
-}
-
-.mat-tab-group .mat-ink-bar {
-  background-color: #f0f0f0 !important;
-}
-
-.custom-dark-table {
-  background-color: #2c2c2c;
-}
-
-.custom-dark-table .mat-header-row,
-.custom-dark-table .mat-row {
-  background-color: #2c2c2c;
-}
-
-.custom-dark-table .mat-header-cell,
-.custom-dark-table .mat-cell {
-  color: #f8f5d7;
-  border-bottom: 1px solid rgba(248, 245, 215, 0.2);
-}
-
-.mat-mdc-text-field .mat-mdc-input-element,
-.mat-mdc-text-field .mat-mdc-text-field-input {
-  color: #eee !important;
-}
-
-/* placeholder */
-.mat-mdc-text-field .mat-mdc-text-field-input::placeholder {
-  color: #bbb !important;
-}
-
-/* 1) Inputs de Angular Material (matInput) */
-input[matInput],
-textarea[matInput] {
-  color: #eee !important;
-}
-
-/* 2) Placeholder / hint */
-input[matInput]::placeholder,
-textarea[matInput]::placeholder {
-  color: #bbb !important;
-}
-
-/* 3) Fecha manual (mat-datepicker-input) */
-.mat-datepicker-input {
-  color: #eee !important;
-}
-
-/* Datepicker toggle icon */
-.mat-datepicker-toggle .mat-icon {
-  color: #eee !important;
-}
-
-/************************************************************************/
-
-
-/* Fondo blanco para el panel del datepicker */
-.mat-datepicker-content {
-  background-color: #ffffff !important;
-}
-
-/* Fondo blanco para el calendario */
-.mat-calendar {
-  background-color: #ffffff !important;
-}
-
-/* Color del texto para que sea legible */
-.mat-calendar-body-cell-content,
-.mat-calendar-period-button,
-.mat-calendar-arrow {
-  color: #333333 !important;
-}
-
-/* Fondo de las celdas del calendario */
-.mat-calendar-body-cell-content {
-  background-color: #ffffff !important;
-}
-
-/* Fondo para el día seleccionado */
-.mat-calendar-body-selected {
-  background-color: #1976d2 !important;
-  /* Azul para el día seleccionado */
-  color: #ffffff !important;
-}
-
-/* Borde para el día actual */
-.mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
-  border: 1px solid #1976d2 !important;
-}
-
-.mat-raised-button.my-custom {
-  background-color: #2e7d32 !important;
-  color: #fff !important;
-  border-radius: 24px !important;
-  padding: 0.75rem 1.5rem !important;
-  font-size: 1.1rem !important;
-  transition: background-color 200ms ease-out !important;
-}
-
-.mat-raised-button.my-custom:hover {
-  background-color: #276c28 !important;
-}
-
-.custom-info-btn {
-  font-size: 1.1rem;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.custom-info-btn:hover {
-  background-color: #ffffff;
-  color: #3f51b5;
-  /* color primaria contrastante */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.custom-info-btn mat-icon {
-  margin-right: 0.5rem;
-  vertical-align: middle;
-}
-
 .main-content {
   width: 100%;
   max-width: none;
@@ -308,13 +113,6 @@ textarea[matInput]::placeholder {
   font-weight: 900;
   color: var(--text);
   text-align: left;
-}
-.titulo {
-  padding-left: 25px;
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #fcfaa5;
-  margin-bottom: 20px;
 }
 
 /* Botón de búsqueda */
@@ -365,7 +163,7 @@ textarea[matInput]::placeholder {
 }
 .btn--ghost:hover { background: rgba(17,24,39,.04); }
 
-.cdk-overlay-pane {
+.cdk-overlay-pane.mat-mdc-dialog-panel {
   max-width: 96vw !important;
 }
 
@@ -382,6 +180,26 @@ textarea[matInput]::placeholder {
 /* A veces el culpable es el propio "surface" sumando padding/border */
 .mat-mdc-dialog-surface {
   box-sizing: border-box !important;
+}
+
+/* Superficie común de todos los dialogs do-dialog. Antes vivía en componentes con
+   ViewEncapsulation.None (map-rain, map-frost, comparaciones) y sólo se aplicaba al resto
+   después de abrir uno de ellos. El tamaño de cada diálogo se define en su dialog.open(). */
+.do-dialog .mat-mdc-dialog-surface {
+  height: 100%;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+.do-dialog .mat-mdc-dialog-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  scrollbar-gutter: stable;
 }
 
 /* === FIX DEFINITIVO: el componente dentro del dialog debe estirar y permitir overflow === */
@@ -411,33 +229,6 @@ textarea[matInput]::placeholder {
   flex-direction: column !important;
   min-height: 0 !important;
 }
-/* ================================
-   OVERRIDE: do-dialog (tema claro)
-   Esto pisa el tema oscuro global
-   ================================ */
-
-/* Inputs matInput dentro de do-dialog */
-.do-dialog input[matInput],
-.do-dialog textarea[matInput],
-.do-dialog .mat-datepicker-input{
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
-}
-
-.do-dialog input[matInput]::placeholder,
-.do-dialog textarea[matInput]::placeholder{
-  color: rgba(17,24,39,.55) !important;
-}
-
-/* Icono del datepicker dentro de do-dialog */
-.do-dialog .mat-datepicker-toggle .mat-icon{
-  color: rgba(17,24,39,.85) !important;
-}
-
-.do-dialog .titulo{
-  color: rgba(17,24,39,.92) !important;
-}
-
 /* ================================
    Tabla dentro de do-dialog
    header negro + sticky + full width
@@ -550,7 +341,7 @@ textarea[matInput]::placeholder {
 
 /* ===== Mobile: que el overlay no achique el dialog ===== */
 @media (max-width: 768px){
-  .cdk-overlay-pane{
+  .cdk-overlay-pane.mat-mdc-dialog-panel{
     width: 96vw !important;
     max-width: 96vw !important;
     margin: 0 !important;

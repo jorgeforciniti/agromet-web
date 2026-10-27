@@ -3,32 +3,6 @@
   color: var(--text);
 }
 
-.do-dialog .mat-mdc-dialog-surface {
-  width: min(1300px, 95vw) !important;
-  max-width: 98vw !important;
-  height: 92vh !important;
-  max-height: 92vh !important;
-  min-height: 92vh !important;
-  overflow: hidden !important;
-  border-radius: 24px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
-}
-
-.do-dialog .mat-mdc-dialog-content {
-  height: 100% !important;
-  max-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 0 !important;
-  overflow: auto !important;
-  overflow-x: hidden !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  scrollbar-gutter: stable;
-}
-
 .comparison-dialog {
   display: block;
   background: transparent;

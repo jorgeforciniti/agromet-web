@@ -12,7 +12,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, BarController, BarElement, Tooltip, Legend, ChartEvent, ActiveElement, ChartDataset } from 'chart.js';
+import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, BarController, BarElement, Tooltip, Legend, ChartDataset } from 'chart.js';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
@@ -510,7 +510,7 @@ export class WeatherDashboardComponent implements OnInit {
         type: 'linear',
         display: true,
         position: 'left',
-        title: { display: true, text: 'et (mm)', color: '#111827' },
+        title: { display: true, text: 'ET (mm)', color: '#111827' },
         ticks: { color: '#111827' },
         grid: { color: 'rgba(17,24,39,.10)' }
       };
@@ -520,7 +520,7 @@ export class WeatherDashboardComponent implements OnInit {
         type: 'linear',
         display: true,
         position: 'left',
-        title: { display: true, text: 'Lluvia (mm)', color: '#111827' },
+        title: { display: true, text: 'Hoja mojada (h)', color: '#111827' },
         ticks: { color: '#111827' },
         grid: { color: 'rgba(17,24,39,.10)' }
       };
@@ -556,18 +556,12 @@ export class WeatherDashboardComponent implements OnInit {
               font: { weight: 700 }
             }
           },
+          // Texto claro sobre el fondo oscuro del tooltip (antes era #111827 sobre negro, ilegible).
+          // El tooltip ya muestra serie y valor, por eso no hay onClick con alert().
           tooltip: {
-            titleColor: '#111827',
-            bodyColor: '#111827',
-            backgroundColor: 'rgba(0,0,0,0.7)'
-          }
-        },
-        onClick: (_evt: ChartEvent, elements: ActiveElement[], chart) => {
-          if (elements.length > 0) {
-            const { datasetIndex, index } = elements[0];
-            const ds = chart.data.datasets?.[datasetIndex] as ChartDataset<'line' | 'bar', number[]>;
-            const value = ds.data[index];
-            alert(`${ds.label}: ${value}`);
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            backgroundColor: 'rgba(17,24,39,0.9)'
           }
         }
       }

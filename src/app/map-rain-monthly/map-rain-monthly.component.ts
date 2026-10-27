@@ -449,12 +449,12 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
 
       div.innerHTML = `
   <div class="legend-title">Relación al normal</div>
-    <i style="background:#a50f15; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
-    <i style="background:#d97401; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
-    <i style="background:#f5f10b; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
-    <i style="background:#88dafd; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
-    <i style="background:#2597cc; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
-    <i style="background:#254faa; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
+    <i style="background:#FF0000; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
+    <i style="background:#FFA500; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
+    <i style="background:#FFFF00; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
+    <i style="background:#87CEEB; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
+    <i style="background:#00BFFF; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
+    <i style="background:#00008B; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
 `;
       return div;
     };

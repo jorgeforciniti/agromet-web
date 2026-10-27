@@ -174,20 +174,20 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     maintainAspectRatio: false,
     scales: {
       x: {
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { display: false }
       },
       y: {
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { color: 'rgba(17,24,39,.10)' }
       }
     },
     plugins: {
       legend: {
-        labels: { color: '#111827', font: { weight: '700' } }
+        labels: { color: '#111827', font: { weight: 700 } }
       }
     }
-  };
+  } as const;
   readonly cumulativeChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -197,13 +197,13 @@ export class PhenologyWeatherDialogComponent implements OnInit {
         grid: { display: false }
       },
       y: {
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { color: 'rgba(17,24,39,.10)' }
       }
     },
     plugins: {
       legend: {
-        labels: { color: '#111827', font: { weight: '700' } }
+        labels: { color: '#111827', font: { weight: 700 } }
       }
     },
     elements: {
@@ -211,7 +211,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
         tension: 0.25
       }
     }
-  };
+  } as const;
 
   form!: FormGroup;
   stations: WeatherStation[] = [];

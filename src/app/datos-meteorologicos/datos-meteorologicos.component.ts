@@ -76,9 +76,10 @@ export class DatosMeteorologicosComponent implements OnInit {
     const { ComparisonByYearComponent } = await import('../comparison-by-year/comparison-by-year.component');
 
     this.dialog.open(ComparisonByYearComponent, {
-      width: '95vw',
-      height: '95vh',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog'
     });
   }
@@ -87,9 +88,10 @@ export class DatosMeteorologicosComponent implements OnInit {
     const { ComparisonByLocationComponent } = await import('../comparison-by-location/comparison-by-location.component');
 
     this.dialog.open(ComparisonByLocationComponent, {
-      width: '95vw',
-      height: '95vh',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog'
     });
   }
@@ -100,6 +102,8 @@ export class DatosMeteorologicosComponent implements OnInit {
     this.dialog.open(SoyYieldDialogComponent, {
       width: 'min(980px, 94vw)',
       maxWidth: '94vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false,
       restoreFocus: false

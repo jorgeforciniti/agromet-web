@@ -31,10 +31,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   async openAuthDialog(): Promise<void> {
     const { AuthComponent } = await import('../../auth/auth.component');
 
+    // Ancho fluido y alto automático: con 400×550 fijos el formulario se cortaba en teléfonos.
+    // Sin disableClose, para que Escape y el fondo cierren el diálogo como en el resto del sitio.
     this.dialog.open(AuthComponent, {
-      width: '400px',
-      height: '550px',
-      disableClose: true
+      width: 'min(460px, 94vw)',
+      maxWidth: '94vw',
+      maxHeight: 'calc(100dvh - 32px)',
+      panelClass: 'auth-dialog'
     });
   }
 

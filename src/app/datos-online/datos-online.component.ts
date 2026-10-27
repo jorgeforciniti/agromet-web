@@ -363,6 +363,18 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /** Tipo de magnitud para aplicar en el gráfico los mismos rangos válidos que usa la tabla (fmt). */
+  private variableKind(variable: string): 'temp' | 'hum' | 'wind' | 'rain' | undefined {
+    switch (variable) {
+      case 'temp_af': return 'temp';
+      case 'hum_af': return 'hum';
+      case 'lluvia': return 'rain';
+      case 'viento_medio':
+      case 'viento_max': return 'wind';
+      default: return undefined;   // presión: solo se descarta el 10000
+    }
+  }
+
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -376,6 +388,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
     if (this.chart) this.chart.destroy();
 
     const chartType: ChartType = variable === 'lluvia' ? 'bar' : 'line';
+    const kind = this.variableKind(variable);
 
     // gradiente y colores
     const root = getComputedStyle(document.documentElement);
@@ -399,7 +412,8 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit {
           label: this.getLabel(variable),
           data: datos.map((d) => {
             const value = d[variable as WeatherVariableKey];
-            return value == null ? null : Number(value);
+            const shown = this.fmt(value, kind);
+            return shown === '' || shown === '---' ? null : Number(value);
           }),
           borderColor: colorLinea,
           backgroundColor: chartType === 'bar' ? 'rgba(79,121,50,.25)' : gradient,

@@ -117,7 +117,7 @@
           <p>Comparación directa entre oferta hídrica y demanda estimada del cultivo.</p>
         </div>
         <div class="chart-container">
-          <canvas baseChart [data]="stageChartData" [options]="stageChartOptions" chartType="bar"></canvas>
+          <canvas baseChart [data]="stageChartData" [options]="stageChartOptions" type="bar"></canvas>
         </div>
       </section>
 
@@ -127,7 +127,7 @@
           <p>Seguimiento de la trayectoria diaria para detectar quiebres dentro del ciclo.</p>
         </div>
         <div class="chart-container">
-          <canvas baseChart [data]="cumulativeChartData" [options]="cumulativeChartOptions" chartType="line"></canvas>
+          <canvas baseChart [data]="cumulativeChartData" [options]="cumulativeChartOptions" type="line"></canvas>
         </div>
       </section>
     </div>

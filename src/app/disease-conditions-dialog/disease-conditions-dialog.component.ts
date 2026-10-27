@@ -606,7 +606,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       tone,
       values: {
         wetHours: this.f1(wetHours),
-        wetTemp: this.f1(wetTemp),
+        wetTemp: wetHours > 0 ? this.f1(wetTemp) : '—',
         humHighHours: this.f1(humHighHours),
         rain: this.f1(rain)
       }
@@ -661,7 +661,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       tone,
       values: {
         wetHours: this.f1(wetHours),
-        wetTemp: this.f1(wetTemp),
+        wetTemp: wetHours > 0 ? this.f1(wetTemp) : '—',
         windMax: this.f1(windMax),
         rain: this.f1(rain)
       }

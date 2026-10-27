@@ -21,7 +21,7 @@
       {{ error }}
 
       <div class="error-actions" *ngIf="!usuarioLogueado">
-        <a routerLink="/auth" class="btn">Iniciar sesion</a>
+        <a routerLink="/auth" [queryParams]="{ returnUrl: '/mis-solicitudes' }" class="btn">Iniciar sesión</a>
       </div>
     </div>
 

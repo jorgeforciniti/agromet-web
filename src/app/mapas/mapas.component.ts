@@ -23,8 +23,10 @@ export class MapasComponent {
     const { MapRainMonthlyComponent } = await import('../map-rain-monthly/map-rain-monthly.component');
 
     this.dialog.open(MapRainMonthlyComponent, {
-      height: '95vh',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false,
       restoreFocus: false
@@ -35,8 +37,10 @@ export class MapasComponent {
     const { MapTemperatureComponent } = await import('../map-temperature/map-temperature.component');
 
     this.dialog.open(MapTemperatureComponent, {
-      height: '95vh',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false,
       restoreFocus: false
@@ -47,8 +51,10 @@ export class MapasComponent {
     const { MapFrostComponent } = await import('../map-frost/map-frost.component');
 
     this.dialog.open(MapFrostComponent, {
-      width: '95vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false,
       restoreFocus: false,
@@ -59,8 +65,10 @@ export class MapasComponent {
     const { MapRainComponent } = await import('../map-rain/map-rain.component');
 
     this.dialog.open(MapRainComponent, {
-      width: '95vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false,
       restoreFocus: false,

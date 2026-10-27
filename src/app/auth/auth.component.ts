@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -21,7 +22,9 @@ export class AuthComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private dialogRef: MatDialogRef<AuthComponent>
+    private router: Router,
+    private route: ActivatedRoute,
+    @Optional() private dialogRef: MatDialogRef<AuthComponent> | null
   ) {
     this.authForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -56,7 +59,7 @@ export class AuthComponent {
       } else {
         await this.authService.register(email, password);
       }
-      this.dialogRef.close();
+      this.finish();
     } catch (error: unknown) {
       this.errorMessage = this.getErrorMessage(error);
       console.error('Error en autenticación', error);
@@ -66,7 +69,7 @@ export class AuthComponent {
   async loginWithGoogle(): Promise<void> {
     try {
       await this.authService.loginWithGoogle();
-      this.dialogRef.close();
+      this.finish();
     } catch (error: unknown) {
       this.errorMessage = this.getErrorMessage(error);
       console.error('Error en login con Google', error);
@@ -74,7 +77,17 @@ export class AuthComponent {
   }
 
   close(): void {
-    this.dialogRef.close();
+    this.finish();
+  }
+
+  /** Como diálogo, lo cierra; como página (/auth), vuelve a returnUrl o al inicio. */
+  private finish(): void {
+    if (this.dialogRef) {
+      this.dialogRef.close();
+      return;
+    }
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    this.router.navigateByUrl(returnUrl?.startsWith('/') ? returnUrl : '/');
   }
 
   async forgotPassword(): Promise<void> {
