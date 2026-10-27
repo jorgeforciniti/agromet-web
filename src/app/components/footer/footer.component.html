@@ -1,48 +1,65 @@
 <footer class="footer">
-  <div class="footer-column footer-logo-texto">
-
-    <img src="assets/images/logos/somos.png" alt="Logo EEAOC" loading="lazy">
-
-    <div>
-      <p>William Cross 3150<br>
-        Las Talitas - Tucumán - Argentina<br>
-        Tel: (54 381) 452 1000 - FAX: (54 381) 452 1008</p>
+  <div class="footer-main">
+    <!-- Institución -->
+    <div class="footer-col footer-marca">
+      <img class="logo-eeaoc" src="assets/images/logos/logo_eeaoc_blanco.png"
+        alt="EEAOC - Estación Experimental Agroindustrial Obispo Colombres" loading="lazy">
+      <p class="footer-texto">
+        William Cross 3150 · Las Talitas<br>
+        Tucumán, Argentina<br>
+        Tel: (54 381) 452 1000 · Fax: (54 381) 452 1008
+      </p>
     </div>
-  </div>
-  <div class="footer-column footer-logo-texto">
-    <strong><br>Sección<br>Agrometeorología</strong>
-    <p>Tel: (54 381) 452 1060<br>
-      Tel: (54 381) 452 1012<br><br>
-      mail: jorgeforciniti&#64;eeaoc.org.ar</p>
-  </div>
 
-  <div class="footer-column footer-qr">
-    <img src="assets/images/qr/qrandroid.png" alt="QR Android" loading="lazy">
-  </div>
-  <div class="footer-column footer-qr">
-    <img src="assets/images/qr/qrios.png" alt="QR iOS" loading="lazy">
-  </div>
+    <!-- Contacto de la sección -->
+    <div class="footer-col">
+      <span class="footer-eyebrow">Contacto</span>
+      <strong class="footer-titulo">Sección Agrometeorología</strong>
+      <ul class="footer-lista">
+        <li><mat-icon aria-hidden="true">call</mat-icon>(54 381) 452 1060 · 452 1012</li>
+        <li><mat-icon aria-hidden="true">mail</mat-icon><a href="mailto:jorgeforciniti&#64;eeaoc.org.ar">jorgeforciniti&#64;eeaoc.org.ar</a></li>
+      </ul>
+    </div>
 
-  <div class="footer-column footer-instituciones">
-    <!-- Redes sociales -->
-    <div class="footer-contacto">
-      <div class="iconos">
-        <a class="social-link" href="https://www.facebook.com/EEAOCOFICIAL/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><fa-icon class="social-icon" [icon]="['fab', 'facebook']"
-            size="2x"></fa-icon></a>
-        <a class="social-link" href="https://twitter.com/eeaocoficial" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><fa-icon class="social-icon" [icon]="['fab', 'twitter']"
-            size="2x"></fa-icon></a>
-        <a class="social-link" href="https://www.youtube.com/channel/UC5cr5skGsAzBIoNO_c8KhBg" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><fa-icon class="social-icon"
-            [icon]="['fab', 'youtube']" size="2x"></fa-icon></a>
-        <a class="social-link" href="https://www.instagram.com/eeaocoficial/?hl=es-la" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><fa-icon class="social-icon"
-            [icon]="['fab', 'instagram']" size="2x"></fa-icon></a>
+    <!-- SOMOS, junto a contacto -->
+    <div class="footer-col footer-somos">
+      <span class="logo-chip"><img src="assets/images/logos/somos.png" alt="SOMOS Innovación Tecnológica" loading="lazy"></span>
+    </div>
+
+    <!-- App -->
+    <div class="footer-col">
+      <span class="footer-eyebrow">Descargá la app</span>
+      <div class="footer-qr">
+        <figure>
+          <img src="assets/images/qr/qrandroid.png" alt="Código QR para descargar la app en Google Play" loading="lazy">
+        </figure>
+        <figure>
+          <img src="assets/images/qr/qrios.png" alt="Código QR para descargar la app en App Store" loading="lazy">
+        </figure>
       </div>
     </div>
 
-    <!-- Logos institucionales alineados horizontal -->
-    <div class="logos-institucionales">
-<!--      <a href="https://itanoa.conicet.gov.ar/" target="_blank" rel="noopener noreferrer" ><img src="assets/images/logos/itanoatransparente.png" alt="Conicet"></a>-->
-      <img src="assets/images/logos/tucuman.png" alt="Tucumán" loading="lazy">
-      <img src="assets/images/logos/paradigmax.png" alt="Ambiente" loading="lazy">
+    <!-- Redes e instituciones -->
+    <div class="footer-col">
+      <span class="footer-eyebrow">Seguinos</span>
+      <div class="iconos">
+        <a class="social-link" href="https://www.facebook.com/EEAOCOFICIAL/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><fa-icon [icon]="['fab', 'facebook']"></fa-icon></a>
+        <a class="social-link" href="https://twitter.com/eeaocoficial" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><fa-icon [icon]="['fab', 'twitter']"></fa-icon></a>
+        <a class="social-link" href="https://www.youtube.com/channel/UC5cr5skGsAzBIoNO_c8KhBg" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><fa-icon [icon]="['fab', 'youtube']"></fa-icon></a>
+        <a class="social-link" href="https://www.instagram.com/eeaocoficial/?hl=es-la" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><fa-icon [icon]="['fab', 'instagram']"></fa-icon></a>
+      </div>
+
+      <!-- Logos institucionales alineados horizontal -->
+      <div class="logos-institucionales">
+<!--        <a href="https://itanoa.conicet.gov.ar/" target="_blank" rel="noopener noreferrer" ><img src="assets/images/logos/itanoatransparente.png" alt="Conicet"></a>-->
+        <img src="assets/images/logos/tucuman.png" alt="Tucumán" loading="lazy">
+        <img src="assets/images/logos/paradigmax.png" alt="Ambiente" loading="lazy">
+      </div>
     </div>
+  </div>
+
+  <div class="footer-base">
+    <span>© {{ anio }} Estación Experimental Agroindustrial Obispo Colombres</span>
+    <span>Tucumán · Argentina</span>
   </div>
 </footer>

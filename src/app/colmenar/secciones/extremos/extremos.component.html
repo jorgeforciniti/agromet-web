@@ -1,0 +1,146 @@
+<app-estado-carga *ngIf="extremos.estado !== 'ok'" [estado]="extremos.estado" [mensaje]="extremos.mensaje"
+  fuente="extremos_termicos.php" (reintentar)="reintentar.emit()"
+  mensajeVacio="No hay registros de temperatura para el año seleccionado."></app-estado-carga>
+
+<ng-container *ngIf="extremos.estado === 'ok' && extremos.datos as e">
+  <!-- Resumen anual -->
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Resumen anual de extremos térmicos {{ anio }} <app-ayuda-termino termino="extremo"></app-ayuda-termino></h2>
+        <p class="panel__sub">Criterio: {{ e.criterio | lowercase }}. Clasificación percentilar respecto de {{ e.periodo_normales }},
+          sólo cuando el año está completo para la variable.</p>
+      </div>
+      <span class="tag" [class.tag--ok]="e.resumen_anual.anio_completo" [class.tag--parcial]="!e.resumen_anual.anio_completo">
+        {{ e.resumen_anual.anio_completo ? 'Año completo' : 'Año incompleto: ' + e.resumen_anual.dias_registrados + ' de ' + e.resumen_anual.dias_anio + ' días' }}
+      </span>
+    </div>
+
+    <div class="kpis">
+      <article class="kpi tarjeta" *ngFor="let t of tarjetas" [class.tarjeta--activa]="t.ind.clave === indicador.clave">
+        <span class="kpi__label">{{ t.ind.etiqueta }}</span>
+        <span class="kpi__valor">{{ fmt(t.observado, 0) }} <small>días{{ t.completo ? ' en el año' : ' registrados' }}</small></span>
+
+        <ng-container *ngIf="t.completo; else incompleto">
+          <span class="kpi__det">
+            <app-clasificacion-badge [clasificacion]="t.clasificacion" [escala]="'termica'"
+              sinDato="Sin clasificación"></app-clasificacion-badge>
+          </span>
+          <div class="regla" *ngIf="t.percentiles as p" role="img"
+            [attr.aria-label]="'Posición de ' + t.observado + ' días respecto de los percentiles 1991–2020: P10 ' + p.p10 + ', P20 ' + p.p20 + ', P40 ' + p.p40 + ', P60 ' + p.p60 + ', P80 ' + p.p80 + ', P90 ' + p.p90">
+            <div class="regla__barra">
+              <span *ngFor="let c of CATEGORIAS" class="regla__tramo" [style.background]="colorTramo(c.nivel)"></span>
+              <span *ngIf="t.posicion !== null" class="regla__marca" [style.left.%]="t.posicion"></span>
+            </div>
+            <div class="regla__cortes" aria-hidden="true">
+              <span>{{ fmt(p.p10, 0) }}</span><span>{{ fmt(p.p20, 0) }}</span><span>{{ fmt(p.p40, 0) }}</span>
+              <span>{{ fmt(p.p60, 0) }}</span><span>{{ fmt(p.p80, 0) }}</span><span>{{ fmt(p.p90, 0) }}</span>
+            </div>
+            <span class="regla__leyenda" aria-hidden="true">Cortes P10 · P20 · P40 · P60 · P80 · P90 (días, 1991–2020)</span>
+          </div>
+          <span class="kpi__det" *ngIf="t.anomaliaCompletos !== null">
+            Normal anual: {{ fmt(t.normalCompletos) }} días · Anomalía:
+            <strong [class.pos]="t.anomaliaCompletos > 0" [class.neg]="t.anomaliaCompletos < 0">{{ fmtSigno(t.anomaliaCompletos) }} días</strong>
+          </span>
+        </ng-container>
+
+        <ng-template #incompleto>
+          <span class="kpi__det"><span class="tag tag--parcial">Clasificación anual no disponible: año incompleto</span></span>
+          <span class="kpi__det" *ngIf="t.mesesCompletos.length; else sinCompletos">
+            Meses completos ({{ listaMeses(t.mesesCompletos) }}): {{ fmt(t.obsCompletos, 0) }} días vs. normal
+            {{ fmt(t.normalCompletos) }} →
+            <strong [class.pos]="(t.anomaliaCompletos ?? 0) > 0" [class.neg]="(t.anomaliaCompletos ?? 0) < 0">{{ fmtSigno(t.anomaliaCompletos) }} días</strong>
+          </span>
+          <ng-template #sinCompletos><span class="kpi__det">Sin meses completos para comparar.</span></ng-template>
+        </ng-template>
+      </article>
+    </div>
+    <p class="nota" *ngIf="e.comparacion_meses_completos?.nota">{{ e.comparacion_meses_completos.criterio }}. {{ e.comparacion_meses_completos.nota }}.
+      Una frecuencia «extremadamente superior» indica que superó el P90 de 1991–2020, no un récord absoluto.</p>
+  </div>
+
+  <!-- Evolución mensual -->
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Evolución mensual: {{ indicador.etiqueta }}</h2>
+        <p class="panel__sub">Frecuencia observada, normal mensual 1991–2020 y anomalía en días. Barras rayadas: conteo parcial de
+          un mes incompleto (sin anomalía).</p>
+      </div>
+      <div class="chips" role="group" aria-label="Indicador">
+        <button *ngFor="let ind of INDICADORES" type="button" class="chip" [class.chip--activo]="ind.clave === indicador.clave"
+          [attr.aria-pressed]="ind.clave === indicador.clave" (click)="seleccionar(ind)">{{ ind.corta }}</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="grafico" role="img" [attr.aria-label]="indicador.etiqueta + ' por mes en ' + anio + ' y normal. Valores exactos en la tabla.'">
+        <canvas baseChart [type]="'bar'" [data]="$any(datosFrecuencia)" [options]="opcionesFrecuencia"></canvas>
+      </div>
+      <div>
+        <h3 class="panel__titulo panel__titulo--sm">Anomalía mensual (días) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
+        <p class="panel__sub">Rojo: más días que lo normal · Azul: menos días. Sólo meses completos.</p>
+        <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Anomalía mensual de ' + indicador.etiqueta">
+          <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de frecuencias -->
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Frecuencias mensuales</h2>
+        <p class="panel__sub">Observado / normal 1991–2020 / anomalía, en días. El indicador seleccionado se resalta.</p>
+      </div>
+    </div>
+    <div class="tabla-wrap">
+      <table class="tabla tabla--extremos">
+        <thead>
+          <tr>
+            <th scope="col" rowspan="2">Mes</th>
+            <th scope="col" rowspan="2" class="num">Días válidos<br>max / min</th>
+            <th scope="colgroup" colspan="3" *ngFor="let ind of INDICADORES" class="grupo"
+              [class.col--activa]="ind.clave === indicador.clave">{{ ind.corta }}</th>
+          </tr>
+          <tr>
+            <ng-container *ngFor="let ind of INDICADORES">
+              <th scope="col" class="num" [class.col--activa]="ind.clave === indicador.clave">Obs.</th>
+              <th scope="col" class="num" [class.col--activa]="ind.clave === indicador.clave">Normal</th>
+              <th scope="col" class="num" [class.col--activa]="ind.clave === indicador.clave">Anom.</th>
+            </ng-container>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let m of meses; let i = index">
+            <tr *ngIf="m" [class.fila--parcial]="!m.completa_max || !m.completa_min">
+              <th scope="row">{{ MESES[i] }}</th>
+              <td class="num">{{ m.validos_max }} / {{ m.validos_min }} <span class="sub">de {{ m.dias_mes }}</span></td>
+              <ng-container *ngFor="let ind of INDICADORES">
+                <td class="num" [class.col--activa]="ind.clave === indicador.clave">
+                  {{ fmt(m[ind.clave], 0) }}<span *ngIf="!completoMes(m, ind)" class="parcial-mark" title="Mes incompleto">*</span>
+                </td>
+                <td class="num" [class.col--activa]="ind.clave === indicador.clave">{{ fmt(m.normales_1991_2020[ind.clave]) }}</td>
+                <td class="num" [class.col--activa]="ind.clave === indicador.clave"
+                  [class.pos]="(m.anomalias_dias[ind.clave] ?? 0) > 0" [class.neg]="(m.anomalias_dias[ind.clave] ?? 0) < 0">
+                  {{ fmtSigno(m.anomalias_dias[ind.clave]) }}</td>
+              </ng-container>
+            </tr>
+          </ng-container>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" colspan="2">Año ({{ e.resumen_anual.dias_registrados }} días registrados)</th>
+            <ng-container *ngFor="let ind of INDICADORES">
+              <td class="num" [class.col--activa]="ind.clave === indicador.clave">{{ fmt(e.resumen_anual[ind.clave], 0) }}</td>
+              <td colspan="2" class="num sub" [class.col--activa]="ind.clave === indicador.clave">
+                {{ (ind.variable === 'max' ? e.resumen_anual.completa_max : e.resumen_anual.completa_min) ? 'completo' : 'incompleto' }}</td>
+            </ng-container>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="nota">* Mes incompleto para la variable: conteo de los días con registro, sin anomalía.</p>
+  </div>
+</ng-container>

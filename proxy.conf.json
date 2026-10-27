@@ -4,5 +4,11 @@
     "secure": true,
     "changeOrigin": true,
     "logLevel": "info"
+  },
+  "/api/colmenar": {
+    "target": "https://agromet.eeaoc.gob.ar",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
   }
 }

@@ -4,9 +4,19 @@
 @import './styles/tokens.scss';
 
 
+/* Sin esto, cualquier elemento con padding + width/max-width termina más ancho que su
+   contenedor (content-box es el default del navegador), lo que causa scroll horizontal
+   persistente en cualquier pantalla que combine ambos — patrón muy común en este sitio. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   height: 100%;
+  overflow-x: hidden;
 }
 
 /* =========================

@@ -1,0 +1,154 @@
+<app-estado-carga *ngIf="lluvias.estado !== 'ok'" [estado]="lluvias.estado" [mensaje]="lluvias.mensaje"
+  fuente="clasificacion_lluvias.php" (reintentar)="reintentar.emit()"
+  mensajeVacio="No hay registros de precipitación para el año seleccionado."></app-estado-carga>
+
+<ng-container *ngIf="lluvias.estado === 'ok'">
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Precipitación mensual {{ anio }} <app-ayuda-termino termino="percentil"></app-ayuda-termino></h2>
+        <p class="panel__sub">Barras coloreadas según la clasificación percentilar 1991–2020; barras rayadas: acumulado parcial de un
+          mes incompleto (no se clasifica). Línea punteada: normal mensual.</p>
+      </div>
+      <div class="totales">
+        <span class="tag" [class.tag--ok]="mesesCompletos === 12" [class.tag--parcial]="mesesCompletos < 12">
+          {{ mesesCompletos === 12 ? 'Total anual' : 'Acumulado de ' + mesesCompletos + ' meses completos' }}:
+          <strong>&nbsp;{{ fmt(totalCompletos) }} mm</strong>
+        </span>
+        <span class="tag" *ngIf="normalCompletos !== null && mesesCompletos">
+          Normal mismo período: {{ fmt(normalCompletos) }} mm ({{ fmtSigno(totalCompletos - normalCompletos) }} mm)
+        </span>
+      </div>
+    </div>
+
+    <div class="grafico" role="img" [attr.aria-label]="'Precipitación mensual ' + anio + ' y normal 1991–2020. Valores exactos en la tabla.'">
+      <canvas baseChart [type]="'bar'" [data]="$any(datos)" [options]="opciones"></canvas>
+    </div>
+
+    <ol class="franja" aria-label="Clasificación percentilar de cada mes">
+      <li *ngFor="let f of filas" class="franja__mes">
+        <span class="franja__nombre">{{ MESES_CORTOS[f.mes - 1] }}</span>
+        <app-clasificacion-badge [clasificacion]="f.d?.lluvia_completa ? f.d?.clasificacion : null" [compacta]="true"
+          [sinDato]="etiquetaFranja(f.d)"></app-clasificacion-badge>
+      </li>
+    </ol>
+
+    <div class="leyenda" aria-label="Leyenda de la clasificación pluviométrica">
+      <span *ngFor="let c of CATEGORIAS" class="leyenda__item">
+        <span class="leyenda__muestra" [style.background]="coloresLeyenda(c.nivel).fondo" aria-hidden="true"></span>
+        <span aria-hidden="true">{{ c.simbolo }}</span> {{ c.nombre }} <small>({{ c.rango }})</small>
+      </span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Clasificación percentilar y acumulados</h2>
+        <p class="panel__sub">Precipitación en mm. Los percentiles corresponden al mismo mes en 1991–2020. El acumulado se calcula
+          mientras todos los meses previos estén completos.</p>
+      </div>
+    </div>
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col" class="num">Lluvia</th>
+            <th scope="col">Completitud</th>
+            <th scope="col" class="num">Normal</th>
+            <th scope="col" class="num">Diferencia</th>
+            <th scope="col" class="num">Acumulado</th>
+            <th scope="col" class="num">Normal acum.</th>
+            <th scope="col">Clasificación</th>
+            <th scope="col" class="num">P10</th>
+            <th scope="col" class="num">P20</th>
+            <th scope="col" class="num">P40</th>
+            <th scope="col" class="num">P60</th>
+            <th scope="col" class="num">P80</th>
+            <th scope="col" class="num">P90</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas" [class.fila--parcial]="!f.d?.lluvia_completa">
+            <th scope="row">{{ MESES[f.mes - 1] }}</th>
+            <td class="num">
+              <ng-container *ngIf="f.d?.lluvia_completa; else lp">{{ fmt(f.d?.lluvia_mm) }}</ng-container>
+              <ng-template #lp><span *ngIf="parcial(f.d) !== null; else sinValor"
+                  [attr.title]="'Acumulado parcial de ' + f.d?.dias_disponibles_pp + ' días con precipitación informada'">({{ fmt(parcial(f.d)) }})</span></ng-template>
+              <ng-template #sinValor>—</ng-template>
+            </td>
+            <td><app-completitud-lluvia [mes]="f.d"></app-completitud-lluvia></td>
+            <td class="num">{{ fmt(f.normal) }}</td>
+            <td class="num" [class.dif-pos]="(f.diferencia ?? 0) > 0" [class.dif-neg]="(f.diferencia ?? 0) < 0">{{ fmtSigno(f.diferencia) }}</td>
+            <td class="num">{{ fmt(f.acumulado) }}</td>
+            <td class="num">{{ fmt(f.normalAcumulada) }}</td>
+            <td>
+              <app-clasificacion-badge [clasificacion]="f.d?.lluvia_completa ? f.d?.clasificacion : null" [compacta]="true"
+                [sinDato]="!f.d ? '—' : 'No se clasifica'"></app-clasificacion-badge>
+            </td>
+            <td class="num">{{ fmt(f.d?.percentiles?.p10) }}</td>
+            <td class="num">{{ fmt(f.d?.percentiles?.p20) }}</td>
+            <td class="num">{{ fmt(f.d?.percentiles?.p40) }}</td>
+            <td class="num">{{ fmt(f.d?.percentiles?.p60) }}</td>
+            <td class="num">{{ fmt(f.d?.percentiles?.p80) }}</td>
+            <td class="num">{{ fmt(f.d?.percentiles?.p90) }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">{{ mesesCompletos === 12 ? 'Total anual' : 'Meses completos (' + mesesCompletos + ')' }}</th>
+            <td class="num">{{ fmt(totalCompletos) }}</td>
+            <td>{{ mesesCompletos === 12 ? 'Año completo' : 'Año incompleto' }}</td>
+            <td class="num">{{ fmt(normalCompletos) }}</td>
+            <td class="num" [class.dif-pos]="normalCompletos !== null && totalCompletos > normalCompletos"
+              [class.dif-neg]="normalCompletos !== null && totalCompletos < normalCompletos">{{ normalCompletos !== null ? fmtSigno(totalCompletos - normalCompletos) : '—' }}</td>
+            <td colspan="9"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="nota">Entre paréntesis: acumulado parcial de los días con precipitación informada en un mes incompleto o a
+      verificar. No se suma al total ni se clasifica. Los días pendientes de verificación no se consideran secos.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Récords históricos de precipitación mensual <app-ayuda-termino termino="record"></app-ayuda-termino></h2>
+        <p class="panel__sub">Comparación con el máximo del mismo mes en los años anteriores a {{ anio }}. Es independiente de la
+          clasificación percentilar.</p>
+      </div>
+      <span class="tag" [class.tag--record]="nuevosRecords > 0">
+        {{ nuevosRecords === 0 ? 'Sin nuevos récords mensuales' : nuevosRecords + (nuevosRecords === 1 ? ' nuevo récord mensual' : ' nuevos récords mensuales') }}
+      </span>
+    </div>
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col" class="num">Lluvia {{ anio }}</th>
+            <th scope="col" class="num">Máximo histórico previo</th>
+            <th scope="col" class="num">Año del máximo previo</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas" [class.fila--parcial]="!f.d?.lluvia_completa">
+            <th scope="row">{{ MESES[f.mes - 1] }}</th>
+            <td class="num">{{ f.d?.lluvia_completa ? fmt(f.d?.lluvia_mm) : '—' }}</td>
+            <td class="num">{{ fmt(f.d?.maximo_historico_anterior_mm) }}</td>
+            <td class="num">{{ f.d?.anio_record_anterior ?? '—' }}</td>
+            <td>
+              <span class="tag" [class.tag--record]="f.d?.estado_record === 'NUEVO_RECORD'"
+                [class.tag--parcial]="f.d && !f.d.lluvia_completa">
+                <span *ngIf="f.d?.estado_record === 'NUEVO_RECORD'" aria-hidden="true">★</span>{{ textoRecord(f.d) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ng-container>

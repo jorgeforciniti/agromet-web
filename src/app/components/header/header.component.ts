@@ -27,6 +27,7 @@ export class HeaderComponent implements OnInit {
     { label: 'Estado actual', path: '/estado-actual' },
     { label: 'Mapas', path: '/mapas' },
     { label: 'Datos y estadísticas', path: '/datos' },
+    { label: 'Estadísticas históricas', path: '/estadisticas-historicas' },
     { label: 'Informes', path: '/informes' },
     { label: 'Red de estaciones', path: '/estaciones' }
   ];

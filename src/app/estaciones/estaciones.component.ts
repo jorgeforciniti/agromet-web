@@ -19,6 +19,7 @@ const ZONA_LABELS: Record<string, string> = {
   '5': 'Provincias Adyacentes'
 };
 
+
 @Component({
   selector: 'app-estaciones',
   standalone: true,
@@ -79,6 +80,23 @@ export class EstacionesComponent implements OnInit, AfterViewInit {
 
   get totalCount(): number {
     return this.stations.length;
+  }
+
+  /** Solo un conteo, no compara valores entre estaciones con distinta antigüedad de dato. */
+  get reportingTodayCount(): number {
+    const todayStr = this.formatDateYMD(new Date());
+    return this.stations.filter(s => (s.fecha_I ?? '').startsWith(todayStr)).length;
+  }
+
+  get selectedStation(): StationRow | null {
+    return this.stations.find(s => s.Identificacion === this.selectedStationId) ?? null;
+  }
+
+  private formatDateYMD(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   zonaLabel(zona?: string): string {
@@ -155,7 +173,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit {
         <div class="station-popup">
           <h4>${station.nombre}</h4>
           ${location ? `<div class="popup-location">${location}${zona ? ' · ' + zona : ''}</div>` : ''}
-          <div class="popup-location popup-location--coords">Lat ${lat.toFixed(4)}° · Lon ${lon.toFixed(4)}° · ${altura}</div>
+          <div class="popup-location popup-location--coords">Lat: ${lat.toFixed(2)}° · Lon: ${lon.toFixed(2)}° · ${altura}</div>
           <div class="popup-grid">
             <div>Temperatura: ${station.temp !== null ? station.temp.toFixed(1) + ' °C' : 'S/D'}</div>
             <div>Humedad: ${station.hum !== null ? station.hum.toFixed(0) + ' %' : 'S/D'}</div>

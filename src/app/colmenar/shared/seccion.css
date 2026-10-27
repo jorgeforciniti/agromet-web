@@ -1,0 +1,357 @@
+/* Estilos comunes a las secciones de Estadísticas históricas (se incluyen en cada componente). */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .04);
+  min-width: 0;
+}
+
+.panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.panel__titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.panel__titulo--sm {
+  font-size: .9rem;
+}
+
+.panel__sub {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  gap: 14px;
+}
+
+/* ===== Chips de selección ===== */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.chip--activo {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--accent-600);
+}
+
+.chip:focus-visible,
+.btn:focus-visible,
+.campo select:focus-visible,
+.campo input:focus-visible,
+.tabla th button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 30%, white);
+  outline-offset: 2px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn--primario {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== Campos de formulario ===== */
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.campo select,
+.campo input {
+  min-height: 36px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text) !important;
+}
+
+/* ===== Gráficos ===== */
+.grafico {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.grafico--bajo {
+  height: 220px;
+}
+
+/* ===== Tablas ===== */
+.tabla-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla caption {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.tabla th,
+.tabla td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  font-size: .74rem;
+  font-weight: 800;
+  color: #374151;
+  z-index: 1;
+}
+
+.tabla th button {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tabla tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 4%, white);
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabla tfoot td {
+  font-weight: 800;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 0;
+}
+
+.tabla .num {
+  text-align: right;
+}
+
+.tabla tr.fila--parcial td {
+  color: #6b7280;
+}
+
+.pos { color: #b91c1c; }
+.neg { color: #1d4ed8; }
+.pos-pp { color: #1d4ed8; }
+.neg-pp { color: #c2410c; }
+
+/* Columnas de diferencias en las tablas: positivos en azul, negativos en rojo. */
+.dif-pos { color: #1d4ed8; }
+.dif-neg { color: #b91c1c; }
+
+/* ===== Etiquetas de estado ===== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: #374151;
+  white-space: nowrap;
+}
+
+.tag--parcial {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--warning) 60%, var(--border));
+  background: color-mix(in srgb, var(--warning) 10%, white);
+  color: #92400e;
+}
+
+.tag--ok {
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.tag--record {
+  border-color: #7c3aed55;
+  background: #f5f3ff;
+  color: #5b21b6;
+}
+
+/* ===== Tarjetas de indicadores ===== */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  min-width: 0;
+}
+
+.kpi__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .76rem;
+  font-weight: 800;
+  color: #374151;
+}
+
+.kpi__valor {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi__valor small {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.kpi__det {
+  font-size: .76rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.nota {
+  margin: 8px 0 0;
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 12px;
+  }
+
+  .grafico {
+    height: 260px;
+  }
+}
+
+.error-rango {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.tabla-wrap--evolucion {
+  max-height: 420px;
+  overflow-y: auto;
+}

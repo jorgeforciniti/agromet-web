@@ -1,0 +1,94 @@
+<app-estado-carga *ngIf="anomalias.estado !== 'ok' && mensuales.estado !== 'ok'"
+  [estado]="anomalias.estado === 'cargando' || mensuales.estado === 'cargando' ? 'cargando' : anomalias.estado"
+  [mensaje]="anomalias.mensaje" fuente="temperaturas" (reintentar)="reintentar.emit()"
+  mensajeVacio="No hay registros de temperatura para el año seleccionado."></app-estado-carga>
+
+<ng-container *ngIf="anomalias.estado === 'ok' || mensuales.estado === 'ok'">
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Evolución mensual {{ anio }} <app-ayuda-termino termino="normal"></app-ayuda-termino></h2>
+        <p class="panel__sub">{{ etiquetaVariable }} observada frente a la normal 1991–2020. Los meses incompletos se marcan
+          con un rombo hueco y no se comparan con la normal.</p>
+      </div>
+      <div class="chips" role="group" aria-label="Variable">
+        <button type="button" class="chip" [class.chip--activo]="variable === 'max'" [attr.aria-pressed]="variable === 'max'"
+          (click)="setVariable('max')">Máximas</button>
+        <button type="button" class="chip" [class.chip--activo]="variable === 'min'" [attr.aria-pressed]="variable === 'min'"
+          (click)="setVariable('min')">Mínimas</button>
+      </div>
+    </div>
+
+    <app-estado-carga *ngIf="anomalias.estado === 'error'" [estado]="'error'" fuente="anomalias.php"
+      [mensaje]="anomalias.mensaje" (reintentar)="reintentar.emit()"></app-estado-carga>
+
+    <div class="grid-2" *ngIf="anomalias.estado === 'ok'">
+      <div>
+        <div class="grafico" role="img" [attr.aria-label]="etiquetaVariable + ' mensual ' + anio + ' y normal 1991–2020. Valores exactos en la tabla.'">
+          <canvas baseChart [type]="'line'" [data]="datosSerie" [options]="opcionesSerie"></canvas>
+        </div>
+      </div>
+      <div>
+        <h3 class="panel__titulo panel__titulo--sm">Anomalía mensual (°C) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
+        <p class="panel__sub">Rojo: más cálido que lo normal · Azul: más frío. Sólo meses completos.</p>
+        <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Anomalías mensuales de ' + etiquetaVariable">
+          <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel__head">
+      <div>
+        <h2 class="panel__titulo">Valores mensuales y referencias</h2>
+        <p class="panel__sub">Medias validadas, normales 1991–2020, anomalías y extremos absolutos (°C). Los extremos absolutos de
+          meses incompletos corresponden sólo a los días con registro.</p>
+      </div>
+    </div>
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col" class="num">Tmax media</th>
+            <th scope="col" class="num">Normal</th>
+            <th scope="col" class="num">Anomalía</th>
+            <th scope="col" class="num">Tmin media</th>
+            <th scope="col" class="num">Normal</th>
+            <th scope="col" class="num">Anomalía</th>
+            <th scope="col" class="num">Tmax absoluta</th>
+            <th scope="col" class="num">Tmin absoluta</th>
+            <th scope="col" class="num">Días válidos (max/min)</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas" [class.fila--parcial]="!f.completo">
+            <th scope="row">{{ MESES[f.mes - 1] }}</th>
+            <td class="num">
+              <ng-container *ngIf="!f.parcialMax; else pMax">{{ fmt(f.a?.tmax_media_valida ?? f.m?.tmax_media_valida) }}</ng-container>
+              <ng-template #pMax>({{ fmt(f.m?.tmax_media_observada) }})</ng-template>
+            </td>
+            <td class="num">{{ fmt(f.a?.tmax_normal) }}</td>
+            <td class="num" [class.pos]="(f.a?.anomalia_tmax ?? 0) > 0" [class.neg]="(f.a?.anomalia_tmax ?? 0) < 0">{{ fmtSigno(f.a?.anomalia_tmax) }}</td>
+            <td class="num">
+              <ng-container *ngIf="!f.parcialMin; else pMin">{{ fmt(f.a?.tmin_media_valida ?? f.m?.tmin_media_valida) }}</ng-container>
+              <ng-template #pMin>({{ fmt(f.m?.tmin_media_observada) }})</ng-template>
+            </td>
+            <td class="num">{{ fmt(f.a?.tmin_normal) }}</td>
+            <td class="num" [class.pos]="(f.a?.anomalia_tmin ?? 0) > 0" [class.neg]="(f.a?.anomalia_tmin ?? 0) < 0">{{ fmtSigno(f.a?.anomalia_tmin) }}</td>
+            <td class="num">{{ fmt(f.m?.tmax_absoluta) }}</td>
+            <td class="num">{{ fmt(f.m?.tmin_absoluta) }}</td>
+            <td class="num">{{ f.m ? f.m.validos_max + '/' + f.m.validos_min + ' de ' + f.m.dias_mes : '—' }}</td>
+            <td>
+              <span class="tag tag--parcial" *ngIf="!f.completo; else ok">Incompleto</span>
+              <ng-template #ok><span class="tag tag--ok">Completo</span></ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota">Entre paréntesis: media parcial de un mes incompleto (sólo referencia, sin anomalía).</p>
+  </div>
+</ng-container>

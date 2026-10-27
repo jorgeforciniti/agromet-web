@@ -18,6 +18,10 @@ export const routes: Routes = [
     loadComponent: () => import('./datos-meteorologicos/datos-meteorologicos.component').then((m) => m.DatosMeteorologicosComponent)
   },
   {
+    path: 'estadisticas-historicas',
+    loadComponent: () => import('./colmenar/colmenar.component').then((m) => m.ColmenarComponent)
+  },
+  {
     path: 'informes',
     loadComponent: () => import('./informes/informes.component').then((m) => m.InformesComponent)
   },

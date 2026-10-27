@@ -60,6 +60,15 @@ export class HomeComponent {
       route: '/datos'
     },
     {
+      title: 'Estadísticas históricas',
+      eyebrow: 'DATOS CLIMÁTICOS',
+      subtitle: 'Evolución, extremos, episodios y comparaciones entre años para la estación El Colmenar.',
+      icon: 'history',
+      colorVar: 'var(--mod-sat)',
+      actionLabel: 'Explorar',
+      route: '/estadisticas-historicas'
+    },
+    {
       title: 'Informes agrometeorológicos',
       subtitle: 'Boletines, reportes y publicaciones técnicas.',
       icon: 'description',

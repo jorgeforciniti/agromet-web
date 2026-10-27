@@ -1,0 +1,15 @@
+.kpi {
+  border-top: 3px solid var(--border);
+}
+
+.kpi--lluvia {
+  border-top-color: #2a78d6;
+}
+
+.kpi--tmax {
+  border-top-color: #eb6834;
+}
+
+.kpi--tmin {
+  border-top-color: #0e7490;
+}

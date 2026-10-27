@@ -1,109 +1,324 @@
 .footer {
-  background-color: #d7dbcd;
-  padding: 20px 40px;
-  color: #1d1d1d;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
-  align-items: start;
+  --f-bg-1: #1f3418;
+  --f-bg-2: #2d4a22;
+  --f-text: #eef3ea;
+  --f-muted: #b8c7ae;
+  --f-accent: #c5e29f;
+  --f-line: rgba(255, 255, 255, .12);
+
+  position: relative;
+  color: var(--f-text);
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(197, 226, 159, .10), transparent 55%),
+    linear-gradient(160deg, var(--f-bg-1), var(--f-bg-2));
   font-family: var(--font-sans);
 }
 
-.footer-column {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* Línea de acento: retoma los colores de la barra del encabezado */
+.footer::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1f9a3a 0%, #8cc63f 22%, #e9c84b 44%, #f2a07b 62%, #a9c3d6 80%, #f5a800 100%);
 }
 
-.footer-logo-texto {
-  gap: 8px;
+.footer-main {
+  display: grid;
+  grid-template-columns: 1.3fr auto 1fr auto auto;
+  gap: 24px 48px;
+  align-items: start;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 26px 32px 18px;
 }
-.footer-logo-texto img {
-  height: auto;
-  width: 50vh; /* o un valor fijo si querés evitar que crezca demasiado */
-  max-width: 100%;
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.footer-eyebrow {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--f-accent);
+}
+
+.footer-titulo {
+  font-size: .98rem;
+  font-weight: 800;
+}
+
+.footer-texto {
+  margin: 0;
+  font-size: .8rem;
+  line-height: 1.55;
+  color: var(--f-muted);
+}
+
+.logo-eeaoc {
+  height: 46px;
+  width: auto;
+  align-self: flex-start;
   object-fit: contain;
 }
 
-.footer-logo-texto strong {
-  font-size: 1rem;
-  line-height: 1.4;
-}
-
-.footer-logo-texto p {
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
-.footer-contacto p {
+/* Contacto */
+.footer-lista {
+  list-style: none;
   margin: 0;
-  text-align: center;
-  font-weight: bold;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: .84rem;
+  color: var(--f-muted);
 }
-.iconos {
-  text-align: center;
+
+.footer-lista li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
-.footer-contacto a {
-  margin-right: 10px;
-  color: white;
+
+.footer-lista mat-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: var(--f-accent);
 }
-.footer-contacto a:hover {
-  color: #fcfaa5;
+
+.footer-lista a {
+  color: var(--f-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid transparent;
+  transition: border-color .15s ease;
+}
+
+.footer-lista a:hover {
+  border-bottom-color: var(--f-accent);
+}
+
+/* QR: tarjetas blancas para que sigan siendo escaneables */
+.footer-qr {
+  display: flex;
+  gap: 10px;
+}
+
+.footer-qr figure {
+  margin: 0;
+  padding: 6px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .22);
+  transition: transform .2s ease;
+}
+
+.footer-qr figure:hover {
+  transform: translateY(-2px);
 }
 
 .footer-qr img {
-  width: 100px;
-  margin: auto;
-}
-
-.footer-instituciones img {
-  height: 60px;
-  margin-bottom: 10px;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
+  width: 72px;
+  height: auto;
 }
 
+/* Redes sociales */
+.iconos {
+  display: flex;
+  gap: 8px;
+}
+
+.social-link {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .28);
+  color: var(--f-text);
+  font-size: 16px;
+  transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.social-link:hover,
+.social-link:focus-visible {
+  background: var(--f-accent);
+  border-color: var(--f-accent);
+  color: var(--f-bg-1);
+  transform: translateY(-2px);
+}
+
+.social-link:focus-visible,
+.footer-lista a:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 3px;
+}
+
+/* Logos institucionales */
 .logos-institucionales {
   display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 10px;
-  margin-top: auto;
-  margin-bottom: 0;
-  padding-top: 5rem;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
 }
 
-.logos-institucionales a img {
-  height: 60px;
+.logos-institucionales img {
+  height: 40px;
   width: auto;
   object-fit: contain;
-  transition: transform 0.3s ease;
 }
 
-.logos-institucionales a:hover img {
-  transform: scale(1.05);
+.footer-somos {
+  align-self: center;
+  align-items: center;
 }
 
-.social-icon {
-  color: #333; /* gris oscuro */
+.logo-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, .94);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .22);
 }
 
-.social-link:hover .social-icon {
-  color: #111; /* un poco más oscuro al hover, opcional */
+.logo-chip img {
+  height: 64px;
+  width: auto;
 }
 
-@media (max-width: 992px) {
-  .footer {
-    grid-template-columns: repeat(2, 1fr);
+/* Franja inferior */
+.footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 10px 32px 12px;
+  border-top: 1px solid var(--f-line);
+  font-size: .74rem;
+  color: var(--f-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-qr figure,
+  .social-link {
+    transition: none;
+  }
+}
+
+/* Tableta: institución · contacto · SOMOS en la primera fila; app y redes en la segunda */
+@media (max-width: 1100px) {
+  .footer-main {
+    grid-template-columns: 1fr auto auto;
+    gap: 22px 32px;
+  }
+
+  .logo-chip img {
+    height: 52px;
+  }
+}
+
+@media (max-width: 760px) {
+  .footer-main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footer-somos {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer-main {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 12px;
+    padding: 20px 16px 14px;
     text-align: center;
   }
-  .footer-instituciones {
-    flex-direction: row;
-    flex-wrap: wrap;
+
+  /* Institución, contacto y SOMOS a todo el ancho; app y redes lado a lado */
+  .footer-marca,
+  .footer-col:nth-child(2),
+  .footer-somos {
+    grid-column: 1 / -1;
+  }
+
+  .footer-col {
+    align-items: center;
+    gap: 6px;
+  }
+
+  .logo-eeaoc {
+    align-self: center;
+    height: 38px;
+  }
+
+  .footer-texto {
+    font-size: .76rem;
+    line-height: 1.45;
+  }
+
+  .footer-lista li {
     justify-content: center;
   }
-  .footer-instituciones img {
-    margin: 5px;
+
+  .footer-qr {
+    gap: 6px;
+  }
+
+  .footer-qr figure {
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .footer-qr img {
+    width: 58px;
+  }
+
+  .iconos {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .social-link {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .logos-institucionales {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .logos-institucionales img {
+    height: 30px;
+  }
+
+  .logo-chip {
+    padding: 6px 12px;
+  }
+
+  .logo-chip img {
+    height: 44px;
+  }
+
+  .footer-base {
+    justify-content: center;
+    text-align: center;
+    padding: 10px 16px 12px;
   }
 }

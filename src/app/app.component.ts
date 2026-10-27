@@ -42,19 +42,31 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    window.addEventListener('scroll', this.onScroll);
+    // Con `html, body { height: 100%; overflow-x: hidden }` el que se desplaza es <body>, no la ventana,
+    // y su evento scroll no burbujea: se escucha en fase de captura para recibir ambos casos.
+    window.addEventListener('scroll', this.onScroll, { capture: true, passive: true });
     this.observeHeaderHeight();
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('scroll', this.onScroll, { capture: true });
     this.headerResizeObserver?.disconnect();
   }
 
-  onWindowScroll(): void {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const isScrolled = scrollTop > 50;
-    document.querySelector('.header-container')?.classList.toggle('scrolled', isScrolled);
+  onWindowScroll(event?: Event): void {
+    // Ignora el desplazamiento de contenedores internos (tablas, paneles con overflow).
+    const target = event?.target;
+    if (target && target !== document && target !== document.body && target !== document.documentElement) {
+      return;
+    }
+    const scrollTop = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop);
+    const header = document.querySelector('.header-container');
+    if (!header) {
+      return;
+    }
+    // Histéresis: al achicarse el header cambia el alto de la página; umbrales distintos evitan que parpadee.
+    const isScrolled = header.classList.contains('scrolled') ? scrollTop > 10 : scrollTop > 60;
+    header.classList.toggle('scrolled', isScrolled);
   }
 
   /**
@@ -70,6 +82,10 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     const syncHeight = () => {
+      // Sólo con el header completo: si se midiera la versión achicada, el contenido saltaría hacia arriba.
+      if (header.classList.contains('scrolled')) {
+        return;
+      }
       document.documentElement.style.setProperty('--header-h', `${header.getBoundingClientRect().height}px`);
     };
 

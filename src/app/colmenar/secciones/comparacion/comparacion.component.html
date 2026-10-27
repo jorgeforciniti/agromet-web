@@ -1,0 +1,87 @@
+<div class="panel">
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__titulo">Comparación entre años</h2>
+      <p class="panel__sub">Sólo se grafican y comparan meses completos. Los meses incompletos se indican con su valor parcial
+        entre paréntesis en la tabla.</p>
+    </div>
+  </div>
+
+  <div class="controles">
+    <label class="campo">Año A
+      <input type="text" [value]="anio" readonly aria-readonly="true" title="Se cambia con el selector de año de la página">
+    </label>
+    <label class="campo">Año B
+      <select [value]="anioB" (change)="setAnioB($any($event.target).value)">
+        <option *ngFor="let a of anios" [value]="a" [selected]="a === anioB" [disabled]="a === anio">{{ a }}</option>
+      </select>
+    </label>
+    <label class="campo">Variable
+      <select [value]="variable.id" (change)="setVariable($any($event.target).value)">
+        <option *ngFor="let v of variables" [value]="v.id" [selected]="v.id === variable.id">{{ v.etiqueta }} ({{ v.unidad }})</option>
+      </select>
+    </label>
+  </div>
+</div>
+
+<div class="panel">
+  <app-estado-carga *ngIf="estadoB === 'cargando' || estadoB === 'error'" [estado]="estadoB" [mensaje]="mensajeB"
+    [fuente]="'la comparación ' + anio + '–' + anioB" (reintentar)="setAnioB(anioB)"></app-estado-carga>
+
+  <ng-container *ngIf="estadoB !== 'cargando' && estadoB !== 'error'">
+    <h3 class="panel__titulo panel__titulo--sm">{{ variable.etiqueta }}: {{ anio }} frente a {{ anioB }}</h3>
+    <p class="panel__sub">
+      <ng-container *ngIf="incompletos('a')">Meses incompletos {{ anio }}: {{ incompletos('a') }}. </ng-container>
+      <ng-container *ngIf="incompletos('b')">Meses incompletos {{ anioB }}: {{ incompletos('b') }}.</ng-container>
+    </p>
+    <div class="grafico" role="img"
+      [attr.aria-label]="variable.etiqueta + ' de ' + anio + ' y ' + anioB + ' con la normal 1991–2020. Valores exactos en la tabla.'">
+      <canvas baseChart [type]="variable.tipo === 'media' ? 'line' : 'bar'" [data]="$any(datos)" [options]="$any(opciones)"></canvas>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col" class="num">{{ anio }}</th>
+            <th scope="col" class="num">{{ anioB }}</th>
+            <th scope="col" class="num">Normal 1991–2020</th>
+            <th scope="col" class="num">Diferencia {{ anio }} − {{ anioB }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas">
+            <th scope="row">{{ MESES[f.mes - 1] }}</th>
+            <td class="num">{{ f.a.completo ? fmt(f.a.valor, variable.dec) : (f.a.parcial !== null ? '(' + fmt(f.a.parcial, variable.dec) + ')' : '—') }}</td>
+            <td class="num">{{ f.b.completo ? fmt(f.b.valor, variable.dec) : (f.b.parcial !== null ? '(' + fmt(f.b.parcial, variable.dec) + ')' : '—') }}</td>
+            <td class="num">{{ fmt(f.normal, variable.id === 'pp' || variable.tipo === 'media' ? 1 : 2) }}</td>
+            <td class="num" [class.dif-pos]="(f.diferencia ?? 0) > 0" [class.dif-neg]="(f.diferencia ?? 0) < 0">{{ fmtSigno(f.diferencia, variable.dec) }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <!-- Con ambos años completos la suma de meses comparables repite el total anual. -->
+          <tr *ngIf="anualA === null || anualB === null">
+            <th scope="row">{{ variable.tipo === 'suma' ? 'Suma' : 'Promedio' }} de {{ mesesComparables }} meses comparables</th>
+            <td class="num">{{ fmt(totalA, variable.dec) }}</td>
+            <td class="num">{{ fmt(totalB, variable.dec) }}</td>
+            <td class="num">{{ fmt(normalComparables, 1) }}</td>
+            <td class="num" [class.dif-pos]="totalA !== null && totalB !== null && totalA > totalB"
+              [class.dif-neg]="totalA !== null && totalB !== null && totalA < totalB">{{ totalA !== null && totalB !== null ? fmtSigno(totalA - totalB, variable.dec) : '—' }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{{ variable.tipo === 'suma' ? 'Total anual' : 'Promedio anual' }}</th>
+            <td class="num">{{ anualA !== null ? fmt(anualA, variable.dec) : 'Año incompleto' }}</td>
+            <td class="num">{{ anualB !== null ? fmt(anualB, variable.dec) : 'Año incompleto' }}</td>
+            <td class="num">{{ fmt(normalAnual, 1) }}</td>
+            <td class="num" [class.dif-pos]="anualA !== null && anualB !== null && anualA > anualB"
+              [class.dif-neg]="anualA !== null && anualB !== null && anualA < anualB">{{ anualA !== null && anualB !== null ? fmtSigno(anualA - anualB, variable.dec) : '—' }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="nota">Valor entre paréntesis: dato parcial de un mes incompleto; no se grafica ni se compara. Unidad: {{ variable.unidad }}.
+      La normal anual es la {{ variable.tipo === 'suma' ? 'suma' : 'media' }} de las 12 normales mensuales 1991–2020; el valor anual de
+      cada año sólo se muestra con los 12 meses completos.</p>
+  </ng-container>
+</div>

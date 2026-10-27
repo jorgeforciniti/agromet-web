@@ -1,0 +1,84 @@
+.tarjeta--activa {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* Regla de percentiles: 7 tramos iguales (<P10 … >P90) */
+.regla {
+  margin: 6px 0 2px;
+}
+
+.regla__barra {
+  position: relative;
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: visible;
+}
+
+.regla__tramo {
+  flex: 1;
+  border-right: 2px solid var(--surface);
+}
+
+.regla__tramo:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.regla__tramo:last-child {
+  border-radius: 0 999px 999px 0;
+  border-right: 0;
+}
+
+.regla__marca {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 18px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #111827;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.regla__cortes {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  padding: 0 calc(100% / 14);
+  margin-top: 3px;
+  font-size: .62rem;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tabla--extremos th.grupo {
+  text-align: center;
+  border-left: 1px solid var(--border);
+}
+
+.col--activa {
+  background: color-mix(in srgb, var(--accent) 7%, white);
+}
+
+thead .col--activa {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
+}
+
+.sub {
+  color: var(--muted);
+  font-size: .74rem;
+}
+
+.parcial-mark {
+  color: #b45309;
+  font-weight: 800;
+  margin-left: 1px;
+}
+
+.regla__leyenda {
+  display: block;
+  margin-top: 1px;
+  font-size: .62rem;
+  color: var(--muted);
+}

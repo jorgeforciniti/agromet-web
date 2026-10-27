@@ -7,8 +7,50 @@
     </p>
   </header>
 
-  <div class="estaciones-map-wrapper">
-    <div id="estaciones-map"></div>
+  <div class="estaciones-map-row">
+    <div class="estaciones-map-wrapper">
+      <div id="estaciones-map"></div>
+    </div>
+
+    <aside class="estaciones-summary">
+      <div class="estaciones-summary__eyebrow">RESUMEN</div>
+
+      <div class="estaciones-summary__item">
+        <span class="estaciones-summary__label">Reportando hoy</span>
+        <span class="estaciones-summary__value">{{ reportingTodayCount }} / {{ totalCount }}</span>
+      </div>
+
+      <ng-container *ngIf="selectedStation as s; else sinSeleccion">
+        <div class="estaciones-summary__station">
+          <strong>{{ s.nombre }}</strong>
+          <span>{{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container></span>
+        </div>
+
+        <div class="estaciones-summary__item">
+          <span class="estaciones-summary__label">Temperatura</span>
+          <span class="estaciones-summary__value">{{ s.temp !== null ? (s.temp.toFixed(1) + ' °C') : '—' }}</span>
+        </div>
+
+        <div class="estaciones-summary__item">
+          <span class="estaciones-summary__label">Humedad</span>
+          <span class="estaciones-summary__value">{{ s.hum !== null ? (s.hum.toFixed(0) + ' %') : '—' }}</span>
+        </div>
+
+        <div class="estaciones-summary__item">
+          <span class="estaciones-summary__label">Lluvia hoy</span>
+          <span class="estaciones-summary__value">{{ s.rain !== null ? (s.rain.toFixed(1) + ' mm') : '—' }}</span>
+        </div>
+
+        <div class="estaciones-summary__item">
+          <span class="estaciones-summary__label">Última medición</span>
+          <span class="estaciones-summary__value">{{ s.updated ? (s.updated | date:'dd/MM HH:mm') : '—' }}</span>
+        </div>
+      </ng-container>
+
+      <ng-template #sinSeleccion>
+        <p class="estaciones-summary__hint">Elegí una estación en el mapa o en la tabla para ver sus datos acá.</p>
+      </ng-template>
+    </aside>
   </div>
 
   <div class="estaciones-list" *ngIf="!loading; else cargando">

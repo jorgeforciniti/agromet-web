@@ -531,6 +531,10 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       scrollWheelZoom: false  // Desactivar zoom por rueda
     });
 
+    // Pane propio para las capas climáticas de OWM: así el filtro CSS de contraste/saturación
+    // de cada capa no afecta a las provincias ni a las estaciones (que comparten 'overlayPane').
+    this.map.createPane('owmPane');
+
     this.setBaseMap(this.selectedBaseMap);
     this.map.fitBounds(this.focusBounds);
 
@@ -1114,16 +1118,43 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Opacidad y filtro CSS (contraste/saturación) por capa climática de OpenWeatherMap,
+   * ajustados para que coincidan con el criterio visual afinado en la app móvil:
+   * - temperatura: se muestra tal cual la entrega OWM (escala regional propia).
+   * - nubosidad: en escala de grises para no competir visualmente con el mapa base.
+   * - vientos: contraste/saturación realzados para distinguir mejor las zonas de calma.
+   * - precipitación: contraste y saturación al máximo (la capa más débil de origen).
+   * Equivalencia usada: filter contrast()/saturate() = 1 + valor Mapbox raster-contrast/-saturation
+   * (0 = neutro/sin cambios en ambos sistemas).
+   */
+  private estiloParaCapa(layerKey: string): { opacity: number; filter: string } {
+    switch (layerKey) {
+      case 'temperatura':
+        return { opacity: 0.7, filter: 'none' };
+      case 'nubosidad':
+        return { opacity: 0.9, filter: 'saturate(0)' };
+      case 'vientos':
+        return { opacity: 1, filter: 'contrast(1.55) saturate(1.7)' };
+      case 'precipitacion':
+        return { opacity: 1, filter: 'contrast(2) saturate(2)' };
+      default:
+        return { opacity: 1, filter: 'none' };
+    }
+  }
+
   private updateTileLayer(url: string, attribution: string): void {
     if (this.baseLayer) {
       this.map?.removeLayer(this.baseLayer);
     }
 
+    const estilo = this.estiloParaCapa(this.selectedLayer);
+
     const tileOptions: L.TileLayerOptions = {
       attribution: attribution,
-      opacity: 1,
+      opacity: estilo.opacity,
       maxZoom: 18,
-      pane: 'overlayPane'
+      pane: 'owmPane'
     };
 
     if (this.selectedLayer === 'radar_lluvia') {
@@ -1138,12 +1169,13 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     });
 
     this.baseLayer.addTo(this.map!);
-    this.baseLayer.setOpacity(1); // Forzar opacidad completa
+    this.baseLayer.setOpacity(estilo.opacity);
 
     if (this.map && this.baseLayer instanceof L.TileLayer) {
       const pane = this.baseLayer.getPane();
       if (pane) {
         pane.style.zIndex = '401';
+        pane.style.filter = estilo.filter;
       }
     }
 

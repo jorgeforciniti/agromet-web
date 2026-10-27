@@ -1,0 +1,102 @@
+<div class="panel">
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__titulo">Episodios cálidos <app-ayuda-termino termino="episodio"></app-ayuda-termino></h2>
+      <p class="panel__sub" *ngIf="detalle.datos?.criterio as c; else criterioGenerico">
+        Criterio del servicio: Tmax y Tmin superan en forma {{ c.superacion | lowercase }} su P{{ c.percentil }} diario
+        ({{ detalle.datos?.periodo_referencia?.desde }}–{{ detalle.datos?.periodo_referencia?.hasta }}) durante al menos
+        {{ c.duracion_minima_dias }} días. Cada episodio se asigna al año de su fecha de inicio.
+      </p>
+      <ng-template #criterioGenerico>
+        <p class="panel__sub">Episodios detectados por el servicio a partir del percentil 90 diario 1991–2020.</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <form class="controles" (submit)="$event.preventDefault(); consultar()">
+    <label class="campo">Desde
+      <select [value]="desde" (change)="setDesde($any($event.target).value)">
+        <option *ngFor="let a of aniosDisponibles" [value]="a" [selected]="a === desde">{{ a }}</option>
+      </select>
+    </label>
+    <label class="campo">Hasta
+      <select [value]="hasta" (change)="setHasta($any($event.target).value)">
+        <option *ngFor="let a of aniosDisponibles" [value]="a" [selected]="a === hasta">{{ a }}</option>
+      </select>
+    </label>
+    <button type="submit" class="btn btn--primario"><mat-icon>search</mat-icon>Consultar</button>
+  </form>
+  <p class="nota" [class.error-rango]="errorRango">{{ errorRango || 'Hasta ' + maxRango + ' años por consulta.' }}</p>
+</div>
+
+<div class="panel">
+  <h3 class="panel__titulo panel__titulo--sm">Episodios por año ({{ desde }}–{{ hasta }})</h3>
+  <app-estado-carga *ngIf="anual.estado === 'cargando' || anual.estado === 'error'" [estado]="anual.estado"
+    [mensaje]="anual.mensaje" fuente="episodios.php (anual)" [alto]="180" (reintentar)="consultar()"></app-estado-carga>
+  <ng-container *ngIf="anual.estado === 'ok' || anual.estado === 'vacio'">
+    <p class="panel__sub" *ngIf="anual.estado === 'vacio'">No se registraron episodios cálidos en el período.</p>
+    <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Cantidad de episodios cálidos por año entre ' + desde + ' y ' + hasta">
+      <canvas baseChart [type]="'bar'" [data]="datosAnual" [options]="opcionesAnual"></canvas>
+    </div>
+    <div class="tabla-wrap" *ngIf="anual.datos?.datos?.length">
+      <table class="tabla">
+        <caption>Sólo se listan los años con al menos un episodio.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Año</th>
+            <th scope="col" class="num">Episodios</th>
+            <th scope="col" class="num">Días en episodios</th>
+            <th scope="col" class="num">Duración máx. (días)</th>
+            <th scope="col" class="num">Duración media (días)</th>
+            <th scope="col" class="num">Intensidad Tmax acum. (°C)</th>
+            <th scope="col" class="num">Intensidad Tmin acum. (°C)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of anual.datos?.datos">
+            <th scope="row">{{ a.anio }}</th>
+            <td class="num">{{ a.episodios }}</td>
+            <td class="num">{{ a.dias_en_episodios }}</td>
+            <td class="num">{{ fmt(a.duracion_maxima, 0) }}</td>
+            <td class="num">{{ fmt(a.duracion_media) }}</td>
+            <td class="num">{{ fmt(a.intensidad_max_acum, 2) }}</td>
+            <td class="num">{{ fmt(a.intensidad_min_acum, 2) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</div>
+
+<div class="panel">
+  <h3 class="panel__titulo panel__titulo--sm">Detalle de episodios</h3>
+  <p class="panel__sub">Excedente: suma de los grados por encima del P90 diario. Hacé clic en un encabezado para ordenar.</p>
+  <app-estado-carga *ngIf="detalle.estado !== 'ok'" [estado]="detalle.estado" [mensaje]="detalle.mensaje"
+    fuente="episodios.php" [alto]="160" (reintentar)="consultar()"
+    mensajeVacio="No se registraron episodios cálidos en el período consultado."></app-estado-carga>
+  <div class="tabla-wrap" *ngIf="detalle.estado === 'ok'">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th *ngFor="let c of columnas" scope="col" [class.num]="c.num" [attr.aria-sort]="ariaSort(c.col)">
+            <button type="button" (click)="ordenarPor(c.col)">
+              {{ c.titulo }}
+              <span aria-hidden="true">{{ orden.col === c.col ? (orden.asc ? '▲' : '▼') : '↕' }}</span>
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of filasOrdenadas">
+          <td>{{ formatoFecha(e.fecha_inicio) }}</td>
+          <td>{{ formatoFecha(e.fecha_fin) }}</td>
+          <td class="num">{{ e.duracion }}</td>
+          <td class="num">{{ fmt(e.excedente_max_acum, 2) }}</td>
+          <td class="num">{{ fmt(e.excedente_min_acum, 2) }}</td>
+          <td class="num">{{ fmt(e.mayor_excedente_max) }}</td>
+          <td class="num">{{ fmt(e.mayor_excedente_min) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<section class="colmenar" (copy)="bloquear($event)" (cut)="bloquear($event)" (dragstart)="bloquear($event)">
+  <header class="colmenar-head">
+    <div class="colmenar-head__texto">
+      <div class="colmenar-eyebrow">
+        <mat-icon aria-hidden="true">query_stats</mat-icon>
+        SERIE HISTÓRICA DESDE {{ anioInicio }} · ESTACIÓN 2049
+      </div>
+      <h1 class="colmenar-title">Estadísticas históricas de El Colmenar</h1>
+      <p class="colmenar-copy">Análisis histórico de temperaturas, precipitaciones y extremos meteorológicos.
+        Referencia climatológica 1991–2020.</p>
+    </div>
+
+    <div class="colmenar-controles">
+      <label class="selector-anio" for="anio-colmenar">
+        <span class="selector-anio__label">Año</span>
+        <span class="selector-anio__fila">
+          <button type="button" class="selector-anio__flecha" (click)="cambiarAnio(anio - 1)"
+            [disabled]="anio <= anioInicio" aria-label="Año anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <select id="anio-colmenar" [value]="anio" (change)="cambiarAnio($any($event.target).value)">
+            <option *ngFor="let a of anios" [value]="a" [selected]="a === anio">{{ a }}</option>
+          </select>
+          <button type="button" class="selector-anio__flecha" (click)="cambiarAnio(anio + 1)"
+            [disabled]="anio >= anioActual" aria-label="Año siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </span>
+      </label>
+
+      <span *ngIf="completitud as c" class="estado-anio" [class.estado-anio--completo]="c.completo">
+        <mat-icon aria-hidden="true">{{ c.completo ? 'check_circle' : 'schedule' }}</mat-icon>
+        {{ c.texto }}
+      </span>
+    </div>
+  </header>
+
+  <nav class="colmenar-tabs" role="tablist" aria-label="Secciones de estadísticas históricas">
+    <button *ngFor="let s of secciones; let i = index" type="button" role="tab" class="colmenar-tab"
+      [id]="'tab-' + s.id" [class.colmenar-tab--activa]="seccion === s.id" [attr.aria-selected]="seccion === s.id"
+      [attr.aria-controls]="'panel-' + s.id" [attr.tabindex]="seccion === s.id ? 0 : -1"
+      (click)="irSeccion(s.id)" (keydown)="teclaPestania($event, i)">
+      <mat-icon aria-hidden="true">{{ s.icono }}</mat-icon>
+      <span>{{ s.etiqueta }}</span>
+    </button>
+  </nav>
+
+  <div class="colmenar-panel" role="tabpanel" [id]="'panel-' + seccion" [attr.aria-labelledby]="'tab-' + seccion"
+    [ngSwitch]="seccion">
+    <app-colmenar-resumen *ngSwitchCase="'resumen'" [anio]="anio" [mensuales]="mensuales" [anomalias]="anomalias"
+      [lluvias]="lluvias" [extremos]="extremos" [normales]="normales" (reintentar)="cargar()"></app-colmenar-resumen>
+
+    <app-colmenar-temperaturas *ngSwitchCase="'temperaturas'" [anio]="anio" [mensuales]="mensuales"
+      [anomalias]="anomalias" (reintentar)="cargar()"></app-colmenar-temperaturas>
+
+    <app-colmenar-evolucion *ngSwitchCase="'evolucion'" [anio]="anio" [normales]="normales"></app-colmenar-evolucion>
+
+    <app-colmenar-precipitaciones *ngSwitchCase="'precipitaciones'" [anio]="anio" [lluvias]="lluvias"
+      [normales]="normales" (reintentar)="cargar()"></app-colmenar-precipitaciones>
+
+    <app-colmenar-extremos *ngSwitchCase="'extremos'" [anio]="anio" [extremos]="extremos"
+      (reintentar)="cargar()"></app-colmenar-extremos>
+
+    <app-colmenar-episodios *ngSwitchCase="'episodios'" [anio]="anio"></app-colmenar-episodios>
+
+    <app-colmenar-comparacion *ngSwitchCase="'comparar'" [anio]="anio" [anios]="anios" [mensuales]="mensuales"
+      [lluvias]="lluvias" [extremos]="extremos" [normales]="normales"></app-colmenar-comparacion>
+  </div>
+
+  <p class="colmenar-fuente">
+    Fuente: registros de la estación El Colmenar (EEAOC, Tucumán). Los meses incompletos se identifican como parciales
+    y no se clasifican ni se suman a totales definitivos. Los datos recientes pueden ser provisorios.
+  </p>
+</section>
