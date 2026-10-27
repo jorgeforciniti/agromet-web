@@ -15,6 +15,11 @@ export function formatValor(v: number | string | null | undefined): string {
   return s.replace('.', ',');
 }
 
+/** Igual que n.toFixed(decimales) pero con coma decimal, para textos armados en código (popups, leyendas). */
+export function formatDecimal(n: number, decimales = 1): string {
+  return n.toFixed(decimales).replace('.', ',');
+}
+
 @Pipe({ name: 'valor', standalone: true })
 export class ValorPipe implements PipeTransform {
   transform(v: number | string | null | undefined): string {

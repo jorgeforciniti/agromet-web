@@ -2,6 +2,8 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { GeoJsonObject } from 'geojson';
@@ -233,6 +235,8 @@ class WindLegendControl extends L.Control {
   styleUrls: ['./leaflet-goes-viewer.component.css']
 })
 export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   private map: L.Map | undefined;
   private baseLayer: L.ImageOverlay | L.GeoJSON | L.TileLayer | undefined;
   private baseMapLayer: L.TileLayer | undefined; // Mapa base
@@ -375,6 +379,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopRainViewerAnimation();
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
     this.stationServiceSub?.unsubscribe();
   }
 
@@ -399,8 +405,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
             <div class="station-popup">
               <h4>${feature.properties.nombre}</h4>
               <div class="popup-grid">
-                <div>Latitud: ${feature.properties.lat.toFixed(2)}°</div>
-                <div>Longitud: ${feature.properties.lon.toFixed(2)}°</div>
+                <div>Latitud: ${formatDecimal(feature.properties.lat, 2)}°</div>
+                <div>Longitud: ${formatDecimal(feature.properties.lon, 2)}°</div>
                 <div>Altitud: ${feature.properties.altitud} msnm</div>
                 <div>Temperatura: ${feature.properties.temperatura} °C</div>
                 <div>Humedad: ${feature.properties.humedad}%</div>
@@ -447,12 +453,13 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         properties: {
           id: station.Identificacion,
           nombre: station.nombre,
-          temperatura: station.temp_af ? Number(station.temp_af).toFixed(1) : 'N/D',
+          // != null (no un simple truthy): 0 °C o 0 mm son datos válidos, no faltantes
+          temperatura: station.temp_af != null && station.temp_af !== '' ? formatDecimal(Number(station.temp_af), 1) : '—',
           lat: parseFloat(station.lat),  // Guardar como número
           lon: parseFloat(station.lon),  // Guardar como número
-          altitud: station.alt ? Number(station.alt).toFixed(0) : 'N/D',
-          humedad: station.hum_af ? Number(station.hum_af).toFixed(0) : 'N/D',
-          lluvia: station.RR_dia ? Number(station.RR_dia).toFixed(1) : 'N/D'
+          altitud: station.alt != null ? formatDecimal(Number(station.alt), 0) : '—',
+          humedad: station.hum_af != null && station.hum_af !== '' ? formatDecimal(Number(station.hum_af), 0) : '—',
+          lluvia: station.RR_dia != null && station.RR_dia !== '' ? formatDecimal(Number(station.RR_dia), 1) : '—'
         }
       })) as Feature<Point, StationFeatureProperties>[]
     };
@@ -530,6 +537,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       maxBoundsViscosity: 0.0,
       scrollWheelZoom: false  // Desactivar zoom por rueda
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     // Pane propio para las capas climáticas de OWM: así el filtro CSS de contraste/saturación
     // de cada capa no afecta a las provincias ni a las estaciones (que comparten 'overlayPane').
@@ -1100,7 +1108,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       },
       onEachFeature: (feature, layer) => {
         layer.bindPopup(
-          `Brillo: ${feature.properties.brightness.toFixed(2)} °C<br>` +
+          `Brillo: ${formatDecimal(feature.properties.brightness, 2)} °C<br>` +
           `Confianza: ${feature.properties.confidence}%<br>` +
           `Fecha: ${feature.properties.acq_date} ${feature.properties.acq_time}`
         );

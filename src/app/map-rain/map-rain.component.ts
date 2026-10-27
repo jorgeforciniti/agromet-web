@@ -1,6 +1,8 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service';
 import { MatSelectChange } from '@angular/material/select';
@@ -108,6 +110,8 @@ interface RainZoneLayer {
   encapsulation: ViewEncapsulation.None
 })
 export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   hoy: boolean = false;
   form: FormGroup;
   map?: L.Map;
@@ -178,6 +182,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       maxBoundsViscosity: 0.0,
       scrollWheelZoom: false  // Desactivar zoom por rueda
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     this.currentBaseLayer.addTo(this.map);
     this.map.createPane('zonePane').style.zIndex = '450';
@@ -329,9 +334,9 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
         fillOpacity: 1
       }).bindPopup(`
           <b>${d.nombre}</b><br>
-          Total Lluvia: ${totalLluvia.toFixed(1)} mm<br>
-          Max Lluvia: ${maxLluvia.toFixed(1)} mm<br>
-          Horas de Lluvia: ${((registrosLluvia * frecuenciaDato) / 60).toFixed(1)}
+          Total Lluvia: ${formatDecimal(totalLluvia, 1)} mm<br>
+          Max Lluvia: ${formatDecimal(maxLluvia, 1)} mm<br>
+          Horas de Lluvia: ${formatDecimal((registrosLluvia * frecuenciaDato) / 60, 1)}
         `);
       this.markersLayer.addLayer(marker);
     });
@@ -363,7 +368,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     const scales: RainScale[] = [];
     
     // Always add the "no rain" case
-    scales.push({ min: 0, max: 0, color: '#D3D3D3' }); // Gray for 0mm
+    scales.push({ min: 0, max: 0, color: '#808080' }); // Gris para 0 mm (igual que los marcadores)
 
     if (precipitationValues.length > 0) {
       // Add minimum to trace rain
@@ -396,7 +401,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getRainColor(totalLluvia: number, registrosLluvia: number): string {
-    if (totalLluvia === 0) return 'gray';
+    if (totalLluvia === 0) return '#808080'; // gris (mismo valor que la leyenda)
     if (registrosLluvia === 0 && totalLluvia > 0) return '#90EE90'; // Light green for dew
 
     // Find the appropriate scale for this value
@@ -436,7 +441,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     let html = '<strong>Precipitaciones</strong><br>';
 
     // Add static entries
-    html += '<i style="background:#D3D3D3"></i> 0 mm<br>';
+    html += '<i style="background:#808080"></i> 0 mm<br>';
 
     // Add dynamic scales
     for (const scale of this.rainScales) {
@@ -444,11 +449,11 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       
       let label = '';
       if (scale.min === 0.001) {
-        label = `< ${scale.max.toFixed(1)} mm (rocío)`;
+        label = `< ${formatDecimal(scale.max, 1)} mm (rocío)`;
       } else if (scale.max === this.maxRainValue) {
-        label = `${scale.min.toFixed(1)} - ${scale.max.toFixed(1)} mm`;
+        label = `${formatDecimal(scale.min, 1)} - ${formatDecimal(scale.max, 1)} mm`;
       } else {
-        label = `${scale.min.toFixed(1)} - ${scale.max.toFixed(1)} mm`;
+        label = `${formatDecimal(scale.min, 1)} - ${formatDecimal(scale.max, 1)} mm`;
       }
 
       html += `<i style="background:${scale.color}"></i> ${label}<br>`;
@@ -466,6 +471,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
     this.rainSubscription?.unsubscribe();
     if (this.ctrlZoomTimeout) clearTimeout(this.ctrlZoomTimeout);
   }

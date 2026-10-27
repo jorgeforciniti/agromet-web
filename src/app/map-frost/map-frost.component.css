@@ -289,32 +289,6 @@
   font-weight: 800;
 }
 
-/* Leyenda Leaflet (ya es clara por defecto, solo la suavizamos) */
-.info.legend{
-  background: #fff;
-  padding: 10px 12px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,.18);
-  color: #333;
-}
-
-/* Ctrl zoom message */
-.ctrl-zoom-message::after{
-  content: "MantÃ©n pulsada la tecla Ctrl y gira la rueda para hacer zoom";
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  width: 100%;
-  background: rgba(0,0,0,.7);
-  color: #fff;
-  padding: 10px 0;
-  text-align: center;
-  font-size: .9rem;
-  border-radius: 0 0 6px 6px;
-  pointer-events: none;
-  z-index: 10000;
-}
-
 /* Responsive */
 @media (max-width: 1100px){
   .form-grid{

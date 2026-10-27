@@ -1,7 +1,9 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 
 interface StationRow extends WeatherStation {
@@ -27,7 +29,9 @@ const ZONA_LABELS: Record<string, string> = {
   templateUrl: './estaciones.component.html',
   styleUrl: './estaciones.component.css'
 })
-export class EstacionesComponent implements OnInit, AfterViewInit {
+export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   stations: StationRow[] = [];
   loading = true;
   error: string | null = null;
@@ -124,12 +128,18 @@ export class EstacionesComponent implements OnInit, AfterViewInit {
     };
   }
 
+  ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
+  }
+
   private initMap(): void {
     this.map = L.map('estaciones-map', {
       center: this.focusBounds.getCenter(),
       zoom: 7,
       scrollWheelZoom: false
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap',
@@ -173,11 +183,11 @@ export class EstacionesComponent implements OnInit, AfterViewInit {
         <div class="station-popup">
           <h4>${station.nombre}</h4>
           ${location ? `<div class="popup-location">${location}${zona ? ' · ' + zona : ''}</div>` : ''}
-          <div class="popup-location popup-location--coords">Lat: ${lat.toFixed(2)}° · Lon: ${lon.toFixed(2)}° · ${altura}</div>
+          <div class="popup-location popup-location--coords">Lat: ${formatDecimal(lat, 2)}° · Lon: ${formatDecimal(lon, 2)}° · ${altura}</div>
           <div class="popup-grid">
-            <div>Temperatura: ${station.temp !== null ? station.temp.toFixed(1) + ' °C' : 'S/D'}</div>
-            <div>Humedad: ${station.hum !== null ? station.hum.toFixed(0) + ' %' : 'S/D'}</div>
-            <div>Lluvia hoy: ${station.rain !== null ? station.rain.toFixed(1) + ' mm' : 'S/D'}</div>
+            <div>Temperatura: ${station.temp !== null ? formatDecimal(station.temp, 1) + ' °C' : '—'}</div>
+            <div>Humedad: ${station.hum !== null ? formatDecimal(station.hum, 0) + ' %' : '—'}</div>
+            <div>Lluvia hoy: ${station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—'}</div>
           </div>
         </div>
       `, { autoPanPadding: [24, 24] });

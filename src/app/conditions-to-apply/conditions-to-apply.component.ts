@@ -1,9 +1,10 @@
-import { Component, OnInit, AfterViewInit, Injectable, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Injectable, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Feature, FeatureCollection, Point } from 'geojson';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -121,7 +122,9 @@ type InfoKey =
   templateUrl: './conditions-to-apply.component.html',
   styleUrls: ['./conditions-to-apply.component.css']
 })
-export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
+export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
 
   // ===== UI state =====
   loadingEstaciones = true;
@@ -514,12 +517,21 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   // ===== MAPA =====
+  ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
+  }
+
   private initMap(): void {
     const el = document.getElementById('mapConditions');
     if (!el) return;
 
-    if (this.map) this.map.remove();
+    if (this.map) {
+      this.dejarDeSeguirTamanio?.();
+      this.map.remove();
+    }
     this.map = L.map('mapConditions', { center: [-26.8, -65.2], zoom: 8, preferCanvas: true });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OSM'

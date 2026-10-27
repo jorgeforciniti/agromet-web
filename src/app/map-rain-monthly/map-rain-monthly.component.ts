@@ -17,6 +17,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
 import { firstValueFrom } from 'rxjs';
 import { GeoJsonObject } from 'geojson';
@@ -76,6 +78,8 @@ interface RainZoneLayer {
   styleUrls: ['./map-rain-monthly.component.css'],
 })
 export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   public map!: L.Map;
   public errorMessage: string | null = null;
   private stationsLayerGroup: L.LayerGroup = L.layerGroup();
@@ -166,6 +170,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
     if (this.map) {
       this.map.remove();
     }
@@ -179,6 +184,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
         maxBoundsViscosity: 0.0,
         scrollWheelZoom: false  // Desactivar zoom por rueda
       });
+      this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
       this.map.createPane('zonePane').style.zIndex = '450';
       this.map.createPane('rainMarkersPane').style.zIndex = '600';
 
@@ -317,13 +323,13 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
                   // Popup con detalles
                   marker.bindPopup(
                     `<b>${station.name}</b><br>
-                     Lluvia período: ${sumValue.toFixed(1)} mm<br>
-                     Normal período: ${sumNormal.toFixed(1)} mm<br>
-                     Porcentaje: ${((sumValue / sumNormal) * 100).toFixed(1)}%`
+                     Lluvia período: ${formatDecimal(sumValue, 1)} mm<br>
+                     Normal período: ${formatDecimal(sumNormal, 1)} mm<br>
+                     Porcentaje: ${formatDecimal((sumValue / sumNormal) * 100, 1)}%`
                   );
 
                   // Tooltip permanente con solo el valor
-                  marker.bindTooltip(`${sumValue.toFixed(1)} mm`, {
+                  marker.bindTooltip(`${formatDecimal(sumValue, 1)} mm`, {
                     direction: 'right',
                     offset: [8, 0],
                     className: 'rain-value-label'

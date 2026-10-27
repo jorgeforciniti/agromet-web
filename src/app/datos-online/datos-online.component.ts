@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
 import { WeatherService } from '../services/weather.service';
@@ -66,6 +67,8 @@ interface ChartWeatherRow extends HourlyWeatherRow {
   styleUrls: ['./datos-online.component.css']
 })
 export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   chart: Chart | null = null;
   selectedStationId: string = '';
   selectedVariable: string = 'temp_af';
@@ -157,6 +160,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (this.map) {
+        this.dejarDeSeguirTamanio?.();
         this.map.remove();
         this.map = undefined;
       }
@@ -168,6 +172,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         preferCanvas: true,
         scrollWheelZoom: false  // Desactivar zoom por rueda
       });
+      this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
       const bm = this.baseMaps[this.selectedBaseMap];
       this.baseMapLayer = L.tileLayer(bm.url, {
@@ -367,6 +372,8 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.chart?.destroy();
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
   }
 
   getLabel(variable: string): string {

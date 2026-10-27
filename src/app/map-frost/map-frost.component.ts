@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
 import { MatSelectChange } from '@angular/material/select';
@@ -146,6 +147,8 @@ import { ValorPipe } from '../pipes/valor.pipe';
   encapsulation: ViewEncapsulation.None
 })
 export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   private defaultMapCenter: L.LatLngTuple = [-26.8305, -65.2226];
   today: Date = new Date();
   hoy: boolean = false;
@@ -232,6 +235,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
       maxBoundsViscosity: 0.0,
       scrollWheelZoom: false  // Desactivar zoom por rueda
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
     this.currentBaseLayer.addTo(this.mapa);
     this.mapa.createPane('zonePane').style.zIndex = '450';
     this.mapa.createPane('frostMarkersPane').style.zIndex = '600';
@@ -473,6 +477,8 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.mapa?.remove();
     this.heladasSubscription?.unsubscribe();
     if (this.ctrlZoomTimeout) clearTimeout(this.ctrlZoomTimeout);
   }

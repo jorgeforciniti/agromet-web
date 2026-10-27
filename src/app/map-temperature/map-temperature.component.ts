@@ -1,7 +1,9 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import * as L from 'leaflet';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -118,7 +120,9 @@ export const MY_DATE_FORMATS = {
   ]
 })
 
-export class MapTemperatureComponent implements OnInit, AfterViewInit {
+export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   public currentVariableLabel: string = '';
   form!: FormGroup;
   map!: L.Map;
@@ -173,6 +177,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
       maxBoundsViscosity: 0.0,
       scrollWheelZoom: false  // Desactivar zoom por rueda
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     // Capas base
     this.baseMaps['osm'] = L.tileLayer(
@@ -386,7 +391,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
               .bindPopup(
                 `<b>${d.nombre}</b><br><br>
              <span style="padding:2px 5px;border-radius:3px;">
-               ${varLabel}: ${value.toFixed(1)}°C
+               ${varLabel}: ${formatDecimal(value, 1)}°C
              </span><br>
              <span style="background:${recordsColor};padding:2px 5px;border-radius:3px;">
                Registros: ${countRecords} de ${totalDias}
@@ -426,7 +431,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
 
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'temperature-legend');
-      // ... estilos iguales
+      // Estilo de la caja: .temperature-legend en styles.css
 
       div.innerHTML = `
             <h4 style="margin: 0 0 8px 0; font-size:14px">Escala de Temperatura (°C)</h4>
@@ -441,8 +446,10 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span>-5</span>
-                <span>20</span>
-                <span>35</span>
+                <span>5</span>
+                <span>15</span>
+                <span>25</span>
+                <span>&ge;35</span>
             </div>
         `;
       return div;
@@ -453,16 +460,16 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
 
   private getColor(temperature: number): string {
     if (!Number.isFinite(temperature)) return 'rgb(128,128,128)'; // gris fallback
-    // Escala fija desde -5°C a 40°C
+    // Escala fija de -5 °C a 35 °C; fuera de ese rango se usa el color del extremo
     const clampedTemp = Math.max(-5, Math.min(35, temperature));
     const p = (clampedTemp + 5) / 40; // Normalizar a rango 0-1
 
     const colorStops = [
-      { pos: 0, color: [0, 0, 255] },    // -15°C - Azul
-      { pos: 0.25, color: [0, 255, 255] }, // 1.25°C - Cian
-      { pos: 0.5, color: [0, 255, 0] },    // 17.5°C - Verde
-      { pos: 0.75, color: [255, 255, 0] }, // 33.75°C - Amarillo
-      { pos: 1, color: [255, 0, 0] }       // 50°C - Rojo
+      { pos: 0, color: [0, 0, 255] },    // -5 °C - Azul
+      { pos: 0.25, color: [0, 255, 255] }, // 5 °C - Cian
+      { pos: 0.5, color: [0, 255, 0] },    // 15 °C - Verde
+      { pos: 0.75, color: [255, 255, 0] }, // 25 °C - Amarillo
+      { pos: 1, color: [255, 0, 0] }       // 35 °C o más - Rojo
     ];
 
 
@@ -513,7 +520,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     this.dialogRef.close();
   }
 
-  ngOnDestroy() {
-    this.map.remove();
+  ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
   }
 }
