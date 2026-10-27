@@ -43,7 +43,8 @@
 
   background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
   color: var(--text);
-  padding: 16px;
+  /* !important: la regla global .do-dialog .mat-mdc-dialog-content pone padding 0 */
+  padding: 16px !important;
   box-sizing: border-box;
 }
 

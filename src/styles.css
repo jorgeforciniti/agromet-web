@@ -196,6 +196,8 @@ body {
 .do-dialog .mat-mdc-dialog-content {
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  /* Los dialogs cuyo propio mat-dialog-content lleva padding (weather-dashboard,
+     rain-campaign) lo declaran con !important en su CSS para ganarle a esta regla. */
   padding: 0 !important;
   margin: 0 !important;
   background: transparent !important;

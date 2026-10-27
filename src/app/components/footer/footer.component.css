@@ -19,8 +19,8 @@
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 4px;
-  background: linear-gradient(90deg, #1f9a3a 0%, #8cc63f 22%, #e9c84b 44%, #f2a07b 62%, #a9c3d6 80%, #f5a800 100%);
+  height: var(--brand-stripe-h);
+  background: var(--brand-stripe);
 }
 
 .footer-main {

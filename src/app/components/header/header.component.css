@@ -68,24 +68,20 @@
   background: color-mix(in srgb, var(--warning) 24%, white);
 }
 
+/* Franja institucional: la misma línea de colores que el pie (--brand-stripe) */
 .header-bar {
   width: 100%;
-  text-align: center;
+  height: var(--brand-stripe-h);
   margin-top: 10px;
+  background: var(--brand-stripe);
   transition: margin-top 0.3s ease;
-}
-
-.bar {
-  width: 100%;
-  height: auto;
-  max-height: 20px;
-  transition: max-height 0.3s ease;
 }
 
 /* Menú de navegación principal */
 .fixed-toolbar {
-  position: sticky;
-  top: 102px;
+  /* Posición normal dentro del encabezado fijo: con sticky + top se desplazaba
+     hacia abajo y tapaba la franja institucional. */
+  position: relative;
   z-index: 999;
   width: 100%;
   max-width: 1600px;
@@ -93,7 +89,6 @@
   background: var(--surface);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  transition: top 0.3s ease;
 }
 
 .menu-desktop {
@@ -147,14 +142,6 @@
   margin-top: 0;
 }
 
-.header-container.scrolled .bar {
-  max-height: 6px;
-}
-
-.header-container.scrolled .fixed-toolbar {
-  top: 46px;
-}
-
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -170,18 +157,6 @@
   .logo {
     height: 60px;
     margin: 5px 0;
-  }
-
-  .bar {
-    max-height: 15px;
-  }
-
-  .fixed-toolbar {
-    top: 85px;
-  }
-
-  .header-container.scrolled .fixed-toolbar {
-    top: 40px;
   }
 
   /* En pantallas chicas, al desplazarse queda sólo el logo reducido y el menú. */
