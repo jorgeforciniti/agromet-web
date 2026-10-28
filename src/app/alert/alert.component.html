@@ -2,109 +2,101 @@
   <div class="alert-section" *ngIf="smnAlertsByArea">
     <div class="alert-title-row">
       <div class="alert-kicker">RIESGO METEOROLÓGICO</div>
-      <div class="alert-title">
-        <mat-icon>warning_amber</mat-icon>
+      <h2 class="alert-title">
+        <mat-icon aria-hidden="true">warning_amber</mat-icon>
         Alertas meteorológicas
         <span class="alert-title__source">SMN</span>
+      </h2>
+      <div class="alert-updated" *ngIf="actualizado">
+        Actualizado {{ actualizado | date:'dd/MM HH:mm' }} ·
+        <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">alertas oficiales del SMN</a>
       </div>
     </div>
 
-    <ng-container *ngIf="!smnAlertsByArea[3373]?.length && !smnAlertsByArea[3375]?.length">
+    <ng-container *ngIf="cargado && !eventos.length">
       <div class="no-alerts-message">
         <mat-icon>check_circle</mat-icon>
         <span><strong>Sin alertas vigentes.</strong> No hay eventos activos para Tucumán ni Valles Calchaquíes.</span>
       </div>
     </ng-container>
 
-    <div class="alert-columns" *ngIf="smnAlertsByArea[3373]?.length || smnAlertsByArea[3375]?.length">
-      <div class="alert-list">
-        <div class="alert-list__head">
-          <div class="alert-list__title">Regiones monitoreadas</div>
-          <div class="alert-list__hint">Seleccioná una vigencia para revisar el detalle.</div>
-        </div>
+    <!-- Una tarjeta por evento y nivel: qué pasa, cuándo y dónde, y qué hacer -->
+    <div class="eventos" *ngIf="eventos.length">
+      <article *ngFor="let ev of eventos" class="evento nivel-{{ ev.level }}">
+        <header class="evento__head">
+          <span class="evento__nivel">
+            <mat-icon aria-hidden="true">warning_amber</mat-icon>
+            Alerta {{ levelName(ev.level) }}
+          </span>
+          <h3 class="evento__nombre" *ngIf="ev.nombre">{{ ev.nombre }}</h3>
+        </header>
 
-        <ng-container *ngIf="smnAlertsByArea[3373]?.length">
-          <h3 class="alert-area-title">Provincia de Tucumán</h3>
-          <ul class="alert-items">
-            <li
-              *ngFor="let a of smnAlertsByArea[3373]"
-              (click)="selectAlert(a)"
-              (keydown.enter)="selectAlert(a)"
-              (keydown.space)="selectAlert(a); $event.preventDefault()"
-              [class.selected]="selectedAlert === a"
-              role="button"
-              tabindex="0">
-              <span class="alert-item__line">
-                <span class="alert-item__date">{{ a.date | date:'fullDate':'':'es-AR' }}</span>
-                <span class="alert-item__dash">•</span>
-                <span class="alert-item__period">{{ periodoEnCastellano(a.period) }}</span>
-                <span class="alert-item__level color-level-{{a.level}}">{{ levelName(a.level) }}</span>
-              </span>
-            </li>
-          </ul>
-        </ng-container>
+        <div class="evento__cuerpo">
+          <p class="evento__cuando">{{ ev.resumen }} · {{ ev.regiones }}</p>
 
-        <ng-container *ngIf="smnAlertsByArea[3375]?.length">
-          <h3 class="alert-area-title">Valles Calchaquíes</h3>
-          <ul class="alert-items">
-            <li
-              *ngFor="let a of smnAlertsByArea[3375]"
-              (click)="selectAlert(a)"
-              (keydown.enter)="selectAlert(a)"
-              (keydown.space)="selectAlert(a); $event.preventDefault()"
-              [class.selected]="selectedAlert === a"
-              role="button"
-              tabindex="0">
-              <span class="alert-item__line">
-                <span class="alert-item__date">{{ a.date | date:'fullDate':'':'es-AR' }}</span>
-                <span class="alert-item__dash">•</span>
-                <span class="alert-item__period">{{ periodoEnCastellano(a.period) }}</span>
-                <span class="alert-item__level color-level-{{a.level}}">{{ levelName(a.level) }}</span>
-              </span>
-            </li>
-          </ul>
-        </ng-container>
-      </div>
-
-      <div class="alert-details">
-        <div class="alert-list__head">
-          <div class="alert-list__title">Descripción e instrucciones</div>
-          <div class="alert-list__hint">Cada tarjeta resume un evento único por nivel.</div>
-        </div>
-
-        <div
-          *ngFor="let alert of getUniqueGlobalDescriptions()"
-          class="alert-card"
-          [ngClass]="{
-            'alert-level-3': alert.level === 3,
-            'alert-level-4': alert.level === 4,
-            'alert-level-5': alert.level === 5
-          }">
-          <div class="alert-region">
-            <span class="alert-region__eyebrow">Nivel {{ alert.level }}</span>
-            <span>Alerta {{ levelName(alert.level) }}</span>
+          <div class="evento__grilla-wrap">
+            <table class="evento__grilla">
+              <caption class="cdk-visually-hidden">Vigencia de la alerta por región, día y período</caption>
+              <thead>
+                <tr>
+                  <td></td>
+                  <th *ngFor="let d of ev.dias" scope="colgroup" [attr.colspan]="periodos.length" class="evento__dia">
+                    {{ etiquetaDia(d) }}
+                  </th>
+                </tr>
+                <tr>
+                  <td></td>
+                  <ng-container *ngFor="let d of ev.dias">
+                    <th *ngFor="let p of periodos" scope="col" class="evento__periodo"
+                      [title]="periodoEnCastellano(p)">
+                      <span class="largo">{{ periodoCorto(p) }}</span>
+                      <span class="corto">{{ periodoCorto(p).slice(0, 3) }}</span>
+                    </th>
+                  </ng-container>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let fila of ev.filas">
+                  <th scope="row" class="evento__region" [title]="fila.nombre">
+                    <span class="largo">{{ fila.nombre }}</span>
+                    <span class="corto">{{ fila.corto }}</span>
+                  </th>
+                  <td *ngFor="let activa of fila.celdas; let i = index" class="evento__celda"
+                    [class.activa]="activa" [title]="etiquetaCelda(ev, fila, i)">
+                    <span class="cdk-visually-hidden">{{ activa ? 'Alerta' : 'Sin alerta' }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="alert-description">{{ alert.description }}</div>
-          <button mat-button class="alert-card__action" (click)="openInstructionDialog(alert.instruction, alert.level)">
-            <mat-icon>fact_check</mat-icon>
-            Ver instrucciones
-          </button>
+
+          <p class="evento__descripcion" *ngIf="ev.description">{{ ev.description }}</p>
+
+          <div class="evento__acciones">
+            <button mat-stroked-button *ngIf="ev.instruction" (click)="openInstructionDialog(ev.instruction, ev.level)">
+              <mat-icon>fact_check</mat-icon>
+              Qué hacer
+            </button>
+            <a mat-button href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">
+              <mat-icon>open_in_new</mat-icon>
+              Ver en el SMN
+            </a>
+          </div>
         </div>
-      </div>
+      </article>
     </div>
 
+    <!-- Avisos propios: surgen de lo que miden las estaciones de la EEAOC, no del SMN -->
     <div class="special-alerts special-alerts--embedded" *ngIf="showRainAlert || showFrostAlert">
-      <div class="special-alerts__header">
-        <div class="special-alerts__title">
-          <mat-icon>notifications</mat-icon>
-          Accesos especiales
-        </div>
+      <div class="special-alerts__title">
+        <mat-icon aria-hidden="true">sensors</mat-icon>
+        Avisos de la red de estaciones EEAOC
       </div>
 
       <div class="alert-btn-group">
         <button *ngIf="showRainAlert" mat-raised-button class="alert-btn rain-alert" (click)="openRainDialog()">
           <mat-icon>umbrella</mat-icon>
-          Aviso de lluvia
+          Lluvia registrada
         </button>
 
         <button
@@ -113,7 +105,7 @@
           [ngClass]="['alert-btn', 'frost-alert', getFrostClass(frostAlertLevel)]"
           (click)="openFrostDialog()">
           <mat-icon>ac_unit</mat-icon>
-          Aviso de helada
+          Helada registrada
         </button>
       </div>
     </div>

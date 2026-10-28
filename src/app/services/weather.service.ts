@@ -110,6 +110,7 @@ export interface SmnAreaWarningEntry {
 }
 
 export interface SmnAlertByAreaResponse {
+  updated?: string;
   reports: SmnAreaReport[];
   warnings: SmnAreaWarningEntry[];
 }
