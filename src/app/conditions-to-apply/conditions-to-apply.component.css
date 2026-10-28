@@ -1265,3 +1265,182 @@ mat-form-field.date-field{ width: 100%; }
   .field-action{ justify-content: stretch; }
   .btn-search{ width: 100%; }
 }
+
+/* ===== Parámetros de la consulta (reemplaza a .controls) =====
+   Dos grupos con etiqueta arriba de cada control y un pie con Kp y "Buscar datos". */
+
+/* Los grupos se reparten el ancho según cuántos campos tienen y pasan a la línea
+   siguiente solos cuando no entran (el diálogo cambia de ancho con la pantalla) */
+.params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 14px 0 12px;
+}
+
+.params__grupo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-items: end;
+  gap: 10px 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 14px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .9);
+}
+
+.params__grupo--donde {
+  flex: 2 1 340px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.params__grupo--aplicacion {
+  flex: 5 1 560px;
+}
+
+.params__grupo legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.param {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.param__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+}
+
+.param__label label {
+  color: var(--text);
+  font-size: .84rem;
+  font-weight: 800;
+}
+
+.param__control {
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #cbd5c0;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.param__control:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 25%, white);
+  outline-offset: 1px;
+}
+
+/* El datepicker de Material, con la misma altura y borde que los select */
+.param__fecha {
+  width: 100%;
+}
+
+:host ::ng-deep .param__fecha .mat-mdc-text-field-wrapper {
+  height: 40px;
+  padding: 0 4px 0 10px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+:host ::ng-deep .param__fecha .mat-mdc-form-field-infix {
+  min-height: 40px;
+  padding: 8px 0 !important;
+}
+
+:host ::ng-deep .param__fecha .mdc-notched-outline > * {
+  border-color: #cbd5c0 !important;
+}
+
+:host ::ng-deep .param__fecha .mdc-notched-outline__leading {
+  border-radius: 10px 0 0 10px !important;
+}
+
+:host ::ng-deep .param__fecha .mdc-notched-outline__trailing {
+  border-radius: 0 10px 10px 0 !important;
+}
+
+:host ::ng-deep .param__fecha .mat-mdc-form-field-icon-suffix {
+  align-self: center;
+}
+
+:host ::ng-deep .param__fecha .mat-mdc-icon-button {
+  --mdc-icon-button-state-layer-size: 36px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+}
+
+:host ::ng-deep .param__fecha .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.params__pie {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.params__kp {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  color: var(--muted);
+  font-size: .84rem;
+}
+
+.params__kp-label {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.params__buscar {
+  margin: 0 !important;
+  min-width: 180px;
+}
+
+@media (max-width: 600px) {
+  .params__grupo--donde,
+  .params__grupo--aplicacion {
+    flex-basis: 100%;
+  }
+
+  .params__grupo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px 10px 12px;
+  }
+
+  .params__grupo--donde {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .params__pie {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .params__buscar {
+    width: 100%;
+  }
+}
