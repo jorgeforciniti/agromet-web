@@ -1,3 +1,8 @@
+# MultiViews (activado en el VirtualHost) resuelve /mapas buscando archivos mapas.* antes
+# que el rewrite y responde 404 en vez de pasar la ruta a Angular. Indexes mostraba el
+# listado de carpetas sin index (por ejemplo /services/).
+Options -MultiViews -Indexes
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
