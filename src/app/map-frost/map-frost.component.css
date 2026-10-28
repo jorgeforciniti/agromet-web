@@ -307,6 +307,12 @@
     flex-wrap: wrap;
     align-items: center;
   }
+  /* En columna, las pestañas no se encogen al alto que queda bajo el formulario: toman
+     el alto de su contenido y .scroll-container desplaza todo el diálogo en vertical. */
+  .tabs, .map-layout{ flex: 0 0 auto; height: auto; }
+  ::ng-deep .tabs .mat-mdc-tab-body-wrapper{ flex: 0 0 auto; }
+  ::ng-deep .tabs .mat-mdc-tab-body-content{ height: auto; }
+  .map-wrap{ flex: 0 0 auto; height: 65vh; }
   .map-wrap, .map-container{ min-height: 360px; }
 }
 

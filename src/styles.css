@@ -285,6 +285,19 @@ body {
 .tabla-fija {
   max-height: min(65vh, 620px) !important;
   overflow: auto !important;
+  /* Dentro de diálogos en columna flex, overflow:auto deja que el item se encoja hasta
+     casi cero (el formulario de arriba le quita el alto); con flex-shrink:0 conserva su altura. */
+  flex-shrink: 0;
+}
+
+/* En el teléfono no hay lugar para una caja con scroll propio: la tabla muestra todas sus
+   filas y el diálogo entero desplaza en vertical (el horizontal sigue en la tabla). */
+@media (max-width: 768px) {
+  .tabla-fija {
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
 }
 
 .tabla-fija thead th,
