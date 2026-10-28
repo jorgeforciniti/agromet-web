@@ -10,11 +10,17 @@ export const ESTACION_INICIAL = '2049'; // El Colmenar
 export const MAX_FAVORITAS = 8;
 
 const CLAVE_PREFERENCIAS = 'agromet.estaciones';
+/** Copia local de las preferencias de la cuenta (se borra al cerrar sesión) */
+const CLAVE_CUENTA = 'agromet.estaciones.cuenta';
 
-/** Preferencias de estaciones que se guardan en el navegador */
-interface PreferenciasEstaciones {
+/** Favoritas y predeterminada: un juego para el visitante y otro para la cuenta */
+export interface FavoritasEstaciones {
   favoritas: string[];
   predeterminada: string | null;
+}
+
+/** Preferencias de estaciones que se guardan en el navegador */
+interface PreferenciasEstaciones extends FavoritasEstaciones {
   ultima: string | null;
 }
 
@@ -26,8 +32,12 @@ interface PreferenciasEstaciones {
  * - Predeterminada: la que se carga al entrar al sitio (una sola, opcional).
  * - Favoritas: las estaciones de interés del usuario, en el orden en que las marcó.
  *
- * Por ahora se guardan sólo en este navegador (localStorage); la lectura y la escritura
- * toleran que el almacenamiento no esté disponible (modo privado, bloqueado).
+ * Hay dos juegos de favoritas/predeterminada que nunca se mezclan solos:
+ * - el del visitante, en este navegador (localStorage);
+ * - el de la cuenta, cuando hay sesión: lo carga y lo guarda CuentaPreferenciasService en el
+ *   servidor (usarCuenta / volverAVisitante). Mientras tanto, el del visitante no se toca.
+ * La estación activa (y la última usada) es una sola, con o sin sesión.
+ * La lectura y la escritura toleran que el almacenamiento no esté disponible.
  */
 @Injectable({
   providedIn: 'root'
@@ -38,6 +48,15 @@ export class StationService {
 
   private readonly analytics = inject(AnalyticsService);
   private readonly preferencias = this.leerPreferencias();
+
+  /** Favoritas del visitante (se conservan aunque se esté usando la cuenta) */
+  private visitante: FavoritasEstaciones = {
+    favoritas: this.preferencias.favoritas,
+    predeterminada: this.preferencias.predeterminada
+  };
+
+  /** Con sesión: a quién pertenecen las favoritas en pantalla y cómo guardarlas */
+  private cuenta: { uid: string; guardar: (p: FavoritasEstaciones) => void } | null = null;
 
   private readonly activaSubject = new BehaviorSubject<string>(
     this.preferencias.predeterminada ?? this.preferencias.ultima ?? ESTACION_INICIAL
@@ -119,6 +138,70 @@ export class StationService {
     this.guardar();
   }
 
+  get enCuenta(): boolean {
+    return this.cuenta !== null;
+  }
+
+  /** Favoritas del visitante en este navegador (para ofrecer pasarlas a la cuenta). */
+  get favoritasVisitante(): FavoritasEstaciones {
+    return { ...this.visitante };
+  }
+
+  /**
+   * Pasa a mostrar las favoritas de la cuenta. Cada cambio posterior se guarda con `guardar`
+   * (al servidor) y en una copia local para la próxima carga; el juego del visitante no cambia.
+   */
+  usarCuenta(uid: string, prefs: FavoritasEstaciones, guardar: (p: FavoritasEstaciones) => void): void {
+    this.cuenta = { uid, guardar };
+    const favoritas = prefs.favoritas.slice(0, MAX_FAVORITAS);
+    // Lo que vino del servidor no se vuelve a enviar
+    this.ultimasGuardadas = { favoritas, predeterminada: prefs.predeterminada };
+    this.favoritasSubject.next(favoritas);
+    this.predeterminadaSubject.next(prefs.predeterminada);
+    this.guardarCopiaCuenta();
+    if (prefs.predeterminada) {
+      this.setActiva(prefs.predeterminada);
+    }
+  }
+
+  /** Copia local de la cuenta `uid` (para mostrarla al instante mientras responde el servidor). */
+  copiaCuenta(uid: string): FavoritasEstaciones | null {
+    try {
+      const c = JSON.parse(localStorage.getItem(CLAVE_CUENTA) ?? 'null');
+      return c && c.uid === uid && Array.isArray(c.favoritas)
+        ? { favoritas: c.favoritas.map(String), predeterminada: c.predeterminada ?? null }
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Sin sesión: vuelven las favoritas del visitante y se borra la copia de la cuenta. */
+  volverAVisitante(): void {
+    if (!this.cuenta) return;
+    this.cuenta = null;
+    try {
+      localStorage.removeItem(CLAVE_CUENTA);
+    } catch {
+      // nada que borrar
+    }
+    this.favoritasSubject.next(this.visitante.favoritas);
+    this.predeterminadaSubject.next(this.visitante.predeterminada);
+  }
+
+  private guardarCopiaCuenta(): void {
+    if (!this.cuenta) return;
+    try {
+      localStorage.setItem(CLAVE_CUENTA, JSON.stringify({
+        uid: this.cuenta.uid,
+        favoritas: this.favoritasSubject.value,
+        predeterminada: this.predeterminadaSubject.value
+      }));
+    } catch {
+      // sin almacenamiento: sólo queda en el servidor
+    }
+  }
+
   private leerPreferencias(): PreferenciasEstaciones {
     const vacias: PreferenciasEstaciones = { favoritas: [], predeterminada: null, ultima: null };
     try {
@@ -138,15 +221,29 @@ export class StationService {
   }
 
   private guardar(): void {
-    const datos: PreferenciasEstaciones = {
-      favoritas: this.favoritasSubject.value,
-      predeterminada: this.predeterminadaSubject.value,
-      ultima: this.activaSubject.value
-    };
+    if (this.cuenta) {
+      // Con sesión, favoritas y predeterminada son de la cuenta: al servidor y a su copia local
+      const actuales = { favoritas: this.favoritasSubject.value, predeterminada: this.predeterminadaSubject.value };
+      if (!this.mismas(actuales, this.ultimasGuardadas)) {
+        this.ultimasGuardadas = actuales;
+        this.guardarCopiaCuenta();
+        this.cuenta.guardar(actuales);
+      }
+    } else {
+      this.visitante = { favoritas: this.favoritasSubject.value, predeterminada: this.predeterminadaSubject.value };
+    }
+    const datos: PreferenciasEstaciones = { ...this.visitante, ultima: this.activaSubject.value };
     try {
       localStorage.setItem(CLAVE_PREFERENCIAS, JSON.stringify(datos));
     } catch {
       // Sin almacenamiento disponible: las preferencias duran sólo esta visita.
     }
+  }
+
+  /** Último juego enviado a la cuenta: evita guardar cuando sólo cambió la estación activa */
+  private ultimasGuardadas: FavoritasEstaciones | null = null;
+
+  private mismas(a: FavoritasEstaciones, b: FavoritasEstaciones | null): boolean {
+    return !!b && a.predeterminada === b.predeterminada && a.favoritas.join() === b.favoritas.join();
   }
 }

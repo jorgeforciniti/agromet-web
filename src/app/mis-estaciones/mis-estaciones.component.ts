@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { combineLatest, Subscription } from 'rxjs';
 import { StationService } from '../services/station.service';
+import { CuentaPreferenciasService } from '../services/cuenta-preferencias.service';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 
 /** Tarjeta de una estación favorita con su último dato */
@@ -40,6 +41,10 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
   cargando = true;
   error = false;
 
+  private readonly cuentaPreferencias = inject(CuentaPreferenciasService);
+  /** Favoritas del navegador que se pueden pasar a la cuenta (0 = no ofrecer) */
+  readonly ofrecerImportar$ = this.cuentaPreferencias.ofrecerImportar$;
+
   private estaciones: WeatherStation[] = [];
   private sub?: Subscription;
 
@@ -70,6 +75,10 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+  }
+
+  importar(si: boolean): void {
+    this.cuentaPreferencias.responderImportacion(si);
   }
 
   usar(id: string): void {

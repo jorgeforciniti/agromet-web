@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
+import { Subscription } from 'rxjs';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { formatDecimal } from '../pipes/valor.pipe';
@@ -71,6 +72,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Aviso breve cuando no se puede agregar otra favorita */
   avisoFavoritas = '';
+  private subFavoritas?: Subscription;
   private avisoTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
@@ -79,6 +81,9 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    // Al iniciar o cerrar sesión cambia el juego de favoritas: se repintan marcadores y popups
+    this.subFavoritas = this.stationService.favoritas$.subscribe(() => this.actualizarMarcadores());
+
     this.weatherService.getStationsAll().subscribe({
       next: (stations) => {
         this.stations = stations
@@ -151,6 +156,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.subFavoritas?.unsubscribe();
     clearTimeout(this.avisoTimer);
     this.dejarDeSeguirTamanio?.();
     this.map?.remove();
@@ -211,6 +217,16 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectedStationId = activa;
       this.markers.get(activa)!.setIcon(this.blueIcon);
     }
+  }
+
+  private actualizarMarcadores(): void {
+    this.markers.forEach((marker, id) => {
+      marker.setIcon(this.iconoPara(id));
+      const station = this.stations.find(s => s.Identificacion === id);
+      if (station) {
+        marker.setPopupContent(this.popupHtml(station, parseFloat(station.lat), parseFloat(station.lon)));
+      }
+    });
   }
 
   private iconoPara(id: string): L.Icon {

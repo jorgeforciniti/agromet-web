@@ -6,6 +6,13 @@
     <a *ngIf="hayFavoritas" routerLink="/estaciones" class="mis-estaciones__admin">Administrar favoritas</a>
   </header>
 
+  <!-- Primera vez con sesión: la cuenta no tiene favoritas pero este navegador sí -->
+  <div *ngIf="(ofrecerImportar$ | async) as n" class="mis-estaciones__importar" role="status">
+    <span>¿Agregar a tu cuenta {{ n === 1 ? 'la favorita' : 'las ' + n + ' favoritas' }} de este navegador?</span>
+    <button type="button" class="tarjeta__btn tarjeta__btn--principal" (click)="importar(true)">Agregar</button>
+    <button type="button" class="tarjeta__btn" (click)="importar(false)">No, gracias</button>
+  </div>
+
   <!-- Sin favoritas: una sola línea que explica cómo agregarlas -->
   <p *ngIf="!hayFavoritas" class="mis-estaciones__vacio">
     Marcá con ☆ tus estaciones en <a routerLink="/estaciones">Red de estaciones</a> para verlas acá y
