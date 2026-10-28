@@ -18,6 +18,8 @@ import {
 import { MatTableModule } from '@angular/material/table';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -76,6 +78,7 @@ class ThermalDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    CopiarEnlaceComponent,
     GruposEstacionesPipe,
     CommonModule,
     ReactiveFormsModule,
@@ -113,6 +116,12 @@ export class ThermalSumDialogComponent implements OnInit {
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    return armarEnlace('suma-termica', { estacion: v.station, desde: v.from, hasta: v.to, base: v.base });
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
@@ -134,6 +143,15 @@ export class ThermalSumDialogComponent implements OnInit {
       from: [monthStart, Validators.required],
       to: [yesterday, Validators.required]
     }, { validators: this.dateRangeValidator });
+
+    // Consulta recibida por enlace (la estación ya llega como activa)
+    const consulta = consultaDe(this.data);
+    const desde = leerFecha(consulta['desde']);
+    const hasta = leerFecha(consulta['hasta']);
+    const base = leerNumero(consulta['base']);
+    if (desde) this.form.controls['from'].setValue(desde);
+    if (hasta) this.form.controls['to'].setValue(hasta);
+    if (base !== null) this.form.controls['base'].setValue(base);
 
     this.weatherService.getStationsAll().subscribe({
       next: (stations) => {

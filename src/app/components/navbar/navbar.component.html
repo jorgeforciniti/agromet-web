@@ -3,6 +3,18 @@
 
   <div class="user-info" *ngIf="userEmail; else guest">
     <span class="user-email">{{ userEmail }}</span>
+    <span *ngIf="emailSinConfirmar" class="email-aviso" role="status">
+      <ng-container [ngSwitch]="reenvio">
+        <ng-container *ngSwitchCase="'enviado'">Te reenviamos el correo de confirmación.</ng-container>
+        <ng-container *ngSwitchCase="'error'">No se pudo reenviar; probá en unos minutos.</ng-container>
+        <ng-container *ngSwitchDefault>
+          Confirmá tu email.
+          <button type="button" class="link-btn" (click)="reenviarVerificacion()" [disabled]="reenvio === 'enviando'">
+            Reenviar correo
+          </button>
+        </ng-container>
+      </ng-container>
+    </span>
     <button class="btn btn--ghost" (click)="logout()">Cerrar sesión</button>
   </div>
 

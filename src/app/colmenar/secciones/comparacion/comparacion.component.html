@@ -34,6 +34,7 @@
       <ng-container *ngIf="incompletos('a')">Meses incompletos {{ anio }}: {{ incompletos('a') }}. </ng-container>
       <ng-container *ngIf="incompletos('b')">Meses incompletos {{ anioB }}: {{ incompletos('b') }}.</ng-container>
     </p>
+    <app-exportar-grafico nombre="colmenar-comparacion"></app-exportar-grafico>
     <div class="grafico" role="img"
       [attr.aria-label]="variable.etiqueta + ' de ' + anio + ' y ' + anioB + ' con la normal 1991–2020. Valores exactos en la tabla.'">
       <canvas baseChart [type]="variable.tipo === 'media' ? 'line' : 'bar'" [data]="$any(datos)" [options]="$any(opciones)"></canvas>

@@ -1,4 +1,5 @@
 import { Chart, registerables } from 'chart.js';
+import { FUENTE_TEXTO } from '../shared/fuente';
 
 /*
  * Configuración común de Chart.js para todos los gráficos del sitio.
@@ -15,6 +16,17 @@ Chart.defaults.color = '#52514e';
 Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(17, 24, 39, .92)';
 Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
 Chart.defaults.plugins.tooltip.bodyColor = '#ffffff';
+
+// Fuente al pie de cada gráfico (subtítulo de Chart.js: reserva su propio espacio y
+// queda incluida en la imagen descargada). Un gráfico puede ocultarla con
+// options.plugins.subtitle.display = false.
+Chart.defaults.plugins.subtitle.display = true;
+Chart.defaults.plugins.subtitle.text = FUENTE_TEXTO;
+Chart.defaults.plugins.subtitle.position = 'bottom';
+Chart.defaults.plugins.subtitle.align = 'end';
+Chart.defaults.plugins.subtitle.color = '#5f6670';
+Chart.defaults.plugins.subtitle.font = { size: 12 };
+Chart.defaults.plugins.subtitle.padding = { top: 6, bottom: 0 };
 
 /**
  * Color fijo por variable meteorológica: la misma variable se ve igual en

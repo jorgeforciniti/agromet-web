@@ -23,12 +23,15 @@ import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha } from '../shared/enlace-consulta';
 import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { Injectable } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 @Injectable()
 export class CustomDateAdapter extends NativeDateAdapter {
@@ -80,6 +83,8 @@ const MY_DATE_FORMATS = {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ExportarGraficoComponent,
+    CopiarEnlaceComponent,
     GruposEstacionesPipe,
     CommonModule,
     ReactiveFormsModule,
@@ -153,6 +158,15 @@ export class ComparisonByLocationComponent implements OnInit {
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    return armarEnlace('comparar-localidades', {
+      estacion: v.estacion, comparar: v.compStation, desde: this.coerceDate(v.fechaDesde),
+      hasta: this.coerceDate(v.fechaHasta), variable: v.variable, formato: v.formato
+    });
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
@@ -180,6 +194,20 @@ export class ComparisonByLocationComponent implements OnInit {
       variable: ['temp_max', Validators.required],
       formato: ['diario', Validators.required]
     }, { validators: this.dateRangeValidator });
+
+    // Consulta recibida por enlace: se aplica y, si trae la segunda estación, se ejecuta
+    const consulta = consultaDe(this.data);
+    if (Object.keys(consulta).length) {
+      const desde = leerFecha(consulta['desde']);
+      const hasta = leerFecha(consulta['hasta']);
+      if (desde) this.form.controls['fechaDesde'].setValue(desde);
+      if (hasta) this.form.controls['fechaHasta'].setValue(hasta);
+      if (consulta['comparar']) this.form.controls['compStation'].setValue(consulta['comparar']);
+      // Sólo valores que existen en el formulario (un enlace editado a mano no rompe el gráfico)
+      if (this.variables.some(v => v.key === consulta['variable'])) this.form.controls['variable'].setValue(consulta['variable']);
+      if (['diario', 'decadico', 'mensual'].includes(consulta['formato'])) this.form.controls['formato'].setValue(consulta['formato']);
+      if (this.form.valid) this.onSubmit();
+    }
   }
 
   private dateRangeValidator(group: AbstractControl): ValidationErrors | null {

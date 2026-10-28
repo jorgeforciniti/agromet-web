@@ -22,6 +22,7 @@ import {
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 
 interface PhenologyDailyRecord {
@@ -125,6 +126,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ExportarGraficoComponent,
     GruposEstacionesPipe,
     CommonModule,
     ReactiveFormsModule,

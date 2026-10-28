@@ -21,6 +21,7 @@ import { ClasificacionBadgeComponent } from '../../shared/clasificacion-badge.co
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { completitudLluvia, CompletitudLluviaComponent } from './completitud-lluvia.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
 
 interface FilaLluvia {
   mes: number;
@@ -34,7 +35,7 @@ interface FilaLluvia {
 @Component({
   selector: 'app-colmenar-precipitaciones',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, ClasificacionBadgeComponent, AyudaTerminoComponent, EstadoCargaComponent, CompletitudLluviaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, ClasificacionBadgeComponent, AyudaTerminoComponent, EstadoCargaComponent, CompletitudLluviaComponent],
   templateUrl: './precipitaciones.component.html',
   styleUrls: ['../../shared/seccion.css', './precipitaciones.component.css']
 })

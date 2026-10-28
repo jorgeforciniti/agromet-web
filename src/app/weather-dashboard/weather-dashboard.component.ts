@@ -22,7 +22,10 @@ import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { BaseChartDirective } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { FUENTE_NOMBRE, FUENTE_URL, MAX_DIAS_DESCARGA } from '../shared/fuente';
+import { armarEnlace, consultaDe, leerFecha } from '../shared/enlace-consulta';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MAT_DATE_LOCALE, MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DATE_FORMATS } from '@angular/material/core';
@@ -143,6 +146,7 @@ type VariableSelection = {
 type DashboardScales = NonNullable<ChartConfiguration<'line' | 'bar', number[], string>['options']>['scales'];
 
 import { ValorPipe } from '../pipes/valor.pipe';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 @Component({
   selector: 'app-weather-dashboard',
@@ -150,6 +154,8 @@ import { ValorPipe } from '../pipes/valor.pipe';
   styleUrls: ['./weather-dashboard.component.css'],
   standalone: true,
   imports: [
+    ExportarGraficoComponent,
+    CopiarEnlaceComponent,
     GruposEstacionesPipe,
     CommonModule,
     ValorPipe,
@@ -245,6 +251,15 @@ export class WeatherDashboardComponent implements OnInit {
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  /** Consulta recibida por enlace (ver shared/enlace-consulta.ts) */
+  private readonly consulta = consultaDe(inject(MAT_DIALOG_DATA, { optional: true }));
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.weatherForm.getRawValue();
+    return armarEnlace('datos-localidad', { estacion: v.station, desde: v.desde, hasta: v.hasta });
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
@@ -265,6 +280,10 @@ export class WeatherDashboardComponent implements OnInit {
       desde: [defaultDates.desde, [Validators.required, dmyDateValidator()]],
       hasta: [defaultDates.hasta, [Validators.required, dmyDateValidator()]]
     });
+    const desde = leerFecha(this.consulta['desde']);
+    const hasta = leerFecha(this.consulta['hasta']);
+    if (desde) this.weatherForm.controls['desde'].setValue(desde);
+    if (hasta) this.weatherForm.controls['hasta'].setValue(hasta);
     this.loadStations();
   }
 
@@ -295,6 +314,8 @@ export class WeatherDashboardComponent implements OnInit {
           station: initialStation.Identificacion
         });
         this.syncVariableAvailability();
+        // Desde un enlace, la consulta se ejecuta sola
+        if (Object.keys(this.consulta).length) void this.loadData();
       }
     } catch (error) {
       console.error('Error loading stations:', error);
@@ -327,9 +348,9 @@ export class WeatherDashboardComponent implements OnInit {
       const diario = await lastValueFrom(diario$);
       this.diaryData = diario.data || [];
 
-      // Configurar la tabla: limitar a 31 días y mostrar mensaje si excede
-      if (this.diaryData.length > 31) {
-        this.truncatedDiaryData = this.diaryData.slice(0, 31);
+      // Tabla y descarga: como máximo los últimos 31 días del período
+      if (this.diaryData.length > MAX_DIAS_DESCARGA) {
+        this.truncatedDiaryData = this.diaryData.slice(-MAX_DIAS_DESCARGA);
         this.showLimitMessage = true;
       } else {
         this.truncatedDiaryData = this.diaryData;
@@ -653,6 +674,7 @@ export class WeatherDashboardComponent implements OnInit {
     csvRows.push(`"Nota: La información corresponde a la estación ${stationName} en el período comprendido entre el ${desdeLegible} y el ${hastaLegible}."`);
     csvRows.push('"Los datos son de carácter provisional y puede estar sujeta a modificaciones."');
     csvRows.push('"La EEAOC no asume responsabilidad por las decisiones que se tomen con base a esta información."');
+    csvRows.push(`"Fuente: ${FUENTE_NOMBRE} - ${FUENTE_URL}"`);
 
     const csvContent = csvRows.join('\n');
     const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); // UTF-8 BOM

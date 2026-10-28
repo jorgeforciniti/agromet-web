@@ -21,6 +21,7 @@
       </div>
     </div>
 
+    <app-exportar-grafico nombre="colmenar-precipitaciones"></app-exportar-grafico>
     <div class="grafico" role="img" [attr.aria-label]="'Precipitación mensual ' + anio + ' y normal 1991–2020. Valores exactos en la tabla.'">
       <canvas baseChart [type]="'bar'" [data]="$any(datos)" [options]="opciones"></canvas>
     </div>

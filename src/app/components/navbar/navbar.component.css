@@ -16,3 +16,25 @@
   color: var(--muted);
   font-weight: 600;
 }
+/* Aviso de email sin confirmar (cuentas con correo y contraseña) */
+.email-aviso {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #9a3412;
+}
+
+.email-aviso .link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.user-info {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

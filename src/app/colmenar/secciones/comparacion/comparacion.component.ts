@@ -14,6 +14,7 @@ import {
 } from '../../colmenar.models';
 import { COLOR, fmt, fmtSigno, INDICADORES, MESES, MESES_CORTOS, normalDeMes, opcionesBase, porMes } from '../../colmenar.utils';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
 
 type VariableComp = 'pp' | 'tmax' | 'tmin' | IndicadorExtremo;
 
@@ -42,7 +43,7 @@ interface FilaComp {
 @Component({
   selector: 'app-colmenar-comparacion',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, EstadoCargaComponent],
   templateUrl: './comparacion.component.html',
   styleUrls: ['../../shared/seccion.css']
 })

@@ -16,6 +16,7 @@ import { ChartConfiguration } from 'chart.js';
 import { FeatureCollection, Point } from 'geojson';
 import { SIN_DATO, formatValor } from '../pipes/valor.pipe';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 // Tipo para las claves de los mapas base
 type BaseMapKey = 'satellite' | 'osm';
@@ -64,7 +65,7 @@ interface ChartWeatherRow extends HourlyWeatherRow {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule, MatIconModule],
+  imports: [ExportarGraficoComponent, CommonModule, FormsModule, MatDialogModule, MatIconModule],
   templateUrl: './datos-online.component.html',
   styleUrls: ['./datos-online.component.css']
 })

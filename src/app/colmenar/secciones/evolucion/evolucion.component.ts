@@ -8,6 +8,7 @@ import { AnomaliaMensual, AnomaliasResponse, EstadoCarga, NormalesResponse, Norm
 import { COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from '../../colmenar.utils';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
 
 type Variable = 'max' | 'min' | 'pp';
 
@@ -66,7 +67,7 @@ const VARIABLES: DefVariable[] = [
 @Component({
   selector: 'app-colmenar-evolucion',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
   templateUrl: './evolucion.component.html',
   styleUrls: ['../../shared/seccion.css']
 })

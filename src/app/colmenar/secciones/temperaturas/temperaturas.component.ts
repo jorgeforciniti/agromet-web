@@ -6,6 +6,7 @@ import { AnomaliaMensual, AnomaliasResponse, Mensual, MensualesResponse, Recurso
 import { COLOR, fmt, fmtSigno, MESES, MESES_CORTOS, opcionesBase, porMes } from '../../colmenar.utils';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
 
 type Variable = 'max' | 'min';
 
@@ -21,7 +22,7 @@ interface FilaTemp {
 @Component({
   selector: 'app-colmenar-temperaturas',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
   templateUrl: './temperaturas.component.html',
   styleUrls: ['../../shared/seccion.css']
 })

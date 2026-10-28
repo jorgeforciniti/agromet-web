@@ -24,6 +24,7 @@
 
     <div class="grid-2" *ngIf="anomalias.estado === 'ok'">
       <div>
+        <app-exportar-grafico nombre="colmenar-temperaturas"></app-exportar-grafico>
         <div class="grafico" role="img" [attr.aria-label]="etiquetaVariable + ' mensual ' + anio + ' y normal 1991–2020. Valores exactos en la tabla.'">
           <canvas baseChart [type]="'line'" [data]="datosSerie" [options]="opcionesSerie"></canvas>
         </div>
@@ -31,6 +32,7 @@
       <div>
         <h3 class="panel__titulo panel__titulo--sm">Anomalía mensual (°C) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
         <p class="panel__sub">Rojo: más cálido que lo normal · Azul: más frío. Sólo meses completos.</p>
+        <app-exportar-grafico nombre="colmenar-temperaturas-anomalias"></app-exportar-grafico>
         <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Anomalías mensuales de ' + etiquetaVariable">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
         </div>

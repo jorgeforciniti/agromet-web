@@ -18,6 +18,8 @@ export class AuthComponent {
   isLoginMode = true;
   errorMessage = '';
   successMessage = '';
+  /** Se acaba de registrar: en vez del formulario se muestra el aviso y "Continuar" */
+  cuentaCreada = false;
 
   constructor(
     private fb: FormBuilder,
@@ -32,8 +34,23 @@ export class AuthComponent {
     });
   }
 
+  /** Mensajes de Firebase en castellano (los originales vienen en inglés y con el código) */
   private getErrorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : 'Ocurrió un error inesperado';
+    const codigo = (error as { code?: string } | null)?.code ?? '';
+    const mensajes: Record<string, string> = {
+      'auth/email-already-in-use': 'Ya existe una cuenta con ese correo. Iniciá sesión o recuperá la contraseña.',
+      'auth/invalid-email': 'El correo electrónico no es válido.',
+      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+      'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+      'auth/wrong-password': 'Correo o contraseña incorrectos.',
+      'auth/user-not-found': 'No hay una cuenta con ese correo.',
+      'auth/user-disabled': 'La cuenta está deshabilitada.',
+      'auth/too-many-requests': 'Demasiados intentos. Esperá unos minutos y volvé a probar.',
+      'auth/network-request-failed': 'No hay conexión. Revisá tu red y volvé a intentar.',
+      'auth/popup-closed-by-user': 'Se cerró la ventana de Google antes de terminar.',
+      'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permití las ventanas emergentes.'
+    };
+    return mensajes[codigo] ?? 'No se pudo completar la operación. Volvé a intentar.';
   }
 
   toggleMode(): void {
@@ -56,10 +73,14 @@ export class AuthComponent {
     try {
       if (this.isLoginMode) {
         await this.authService.login(email, password);
+        this.finish();
       } else {
+        // La cuenta queda creada y con sesión iniciada; se avisa que confirme el correo
         await this.authService.register(email, password);
+        this.cuentaCreada = true;
+        this.successMessage = `Cuenta creada. Te enviamos un correo a ${email} para confirmar la dirección `
+          + '(revisá también la carpeta de correo no deseado).';
       }
-      this.finish();
     } catch (error: unknown) {
       this.errorMessage = this.getErrorMessage(error);
       console.error('Error en autenticación', error);
@@ -77,6 +98,10 @@ export class AuthComponent {
   }
 
   close(): void {
+    this.finish();
+  }
+
+  continuar(): void {
     this.finish();
   }
 

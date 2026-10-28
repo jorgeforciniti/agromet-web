@@ -64,6 +64,7 @@
       </button>
     </div>
   </form>
+  <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
   <!-- Error -->
   <div *ngIf="errorMessage" class="error-message mat-elevation-z2">
@@ -216,6 +217,7 @@
           </div>
 
           <div class="chart-wrapper">
+            <app-exportar-grafico nombre="datos-por-localidad" [maxFilas]="31"></app-exportar-grafico>
             <canvas baseChart [data]="chartConfig.data" [options]="chartConfig.options" [type]="chartConfig.type"></canvas>
           </div>
         </ng-container>
@@ -290,7 +292,7 @@
             </table>
 
             <div *ngIf="showLimitMessage" class="limit-message">
-              No se pueden mostrar más de 31 días. Mostrando solo los primeros 31.
+              No se pueden mostrar ni descargar más de 31 días: se muestran los últimos 31 del período.
             </div>
 
             <div class="table-actions">

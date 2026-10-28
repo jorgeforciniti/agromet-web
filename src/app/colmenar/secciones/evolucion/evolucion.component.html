@@ -76,6 +76,7 @@
       <div>
         <h3 class="panel__titulo panel__titulo--sm">{{ variable.nombre }} · {{ etiquetaPeriodo }} ({{ variable.unidad }})</h3>
         <p class="panel__sub">Línea punteada gris: normal 1991–2020 · línea punteada negra: tendencia lineal.</p>
+        <app-exportar-grafico nombre="colmenar-evolucion"></app-exportar-grafico>
         <div class="grafico" role="img"
           [attr.aria-label]="descripcionValor + ' entre ' + desde + ' y ' + anio + ', normal y tendencia. Valores en la tabla.'">
           <canvas baseChart [type]="esLluvia ? 'bar' : 'line'" [data]="$any(datosSerie)" [options]="$any(opcionesSerie)"></canvas>
@@ -85,6 +86,7 @@
         <h3 class="panel__titulo panel__titulo--sm">Anomalía por año ({{ variable.unidad }}) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
         <p class="panel__sub" *ngIf="!esLluvia">Rojo: más cálido que lo normal · Azul: más frío. Sin barra: dato no válido.</p>
         <p class="panel__sub" *ngIf="esLluvia">Azul: más lluvioso que lo normal · Naranja: más seco. Sin barra: dato no válido.</p>
+        <app-exportar-grafico nombre="colmenar-evolucion-anomalias"></app-exportar-grafico>
         <div class="grafico" role="img" [attr.aria-label]="'Anomalías de ' + descripcionValor + ' por año'">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
         </div>

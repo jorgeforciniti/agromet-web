@@ -1,7 +1,9 @@
 ﻿import { Component, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -128,6 +130,7 @@ class DiseaseDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    CopiarEnlaceComponent,
     GruposEstacionesPipe,
     CommonModule,
     FormsModule,
@@ -176,6 +179,13 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  private readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => armarEnlace('enfermedades', {
+    estacion: this.selectedStation, enfermedad: this.selectedDisease, desde: this.fromDate, hasta: this.toDate
+  });
+
   constructor(
     private weatherService: WeatherService,
     private stationService: StationService,
@@ -190,6 +200,15 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     this.selectedDisease = 1;
     this.fromDate = this.formatApiDate(monthStart);
     this.toDate = this.formatApiDate(today);
+
+    // Consulta recibida por enlace (la estación ya llega como activa)
+    const consulta = consultaDe(this.dialogData);
+    const desde = leerFecha(consulta['desde']);
+    const hasta = leerFecha(consulta['hasta']);
+    const enfermedad = leerNumero(consulta['enfermedad']);
+    if (desde) this.fromDate = this.formatApiDate(desde);
+    if (hasta) this.toDate = this.formatApiDate(hasta);
+    if (enfermedad !== null) this.selectedDisease = enfermedad;
     this.appliedStation = this.selectedStation;
     this.appliedDisease = this.selectedDisease;
     this.appliedFromDate = this.fromDate;

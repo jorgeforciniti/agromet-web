@@ -82,13 +82,16 @@
         </button>
       </div>
     </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <div class="chart-section">
       <div class="chart-container" *ngIf="lineChartData.datasets.length">
+        <app-exportar-grafico nombre="comparacion-anios" [maxFilas]="31"></app-exportar-grafico>
         <canvas baseChart [data]="lineChartData" [options]="chartOptions" type="line"></canvas>
       </div>
 
       <div class="chart-container" *ngIf="barChartData.datasets.length">
+        <app-exportar-grafico nombre="comparacion-anios" [maxFilas]="31"></app-exportar-grafico>
         <canvas baseChart [data]="barChartData" [options]="chartOptions" type="bar"></canvas>
       </div>
     </div>

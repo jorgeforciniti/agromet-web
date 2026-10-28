@@ -74,12 +74,14 @@
     </div>
 
     <div class="grid-2">
+      <app-exportar-grafico nombre="colmenar-extremos-frecuencia"></app-exportar-grafico>
       <div class="grafico" role="img" [attr.aria-label]="indicador.etiqueta + ' por mes en ' + anio + ' y normal. Valores exactos en la tabla.'">
         <canvas baseChart [type]="'bar'" [data]="$any(datosFrecuencia)" [options]="opcionesFrecuencia"></canvas>
       </div>
       <div>
         <h3 class="panel__titulo panel__titulo--sm">Anomalía mensual (días) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
         <p class="panel__sub">Rojo: más días que lo normal · Azul: menos días. Sólo meses completos.</p>
+        <app-exportar-grafico nombre="colmenar-extremos-anomalias"></app-exportar-grafico>
         <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Anomalía mensual de ' + indicador.etiqueta">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
         </div>

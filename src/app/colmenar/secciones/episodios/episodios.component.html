@@ -35,6 +35,7 @@
     [mensaje]="anual.mensaje" fuente="episodios.php (anual)" [alto]="180" (reintentar)="consultar()"></app-estado-carga>
   <ng-container *ngIf="anual.estado === 'ok' || anual.estado === 'vacio'">
     <p class="panel__sub" *ngIf="anual.estado === 'vacio'">No se registraron episodios cálidos en el período.</p>
+    <app-exportar-grafico nombre="colmenar-episodios"></app-exportar-grafico>
     <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Cantidad de episodios cálidos por año entre ' + desde + ' y ' + hasta">
       <canvas baseChart [type]="'bar'" [data]="datosAnual" [options]="opcionesAnual"></canvas>
     </div>
