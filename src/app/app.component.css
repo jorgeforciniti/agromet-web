@@ -46,6 +46,17 @@
   box-sizing: border-box;
 }
 
+.global-disclaimer__privacidad {
+  display: block;
+  margin-top: 4px;
+}
+
+.global-disclaimer__privacidad a {
+  color: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .global-disclaimer {
     padding: 4px 8px 16px;

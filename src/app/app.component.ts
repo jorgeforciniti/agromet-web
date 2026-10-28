@@ -1,5 +1,5 @@
 ﻿import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -21,6 +21,7 @@ import { CuentaPreferenciasService } from './services/cuenta-preferencias.servic
   imports: [
     MatGridListModule,
     RouterOutlet,
+    RouterLink,
     MatToolbarModule,
     MatButtonModule,
     MatMenuModule,

@@ -34,6 +34,10 @@ export const routes: Routes = [
     loadComponent: () => import('./mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent)
   },
   {
+    path: 'privacidad',
+    loadComponent: () => import('./privacidad/privacidad.component').then((m) => m.PrivacidadComponent)
+  },
+  {
     path: 'auth',
     loadComponent: () => import('./auth/auth.component').then((m) => m.AuthComponent)
   },

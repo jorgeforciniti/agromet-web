@@ -1,0 +1,129 @@
+<!-- BORRADOR: texto pendiente de revisión institucional (Ley 25.326) antes de publicarse -->
+<div class="privacidad">
+  <header class="section-header">
+    <div class="section-kicker">SITIO WEB</div>
+    <h1 class="section-title">Política de privacidad</h1>
+    <p class="section-summary">Última actualización: {{ actualizada }}</p>
+  </header>
+
+  <article class="texto">
+    <p class="texto__intro">
+      Esta política explica qué datos recopila el sitio web de la Sección Agrometeorología de la
+      <strong>Estación Experimental Agroindustrial Obispo Colombres (EEAOC)</strong>, para qué los usa y cómo podés
+      ejercer tus derechos. La aplicación móvil AGROMET-EEAOC tiene su propia política, disponible en las tiendas
+      de aplicaciones.
+    </p>
+
+    <nav class="indice" aria-label="Contenido">
+      <a href="#sin-cuenta" (click)="ir($event, 'sin-cuenta')">Uso sin cuenta</a>
+      <a href="#estadisticas" (click)="ir($event, 'estadisticas')">Estadísticas de uso</a>
+      <a href="#cuenta" (click)="ir($event, 'cuenta')">Cuenta de usuario</a>
+      <a href="#solicitudes" (click)="ir($event, 'solicitudes')">Solicitudes de servicios</a>
+      <a href="#uso" (click)="ir($event, 'uso')">Uso y protección</a>
+      <a href="#derechos" (click)="ir($event, 'derechos')">Tus derechos</a>
+      <a href="#contacto" (click)="ir($event, 'contacto')">Contacto</a>
+    </nav>
+
+    <section id="sin-cuenta">
+      <h2>Uso del sitio sin cuenta</h2>
+      <p>
+        La información meteorológica es pública: para consultarla no hace falta registrarse ni dar datos personales.
+      </p>
+      <p>
+        Para que el sitio recuerde tus estaciones favoritas, la estación predeterminada y la última que consultaste,
+        esas preferencias se guardan <strong>sólo en tu navegador</strong> (almacenamiento local). No se envían a la
+        EEAOC mientras no inicies sesión, y podés borrarlas eliminando los datos del sitio en tu navegador.
+      </p>
+    </section>
+
+    <section id="estadisticas">
+      <h2>Estadísticas de uso (Google Analytics)</h2>
+      <p>
+        Usamos <strong>Google Analytics</strong>, de Google LLC, para conocer de forma agregada cómo se usa el sitio y
+        mejorarlo. Registra, entre otros datos:
+      </p>
+      <ul>
+        <li>las secciones visitadas y las herramientas que se abren;</li>
+        <li>las estaciones consultadas o marcadas como favoritas;</li>
+        <li>el tipo de dispositivo y navegador, y la ubicación aproximada (ciudad o región);</li>
+        <li>el sitio desde el que llegaste y la duración de la visita.</li>
+      </ul>
+      <p>
+        Para distinguir visitas, Google Analytics usa cookies e identificadores aleatorios. Si iniciaste sesión, se
+        asocia además el identificador interno de tu cuenta, que no incluye tu nombre ni tu email. No usamos estos
+        datos para publicidad ni para identificar personas.
+      </p>
+      <p>
+        Podés impedir esta medición bloqueando las cookies del sitio en tu navegador o instalando el
+        <a href="https://tools.google.com/dlpage/gaoptout?hl=es" target="_blank" rel="noopener">complemento de
+        inhabilitación de Google Analytics</a>. El tratamiento que hace Google se rige por su
+        <a href="https://policies.google.com/privacy?hl=es" target="_blank" rel="noopener">política de privacidad</a>.
+      </p>
+    </section>
+
+    <section id="cuenta">
+      <h2>Cuenta de usuario</h2>
+      <p>
+        Crear una cuenta es opcional. El inicio de sesión lo gestiona <strong>Firebase Authentication</strong> (Google):
+        guarda tu email y, si entrás con Google, tu nombre. La contraseña la administra Firebase y la EEAOC no tiene
+        acceso a ella. Te pedimos confirmar el email para habilitar las funciones de la cuenta.
+      </p>
+      <p>Con la cuenta, en los servidores de la EEAOC se guardan asociados a tu usuario:</p>
+      <ul>
+        <li>tus estaciones favoritas y la predeterminada, para tenerlas en todos tus dispositivos;</li>
+        <li>las consultas que guardes (herramienta, estación y período);</li>
+        <li>las alertas que configures (estación, variable y umbral).</li>
+      </ul>
+    </section>
+
+    <section id="solicitudes">
+      <h2>Solicitudes de servicios</h2>
+      <p>
+        Al pedir un servicio o un informe pedimos los datos del solicitante (nombre, institución, CUIT, condición
+        frente al IVA, área, email y teléfono) y, según el caso, los archivos adjuntos y comprobantes de pago que
+        envíes. Los usamos para tramitar la solicitud, facturarla cuando corresponde, entregarte la respuesta y
+        contactarte por ese motivo.
+      </p>
+    </section>
+
+    <section id="uso">
+      <h2>Uso y protección de los datos</h2>
+      <ul>
+        <li>Usamos los datos sólo para los fines indicados en esta política.</li>
+        <li>No los vendemos ni los cedemos a terceros, salvo obligación legal.</li>
+        <li>El sitio no muestra publicidad.</li>
+        <li>La comunicación con el sitio está cifrada (HTTPS) y el acceso a los datos de cuentas y solicitudes está
+          restringido al personal que los necesita para su tarea.</li>
+        <li>Conservamos los datos de la cuenta mientras esté activa y los de las solicitudes durante el plazo que
+          exijan las normas administrativas y contables.</li>
+      </ul>
+    </section>
+
+    <section id="derechos">
+      <h2>Tus derechos</h2>
+      <p>
+        Según la Ley 25.326 de Protección de los Datos Personales, podés pedir acceso a tus datos, su rectificación,
+        actualización o supresión, incluida la baja de tu cuenta, escribiendo a la dirección de contacto. El acceso
+        es gratuito en intervalos no inferiores a seis meses, salvo que acredites un interés legítimo.
+      </p>
+      <p class="aviso-legal">
+        La Agencia de Acceso a la Información Pública, en su carácter de Órgano de Control de la Ley N° 25.326,
+        tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus
+        derechos por incumplimiento de las normas vigentes en materia de protección de datos personales.
+      </p>
+    </section>
+
+    <section id="contacto">
+      <h2>Contacto</h2>
+      <p>
+        Sección Agrometeorología · Estación Experimental Agroindustrial Obispo Colombres<br>
+        William Cross 3150, Las Talitas, Tucumán, Argentina<br>
+        <a href="mailto:jorgeforciniti&#64;eeaoc.org.ar">jorgeforciniti&#64;eeaoc.org.ar</a> · (54 381) 452 1060
+      </p>
+      <p>
+        Si cambiamos esta política, la nueva versión se publica en esta página con su fecha de actualización.
+        <a routerLink="/">Volver al inicio</a>
+      </p>
+    </section>
+  </article>
+</div>
