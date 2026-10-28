@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { WeatherStation } from './weather.service';
+import { AnalyticsService } from './analytics.service';
 
 /** Estación inicial cuando el usuario todavía no eligió ninguna */
 export const ESTACION_INICIAL = '2049'; // El Colmenar
@@ -35,6 +36,7 @@ export class StationService {
   private selectedStationSubject = new BehaviorSubject<WeatherStation | null>(null);
   public selectedStation$: Observable<WeatherStation | null> = this.selectedStationSubject.asObservable();
 
+  private readonly analytics = inject(AnalyticsService);
   private readonly preferencias = this.leerPreferencias();
 
   private readonly activaSubject = new BehaviorSubject<string>(
@@ -75,6 +77,7 @@ export class StationService {
     if (!valor || valor === this.activaSubject.value) return;
     this.activaSubject.next(valor);
     this.guardar();
+    this.analytics.registrar('elegir_estacion', { estacion: valor });
   }
 
   get favoritas(): string[] {
@@ -100,6 +103,7 @@ export class StationService {
     } else {
       if (actuales.length >= MAX_FAVORITAS) return false;
       this.favoritasSubject.next([...actuales, id]);
+      this.analytics.registrar('agregar_favorita', { estacion: id });
     }
     this.guardar();
     return true;

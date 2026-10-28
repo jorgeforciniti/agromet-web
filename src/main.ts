@@ -1,9 +1,11 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
+import { getAnalytics, provideAnalytics, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
+import { medirVisitas } from './app/services/analytics.service';
 import { environment } from './app/environments/environment';
 import { provideHttpClient } from '@angular/common/http';
 import { enableProdMode, LOCALE_ID } from '@angular/core';
@@ -31,6 +33,12 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
+    // Estadísticas de visitas con Google Analytics (ID de medición de firebaseConfig), sin
+    // nada visible en la página: visitas, usuarios, páginas vistas por ruta (ScreenTracking)
+    // y, con sesión iniciada, el id anónimo de Firebase del usuario (UserTracking).
+    ...(medirVisitas()
+      ? [provideAnalytics(() => getAnalytics()), ScreenTrackingService, UserTrackingService]
+      : []),
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es-AR' },
