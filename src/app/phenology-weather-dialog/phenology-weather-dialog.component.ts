@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartData } from 'chart.js';
+import { ChartData, ChartDataset } from 'chart.js';
 import { VAR_COLOR, conAlfa } from '../charts/chart-theme';
+import { Normales, datasetNormal, normalDelDia, tieneValores } from '../charts/normales';
+import { NormalesService } from '../services/normales.service';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -230,6 +232,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  private readonly normalesService = inject(NormalesService);
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
@@ -323,9 +327,10 @@ export class PhenologyWeatherDialogComponent implements OnInit {
         this.formatApiDate(overallStart),
         this.formatApiDate(overallEnd),
         station
-      )
+      ),
+      normales: this.normalesService.deEstacion(station)
     }).subscribe({
-      next: ({ daily }) => {
+      next: ({ daily, normales }) => {
         const records = (daily.data ?? []).map((item) => ({
           fecha: item.fecha,
           tempMax: this.toNumber(item.temp_max),
@@ -338,7 +343,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
 
         this.summaries = windows.map((window) => this.summarizeStage(window, records));
         this.totals = this.buildTotalsSummary(this.summaries);
-        this.buildCharts(this.summaries, records, windows);
+        this.buildCharts(this.summaries, records, windows, normales);
         this.isLoading = false;
       },
       error: () => {
@@ -551,7 +556,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       eto: number;
       leafWetness: number;
     }>,
-    windows: StageWindow[]
+    windows: StageWindow[],
+    normales: Normales | null = null
   ): void {
     // Chart.js parte la etiqueta en renglones sólo si recibe un arreglo (un salto de línea no tiene efecto).
     const labels = summaries.map(item => {
@@ -581,6 +587,26 @@ export class PhenologyWeatherDialogComponent implements OnInit {
         }
       ]
     };
+
+    // Normales por estadío (si la estación las tiene): lluvia normal y demanda normal
+    // (ET normal × Kc del estadío), sumadas sobre los mismos días con dato.
+    const normalEstadio = windows.map(w => {
+      const fechas = records.filter(r => this.enVentana(r.fecha, w)).map(r => r.fecha);
+      return {
+        lluvia: this.sumaNormal(normales, 'rr', fechas, 1),
+        demanda: this.sumaNormal(normales, 'et', fechas, w.kc)
+      };
+    });
+    const lluviaNormal = normalEstadio.map(n => n.lluvia);
+    const demandaNormal = normalEstadio.map(n => n.demanda);
+    if (tieneValores(lluviaNormal)) {
+      this.stageChartData.datasets.push(
+        datasetNormal('Lluvia normal (mm)', lluviaNormal, VAR_COLOR.lluvia) as unknown as ChartDataset<'bar', number[]>);
+    }
+    if (tieneValores(demandaNormal)) {
+      this.stageChartData.datasets.push(
+        datasetNormal('Demanda normal ET x Kc (mm)', demandaNormal, VAR_COLOR.et) as unknown as ChartDataset<'bar', number[]>);
+    }
 
     const points = this.buildDailyBalanceSeries(records, windows);
     this.cumulativeChartData = {
@@ -614,6 +640,48 @@ export class PhenologyWeatherDialogComponent implements OnInit {
         }
       ]
     };
+
+    // Acumulados normales día a día con el mismo Kc por estadío
+    const ordenados = [...records].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    let lluviaAcum: number | null = 0;
+    let demandaAcum: number | null = 0;
+    const lluviaAcumNormal: (number | null)[] = [];
+    const demandaAcumNormal: (number | null)[] = [];
+    for (const r of ordenados) {
+      const kc = windows.find(w => this.enVentana(r.fecha, w))?.kc ?? 1;
+      const rr = normalDelDia(normales, 'rr', r.fecha);
+      const et = normalDelDia(normales, 'et', r.fecha);
+      lluviaAcum = lluviaAcum === null || rr === null ? null : lluviaAcum + rr;
+      demandaAcum = demandaAcum === null || et === null ? null : demandaAcum + et * kc;
+      lluviaAcumNormal.push(lluviaAcum === null ? null : this.round(lluviaAcum, 1));
+      demandaAcumNormal.push(demandaAcum === null ? null : this.round(demandaAcum, 1));
+    }
+    if (tieneValores(lluviaAcumNormal)) {
+      this.cumulativeChartData.datasets.push(
+        datasetNormal('Lluvia acumulada normal', lluviaAcumNormal, VAR_COLOR.lluvia) as unknown as ChartDataset<'line', number[]>);
+    }
+    if (tieneValores(demandaAcumNormal)) {
+      this.cumulativeChartData.datasets.push(
+        datasetNormal('Demanda acumulada normal', demandaAcumNormal, VAR_COLOR.et) as unknown as ChartDataset<'line', number[]>);
+    }
+  }
+
+  /** El día pertenece al estadío (desde el inicio inclusive hasta el fin exclusive). */
+  private enVentana(fecha: string, w: StageWindow): boolean {
+    const d = this.coerceDate(fecha);
+    return !!d && d >= w.start && d < w.end;
+  }
+
+  /** Suma de la normal diaria sobre los días dados, multiplicada por un factor (Kc). */
+  private sumaNormal(normales: Normales | null, clave: 'rr' | 'et', fechas: string[], factor: number): number | null {
+    if (!normales || !fechas.length) return null;
+    let total = 0;
+    for (const f of fechas) {
+      const v = normalDelDia(normales, clave, f);
+      if (v === null) return null;
+      total += v * factor;
+    }
+    return this.round(total, 1);
   }
 
   private buildDailyBalanceSeries(

@@ -1,5 +1,7 @@
 import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { SERIE_COLOR, conAlfa } from '../charts/chart-theme';
+import { NORMAL_DE_VARIABLE, Normales, datasetNormal, serieNormalAgrupada, tieneValores } from '../charts/normales';
+import { NormalesService } from '../services/normales.service';
 
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -158,6 +160,8 @@ export class ComparisonByLocationComponent implements OnInit {
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  private readonly normalesService = inject(NormalesService);
+
   /** Enlace a la consulta actual (botón "Copiar enlace") */
   readonly enlaceConsulta = (): string => {
     const v = this.form.getRawValue();
@@ -271,13 +275,16 @@ export class ComparisonByLocationComponent implements OnInit {
 
     forkJoin({
       base: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), estacion),
-      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), compStation)
+      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), compStation),
+      normalesBase: this.normalesService.deEstacion(estacion),
+      normalesComp: this.normalesService.deEstacion(compStation)
     }).subscribe({
-      next: ({ base, comp }) => {
+      next: ({ base, comp, normalesBase, normalesComp }) => {
         const baseStation = this.stations.find(s => s.Identificacion === estacion)?.nombre || estacion;
         const compStationName = this.stations.find(s => s.Identificacion === compStation)?.nombre || compStation;
 
-        this.applyBuildCharts(base.data, comp.data, baseStation, compStationName, variable, formato);
+        this.applyBuildCharts(base.data, comp.data, baseStation, compStationName, variable, formato,
+          [normalesBase, normalesComp]);
         this.isLoading = false;
       },
       error: (error) => {
@@ -297,7 +304,8 @@ export class ComparisonByLocationComponent implements OnInit {
     baseStation: string,  // <- Cambiado aquí
     compStation: string,  // <- Cambiado aquí
     key: string,
-    formato: string
+    formato: string,
+    normales: [Normales | null, Normales | null] = [null, null]
   ): void {
     const meta = this.variables.find(v => v.key === key)!;
     const isBar = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
@@ -377,6 +385,19 @@ export class ComparisonByLocationComponent implements OnInit {
       }
     }
     this.aplicarEstiloSeries(meta.label);
+
+    // Normal de cada estación (si la tiene), punteada y del color de su serie.
+    const nombres = [baseStation, compStation];
+    [baseData, compData].forEach((datos, i) => {
+      const serie = serieNormalAgrupada(normales[i], NORMAL_DE_VARIABLE[key], datos.map(r => r.fecha), formato);
+      if (!tieneValores(serie)) return;
+      const normal = datasetNormal(`Normal ${nombres[i]}`, serie, SERIE_COLOR[i % SERIE_COLOR.length]);
+      if (isBar) {
+        this.barChartData.datasets.push(normal as unknown as ChartDataset<'bar', number[]>);
+      } else {
+        this.lineChartData.datasets.push(normal as unknown as ChartDataset<'line', number[]>);
+      }
+    });
   }
 
   /** Colores fijos para las dos series comparadas y título del eje Y con la variable y su unidad. */

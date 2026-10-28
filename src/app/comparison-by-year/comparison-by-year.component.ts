@@ -1,5 +1,7 @@
 import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { SERIE_COLOR, conAlfa } from '../charts/chart-theme';
+import { NORMAL_DE_VARIABLE, Normales, datasetNormal, serieNormalAgrupada, tieneValores } from '../charts/normales';
+import { NormalesService } from '../services/normales.service';
 
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -154,6 +156,8 @@ export class ComparisonByYearComponent implements OnInit {
 
   readonly data: Record<string, unknown>;
 
+  private readonly normalesService = inject(NormalesService);
+
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
@@ -276,9 +280,10 @@ export class ComparisonByYearComponent implements OnInit {
 
     forkJoin({
       base: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), estacion),
-      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(cFrom), formatDate(cTo), estacion)
+      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(cFrom), formatDate(cTo), estacion),
+      normales: this.normalesService.deEstacion(estacion)
     }).subscribe({
-      next: ({ base, comp }) => {
+      next: ({ base, comp, normales }) => {
         const baseYears = Array.from(
           new Set(base.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
         ).join('-');
@@ -287,7 +292,7 @@ export class ComparisonByYearComponent implements OnInit {
           new Set(comp.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
         ).join('-');
 
-        this.applyBuildCharts(base.data, comp.data, baseYears, compYears, variable, formato);
+        this.applyBuildCharts(base.data, comp.data, baseYears, compYears, variable, formato, normales);
         this.isLoading = false;
       },
       error: (error) => {
@@ -307,7 +312,8 @@ export class ComparisonByYearComponent implements OnInit {
     baseYear: string,
     compYear: string,
     key: string,
-    formato: string
+    formato: string,
+    normales: Normales | null = null
   ): void {
     const meta = this.variables.find(v => v.key === key)!;
     const isBar = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
@@ -387,6 +393,17 @@ export class ComparisonByYearComponent implements OnInit {
       }
     }
     this.aplicarEstiloSeries(meta.label);
+
+    // Normal de la estación en el mismo agrupamiento que el período base (si la tiene).
+    const serie = serieNormalAgrupada(normales, NORMAL_DE_VARIABLE[key], baseData.map(r => r.fecha), formato);
+    if (tieneValores(serie)) {
+      const normal = datasetNormal('Normal', serie);
+      if (isBar) {
+        this.barChartData.datasets.push(normal as unknown as ChartDataset<'bar', number[]>);
+      } else {
+        this.lineChartData.datasets.push(normal as unknown as ChartDataset<'line', number[]>);
+      }
+    }
   }
 
   /** Colores fijos para las dos series comparadas y título del eje Y con la variable y su unidad. */

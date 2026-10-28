@@ -14,6 +14,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ChartDataset } from 'chart.js';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
+import { ClaveNormal, Normales, datasetNormal, normalDiaria, tieneValores } from '../charts/normales';
+import { NormalesService } from '../services/normales.service';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
@@ -190,6 +192,9 @@ export class WeatherDashboardComponent implements OnInit {
   stations: WeatherStation[] = [];
   summaryData: WeatherSummaryRecord | null = null;
   diaryData: WeatherDiaryRecord[] = [];
+  /** Normales de la estación consultada (null si no tiene: no se grafican) */
+  private normales: Normales | null = null;
+  private readonly normalesService = inject(NormalesService);
 
   truncatedDiaryData: WeatherDiaryRecord[] = [];
   showLimitMessage = false;
@@ -345,8 +350,12 @@ export class WeatherDashboardComponent implements OnInit {
       this.summaryData = resumen.data?.[0] || null;
 
       const diario$ = this.weatherService.getWeatherDataDiary<WeatherDiaryRecord>(desde, hasta, station);
-      const diario = await lastValueFrom(diario$);
+      const [diario, normales] = await Promise.all([
+        lastValueFrom(diario$),
+        lastValueFrom(this.normalesService.deEstacion(station))
+      ]);
       this.diaryData = diario.data || [];
+      this.normales = normales;
 
       // Tabla y descarga: como máximo los últimos 31 días del período
       if (this.diaryData.length > MAX_DIAS_DESCARGA) {
@@ -375,6 +384,16 @@ export class WeatherDashboardComponent implements OnInit {
     const labels = this.diaryData.map(d => /^\d{4}-\d{2}-\d{2}/.test(d.fecha) ? `${d.fecha.slice(8, 10)}/${d.fecha.slice(5, 7)}` : d.fecha);
     const datasets: ChartDataset<'line' | 'bar', number[]>[] = [];
 
+    // Normal de cada variable (línea punteada del mismo color), sólo si la estación la tiene.
+    // La lluvia normal mensual se muestra como promedio diario (normal del mes ÷ días del mes).
+    const fechas = this.diaryData.map(d => d.fecha);
+    const agregarNormal = (clave: ClaveNormal, label: string, eje: string, color: string) => {
+      const serie = normalDiaria(this.normales, clave, fechas);
+      if (tieneValores(serie)) {
+        datasets.push({ ...datasetNormal(`Normal ${label}`, serie, color), yAxisID: eje } as unknown as ChartDataset<'line', number[]>);
+      }
+    };
+
     if (this.selectedVariables.temperatura) {
       datasets.push(
         {
@@ -394,6 +413,8 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.tmin, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('th', 'temp. máx. (°C)', 'yTemp', VAR_COLOR.tmax);
+      agregarNormal('tl', 'temp. mín. (°C)', 'yTemp', VAR_COLOR.tmin);
     }
 
     if (this.selectedVariables.humedad) {
@@ -415,6 +436,8 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.hrMin, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('hh', 'humedad máx. (%)', 'yHumedad', VAR_COLOR.hrMax);
+      agregarNormal('hl', 'humedad mín. (%)', 'yHumedad', VAR_COLOR.hrMin);
     }
 
     if (this.selectedVariables.lluvia) {
@@ -427,6 +450,7 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.lluvia, .75)
         } as ChartDataset<'bar', number[]>
       );
+      agregarNormal('rr', 'lluvia, promedio diario (mm)', 'yLluvia', VAR_COLOR.lluvia);
     }
 
     if (this.selectedVariables.et) {
@@ -439,6 +463,7 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.et, .75)
         } as ChartDataset<'bar', number[]>
       );
+      agregarNormal('et', 'evapotranspiración (mm)', 'yEt', VAR_COLOR.et);
     }
 
     if (this.selectedVariables.humHoja) {
@@ -451,6 +476,7 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.mojado, .75)
         } as ChartDataset<'bar', number[]>
       );
+      agregarNormal('hj', 'humedad de hoja (hs)', 'yHumHoja', VAR_COLOR.mojado);
     }
 
     if (this.selectedVariables.viento) {
@@ -472,6 +498,8 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.rafaga, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('vi', 'viento medio (km/h)', 'yViento', VAR_COLOR.viento);
+      agregarNormal('vix', 'viento máx. (km/h)', 'yViento', VAR_COLOR.rafaga);
     }
     if (this.selectedVariables.radSolar) {
       datasets.push(
@@ -484,6 +512,7 @@ export class WeatherDashboardComponent implements OnInit {
           backgroundColor: conAlfa(VAR_COLOR.radiacion, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('rg', 'rad. solar (W/m²)', 'yRad', VAR_COLOR.radiacion);
     }
 
     const scales: DashboardScales = {};
