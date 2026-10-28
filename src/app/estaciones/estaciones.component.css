@@ -58,23 +58,27 @@
   font-weight: 700;
 }
 
-.estaciones-map-row {
+/* Lista compacta + mapa. La altura del panel es común a ambos: el mapa no se estira a
+   todo el ancho en monitores grandes y la lista scrollea dentro de la misma altura. */
+.estaciones-layout {
+  --panel-h: clamp(480px, calc(100vh - 230px), 860px);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  grid-template-columns: minmax(400px, 500px) minmax(0, 1fr);
   gap: 16px;
-  align-items: stretch;
+  align-items: start;
   width: 100%;
   min-width: 0;
 }
 
 .estaciones-map-wrapper {
-  position: relative;
+  position: sticky;
+  top: 16px;
   min-width: 0;
+  height: var(--panel-h);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  height: clamp(360px, 46vh, 520px);
 }
 
 #estaciones-map {
@@ -82,107 +86,27 @@
   height: 100%;
 }
 
-.estaciones-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  overflow-x: hidden;
-  overflow-y: auto;
+/* Más especificidad e !important que la regla global .tabla-fija (máx. 65vh) */
+.estaciones-list .tabla-fija {
+  max-height: var(--panel-h) !important;
 }
 
-.estaciones-summary__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  min-height: 26px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
-  background: rgba(255, 255, 255, .84);
-  font-size: .68rem;
-  font-weight: 800;
-  letter-spacing: .06em;
-  color: color-mix(in srgb, var(--brand) 60%, #3f4750);
-}
-
-.estaciones-summary__item {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed var(--border);
-}
-
-.estaciones-summary__item:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-.estaciones-summary__label {
-  font-size: .74rem;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.estaciones-summary__value {
-  font-size: 1.14rem;
-  font-weight: 900;
-  color: var(--text);
-  overflow-wrap: break-word;
-}
-
-.estaciones-summary__station {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  padding-bottom: 10px;
-  margin-bottom: 2px;
-  border-bottom: 1px solid var(--border);
-}
-
-.estaciones-summary__station span {
-  overflow-wrap: break-word;
-}
-
-.estaciones-summary__station strong {
-  font-size: .98rem;
-  color: var(--text);
-}
-
-.estaciones-summary__station span {
-  font-size: .76rem;
-  color: var(--muted);
-}
-
-.estaciones-summary__hint {
-  margin: 0;
-  color: var(--muted);
-  font-size: .84rem;
-  line-height: 1.4;
-}
-
-@media (max-width: 900px) {
-  .estaciones-map-row {
-    grid-template-columns: 1fr;
+/* Tablet y teléfono: mapa arriba, lista abajo con todas sus filas (scroll de página) */
+@media (max-width: 960px) {
+  .estaciones-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .estaciones-summary {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 14px 20px;
+  .estaciones-map-wrapper {
+    position: relative;
+    top: auto;
+    order: -1;
+    height: clamp(320px, 55vh, 560px);
   }
 
-  .estaciones-summary__item {
-    flex: 1 1 140px;
-    border-bottom: 0;
-    padding-bottom: 0;
+  .estaciones-list .tabla-fija {
+    max-height: none !important;
+    overflow-y: hidden !important;
   }
 }
 
@@ -215,14 +139,13 @@
 
 .estaciones-table {
   width: 100%;
-  min-width: 560px;
   border-collapse: collapse;
   font-size: .9rem;
 }
 
 .estaciones-table thead th {
   text-align: left;
-  padding: 12px 14px;
+  padding: 10px 8px;
   background: var(--surface-2);
   color: var(--muted);
   font-size: .74rem;
@@ -251,37 +174,56 @@
 }
 
 .estaciones-table td {
-  padding: 10px 14px;
+  padding: 8px;
+  white-space: nowrap;
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
 
+.estaciones-table abbr {
+  text-decoration: none;
+  cursor: help;
+}
+
+/* Primera y última columna con el mismo margen que el borde del panel */
+.estaciones-table th:first-child,
+.estaciones-table td:first-child {
+  padding-left: 14px;
+}
+
+.estaciones-table th:last-child,
+.estaciones-table td:last-child {
+  padding-right: 14px;
+}
+
+/* Nombre arriba y ubicación debajo; la columna toma todo el ancho que dejan los datos */
 .station-name {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  width: 100%;
+  white-space: normal !important;
+}
+
+.station-name strong {
+  display: block;
   font-weight: 800;
-  white-space: nowrap;
-}
-
-.station-name mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  color: var(--brand);
-}
-
-.station-name__text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+  line-height: 1.2;
 }
 
 .station-name__meta {
+  display: block;
+  margin-top: 1px;
   font-weight: 600;
-  font-size: .78rem;
+  font-size: .76rem;
+  line-height: 1.25;
   color: var(--muted);
+}
+
+.estaciones-table tbody tr.selected td:first-child {
+  box-shadow: inset 4px 0 0 var(--brand);
+}
+
+.station-time {
+  color: var(--muted) !important;
+  font-size: .82rem;
 }
 
 .estaciones-empty {
@@ -317,21 +259,21 @@
   font-size: .82rem;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 480px) {
   .estaciones-table {
-    font-size: .82rem;
+    font-size: .84rem;
   }
 
   .estaciones-table thead th,
   .estaciones-table td {
-    padding: 8px 10px;
+    padding: 8px 5px;
   }
 }
 
 /* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
 
-/* Temperatura, Humedad y Lluvia hoy */
-.estaciones-table th:nth-child(n+2):nth-child(-n+4),
-.estaciones-table td:nth-child(n+2):nth-child(-n+4) {
+/* Temperatura, Humedad, Lluvia hoy y hora */
+.estaciones-table th:nth-child(n+2),
+.estaciones-table td:nth-child(n+2) {
   text-align: right;
 }

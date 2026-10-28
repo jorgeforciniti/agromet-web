@@ -1,6 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
@@ -26,7 +25,7 @@ const ZONA_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-estaciones',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule],
   templateUrl: './estaciones.component.html',
   styleUrl: './estaciones.component.css'
 })
@@ -93,15 +92,20 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.stations.filter(s => (s.fecha_I ?? '').startsWith(todayStr)).length;
   }
 
-  get selectedStation(): StationRow | null {
-    return this.stations.find(s => s.Identificacion === this.selectedStationId) ?? null;
-  }
-
   private formatDateYMD(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  }
+
+  /** Hora de la última medición si es de hoy; si es más vieja, el día (así se nota el atraso). */
+  horaLabel(fecha: Date | null): string {
+    if (!fecha || isNaN(fecha.getTime())) return '—';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return this.formatDateYMD(fecha) === this.formatDateYMD(new Date())
+      ? `${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`
+      : `${pad(fecha.getDate())}/${pad(fecha.getMonth() + 1)}`;
   }
 
   zonaLabel(zona?: string): string {
@@ -193,8 +197,17 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  selectStation(id: string): void {
+  /**
+   * Marca la estación en el mapa y en la lista. Desde la lista, en pantallas angostas (mapa
+   * arriba de la lista) lleva el mapa a la vista; desde el mapa, desplaza la lista hasta la fila.
+   */
+  selectStation(id: string, desdeLista = false): void {
     this.selectedStationId = id;
+    if (desdeLista) {
+      this.mostrarMapa();
+    } else {
+      this.mostrarFila(id);
+    }
     const station = this.stations.find(s => s.Identificacion === id);
     const marker = this.markers.get(id);
 
@@ -203,13 +216,29 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     this.markers.forEach(m => m.setIcon(this.redIcon));
     marker.setIcon(this.blueIcon);
 
-    const lat = parseFloat(station.lat);
-    const lon = parseFloat(station.lon);
-    if (!isNaN(lat) && !isNaN(lon)) {
-      // Sin animación: así el mapa ya está en su posición final cuando abrimos el popup
-      // y el autoPan de Leaflet calcula bien si hace falta correrlo más para que no se corte.
-      this.map.setView([lat, lon], 10, { animate: false });
-    }
+    // Sin cambiar el zoom: el autoPan del popup corre el mapa sólo si la estación queda
+    // fuera de la vista o el popup se cortaría.
     marker.openPopup();
+  }
+
+  private mostrarMapa(): void {
+    const contenedor = this.map?.getContainer();
+    if (!contenedor) return;
+    const r = contenedor.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) {
+      contenedor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  /** Desplaza sólo el contenedor de la lista (no la página) para que la fila quede visible. */
+  private mostrarFila(id: string): void {
+    const fila = document.getElementById('estacion-' + id);
+    const lista = fila?.closest('.tabla-fija') as HTMLElement | null;
+    if (!fila || !lista || lista.scrollHeight <= lista.clientHeight) return;
+    const encabezado = lista.querySelector('thead')?.offsetHeight ?? 0;
+    const top = fila.offsetTop - encabezado;
+    if (top < lista.scrollTop || fila.offsetTop + fila.offsetHeight > lista.scrollTop + lista.clientHeight) {
+      lista.scrollTo({ top: Math.max(0, top - 8), behavior: 'smooth' });
+    }
   }
 }
