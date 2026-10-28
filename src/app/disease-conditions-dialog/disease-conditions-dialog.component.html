@@ -20,9 +20,23 @@
         <div class="native-field">
           <label for="disease-station">Estación</label>
           <select id="disease-station" name="station" [(ngModel)]="selectedStation" (ngModelChange)="onStationChange()" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
-            <option *ngFor="let station of stations" [ngValue]="station.Identificacion">
-              {{ station.Identificacion }} - {{ station.nombre }}
-            </option>
+            <ng-container *ngIf="stations | gruposEstaciones:(favoritas$ | async) as g">
+              <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
+                <option *ngFor="let station of g.favoritas" [ngValue]="station.Identificacion">
+                  {{ station.Identificacion }} - {{ station.nombre }}
+                </option>
+              </optgroup>
+              <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
+                <option *ngFor="let station of g.resto" [ngValue]="station.Identificacion">
+                  {{ station.Identificacion }} - {{ station.nombre }}
+                </option>
+              </optgroup>
+              <ng-container *ngIf="!g.favoritas.length">
+                <option *ngFor="let station of g.resto" [ngValue]="station.Identificacion">
+                  {{ station.Identificacion }} - {{ station.nombre }}
+                </option>
+              </ng-container>
+            </ng-container>
           </select>
         </div>
 

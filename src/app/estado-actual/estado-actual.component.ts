@@ -3,11 +3,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { AlertComponent } from '../alert/alert.component';
 import { WeatherForecastComponent } from '../weather-forecast/weather-forecast.component';
 import { LeafletGoesViewerComponent } from '../leaflet-goes-viewer/leaflet-goes-viewer.component';
+import { MisEstacionesComponent } from '../mis-estaciones/mis-estaciones.component';
 
 @Component({
   selector: 'app-estado-actual',
   standalone: true,
-  imports: [MatIconModule, AlertComponent, WeatherForecastComponent, LeafletGoesViewerComponent],
+  imports: [MatIconModule, AlertComponent, WeatherForecastComponent, LeafletGoesViewerComponent, MisEstacionesComponent],
   templateUrl: './estado-actual.component.html',
   styleUrl: './estado-actual.component.css'
 })

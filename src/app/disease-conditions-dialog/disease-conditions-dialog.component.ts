@@ -1,4 +1,4 @@
-﻿import { Component, Injectable, OnInit, ViewEncapsulation } from '@angular/core';
+﻿import { Component, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -16,6 +16,8 @@ import {
   NativeDateAdapter
 } from '@angular/material/core';
 import { DiseaseApiRecord, WeatherService, WeatherStation } from '../services/weather.service';
+import { ESTACION_INICIAL, StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 
 interface DiseaseOption {
   code: number;
@@ -126,6 +128,7 @@ class DiseaseDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
     FormsModule,
     MatDialogModule,
@@ -170,8 +173,12 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     return this.flagEnabled(this.selectedStationData?.isSoil);
   }
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
   constructor(
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<DiseaseConditionsDialogComponent>
   ) { }
 
@@ -179,7 +186,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const today = new Date();
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    this.selectedStation = '2049';
+    this.selectedStation = this.stationService.activa;
     this.selectedDisease = 1;
     this.fromDate = this.formatApiDate(monthStart);
     this.toDate = this.formatApiDate(today);
@@ -193,6 +200,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         this.stations = [...stations]
           .filter(st => st.Identificacion !== '20')
           .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        // La estación activa puede no estar en esta lista (se excluye la 20)
+        if (!this.stations.some(st => st.Identificacion === this.selectedStation)) {
+          this.selectedStation = this.appliedStation = ESTACION_INICIAL;
+        }
         this.ensureDiseaseSelectionIsValid();
         this.loadReport();
       },
@@ -402,6 +413,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   onStationChange(): void {
+    this.stationService.setActiva(this.selectedStation);
     this.ensureDiseaseSelectionIsValid();
   }
 

@@ -16,9 +16,23 @@
         <mat-form-field appearance="fill">
           <mat-label>Estación</mat-label>
           <select matNativeControl formControlName="estacion">
-            <option *ngFor="let st of stations" [value]="st.Identificacion">
-              {{ st.Identificacion }} - {{ st.nombre }}
-            </option>
+            <ng-container *ngIf="stations | gruposEstaciones:(favoritas$ | async) as g">
+              <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
+                <option *ngFor="let st of g.favoritas" [value]="st.Identificacion">
+                  {{ st.Identificacion }} - {{ st.nombre }}
+                </option>
+              </optgroup>
+              <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
+                <option *ngFor="let st of g.resto" [value]="st.Identificacion">
+                  {{ st.Identificacion }} - {{ st.nombre }}
+                </option>
+              </optgroup>
+              <ng-container *ngIf="!g.favoritas.length">
+                <option *ngFor="let st of g.resto" [value]="st.Identificacion">
+                  {{ st.Identificacion }} - {{ st.nombre }}
+                </option>
+              </ng-container>
+            </ng-container>
           </select>
         </mat-form-field>
 

@@ -1,5 +1,5 @@
 import { CdkTableModule } from '@angular/cdk/table';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,6 +17,8 @@ import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { BaseChartDirective } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -148,6 +150,7 @@ import { ValorPipe } from '../pipes/valor.pipe';
   styleUrls: ['./weather-dashboard.component.css'],
   standalone: true,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
     ValorPipe,
     ReactiveFormsModule,
@@ -239,9 +242,13 @@ export class WeatherDashboardComponent implements OnInit {
     return columns;
   }
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<WeatherDashboardComponent>
   ) {
     this.weatherForm = this.fb.group({
@@ -281,7 +288,7 @@ export class WeatherDashboardComponent implements OnInit {
     try {
       const stations$ = this.weatherService.getStationsAll();
       this.stations = await lastValueFrom(stations$);
-      const defaultStation = this.stations.find(s => s.Identificacion === '2049');
+      const defaultStation = this.stations.find(s => s.Identificacion === this.stationService.activa);
       const initialStation = defaultStation || this.stations[0];
       if (initialStation) {
         this.weatherForm.patchValue({
@@ -570,6 +577,7 @@ export class WeatherDashboardComponent implements OnInit {
   }
 
   onStationChange(): void {
+    this.stationService.setActiva(this.weatherForm.value.station);
     this.syncVariableAvailability();
   }
 

@@ -1,4 +1,4 @@
-import { Component, Inject, Injectable, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -20,6 +20,8 @@ import {
   NativeDateAdapter
 } from '@angular/material/core';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 
 
 interface PhenologyDailyRecord {
@@ -123,6 +125,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -222,9 +225,13 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   stageChartData: ChartData<'bar', number[], string | string[]> = { labels: [], datasets: [] };
   cumulativeChartData: ChartData<'line', number[], string> = { labels: [], datasets: [] };
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<PhenologyWeatherDialogComponent>,
     @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
   ) {
@@ -233,7 +240,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      station: ['2049', Validators.required],
+      station: [this.stationService.activa, Validators.required],
       crop: ['SOJA', Validators.required],
       applyKc: [true],
       m1: [null as Date | null, Validators.required],
@@ -255,6 +262,9 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       this.applyCropPreset(crop as CropKey);
       this.resetResults();
     });
+
+    // La estación elegida acá pasa a ser la activa del sitio (ver StationService)
+    this.form.controls['station'].valueChanges.subscribe(id => this.stationService.setActiva(id));
 
     this.form.controls['applyKc'].valueChanges.subscribe(() => {
       if (this.summaries.length) {

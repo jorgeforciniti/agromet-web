@@ -5,6 +5,7 @@ import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { MAX_FAVORITAS, StationService } from '../services/station.service';
 
 interface StationRow extends WeatherStation {
   temp: number | null;
@@ -59,7 +60,23 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     popupAnchor: [0, -24]
   });
 
-  constructor(private weatherService: WeatherService) { }
+  /** Favorita: el mismo marcador, en dorado (ver .marcador-favorita en styles.css) */
+  private readonly favIcon = L.icon({
+    iconUrl: 'assets/icons/red-marker.png',
+    iconSize: [27, 27],
+    iconAnchor: [13, 27],
+    popupAnchor: [0, -22],
+    className: 'marcador-favorita'
+  });
+
+  /** Aviso breve cuando no se puede agregar otra favorita */
+  avisoFavoritas = '';
+  private avisoTimer?: ReturnType<typeof setTimeout>;
+
+  constructor(
+    private weatherService: WeatherService,
+    readonly stationService: StationService
+  ) { }
 
   ngOnInit(): void {
     this.weatherService.getStationsAll().subscribe({
@@ -134,6 +151,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.avisoTimer);
     this.dejarDeSeguirTamanio?.();
     this.map?.remove();
   }
@@ -153,6 +171,12 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.map.fitBounds(this.focusBounds);
 
+    // Botón "favorita" de los popups (el contenido del popup es HTML de Leaflet)
+    L.DomEvent.on(this.map.getContainer(), 'click', (e: Event) => {
+      const boton = (e.target as HTMLElement).closest<HTMLElement>('.popup-fav');
+      if (boton?.dataset['id']) this.alternarFavorita(boton.dataset['id']);
+    });
+
     setTimeout(() => this.map?.invalidateSize(), 150);
     this.renderMarkers();
   }
@@ -169,25 +193,10 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(lat) || isNaN(lon)) return;
 
       const marker = L.marker([lat, lon], {
-        icon: this.redIcon
+        icon: this.iconoPara(station.Identificacion)
       }).addTo(this.map!);
 
-      const location = this.locationLabel(station);
-      const zona = this.zonaLabel(station.zona);
-      const altura = station.alt != null ? station.alt + ' msnm' : 'S/D';
-
-      marker.bindPopup(`
-        <div class="station-popup">
-          <h4>${station.nombre}</h4>
-          ${location ? `<div class="popup-location">${location}${zona ? ' · ' + zona : ''}</div>` : ''}
-          <div class="popup-location popup-location--coords">Lat: ${formatDecimal(lat, 2)}° · Lon: ${formatDecimal(lon, 2)}° · ${altura}</div>
-          <div class="popup-grid">
-            <div>Temperatura: ${station.temp !== null ? formatDecimal(station.temp, 1) + ' °C' : '—'}</div>
-            <div>Humedad: ${station.hum !== null ? formatDecimal(station.hum, 0) + ' %' : '—'}</div>
-            <div>Lluvia hoy: ${station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—'}</div>
-          </div>
-        </div>
-      `, { autoPanPadding: [24, 24] });
+      marker.bindPopup(this.popupHtml(station, lat, lon), { autoPanPadding: [24, 24] });
 
       marker.on('click', () => this.selectStation(station.Identificacion));
 
@@ -195,6 +204,60 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.markers.set(station.Identificacion, marker);
       }
     });
+
+    // Al entrar, la estación activa del sitio queda marcada (sin abrir su popup)
+    const activa = this.stationService.activa;
+    if (!this.selectedStationId && this.markers.has(activa)) {
+      this.selectedStationId = activa;
+      this.markers.get(activa)!.setIcon(this.blueIcon);
+    }
+  }
+
+  private iconoPara(id: string): L.Icon {
+    if (id === this.selectedStationId) return this.blueIcon;
+    return this.stationService.esFavorita(id) ? this.favIcon : this.redIcon;
+  }
+
+  private popupHtml(station: StationRow, lat: number, lon: number): string {
+    const location = this.locationLabel(station);
+    const zona = this.zonaLabel(station.zona);
+    const altura = station.alt != null ? station.alt + ' msnm' : 'S/D';
+    const fav = this.stationService.esFavorita(station.Identificacion);
+    return `
+      <div class="station-popup">
+        <h4>${station.nombre}</h4>
+        ${location ? `<div class="popup-location">${location}${zona ? ' · ' + zona : ''}</div>` : ''}
+        <div class="popup-location popup-location--coords">Lat: ${formatDecimal(lat, 2)}° · Lon: ${formatDecimal(lon, 2)}° · ${altura}</div>
+        <div class="popup-grid">
+          <div>Temperatura: ${station.temp !== null ? formatDecimal(station.temp, 1) + ' °C' : '—'}</div>
+          <div>Humedad: ${station.hum !== null ? formatDecimal(station.hum, 0) + ' %' : '—'}</div>
+          <div>Lluvia hoy: ${station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—'}</div>
+        </div>
+        <button type="button" class="popup-fav${fav ? ' is-fav' : ''}" data-id="${station.Identificacion}"
+          aria-pressed="${fav}">${fav ? '★ Favorita' : '☆ Agregar a favoritas'}</button>
+      </div>
+    `;
+  }
+
+  /** Estrella de la lista o del popup. */
+  alternarFavorita(id: string, evento?: Event): void {
+    evento?.stopPropagation();
+    if (!this.stationService.alternarFavorita(id)) {
+      this.mostrarAviso(`Podés tener hasta ${MAX_FAVORITAS} favoritas. Quitá alguna para agregar otra.`);
+      return;
+    }
+    const station = this.stations.find(s => s.Identificacion === id);
+    const marker = this.markers.get(id);
+    if (station && marker) {
+      marker.setIcon(this.iconoPara(id));
+      marker.setPopupContent(this.popupHtml(station, parseFloat(station.lat), parseFloat(station.lon)));
+    }
+  }
+
+  private mostrarAviso(texto: string): void {
+    this.avisoFavoritas = texto;
+    clearTimeout(this.avisoTimer);
+    this.avisoTimer = setTimeout(() => this.avisoFavoritas = '', 5000);
   }
 
   /**
@@ -203,6 +266,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   selectStation(id: string, desdeLista = false): void {
     this.selectedStationId = id;
+    this.stationService.setActiva(id);
     if (desdeLista) {
       this.mostrarMapa();
     } else {
@@ -213,8 +277,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!station || !marker || !this.map) return;
 
-    this.markers.forEach(m => m.setIcon(this.redIcon));
-    marker.setIcon(this.blueIcon);
+    this.markers.forEach((m, mid) => m.setIcon(this.iconoPara(mid)));
 
     // Sin cambiar el zoom: el autoPan del popup corre el mapa sólo si la estación queda
     // fuera de la vista o el popup se cortaría.

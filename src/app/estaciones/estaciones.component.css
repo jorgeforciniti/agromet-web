@@ -277,3 +277,64 @@
 .estaciones-table td:nth-child(n+2) {
   text-align: right;
 }
+
+/* ===== Favoritas ===== */
+
+.section-hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: .84rem;
+}
+
+.fav-aviso:empty {
+  display: none;
+}
+
+.fav-aviso {
+  margin: 6px 0 0;
+  color: #9a3412;
+  font-size: .84rem;
+  font-weight: 700;
+}
+
+/* Estrella a la izquierda del nombre; área táctil de 32 px */
+.fav-btn {
+  float: left;
+  width: 32px;
+  height: 32px;
+  margin: -4px 4px -4px -8px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fav-btn:hover {
+  background: color-mix(in srgb, var(--brand) 8%, white);
+  color: #b7791f;
+}
+
+.fav-btn.is-fav {
+  color: #d69e2e;
+}
+
+:host ::ng-deep .popup-fav {
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 1px solid #e5d3a1;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #7a5a00;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+:host ::ng-deep .popup-fav.is-fav {
+  background: #fdf3d0;
+}

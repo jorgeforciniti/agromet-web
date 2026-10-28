@@ -9,6 +9,7 @@ import {
   WeatherStation
 } from '../services/weather.service';
 import { StationService } from '../services/station.service';
+import { MisEstacionesComponent } from '../mis-estaciones/mis-estaciones.component';
 import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 import { CountUpDirective } from '../directives/count-up.directive';
 
@@ -26,13 +27,13 @@ const ZONA_LABELS: Record<string, string> = {
   '5': 'Provincias Adyacentes'
 };
 
-const DEFAULT_STATION_ID = '2049'; // El Colmenar
 
 @Component({
   selector: 'app-bienvenida',
   standalone: true,
   imports: [
     CommonModule,
+    MisEstacionesComponent,
     MatDialogModule,
     MatIconModule,
     RouterModule,
@@ -95,7 +96,8 @@ export class BienvenidaComponent implements OnInit {
           return;
         }
 
-        const defaultIndex = this.stations.findIndex(s => s.Identificacion === DEFAULT_STATION_ID);
+        // El carrusel arranca en la estación activa (predeterminada o última usada)
+        const defaultIndex = this.stations.findIndex(s => s.Identificacion === this.stationService.activa);
         this.currentStationIndex = defaultIndex >= 0 ? defaultIndex : 0;
         this.selectCurrentStation();
       },

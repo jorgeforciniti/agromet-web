@@ -37,11 +37,25 @@
             [attr.title]="tooltip('ESTACION')">i</button>
         </label>
 
-        <select id="condStation" [(ngModel)]="selectedStation" class="select-wrapper" (change)="searchData()">
+        <select id="condStation" [(ngModel)]="selectedStation" class="select-wrapper" (change)="onStationChange()">
           <option value="" disabled>-- Seleccione --</option>
-          <option *ngFor="let estacion of estaciones" [value]="estacion.identificacion">
-            {{ estacion.nombre }}
-          </option>
+          <ng-container *ngIf="estaciones | gruposEstaciones:(favoritas$ | async):'identificacion' as g">
+            <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
+              <option *ngFor="let estacion of g.favoritas" [value]="estacion.identificacion">
+                {{ estacion.nombre }}
+              </option>
+            </optgroup>
+            <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
+              <option *ngFor="let estacion of g.resto" [value]="estacion.identificacion">
+                {{ estacion.nombre }}
+              </option>
+            </optgroup>
+            <ng-container *ngIf="!g.favoritas.length">
+              <option *ngFor="let estacion of g.resto" [value]="estacion.identificacion">
+                {{ estacion.nombre }}
+              </option>
+            </ng-container>
+          </ng-container>
         </select>
       </div>
 

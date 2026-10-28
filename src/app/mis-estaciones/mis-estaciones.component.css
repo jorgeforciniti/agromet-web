@@ -1,0 +1,226 @@
+:host {
+  display: block;
+}
+
+.mis-estaciones {
+  padding: 14px 16px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 7px solid #d69e2e;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.mis-estaciones__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 10px;
+}
+
+.mis-estaciones__titulo {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.mis-estaciones__titulo span {
+  color: #d69e2e;
+}
+
+.mis-estaciones__admin,
+.mis-estaciones__vacio a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.mis-estaciones__admin {
+  font-size: .86rem;
+}
+
+.mis-estaciones__vacio {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+/* Tarjetas: grilla en pantallas anchas, fila deslizable en el teléfono */
+.mis-estaciones__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.tarjeta--activa {
+  border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+  box-shadow: inset 4px 0 0 var(--brand);
+}
+
+.tarjeta--cargando {
+  min-height: 120px;
+}
+
+.tarjeta__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tarjeta__nombre {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tarjeta__nombre strong {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.tarjeta__nombre span {
+  font-size: .76rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tarjeta__chip {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.tarjeta__chip--activa {
+  background: color-mix(in srgb, var(--brand) 12%, white);
+  color: color-mix(in srgb, var(--brand) 80%, black);
+}
+
+.tarjeta__datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.tarjeta__datos div {
+  min-width: 0;
+}
+
+.tarjeta__datos dt {
+  font-size: .7rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.tarjeta__datos dd {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tarjeta__hora {
+  margin: 0;
+  font-size: .76rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tarjeta__hora--atrasada {
+  color: #9a3412;
+}
+
+.tarjeta__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.tarjeta__btn {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tarjeta__btn:hover {
+  background: color-mix(in srgb, var(--brand) 6%, white);
+}
+
+.tarjeta__btn--principal {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+  color: color-mix(in srgb, var(--brand) 85%, black);
+}
+
+.tarjeta__btn.is-on {
+  border-color: #e5d3a1;
+  background: #fdf3d0;
+  color: #7a5a00;
+}
+
+.tarjeta__btn--icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  margin-left: auto;
+  padding: 0;
+  color: var(--muted);
+}
+
+.tarjeta__btn--icono mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 600px) {
+  .mis-estaciones {
+    padding: 12px;
+  }
+
+  .mis-estaciones__lista {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: minmax(240px, 82%);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+  }
+
+  .tarjeta {
+    scroll-snap-align: start;
+  }
+}

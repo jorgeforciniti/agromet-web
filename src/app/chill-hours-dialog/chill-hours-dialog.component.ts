@@ -1,4 +1,4 @@
-import { Component, Inject, Injectable, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
@@ -19,6 +19,8 @@ import {
 } from '@angular/material/core';
 import { MatTableModule } from '@angular/material/table';
 import { WeatherService, WeatherStation, WeatherDataApiResponse } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 
 interface HourlyColdRecord {
   hora: string;
@@ -68,6 +70,7 @@ class ChillDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -101,9 +104,13 @@ export class ChillHoursDialogComponent implements OnInit {
   readonly bases = [7, 10];
   readonly data: Record<string, unknown>;
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<ChillHoursDialogComponent>,
     @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
   ) {
@@ -116,7 +123,7 @@ export class ChillHoursDialogComponent implements OnInit {
     const monthStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
 
     this.form = this.fb.group({
-      station: ['2049', Validators.required],
+      station: [this.stationService.activa, Validators.required],
       base: [7, Validators.required],
       from: [monthStart, Validators.required],
       to: [yesterday, Validators.required]
@@ -133,6 +140,9 @@ export class ChillHoursDialogComponent implements OnInit {
         this.loadError = 'No se pudieron cargar las estaciones disponibles.';
       }
     });
+
+    // La estación elegida acá pasa a ser la activa del sitio (ver StationService)
+    this.form.controls['station'].valueChanges.subscribe(id => this.stationService.setActiva(id));
   }
 
   calculate(): void {

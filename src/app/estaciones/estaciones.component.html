@@ -5,6 +5,8 @@
     <p class="section-summary" *ngIf="!loading">
       {{ totalCount }} estaciones activas · {{ reportingTodayCount }} reportando hoy
     </p>
+    <p class="section-hint">Marcá con ☆ tus estaciones favoritas: aparecen primero en las herramientas y en «Mis estaciones».</p>
+    <p class="fav-aviso" role="status" aria-live="polite">{{ avisoFavoritas }}</p>
   </header>
 
   <!-- Lista compacta a la izquierda y mapa a la derecha; en pantallas angostas, mapa arriba -->
@@ -29,6 +31,13 @@
               (click)="selectStation(s.Identificacion, true)" (keydown.enter)="selectStation(s.Identificacion, true)"
               tabindex="0">
               <td class="station-name">
+                <button type="button" class="fav-btn" [class.is-fav]="stationService.esFavorita(s.Identificacion)"
+                  [attr.aria-pressed]="stationService.esFavorita(s.Identificacion)"
+                  [attr.aria-label]="(stationService.esFavorita(s.Identificacion) ? 'Quitar ' : 'Agregar ') + s.nombre + (stationService.esFavorita(s.Identificacion) ? ' de favoritas' : ' a favoritas')"
+                  [title]="stationService.esFavorita(s.Identificacion) ? 'Quitar de favoritas' : 'Agregar a favoritas'"
+                  (click)="alternarFavorita(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">
+                  {{ stationService.esFavorita(s.Identificacion) ? '★' : '☆' }}
+                </button>
                 <strong>{{ s.nombre }}</strong>
                 <span class="station-name__meta">
                   {{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container>

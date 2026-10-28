@@ -2,7 +2,7 @@
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 import { OpenWeatherForecastItem, OpenWeatherForecastResponse, OpenWeatherNowResponse, WeatherService, WeatherStation } from '../services/weather.service';
-import { StationService } from '../services/station.service';
+import { ESTACION_INICIAL, StationService } from '../services/station.service';
 import { SunriseSunsetService } from '../services/sunrise-sunset.service';
 import { WeatherData, Forecast, TimeSpecificForecast } from '../models/weather-data';
 import { FormsModule } from '@angular/forms';
@@ -248,13 +248,14 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
     this.weatherService.getStations().subscribe({
       next: (data) => {
         this.stations = data;
-        if (!this.stationService.getSelectedStation()) {
-          const defaultStation = this.stations.find(
-            station => station.Identificacion === '2049' ||
-              station.nombre?.toLowerCase().includes('colmenar')
-          );
+        // Si en otra sección se eligió otra estación, el pronóstico la sigue
+        if (this.stationService.getSelectedStation()?.Identificacion !== this.stationService.activa) {
+          const defaultStation =
+            this.stations.find(station => station.Identificacion === this.stationService.activa) ||
+            this.stations.find(station => station.Identificacion === ESTACION_INICIAL);
           const stationToSelect = defaultStation || (this.stations.length > 0 ? this.stations[0] : null);
-          this.stationService.setSelectedStation(stationToSelect);
+          // Si la activa no está en esta lista se muestra otra, pero la activa no cambia
+          this.stationService.setSelectedStation(stationToSelect, false);
         }
       },
       error: () => {

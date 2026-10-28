@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, Injectable, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Injectable, TemplateRef, ViewChild, inject } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Feature, FeatureCollection, Point } from 'geojson';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +22,8 @@ registerLocaleData(localeEs);
 
 // ✅ Ajustá estos imports a tu estructura real
 import { StationsApiResponse, WeatherService, WeatherStation } from '../services/weather.service';
+import { ESTACION_INICIAL, StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { KpLatest, KpService } from '../services/kp.service';
 import {
   SprayAdvisorService,
@@ -103,6 +105,7 @@ type InfoKey =
   selector: 'app-conditions-to-apply',
   standalone: true,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
     ValorPipe,
     FormsModule,
@@ -200,8 +203,12 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   infoTitle = '';
   infoBody: string[] = [];
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
   constructor(
     private weatherService: WeatherService,
+    private stationService: StationService,
     private kp: KpService,
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<ConditionsToApplyComponent>,
@@ -340,9 +347,12 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
         const twoHoursAgo = new Date(Date.now() - 2 * 3600 * 1000);
         this.estacionesRecientes = this.estaciones.filter(est => new Date(est.fecha_I) >= twoHoursAgo);
 
+        // La activa si tiene dato reciente; si no, El Colmenar
+        const activa = this.stationService.activa;
         const defaultEst =
-          this.estacionesRecientes.find(est => est.identificacion === '2049') ||
-          this.estaciones.find(est => est.identificacion === '2049') ||
+          this.estacionesRecientes.find(est => est.identificacion === activa) ||
+          this.estacionesRecientes.find(est => est.identificacion === ESTACION_INICIAL) ||
+          this.estaciones.find(est => est.identificacion === ESTACION_INICIAL) ||
           this.estacionesRecientes[0] ||
           this.estaciones[0];
 
@@ -362,6 +372,12 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   }
 
   // ===== Datos horarios =====
+  /** Cambio desde el selector: la estación pasa a ser la activa del sitio y se consulta. */
+  onStationChange(): void {
+    this.stationService.setActiva(this.selectedStation);
+    this.searchData();
+  }
+
   searchData(): void {
     if (!this.selectedStation) return;
 

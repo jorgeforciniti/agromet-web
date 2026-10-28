@@ -9,6 +9,7 @@ import { seguirTamanioMapa } from '../maps/map-size';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
 import { WeatherService } from '../services/weather.service';
+import { StationService } from '../services/station.service';
 import { Chart } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { ChartConfiguration } from 'chart.js';
@@ -119,6 +120,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private datosService: DatosOnlineService,
     private dialogRef: MatDialogRef<DatosOnlineComponent>
   ) { }
@@ -129,7 +131,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         this.estaciones = data;
         this.loading = false;
         if (this.map) this.addMarkers(this.estaciones);
-        this.selectedStationId = '2049';
+        this.selectedStationId = this.stationService.activa;
         this.actualizarGrafico();
       },
       error: () => {
@@ -144,7 +146,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initMap();
     this.loadProvincias();
     setTimeout(() => {
-      this.selectedStationId = '2049';
+      this.selectedStationId = this.stationService.activa;
       this.actualizarGrafico();
     }, 200);
     setTimeout(() => {
@@ -223,6 +225,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         onEachFeature: (feature, layer) => {
           layer.on('click', () => {
             this.selectedStationId = feature.properties.id;
+            this.stationService.setActiva(this.selectedStationId);
             this.actualizarGrafico();
           });
           layer.bindPopup(this.makePopupHTML(feature.properties));

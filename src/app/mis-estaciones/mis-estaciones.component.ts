@@ -1,0 +1,117 @@
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { combineLatest, Subscription } from 'rxjs';
+import { StationService } from '../services/station.service';
+import { WeatherService, WeatherStation } from '../services/weather.service';
+
+/** Tarjeta de una estación favorita con su último dato */
+interface TarjetaEstacion {
+  id: string;
+  nombre: string;
+  ubicacion: string;
+  temp: number | null;
+  hum: number | null;
+  lluvia: number | null;
+  actualizado: Date | null;
+  /** El último dato no es de hoy */
+  atrasada: boolean;
+  predeterminada: boolean;
+  activa: boolean;
+}
+
+/**
+ * "Mis estaciones": las favoritas del usuario con su último dato, la predeterminada y la
+ * activa. Usa sólo estaciones.php (ya trae los valores actuales) y las preferencias de
+ * StationService, así que funciona igual con o sin sesión iniciada.
+ */
+@Component({
+  selector: 'app-mis-estaciones',
+  standalone: true,
+  imports: [CommonModule, RouterLink, MatIconModule],
+  templateUrl: './mis-estaciones.component.html',
+  styleUrl: './mis-estaciones.component.css'
+})
+export class MisEstacionesComponent implements OnInit, OnDestroy {
+  tarjetas: TarjetaEstacion[] = [];
+  /** Hay favoritas guardadas (aunque sus datos todavía no hayan llegado) */
+  hayFavoritas = false;
+  cargando = true;
+  error = false;
+
+  private estaciones: WeatherStation[] = [];
+  private sub?: Subscription;
+
+  constructor(
+    private weatherService: WeatherService,
+    private stationService: StationService
+  ) { }
+
+  ngOnInit(): void {
+    this.weatherService.getStationsAll().subscribe({
+      next: estaciones => {
+        this.estaciones = estaciones;
+        this.cargando = false;
+        this.armar();
+      },
+      error: () => {
+        this.cargando = false;
+        this.error = true;
+      }
+    });
+
+    this.sub = combineLatest([
+      this.stationService.favoritas$,
+      this.stationService.predeterminada$,
+      this.stationService.activa$
+    ]).subscribe(() => this.armar());
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+
+  usar(id: string): void {
+    this.stationService.setActiva(id);
+  }
+
+  alternarPredeterminada(t: TarjetaEstacion): void {
+    this.stationService.setPredeterminada(t.predeterminada ? null : t.id);
+  }
+
+  quitar(id: string): void {
+    this.stationService.alternarFavorita(id);
+  }
+
+  private armar(): void {
+    const favoritas = this.stationService.favoritas;
+    this.hayFavoritas = favoritas.length > 0;
+    const hoy = new Date().toDateString();
+
+    this.tarjetas = favoritas
+      .map(id => this.estaciones.find(e => e.Identificacion === id))
+      .filter((e): e is WeatherStation => !!e)
+      .map(e => {
+        const actualizado = e.fecha_I ? new Date(e.fecha_I) : null;
+        return {
+          id: e.Identificacion,
+          nombre: e.nombre,
+          ubicacion: [e.departamento, e.provincia].filter(Boolean).join(', '),
+          // Mismos rangos físicos que la red de estaciones: descarta errores del sensor
+          temp: this.enRango(e.temp_af, -25, 55),
+          hum: this.enRango(e.hum_af, 0, 100),
+          lluvia: this.enRango(e.RR_dia, 0, 400),
+          actualizado: actualizado && !isNaN(actualizado.getTime()) ? actualizado : null,
+          atrasada: !actualizado || actualizado.toDateString() !== hoy,
+          predeterminada: e.Identificacion === this.stationService.predeterminada,
+          activa: e.Identificacion === this.stationService.activa
+        };
+      });
+  }
+
+  private enRango(valor: string | undefined, min: number, max: number): number | null {
+    const n = parseFloat(valor ?? '');
+    return isNaN(n) || n < min || n > max ? null : n;
+  }
+}

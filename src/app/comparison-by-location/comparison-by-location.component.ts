@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { SERIE_COLOR, conAlfa } from '../charts/chart-theme';
 
 import { CommonModule } from '@angular/common';
@@ -22,6 +22,8 @@ import {
 import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
@@ -78,6 +80,7 @@ const MY_DATE_FORMATS = {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -147,9 +150,13 @@ export class ComparisonByLocationComponent implements OnInit {
 
   readonly data: Record<string, unknown>;
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<ComparisonByLocationComponent>,
     @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
   ) {
@@ -166,7 +173,7 @@ export class ComparisonByLocationComponent implements OnInit {
     const start = new Date();
     start.setDate(today.getDate() - 59);
     this.form = this.fb.group({
-      estacion: ['2049', Validators.required],
+      estacion: [this.stationService.activa, Validators.required],
       fechaDesde: [start, Validators.required],
       fechaHasta: [today, Validators.required],
       compStation: ['', Validators.required],  // <- Cambiado aquí
@@ -251,6 +258,9 @@ export class ComparisonByLocationComponent implements OnInit {
         console.error('Error al calcular comparación por localidad', error);
       }
     });
+
+    // La estación elegida acá pasa a ser la activa del sitio (ver StationService)
+    this.form.controls['estacion'].valueChanges.subscribe(id => this.stationService.setActiva(id));
   }
 
   private applyBuildCharts(

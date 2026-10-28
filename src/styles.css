@@ -437,3 +437,26 @@ table td {
     max-width: 96vw !important;
   }
 }
+
+/* Marcador de estación favorita en los mapas: el marcador rojo pasado a dorado */
+.leaflet-marker-icon.marcador-favorita {
+  filter: hue-rotate(40deg) saturate(1.8) brightness(1.05) drop-shadow(0 0 2px rgba(122, 90, 0, .7));
+}
+
+/* Texto sólo para lectores de pantalla. Angular Material carga esta clase recién cuando
+   la necesita alguno de sus componentes; se define acá para que funcione siempre. */
+.cdk-visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+  outline: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  left: 0;
+}
