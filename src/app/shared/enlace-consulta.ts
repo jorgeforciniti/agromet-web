@@ -21,6 +21,21 @@ export type Herramienta =
   | 'fenologia'
   | 'rinde-soja';
 
+/** Nombre visible de cada herramienta (consultas guardadas) */
+export const NOMBRE_HERRAMIENTA: Record<Herramienta, string> = {
+  'datos-localidad': 'Datos por localidad',
+  'tiempo-real': 'Datos en tiempo real',
+  'campania-lluvias': 'Lluvias por campaña',
+  'aplicar': 'Condiciones para aplicar',
+  'comparar-anios': 'Comparación entre años',
+  'comparar-localidades': 'Comparación entre localidades',
+  'horas-frio': 'Horas de frío',
+  'suma-termica': 'Sumas térmicas',
+  'enfermedades': 'Enfermedades',
+  'fenologia': 'Fenología y clima',
+  'rinde-soja': 'Rinde de soja'
+};
+
 /** Arma la URL absoluta; omite los parámetros vacíos. */
 export function armarEnlace(herramienta: Herramienta, params: Record<string, string | number | Date | null | undefined>): string {
   const q = new URLSearchParams({ herramienta });

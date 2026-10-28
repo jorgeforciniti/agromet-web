@@ -1,0 +1,150 @@
+<div class="mi-cuenta">
+  <header class="section-header">
+    <div class="section-kicker">TU ESPACIO</div>
+    <h1 class="section-title">Mi cuenta</h1>
+    @if (usuario$ | async; as u) {
+      <p class="section-summary">{{ u.displayName || u.email }}</p>
+    }
+  </header>
+
+  @if (usuario$ | async) {
+    <app-mis-estaciones id="estaciones"></app-mis-estaciones>
+
+    <!-- Consultas guardadas -->
+    <section class="bloque" id="consultas" aria-labelledby="titulo-consultas">
+      <h2 id="titulo-consultas" class="bloque__titulo">
+        <mat-icon aria-hidden="true">bookmarks</mat-icon> Mis consultas
+      </h2>
+
+      @if (errorConsultas) {
+        <p class="bloque__error" role="alert">{{ errorConsultas }}</p>
+      }
+
+      @if (consultas$ | async; as consultas) {
+        @if (consultas.length) {
+          <ul class="lista">
+            @for (c of consultas; track c.id) {
+              <li class="lista__item">
+                <div class="lista__texto">
+                  <strong>{{ c.nombre }}</strong>
+                  <span>{{ detalleConsulta(c) }}</span>
+                </div>
+                <div class="lista__acciones">
+                  <button type="button" class="btn-chico btn-chico--principal" (click)="abrirConsulta(c)">Abrir</button>
+                  <button type="button" class="btn-chico btn-chico--icono" (click)="borrarConsulta(c)"
+                    [attr.aria-label]="'Borrar la consulta ' + c.nombre" title="Borrar">
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="bloque__vacio">
+            Todavía no guardaste consultas. En cualquier herramienta de
+            <a routerLink="/datos">Datos y estadísticas</a>, usá <strong>Guardar consulta</strong> (debajo del
+            formulario) para volver a abrirla acá con la misma estación y el mismo período.
+          </p>
+        }
+      } @else if (!errorConsultas) {
+        <p class="bloque__vacio">Cargando…</p>
+      }
+    </section>
+
+    <!-- Alertas propias -->
+    <section class="bloque" id="alertas" aria-labelledby="titulo-alertas">
+      <h2 id="titulo-alertas" class="bloque__titulo">
+        <mat-icon aria-hidden="true">notifications</mat-icon> Mis alertas
+      </h2>
+      <p class="bloque__ayuda">
+        Se revisan con el último dato medido cada vez que entrás al sitio, y las que se cumplen aparecen
+        arriba de «Mis estaciones». Avisan de lo medido, no de lo pronosticado.
+      </p>
+
+      @if (errorAlertas) {
+        <p class="bloque__error" role="alert">{{ errorAlertas }}</p>
+      }
+
+      @if (alertas$ | async; as alertas) {
+        @if (alertas.length) {
+          <ul class="lista">
+            @for (a of alertas; track a.id) {
+              <li class="lista__item" [class.lista__item--inactiva]="!a.activa">
+                <div class="lista__texto">
+                  <strong>{{ nombreEstacion(a.estacion_id) }}</strong>
+                  <span>{{ tipos[a.variable].texto }} {{ a.umbral | number:'1.0-1' }} {{ tipos[a.variable].unidad }}</span>
+                </div>
+                <div class="lista__acciones">
+                  <label class="interruptor">
+                    <input type="checkbox" [checked]="a.activa" (change)="alternarAlerta(a)">
+                    {{ a.activa ? 'Activa' : 'Pausada' }}
+                  </label>
+                  <button type="button" class="btn-chico btn-chico--icono" (click)="borrarAlerta(a)"
+                    [attr.aria-label]="'Borrar la alerta de ' + nombreEstacion(a.estacion_id)" title="Borrar">
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        <form class="nueva-alerta" (ngSubmit)="agregarAlerta()">
+          <div class="campo">
+            <label for="alerta-estacion">Estación</label>
+            <select id="alerta-estacion" name="estacion" [(ngModel)]="nuevaEstacion" required>
+              <option value="" disabled>Elegí una estación</option>
+              @if (estaciones | gruposEstaciones:(favoritas$ | async); as g) {
+                @if (g.favoritas.length) {
+                  <optgroup label="★ Favoritas">
+                    @for (e of g.favoritas; track e.Identificacion) {
+                      <option [value]="e.Identificacion">{{ e.nombre }}</option>
+                    }
+                  </optgroup>
+                  <optgroup label="Todas las estaciones">
+                    @for (e of g.resto; track e.Identificacion) {
+                      <option [value]="e.Identificacion">{{ e.nombre }}</option>
+                    }
+                  </optgroup>
+                } @else {
+                  @for (e of g.resto; track e.Identificacion) {
+                    <option [value]="e.Identificacion">{{ e.nombre }}</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+          <div class="campo">
+            <label for="alerta-tipo">Condición</label>
+            <select id="alerta-tipo" name="tipo" [(ngModel)]="nuevaVariable" (ngModelChange)="cambioTipo()">
+              @for (v of variables; track v) {
+                <option [value]="v">{{ tipos[v].texto }}</option>
+              }
+            </select>
+          </div>
+          <div class="campo campo--corto">
+            <label for="alerta-umbral">Valor ({{ tipos[nuevaVariable].unidad }})</label>
+            <input id="alerta-umbral" name="umbral" type="number" step="0.5" [(ngModel)]="nuevoUmbral"
+              [min]="tipos[nuevaVariable].min" [max]="tipos[nuevaVariable].max" required>
+          </div>
+          <button type="submit" class="btn-chico btn-chico--principal" [disabled]="guardandoAlerta">Agregar alerta</button>
+        </form>
+      } @else if (!errorAlertas) {
+        <p class="bloque__vacio">Cargando…</p>
+      }
+    </section>
+
+    <p class="mi-cuenta__otros">
+      <mat-icon aria-hidden="true">assignment</mat-icon>
+      ¿Pediste un informe o un servicio? Seguilo en <a routerLink="/mis-solicitudes">Mis solicitudes</a>.
+    </p>
+  } @else {
+    <section class="bloque">
+      <p class="bloque__vacio">
+        Iniciá sesión para guardar tus estaciones favoritas, tus consultas y tus alertas, y tenerlas en
+        cualquier dispositivo.
+      </p>
+      <a class="btn-chico btn-chico--principal" routerLink="/auth" [queryParams]="{ returnUrl: '/mi-cuenta' }">Iniciar sesión</a>
+    </section>
+  }
+</div>

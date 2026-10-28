@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { combineLatest, Subscription } from 'rxjs';
 import { StationService } from '../services/station.service';
 import { CuentaPreferenciasService } from '../services/cuenta-preferencias.service';
+import { AlertaDisparada, AlertasUsuarioService, MedicionesEstacion, TIPOS_ALERTA } from '../services/alertas-usuario.service';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 
 /** Tarjeta de una estación favorita con su último dato */
@@ -45,8 +46,17 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
   /** Favoritas del navegador que se pueden pasar a la cuenta (0 = no ofrecer) */
   readonly ofrecerImportar$ = this.cuentaPreferencias.ofrecerImportar$;
 
+  /** Alertas de la cuenta que se cumplen con el último dato */
+  disparadas: AlertaDisparada[] = [];
+  readonly tipos = TIPOS_ALERTA;
+  private readonly alertas = inject(AlertasUsuarioService);
+  /** Mínima del día por estación (datos-alerta.php); se pide sólo si hay alertas de helada */
+  private minimas = new Map<string, number>();
+  private minimasPedidas = false;
+
   private estaciones: WeatherStation[] = [];
   private sub?: Subscription;
+  private subAlertas?: Subscription;
 
   constructor(
     private weatherService: WeatherService,
@@ -59,6 +69,7 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
         this.estaciones = estaciones;
         this.cargando = false;
         this.armar();
+        this.evaluarAlertas();
       },
       error: () => {
         this.cargando = false;
@@ -71,10 +82,49 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
       this.stationService.predeterminada$,
       this.stationService.activa$
     ]).subscribe(() => this.armar());
+
+    this.subAlertas = this.alertas.alertas$.subscribe(lista => {
+      if (lista?.some(a => a.activa && a.variable === 'temp_min')) this.pedirMinimas();
+      this.evaluarAlertas();
+    });
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+    this.subAlertas?.unsubscribe();
+  }
+
+  nombreEstacion(id: string): string {
+    return this.estaciones.find(e => e.Identificacion === id)?.nombre ?? `Estación ${id}`;
+  }
+
+  private pedirMinimas(): void {
+    if (this.minimasPedidas) return;
+    this.minimasPedidas = true;
+    this.weatherService.getAlerts<Record<string, unknown>>().subscribe({
+      next: r => {
+        for (const e of r.data ?? []) {
+          const id = String(e['identificacion'] ?? e['Identificacion'] ?? '');
+          const min = this.enRango(String(e['minimaTemperatura'] ?? ''), -25, 55);
+          if (id && min !== null) this.minimas.set(id, min);
+        }
+        this.evaluarAlertas();
+      },
+      error: () => undefined
+    });
+  }
+
+  /** Arma las mediciones de cada estación y pregunta qué alertas se cumplen. */
+  private evaluarAlertas(): void {
+    const mediciones = new Map<string, MedicionesEstacion>();
+    for (const e of this.estaciones) {
+      mediciones.set(e.Identificacion, {
+        minima: this.minimas.get(e.Identificacion) ?? null,
+        temperatura: this.enRango(e.temp_af, -25, 55),
+        lluvia: this.enRango(e.RR_dia, 0, 400)
+      });
+    }
+    this.disparadas = this.alertas.evaluar(mediciones);
   }
 
   importar(si: boolean): void {

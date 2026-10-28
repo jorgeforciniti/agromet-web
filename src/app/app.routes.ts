@@ -30,6 +30,10 @@ export const routes: Routes = [
     loadComponent: () => import('./estaciones/estaciones.component').then((m) => m.EstacionesComponent)
   },
   {
+    path: 'mi-cuenta',
+    loadComponent: () => import('./mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent)
+  },
+  {
     path: 'auth',
     loadComponent: () => import('./auth/auth.component').then((m) => m.AuthComponent)
   },

@@ -1,14 +1,12 @@
 # Etapa 2: diseño técnico (preferencias en la cuenta, consultas guardadas y alertas en la web)
 
-Estado:
-- **Hecho:** tablas (`server/usuario/sql`), API completa (`server/usuario/api`, ver `server/usuario/LEEME.md`)
-  y, en el frontend, favoritas/predeterminada de la cuenta (`CuentaPreferenciasService`).
-- **Falta en el frontend:** consultas guardadas, alertas en la web y menú de usuario.
-- La validación del token es propia (`firebase_token.php`, con los certificados públicos de Google),
-  así que no depende del archivo equivalente de `solicitudes/api`.
-
-Marcas: **[verificado]** comprobado en el código o en el servidor publicado; **[a confirmar]** depende
-de archivos del servidor que no están en el repositorio.
+Estado: **implementada** (API en `/services/usuarios`, ver `server/usuario/LEEME.md`).
+- Favoritas y predeterminada de la cuenta (`CuentaPreferenciasService`).
+- Consultas guardadas: botón "Guardar consulta" junto a "Copiar enlace" y sección en `/mi-cuenta`.
+- Alertas propias: se configuran en `/mi-cuenta#alertas` y se avisan arriba de "Mis estaciones".
+  Como no hay máxima diaria publicada, la de calor compara con la última temperatura medida.
+- Menú de usuario en la barra superior.
+- La validación del token es propia (`firebase_token.php`), compatible con PHP 7.3 y sin curl.
 
 ---
 

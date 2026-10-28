@@ -239,3 +239,41 @@
   font-size: .88rem;
   font-weight: 600;
 }
+
+/* Alertas propias que se cumplen */
+.mis-estaciones__alertas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.mis-estaciones__alertas li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #f5c2a0;
+  border-left: 4px solid #ea580c;
+  border-radius: 0;
+  background: #fff7ed;
+  color: #7c2d12;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.mis-estaciones__alertas mat-icon {
+  flex: 0 0 auto;
+  color: #ea580c;
+}
+
+.mis-estaciones__alertas span {
+  flex: 1 1 auto;
+}
+
+.mis-estaciones__alertas a {
+  color: #9a3412;
+  font-weight: 800;
+}

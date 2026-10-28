@@ -5,10 +5,11 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 import { User } from '@angular/fire/auth';
 import { AuthService } from './auth.service';
 import { FavoritasEstaciones, StationService } from './station.service';
+import { API_USUARIOS } from './usuario-api.service';
+import { AlertasUsuarioService } from './alertas-usuario.service';
+import { ConsultasGuardadasService } from './consultas-guardadas.service';
 
-/** API de usuario (server/usuario/api, instalada en /services/usuarios). Mismo dominio en
- *  producción; en desarrollo pasa por proxy.conf.json. */
-const API = '/services/usuarios';
+const API = API_USUARIOS;
 
 interface RespuestaPreferencias {
   ok: boolean;
@@ -32,6 +33,8 @@ export class CuentaPreferenciasService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly stations = inject(StationService);
+  private readonly alertas = inject(AlertasUsuarioService);
+  private readonly consultas = inject(ConsultasGuardadasService);
 
   /** Favoritas del navegador que se pueden pasar a una cuenta que todavía no tiene (0 = no ofrecer) */
   readonly ofrecerImportar$ = new BehaviorSubject<number>(0);
@@ -69,8 +72,15 @@ export class CuentaPreferenciasService {
 
     if (!usuario) {
       this.stations.volverAVisitante();
+      this.alertas.limpiar();
+      this.consultas.limpiar();
       return;
     }
+
+    // Alertas de la cuenta: se evalúan en "Mis estaciones" (si la API no responde, no hay alertas)
+    this.alertas.limpiar();
+    this.consultas.limpiar();
+    void this.alertas.cargar().catch(() => undefined);
 
     const guardar = (p: FavoritasEstaciones) => this.programarGuardado(p);
     const copia = this.stations.copiaCuenta(usuario.uid);

@@ -6,6 +6,19 @@
     <a *ngIf="hayFavoritas" routerLink="/estaciones" class="mis-estaciones__admin">Administrar favoritas</a>
   </header>
 
+  <!-- Alertas propias (Mi cuenta) que se cumplen con el último dato medido -->
+  <ul *ngIf="disparadas.length" class="mis-estaciones__alertas" role="status">
+    <li *ngFor="let d of disparadas">
+      <mat-icon aria-hidden="true">notifications_active</mat-icon>
+      <span>
+        <strong>{{ nombreEstacion(d.alerta.estacion_id) }}:</strong>
+        {{ tipos[d.alerta.variable].texto | lowercase }} {{ d.alerta.umbral | number:'1.0-1' }} {{ tipos[d.alerta.variable].unidad }}
+        — medido {{ d.valor | number:'1.1-1' }} {{ tipos[d.alerta.variable].unidad }}
+      </span>
+      <a routerLink="/mi-cuenta" fragment="alertas">Ver</a>
+    </li>
+  </ul>
+
   <!-- Primera vez con sesión: la cuenta no tiene favoritas pero este navegador sí -->
   <div *ngIf="(ofrecerImportar$ | async) as n" class="mis-estaciones__importar" role="status">
     <span>¿Agregar a tu cuenta {{ n === 1 ? 'la favorita' : 'las ' + n + ' favoritas' }} de este navegador?</span>

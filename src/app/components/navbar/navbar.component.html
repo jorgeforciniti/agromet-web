@@ -2,7 +2,18 @@
   <div class="spacer"></div>
 
   <div class="user-info" *ngIf="userEmail; else guest">
-    <span class="user-email">{{ userEmail }}</span>
+    <button type="button" class="user-menu-btn" [matMenuTriggerFor]="menuUsuario" aria-label="Menú de tu cuenta">
+      <mat-icon aria-hidden="true">account_circle</mat-icon>
+      <span class="user-email">{{ userEmail }}</span>
+      <mat-icon aria-hidden="true">expand_more</mat-icon>
+    </button>
+    <mat-menu #menuUsuario="matMenu" xPosition="before">
+      <a mat-menu-item routerLink="/mi-cuenta"><mat-icon>star</mat-icon>Mis estaciones</a>
+      <a mat-menu-item routerLink="/mi-cuenta" fragment="consultas"><mat-icon>bookmarks</mat-icon>Mis consultas</a>
+      <a mat-menu-item routerLink="/mi-cuenta" fragment="alertas"><mat-icon>notifications</mat-icon>Mis alertas</a>
+      <a mat-menu-item routerLink="/mis-solicitudes"><mat-icon>assignment</mat-icon>Mis solicitudes</a>
+      <button mat-menu-item type="button" (click)="logout()"><mat-icon>logout</mat-icon>Cerrar sesión</button>
+    </mat-menu>
     <span *ngIf="emailSinConfirmar" class="email-aviso" role="status">
       <ng-container [ngSwitch]="reenvio">
         <ng-container *ngSwitchCase="'enviado'">Te reenviamos el correo de confirmación.</ng-container>
@@ -15,7 +26,6 @@
         </ng-container>
       </ng-container>
     </span>
-    <button class="btn btn--ghost" (click)="logout()">Cerrar sesión</button>
   </div>
 
   <ng-template #guest>
