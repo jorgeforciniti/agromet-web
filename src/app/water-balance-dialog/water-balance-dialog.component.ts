@@ -18,9 +18,9 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
-import { armarEnlace, consultaDe, leerFecha } from '../shared/enlace-consulta';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
-import { ALMACENAJE_INICIAL, CMR, DECADAS_ESTABILIZACION, DecadaBalance, ResultadoBalance, calcularBalance, inicioDeDecada } from './balance-hidrico';
+import { ALMACENAJE_INICIAL, CMR, DecadaBalance, OpcionesBalance, ResultadoBalance, calcularBalance, inicioDelCalculo } from './balance-hidrico';
 
 const FORMATOS_FECHA = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -82,6 +82,8 @@ export class WaterBalanceDialogComponent implements OnInit {
   form!: FormGroup;
   stations: WeatherStation[] = [];
   resultado: ResultadoBalance | null = null;
+  /** Opciones con las que se calculó el resultado que se muestra */
+  opcionesCalculadas: OpcionesBalance | null = null;
   estacionCalculada = '';
   isLoading = false;
   loadError = '';
@@ -92,7 +94,10 @@ export class WaterBalanceDialogComponent implements OnInit {
   /** Enlace a la consulta actual (botón "Copiar enlace") */
   readonly enlaceConsulta = (): string => {
     const v = this.form.getRawValue();
-    return armarEnlace('balance-hidrico', { estacion: v.station, desde: v.from, hasta: v.to });
+    return armarEnlace('balance-hidrico', {
+      estacion: v.station, desde: v.from, hasta: v.to,
+      almacenaje: v.modoInicio === 'conocido' ? v.almacenaje : null
+    });
   };
 
   // ---- Gráficos ----
@@ -122,7 +127,10 @@ export class WaterBalanceDialogComponent implements OnInit {
     this.form = this.fb.group({
       station: [this.stationService.activa, Validators.required],
       from: [julio, Validators.required],
-      to: [ayer, Validators.required]
+      to: [ayer, Validators.required],
+      // 'estimado': 100 mm seis meses antes; 'conocido': el valor indicado al inicio del período
+      modoInicio: ['estimado'],
+      almacenaje: [ALMACENAJE_INICIAL, [Validators.required, Validators.min(0), Validators.max(CMR)]]
     }, { validators: this.validarRango });
 
     const consulta = consultaDe(this.data);
@@ -130,6 +138,10 @@ export class WaterBalanceDialogComponent implements OnInit {
     const hasta = leerFecha(consulta['hasta']);
     if (desde) this.form.controls['from'].setValue(desde);
     if (hasta) this.form.controls['to'].setValue(hasta);
+    const almacenaje = leerNumero(consulta['almacenaje']);
+    if (almacenaje !== null && almacenaje >= 0 && almacenaje <= CMR) {
+      this.form.patchValue({ modoInicio: 'conocido', almacenaje });
+    }
 
     this.weatherService.getStationsAll().subscribe({
       next: stations => {
@@ -147,21 +159,29 @@ export class WaterBalanceDialogComponent implements OnInit {
   calcular(): void {
     this.form.markAllAsTouched();
     this.loadError = '';
-    if (this.form.invalid) {
+    const { station, from, to, modoInicio, almacenaje } = this.form.getRawValue();
+    const conocido = modoInicio === 'conocido';
+    if (this.form.hasError('rangoInvalido') || this.form.controls['from'].invalid || this.form.controls['to'].invalid) {
       this.loadError = 'Revisá el rango de fechas para continuar.';
       return;
     }
-    const { station, from, to } = this.form.getRawValue();
+    if (conocido && this.form.controls['almacenaje'].invalid) {
+      this.loadError = `El almacenaje inicial tiene que estar entre 0 y ${CMR} mm.`;
+      return;
+    }
     const desde = this.aFecha(from), hasta = this.aFecha(to);
-    // Las 18 décadas previas estabilizan el almacenaje inicial
-    const inicioCalculo = inicioDeDecada(desde, -DECADAS_ESTABILIZACION);
+    const opciones: OpcionesBalance = conocido
+      ? { almacenajeInicial: Number(almacenaje), estabilizar: false }
+      : { almacenajeInicial: ALMACENAJE_INICIAL, estabilizar: true };
+    const inicioCalculo = inicioDelCalculo(desde, opciones);
 
     this.isLoading = true;
     this.weatherService.getWeatherDataDiary<{ fecha: string }>(fechaIso(inicioCalculo), fechaIso(hasta), station).subscribe({
       next: resp => {
         const registros = porFecha(resp.data ?? []);
         const fechas = fechasDelPeriodo(inicioCalculo, hasta, f => registros.has(f));
-        this.resultado = calcularBalance(registros, fechas, desde);
+        this.resultado = calcularBalance(registros, fechas, desde, opciones);
+        this.opcionesCalculadas = opciones;
         this.estacionCalculada = this.stationLabel(station);
         this.armarGraficos(this.resultado.decadas);
         this.isLoading = false;

@@ -6,8 +6,9 @@ import { fechaIso, periodosDe, valorDiario } from '../charts/dias-faltantes';
  * Por década: P = lluvia, EP = evapotranspiración potencial de la estación (suma de los días).
  *   P ≥ EP: Alm = min(Alm anterior + P − EP, CMR); ER = EP; SH = excedente sobre CMR; ER% = 100
  *   P < EP: Alm = Alm anterior · e^(−(EP − P) / CMR); ER = Alm anterior − Alm + P; SH = ER − EP (déficit)
- * Arranca con 100 mm de almacenaje 18 décadas (unos 6 meses) antes de la primera que se muestra,
- * para que el almacenaje inicial pese poco.
+ * Por defecto arranca con 100 mm de almacenaje 18 décadas (unos 6 meses) antes de la primera que
+ * se muestra, para que el almacenaje inicial pese poco. Si se conoce el almacenaje al inicio del
+ * período (por ejemplo, medido a la siembra), arranca con ese valor en la primera década mostrada.
  *
  * Datos faltantes: una década con algunos días sin dato se calcula con los días que hay y queda
  * marcada como incompleta. Una década sin lluvia o sin EP:
@@ -62,15 +63,30 @@ export function inicioDeDecada(fecha: Date, n = 0): Date {
   return new Date(anio, Math.floor(resto / 3), [1, 11, 21][resto % 3]);
 }
 
+export interface OpcionesBalance {
+  /** mm al arrancar el cálculo (0 a CMR) */
+  almacenajeInicial: number;
+  /** true: arranca 18 décadas antes para estabilizar; false: arranca en la primera década mostrada */
+  estabilizar: boolean;
+}
+
+export const OPCIONES_POR_DEFECTO: OpcionesBalance = { almacenajeInicial: ALMACENAJE_INICIAL, estabilizar: true };
+
+/** Primer día a pedir a la API según las opciones. */
+export function inicioDelCalculo(desde: Date, opciones: OpcionesBalance): Date {
+  return inicioDeDecada(desde, opciones.estabilizar ? -DECADAS_ESTABILIZACION : 0);
+}
+
 /**
  * @param registros datos diarios por fecha (datos-diarios.php), desde inicioCalculo hasta el final
  * @param fechas calendario completo desde inicioCalculo hasta el último día a calcular
  * @param primeraMostrada primer día del período pedido (las décadas anteriores sólo estabilizan)
  */
-export function calcularBalance(registros: Map<string, object>, fechas: string[], primeraMostrada: Date): ResultadoBalance {
+export function calcularBalance(registros: Map<string, object>, fechas: string[], primeraMostrada: Date,
+  opciones: OpcionesBalance = OPCIONES_POR_DEFECTO): ResultadoBalance {
   const inicioMostrado = fechaIso(inicioDeDecada(primeraMostrada));
   const decadas: DecadaBalance[] = [];
-  let almAnterior: number | null = ALMACENAJE_INICIAL;
+  let almAnterior: number | null = Math.min(Math.max(opciones.almacenajeInicial, 0), CMR);
   let reinicio: string | null = null;
   let corte: string | null = null;
 
@@ -107,7 +123,7 @@ export function calcularBalance(registros: Map<string, object>, fechas: string[]
         fila.estado = 'cortada';
       } else {
         if (almAnterior === null) {
-          almAnterior = ALMACENAJE_INICIAL;
+          almAnterior = Math.min(Math.max(opciones.almacenajeInicial, 0), CMR);
           reinicio = desde;
         }
         const r = paso(fila.lluvia, fila.ep, almAnterior);

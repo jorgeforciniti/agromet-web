@@ -53,6 +53,21 @@
           <mat-datepicker #hastaPicker></mat-datepicker>
         </mat-form-field>
 
+        <mat-form-field appearance="fill">
+          <mat-label>Almacenaje inicial</mat-label>
+          <select matNativeControl formControlName="modoInicio">
+            <option value="estimado">Estimado ({{ almacenajeInicial }} mm, 6 meses antes)</option>
+            <option value="conocido">Conocido al inicio del período</option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" *ngIf="form.get('modoInicio')?.value === 'conocido'">
+          <mat-label>Almacenaje al inicio</mat-label>
+          <input matInput type="number" formControlName="almacenaje" min="0" [max]="cmr" step="1">
+          <span matTextSuffix>mm</span>
+          <mat-hint>Entre 0 y {{ cmr }} mm</mat-hint>
+        </mat-form-field>
+
         <button mat-raised-button color="primary" class="bhs-calcular" type="submit" [disabled]="isLoading">
           <mat-icon>water</mat-icon>
           Calcular
@@ -101,7 +116,7 @@
       <div class="bhs-aviso" *ngIf="resultado.reinicio">
         <mat-icon>info</mat-icon>
         <span>Por falta de datos en los meses previos, el balance arranca el {{ fechaCorta(resultado.reinicio) }} con
-          {{ almacenajeInicial }} mm: las primeras décadas pueden estar menos estabilizadas.</span>
+          {{ opcionesCalculadas?.almacenajeInicial }} mm: las primeras décadas pueden estar menos estabilizadas.</span>
       </div>
 
       <section class="bhs-grafico">
@@ -180,8 +195,11 @@
         <mat-icon>info</mat-icon>
         <div>
           <p>Capacidad máxima de retención (CMR): {{ cmr }} mm, para 1 m de profundidad, uniforme e idéntica para todos los
-            sitios. El balance arranca con {{ almacenajeInicial }} mm seis meses antes del período elegido para estabilizar el
-            almacenaje.</p>
+            sitios.
+            <ng-container *ngIf="opcionesCalculadas?.estabilizar; else inicioConocido">El balance arranca con
+              {{ almacenajeInicial }} mm seis meses antes del período elegido para estabilizar el almacenaje.</ng-container>
+            <ng-template #inicioConocido>El balance arranca con {{ opcionesCalculadas?.almacenajeInicial | number:'1.0-1' }} mm
+              en la primera década del período, el valor indicado como conocido.</ng-template></p>
           <p>La EP la calcula cada estación a partir de radiación, temperatura, humedad relativa y velocidad del viento.
             Valores en mm por década (1–10, 11–20 y 21 a fin de mes).</p>
         </div>
