@@ -58,34 +58,48 @@
         </button>
       </div>
 
-      <div class="stage-editor">
-        <div class="stage-card" *ngFor="let idx of [0,1,2,3,4,5]">
-          <ng-container *ngIf="showMilestone(idx)">
-            <div class="stage-card__head">
-              <span class="stage-index">Hito {{ idx + 1 }}</span>
-              <strong>{{ milestoneLabel(idx) }}</strong>
+      <!-- Hitos en orden: fecha de cada uno y, entre un hito y el siguiente, la etapa con su Kc -->
+      <ol class="hitos">
+        <ng-container *ngFor="let idx of [0,1,2,3,4,5]">
+          <li class="hito" *ngIf="showMilestone(idx)" [class.hito--ancla]="idx === anclaActual">
+            <div class="hito__nombre">
+              <span class="hito__num" aria-hidden="true">{{ idx + 1 }}</span>
+              <label [for]="'hito-' + idx">{{ milestoneLabel(idx) }}</label>
+              <span class="hito__chip hito__chip--ancla" *ngIf="idx === anclaActual">Referencia</span>
+              <span class="hito__chip" *ngIf="sugeridos.has(idx)" title="Calculada desde la fecha de referencia; podés cambiarla">Sugerida</span>
             </div>
 
-            <mat-form-field appearance="fill">
-              <mat-label>Fecha</mat-label>
-              <input matInput [matDatepicker]="picker" [formControlName]="'m' + (idx + 1)">
+            <mat-form-field class="hito__fecha" appearance="outline" subscriptSizing="dynamic">
+              <input [id]="'hito-' + idx" matInput [matDatepicker]="picker" [formControlName]="'m' + (idx + 1)" placeholder="dd/mm/aaaa">
               <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
             </mat-form-field>
 
-            <mat-form-field *ngIf="showKc(idx)" appearance="fill">
-              <mat-label>{{ kcLabel(idx) }}</mat-label>
-              <input matInput type="number" min="0" step="0.01" [formControlName]="'kc' + (idx + 1)">
-            </mat-form-field>
-          </ng-container>
-        </div>
-      </div>
+            <div class="hito__etapa" *ngIf="showKc(idx)">
+              <span class="hito__etapa-texto">
+                Etapa hasta {{ milestoneLabel(idx + 1) }}
+                <strong>{{ diasEtapa(idx) ?? '—' }} días</strong>
+              </span>
+              <label class="hito__kc" [class.is-off]="!form.get('applyKc')?.value">
+                <span>Kc</span>
+                <input type="number" min="0" step="0.01" [formControlName]="'kc' + (idx + 1)"
+                  [attr.aria-label]="'Kc de la etapa hasta ' + milestoneLabel(idx + 1)">
+              </label>
+            </div>
+          </li>
+        </ng-container>
+      </ol>
+      <p class="hitos__ayuda">
+        <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
+        Al cambiar la fecha de <strong>{{ milestoneLabel(anclaActual) }}</strong> se sugieren las demás según la
+        duración típica del cultivo. Podés ajustar cualquiera.
+      </p>
     </form>
 
     <p class="phenology-note">
       <mat-icon>info</mat-icon>
-      La lógica replica la herramienta PHP histórica sobre `datos-diarios`, pero agrega balance hídrico simple
-      por etapa, cobertura de datos y curvas acumuladas para detectar más rápido los tramos críticos.
+      Cada etapa va de un hito al siguiente. La demanda hídrica es la ETo multiplicada por el Kc de la etapa;
+      el balance simple es lluvia menos demanda.
     </p>
 
     <div class="phenology-error" *ngIf="loadError">
@@ -93,34 +107,54 @@
       <span>{{ loadError }}</span>
     </div>
 
+    <!-- Datos faltantes: aviso y opción de completar con la normal de la estación -->
+    <div class="faltantes-aviso" *ngIf="totals && diasFaltantes > 0" role="status">
+      <mat-icon aria-hidden="true">{{ completarConNormal ? 'auto_fix_high' : 'report' }}</mat-icon>
+      <div class="faltantes-aviso__texto">
+        <ng-container *ngIf="!completarConNormal; else completado">
+          <strong>Faltan datos en {{ diasFaltantes }} {{ diasFaltantes === 1 ? 'día' : 'días' }} del período.</strong>
+          Los totales marcados con ≥ están incompletos: el valor real puede ser mayor.
+        </ng-container>
+        <ng-template #completado>
+          <strong>{{ diasEstimados }} {{ diasEstimados === 1 ? 'día completado' : 'días completados' }} con la normal de la estación.</strong>
+          La lluvia y la ET de esos días son estimadas y se dibujan punteadas.
+        </ng-template>
+        <span *ngIf="!puedeCompletar" class="faltantes-aviso__nota">
+          Esta estación no tiene normales cargadas para completarlos.
+        </span>
+      </div>
+      <label class="kc-toggle faltantes-aviso__toggle" *ngIf="puedeCompletar">
+        <input type="checkbox" [checked]="completarConNormal" (change)="alternarCompletar($any($event.target).checked)">
+        <span>Completar con la normal</span>
+      </label>
+    </div>
+
     <div class="phenology-summary" *ngIf="totals">
-      <div class="summary-card">
-        <span>Estación</span>
+      <p class="summary-contexto">
         <strong>{{ totals.stationName }}</strong>
-      </div>
-      <div class="summary-card">
-        <span>Cultivo</span>
-        <strong>{{ totals.cropLabel }}</strong>
-      </div>
-      <div class="summary-card">
-        <span>Período</span>
-        <strong>{{ formatDisplayDate(totals.start) }} a {{ formatDisplayDate(totals.end) }}</strong>
-      </div>
+        <span>{{ totals.cropLabel }}</span>
+        <span>{{ formatDisplayDate(totals.start) }} a {{ formatDisplayDate(totals.end) }}</span>
+      </p>
       <div class="summary-card">
         <span>Lluvia acumulada</span>
-        <strong>{{ totals.rain | number:'1.1-1' }} mm</strong>
+        <strong>{{ totals.lluviaParcial ? '≥ ' : '' }}{{ totals.rain | number:'1.1-1' }} mm</strong>
       </div>
       <div class="summary-card">
         <span>Demanda ET x Kc</span>
-        <strong>{{ totals.demand | number:'1.1-1' }} mm</strong>
+        <strong>{{ totals.demandaParcial ? '≥ ' : '' }}{{ totals.demand | number:'1.1-1' }} mm</strong>
       </div>
-      <div class="summary-card" [class.summary-card--warn]="totals.balance < 0">
+      <div class="summary-card" [class.summary-card--warn]="totals.balance < 0"
+        [class.summary-card--parcial]="totals.lluviaParcial || totals.demandaParcial"
+        [title]="totals.lluviaParcial || totals.demandaParcial ? 'Calculado con días sin datos' : ''">
         <span>Balance simple</span>
-        <strong>{{ totals.balance | number:'1.1-1' }} mm</strong>
+        <strong>{{ totals.balance | number:'1.1-1' }} mm{{ totals.lluviaParcial || totals.demandaParcial ? ' *' : '' }}</strong>
       </div>
       <div class="summary-card">
         <span>Días con datos</span>
-        <strong>{{ totals.validDays }} / {{ totals.totalDays }}</strong>
+        <strong [class]="claseCobertura(totals.totalDays ? (totals.validDays / totals.totalDays) * 100 : 0)">
+          {{ totals.validDays }} / {{ totals.totalDays }}
+        </strong>
+        <small *ngIf="totals.estimados">{{ totals.estimados }} estimados con la normal</small>
       </div>
     </div>
 
@@ -143,8 +177,40 @@
         </div>
         <div class="chart-container">
           <app-exportar-grafico nombre="fenologia-acumulados" [maxFilas]="31"></app-exportar-grafico>
-          <canvas baseChart [data]="cumulativeChartData" [options]="cumulativeChartOptions" type="line"></canvas>
+          <canvas baseChart [data]="cumulativeChartData" [options]="cumulativeChartOptions" [plugins]="pluginsAcumulado"
+            type="line"></canvas>
         </div>
+        <p class="chart-card__nota" *ngIf="indicesSinRegistro.length || diasEstimados">
+          <span *ngIf="indicesSinRegistro.length"><i class="muestra muestra--sin-datos"></i>Días sin datos de la estación</span>
+          <span *ngIf="diasEstimados"><i class="muestra muestra--estimado"></i>Tramos estimados con la normal</span>
+        </p>
+      </section>
+
+      <section class="chart-card">
+        <div class="chart-card__header">
+          <h3>Temperaturas diarias</h3>
+          <p>Máxima y mínima de cada día; las líneas verticales marcan el inicio de cada etapa.</p>
+        </div>
+        <div class="chart-container">
+          <app-exportar-grafico nombre="fenologia-temperaturas" [maxFilas]="31"></app-exportar-grafico>
+          <canvas baseChart [data]="tempChartData" [options]="tempChartOptions" [plugins]="pluginsAcumulado"
+            type="line"></canvas>
+        </div>
+      </section>
+
+      <section class="chart-card">
+        <div class="chart-card__header">
+          <h3>Radiación solar diaria</h3>
+          <p>Radiación media de cada día y su normal mensual.</p>
+        </div>
+        <div class="chart-container">
+          <app-exportar-grafico nombre="fenologia-radiacion" [maxFilas]="31"></app-exportar-grafico>
+          <canvas baseChart [data]="radChartData" [options]="radChartOptions" [plugins]="pluginsAcumulado"
+            type="bar"></canvas>
+        </div>
+        <p class="chart-card__nota" *ngIf="indicesSinRegistro.length">
+          <span><i class="muestra muestra--sin-datos"></i>Días sin datos de la estación</span>
+        </p>
       </section>
     </div>
 
@@ -152,41 +218,53 @@
       <table class="phenology-table">
         <thead>
           <tr>
-            <th>Etapa</th>
-            <th>Período</th>
-            <th>Días</th>
-            <th>Cobertura</th>
-            <th>Kc</th>
-            <th>Lluvia</th>
-            <th>Demanda</th>
-            <th>Balance</th>
-            <th>Hum. hoja</th>
-            <th>Rad. media</th>
-            <th>Tmax media</th>
-            <th>Tmin media</th>
-            <th>Días ≥ 35 °C</th>
-            <th>Días ≤ 0 °C</th>
+            <th scope="col">Etapa</th>
+            <th scope="col">Período</th>
+            <th scope="col"><abbr title="Días con registro / días de la etapa · cobertura">Datos</abbr></th>
+            <th scope="col">Kc</th>
+            <th scope="col">Lluvia (mm)</th>
+            <th scope="col">Demanda (mm)</th>
+            <th scope="col">Balance (mm)</th>
+            <th scope="col"><abbr title="Horas de hoja mojada">Hoja mojada (h)</abbr></th>
+            <th scope="col"><abbr title="Radiación solar media">Rad. (W/m²)</abbr></th>
+            <th scope="col"><abbr title="Temperatura máxima y mínima medias">Tmáx / Tmín (°C)</abbr></th>
+            <th scope="col"><abbr title="Días con máxima ≥ 35 °C / días con mínima ≤ 0 °C">Días ≥35 / ≤0</abbr></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let stage of summaries; trackBy: trackByStage">
-            <td>{{ stage.label }}</td>
-            <td>{{ formatDisplayDate(stage.start) }}<br>{{ formatDisplayDate(stage.end) }}</td>
-            <td>{{ stage.dataDays }} / {{ stage.spanDays }}</td>
-            <td>{{ stage.coverage | number:'1.0-0' }} %</td>
+            <th scope="row" class="col-etapa">{{ stage.label }}</th>
+            <td class="col-periodo">
+              {{ fechaCorta(stage.start) }} – {{ fechaCorta(stage.end) }}
+              <small *ngIf="stage.faltantes" class="faltantes-detalle">{{ stage.faltantes }}</small>
+            </td>
+            <td>
+              {{ stage.dataDays }}/{{ stage.spanDays }}
+              <span class="cobertura" [class]="claseCobertura(stage.coverage)">{{ stage.coverage | number:'1.0-0' }} %</span>
+            </td>
             <td>{{ stage.kc | number:'1.2-2' }}</td>
-            <td>{{ stage.rain | number:'1.1-1' }} mm</td>
-            <td>{{ stage.demand | number:'1.1-1' }} mm</td>
-            <td [class.balance-negative]="stage.balance < 0">{{ stage.balance | number:'1.1-1' }} mm</td>
-            <td>{{ stage.leafWetnessHours | number:'1.1-1' }} h</td>
-            <td>{{ stage.avgRadiation == null ? '—' : (stage.avgRadiation | number:'1.1-1') }}</td>
-            <td>{{ stage.avgTempMax == null ? '—' : (stage.avgTempMax | number:'1.1-1') }}</td>
-            <td>{{ stage.avgTempMin == null ? '—' : (stage.avgTempMin | number:'1.1-1') }}</td>
-            <td>{{ stage.hotDays }}</td>
-            <td>{{ stage.frostDays }}</td>
+            <td [class.estimado]="stage.estimados > 0">{{ stage.lluviaFaltante ? '≥ ' : '' }}{{ stage.rain | number:'1.1-1' }}</td>
+            <td [class.estimado]="stage.estimados > 0">{{ stage.demandaFaltante ? '≥ ' : '' }}{{ stage.demand | number:'1.1-1' }}</td>
+            <td [class.balance-negative]="stage.balance < 0" [class.parcial]="stage.lluviaFaltante || stage.demandaFaltante">
+              {{ stage.balance | number:'1.1-1' }}{{ stage.lluviaFaltante || stage.demandaFaltante ? ' *' : '' }}
+            </td>
+            <td>{{ stage.leafWetnessHours | number:'1.0-0' }}</td>
+            <td>{{ stage.avgRadiation == null ? '—' : (stage.avgRadiation | number:'1.0-0') }}</td>
+            <td class="col-temp">
+              {{ stage.avgTempMax == null ? '—' : (stage.avgTempMax | number:'1.1-1') }}
+              / {{ stage.avgTempMin == null ? '—' : (stage.avgTempMin | number:'1.1-1') }}
+            </td>
+            <td>{{ stage.hotDays }} / {{ stage.frostDays }}</td>
           </tr>
         </tbody>
       </table>
+      <p class="tabla-notas" *ngIf="hayParciales || diasEstimados">
+        <ng-container *ngIf="hayParciales">
+          <span>≥ total incompleto: hay días sin datos y el valor real puede ser mayor.</span>
+          <span>* balance calculado con datos incompletos.</span>
+        </ng-container>
+        <span *ngIf="diasEstimados"><em>Cursiva</em>: incluye días estimados con la normal de la estación.</span>
+      </p>
     </div>
 
     <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
