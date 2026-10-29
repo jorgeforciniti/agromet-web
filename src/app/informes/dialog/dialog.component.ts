@@ -60,7 +60,10 @@ this.data.archivo = finalUrl;
     if (!this.data.fecha) return '';
 
     try {
-      const date = new Date(this.data.fecha);
+      // "AAAA-MM-DD" con new Date() se toma como medianoche UTC y en Argentina
+      // mostraba el día anterior: se arma como fecha local.
+      const iso = typeof this.data.fecha === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(this.data.fecha) : null;
+      const date = iso ? new Date(+iso[1], +iso[2] - 1, +iso[3]) : new Date(this.data.fecha);
       return isNaN(date.getTime())
         ? 'Fecha inválida'
         : date.toLocaleDateString('es-AR', {
