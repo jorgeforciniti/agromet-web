@@ -218,8 +218,13 @@
 
           <div class="chart-wrapper">
             <app-exportar-grafico nombre="datos-por-localidad" [maxFilas]="31"></app-exportar-grafico>
-            <canvas baseChart [data]="chartConfig.data" [options]="chartConfig.options" [type]="chartConfig.type"></canvas>
+            <canvas baseChart [data]="chartConfig.data" [options]="chartConfig.options" [type]="chartConfig.type"
+              [plugins]="pluginsGrafico"></canvas>
           </div>
+          <p class="aviso-faltantes" *ngIf="textoFaltantes" role="status">
+            <i class="muestra-sin-datos" aria-hidden="true"></i>
+            Sin datos de la estación: {{ textoFaltantes }}.
+          </p>
         </ng-container>
 
         <!-- Tablas -->

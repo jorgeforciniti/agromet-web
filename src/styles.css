@@ -460,3 +460,31 @@ table td {
   -moz-appearance: none;
   left: 0;
 }
+
+/* Aviso de días sin registro bajo los gráficos de datos diarios (ver charts/dias-faltantes.ts) */
+.aviso-faltantes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #475467;
+}
+.aviso-faltantes > span { display: inline-flex; align-items: center; gap: 6px; }
+.muestra-sin-datos,
+.muestra-incompleto {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: -1px;
+  background: rgba(148, 163, 184, .45);
+}
+.muestra-incompleto {
+  background: transparent;
+  border: 1.5px dashed #667085;
+}

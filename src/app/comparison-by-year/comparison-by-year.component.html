@@ -87,13 +87,19 @@
     <div class="chart-section">
       <div class="chart-container" *ngIf="lineChartData.datasets.length">
         <app-exportar-grafico nombre="comparacion-anios" [maxFilas]="31"></app-exportar-grafico>
-        <canvas baseChart [data]="lineChartData" [options]="chartOptions" type="line"></canvas>
+        <canvas baseChart [data]="lineChartData" [options]="chartOptions" [plugins]="pluginsGrafico"
+          type="line"></canvas>
       </div>
 
       <div class="chart-container" *ngIf="barChartData.datasets.length">
         <app-exportar-grafico nombre="comparacion-anios" [maxFilas]="31"></app-exportar-grafico>
-        <canvas baseChart [data]="barChartData" [options]="chartOptions" type="bar"></canvas>
+        <canvas baseChart [data]="barChartData" [options]="chartOptions" [plugins]="pluginsGrafico"
+          type="bar"></canvas>
       </div>
+      <p class="aviso-faltantes" *ngIf="textoFaltantes" role="status">
+        <span><i class="muestra-sin-datos" aria-hidden="true"></i>Sin datos — {{ textoFaltantes }}</span>
+        <span *ngIf="hayIncompletos"><i class="muestra-incompleto" aria-hidden="true"></i>Período incompleto: suma o promedio de los días con datos</span>
+      </p>
     </div>
 
     <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>

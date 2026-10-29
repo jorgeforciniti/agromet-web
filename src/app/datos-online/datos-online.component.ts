@@ -17,6 +17,7 @@ import { FeatureCollection, Point } from 'geojson';
 import { SIN_DATO, formatValor } from '../pipes/valor.pipe';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
 
 // Tipo para las claves de los mapas base
 type BaseMapKey = 'satellite' | 'osm';
@@ -73,6 +74,9 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
   private dejarDeSeguirTamanio?: () => void;
   chart: Chart | null = null;
+  /** Registros que faltan en las últimas 48 h: franjas grises en el gráfico y aviso */
+  indicesSinRegistro: number[] = [];
+  textoSinRegistro = '';
   selectedStationId: string = '';
   selectedVariable: string = 'temp_af';
   fechasPeriodo: string = '';
@@ -411,13 +415,21 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     gradient.addColorStop(0, conAlfa(colorLinea, .35));
     gradient.addColorStop(1, conAlfa(colorLinea, .04));
 
+    // Los registros que faltan quedan como hueco (no se une la línea) con una franja gris
+    const filas = this.conHuecos(datos);
+    this.indicesSinRegistro = filas.map((f, i) => (f.fila ? -1 : i)).filter(i => i >= 0);
+    const n = this.indicesSinRegistro.length;
+    this.textoSinRegistro = n ? `${n} ${n === 1 ? 'registro' : 'registros'} de 15 minutos` : '';
+
     const config: ChartConfiguration<ChartType> = {
       type: chartType,
+      plugins: [pluginFranjasSinDatos(() => this.indicesSinRegistro)],
       data: {
-        labels: datos.map((d) => this.formatHora(d.hora)),
+        labels: filas.map((f) => this.formatHora(f.hora)),
         datasets: [{
           label: this.getLabel(variable),
-          data: datos.map((d) => {
+          data: filas.map(({ fila: d }) => {
+            if (!d) return null;
             const value = d[variable as WeatherVariableKey];
             const shown = this.fmt(value, kind);
             return shown === SIN_DATO ? null : Number(value);
@@ -431,7 +443,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
           borderWidth: 2,
           tension: 0.3,
           fill: chartType !== 'bar',
-          spanGaps: true
+          spanGaps: false
         }]
       },
       options: {
@@ -518,6 +530,27 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       /* 4. ajusta la vista si lo necesitas                          */
       // this.map!.fitBounds(this.provinceLayer.getBounds(), { padding: [20, 20] });
     });
+  }
+
+  /**
+   * Filas ordenadas con un lugar vacío por cada registro que falta entre dos existentes,
+   * según el intervalo habitual de la estación (15 minutos).
+   */
+  private conHuecos(datos: ChartWeatherRow[]): { hora: string; fila: ChartWeatherRow | null }[] {
+    const pasos = datos.slice(1).map((d, i) => d.timestamp.getTime() - datos[i].timestamp.getTime()).filter(p => p > 0);
+    const intervalo = pasos.length ? pasos.sort((a, b) => a - b)[Math.floor(pasos.length / 2)] : 15 * 60000;
+    const filas: { hora: string; fila: ChartWeatherRow | null }[] = [];
+    datos.forEach((d, i) => {
+      if (i > 0) {
+        const faltan = Math.round((d.timestamp.getTime() - datos[i - 1].timestamp.getTime()) / intervalo) - 1;
+        for (let k = 1; k <= Math.min(faltan, 500); k++) {
+          const t = new Date(datos[i - 1].timestamp.getTime() + k * intervalo);
+          filas.push({ hora: `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}:00`, fila: null });
+        }
+      }
+      filas.push({ hora: d.hora, fila: d });
+    });
+    return filas;
   }
 
   private formatHora(horaStr: string): string {

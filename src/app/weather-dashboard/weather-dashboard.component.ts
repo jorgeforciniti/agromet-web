@@ -16,6 +16,7 @@ import { ChartDataset } from 'chart.js';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { ClaveNormal, Normales, datasetNormal, normalDiaria, tieneValores } from '../charts/normales';
 import { NormalesService } from '../services/normales.service';
+import { describirFaltantes, etiquetaDia, fechasDelPeriodo, pluginFranjasSinDatos, porFecha, valorDiario } from '../charts/dias-faltantes';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
@@ -197,6 +198,13 @@ export class WeatherDashboardComponent implements OnInit {
   private readonly normalesService = inject(NormalesService);
 
   truncatedDiaryData: WeatherDiaryRecord[] = [];
+
+  /** Calendario completo del período consultado (la API omite los días sin registro) */
+  private fechasPeriodo: string[] = [];
+  /** Posición en el eje de los días sin registro (franjas grises) y su descripción */
+  indicesSinRegistro: number[] = [];
+  textoFaltantes = '';
+  readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   showLimitMessage = false;
 
   chartConfig: ChartConfiguration<'line' | 'bar', number[], string> = {
@@ -357,6 +365,12 @@ export class WeatherDashboardComponent implements OnInit {
       this.diaryData = diario.data || [];
       this.normales = normales;
 
+      // Días del período sin registro: huecos y franjas grises en el gráfico, y aviso
+      const registros = porFecha(this.diaryData);
+      this.fechasPeriodo = fechasDelPeriodo(desdeDate, hastaDate, f => registros.has(f));
+      this.indicesSinRegistro = this.fechasPeriodo.map((f, i) => (registros.has(f) ? -1 : i)).filter(i => i >= 0);
+      this.textoFaltantes = describirFaltantes(this.indicesSinRegistro.map(i => this.fechasPeriodo[i]));
+
       // Tabla y descarga: como máximo los últimos 31 días del período
       if (this.diaryData.length > MAX_DIAS_DESCARGA) {
         this.truncatedDiaryData = this.diaryData.slice(-MAX_DIAS_DESCARGA);
@@ -380,13 +394,15 @@ export class WeatherDashboardComponent implements OnInit {
   public setupCharts(): void {
     this.syncVariableAvailability();
 
-    // Fechas del eje en dd/MM, como en la tabla (la API las entrega como aaaa-mm-dd).
-    const labels = this.diaryData.map(d => /^\d{4}-\d{2}-\d{2}/.test(d.fecha) ? `${d.fecha.slice(8, 10)}/${d.fecha.slice(5, 7)}` : d.fecha);
+    // Eje con todos los días del período en dd/MM: un día sin registro queda como hueco.
+    const fechas = this.fechasPeriodo;
+    const labels = fechas.map(etiquetaDia);
+    const registros = porFecha(this.diaryData);
+    const serie = (campo: WeatherDiaryField) => fechas.map(f => valorDiario(registros.get(f), campo)) as number[];
     const datasets: ChartDataset<'line' | 'bar', number[]>[] = [];
 
     // Normal de cada variable (línea punteada del mismo color), sólo si la estación la tiene.
     // La lluvia normal mensual se muestra como promedio diario (normal del mes ÷ días del mes).
-    const fechas = this.diaryData.map(d => d.fecha);
     const agregarNormal = (clave: ClaveNormal, label: string, eje: string, color: string) => {
       const serie = normalDiaria(this.normales, clave, fechas);
       if (tieneValores(serie)) {
@@ -399,7 +415,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Temp. Máxima (°C)',
           type: 'line',
-          data: this.diaryData.map(d => d.temp_max),
+          data: serie('temp_max'),
           yAxisID: 'yTemp',
           borderColor: VAR_COLOR.tmax,
           backgroundColor: conAlfa(VAR_COLOR.tmax, .2)
@@ -407,7 +423,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Temp. Mínima (°C)',
           type: 'line',
-          data: this.diaryData.map(d => d.temp_min),
+          data: serie('temp_min'),
           yAxisID: 'yTemp',
           borderColor: VAR_COLOR.tmin,
           backgroundColor: conAlfa(VAR_COLOR.tmin, .2)
@@ -422,7 +438,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Humedad Máx (%)',
           type: 'line',
-          data: this.diaryData.map(d => d.HR_max),
+          data: serie('HR_max'),
           yAxisID: 'yHumedad',
           borderColor: VAR_COLOR.hrMax,
           backgroundColor: conAlfa(VAR_COLOR.hrMax, .2)
@@ -430,7 +446,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Humedad Mín (%)',
           type: 'line',
-          data: this.diaryData.map(d => d.HR_min),
+          data: serie('HR_min'),
           yAxisID: 'yHumedad',
           borderColor: VAR_COLOR.hrMin,
           backgroundColor: conAlfa(VAR_COLOR.hrMin, .2)
@@ -445,7 +461,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Precipitaciones (mm)',
           type: 'bar',
-          data: this.diaryData.map(d => d.rr_24),
+          data: serie('rr_24'),
           yAxisID: 'yLluvia',
           backgroundColor: conAlfa(VAR_COLOR.lluvia, .75)
         } as ChartDataset<'bar', number[]>
@@ -458,7 +474,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Evapotranspiración (mm)',
           type: 'bar',
-          data: this.diaryData.map(d => d.et),
+          data: serie('et'),
           yAxisID: 'yEt',
           backgroundColor: conAlfa(VAR_COLOR.et, .75)
         } as ChartDataset<'bar', number[]>
@@ -471,7 +487,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Humedad de hoja (hs)',
           type: 'bar',
-          data: this.diaryData.map(d => d.hum_hoja_hs),
+          data: serie('hum_hoja_hs'),
           yAxisID: 'yHumHoja',
           backgroundColor: conAlfa(VAR_COLOR.mojado, .75)
         } as ChartDataset<'bar', number[]>
@@ -484,7 +500,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Viento Medio (km/h)',
           type: 'line',
-          data: this.diaryData.map(d => d.viento_medio),
+          data: serie('viento_medio'),
           yAxisID: 'yViento',
           borderColor: VAR_COLOR.viento,
           backgroundColor: conAlfa(VAR_COLOR.viento, .2)
@@ -492,7 +508,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Viento Máx (km/h)',
           type: 'line',
-          data: this.diaryData.map(d => d.viento_max),
+          data: serie('viento_max'),
           yAxisID: 'yViento',
           borderColor: VAR_COLOR.rafaga,
           backgroundColor: conAlfa(VAR_COLOR.rafaga, .2)
@@ -506,7 +522,7 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Rad. Solar (W/m²)',
           type: 'line',
-          data: this.diaryData.map(d => d.rad_solar_media),
+          data: serie('rad_solar_media'),
           yAxisID: 'yRad',
           borderColor: VAR_COLOR.radiacion,
           backgroundColor: conAlfa(VAR_COLOR.radiacion, .2)

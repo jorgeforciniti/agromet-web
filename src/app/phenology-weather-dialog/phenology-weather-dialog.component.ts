@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartData, ChartDataset } from 'chart.js';
 import { VAR_COLOR, conAlfa } from '../charts/chart-theme';
+import { dibujarFranjasSinDatos } from '../charts/dias-faltantes';
 import { ClaveNormal, Normales, datasetNormal, normalDelDia, normalDiaria, tieneValores } from '../charts/normales';
 import { NormalesService } from '../services/normales.service';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -283,13 +284,9 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       if (!x || !area) return;
       const total = chart.data.labels?.length ?? 0;
       const ancho = total > 1 ? Math.abs(x.getPixelForValue(1) - x.getPixelForValue(0)) : area.width;
+      dibujarFranjasSinDatos(chart, this.indicesSinRegistro);
       const ctx = chart.ctx;
       ctx.save();
-      ctx.fillStyle = 'rgba(148, 163, 184, .22)';
-      for (const i of this.indicesSinRegistro) {
-        const centro = x.getPixelForValue(i);
-        ctx.fillRect(centro - ancho / 2, area.top, ancho, area.bottom - area.top);
-      }
       // Inicio de cada etapa
       ctx.strokeStyle = 'rgba(71, 84, 103, .55)';
       ctx.fillStyle = '#475467';
