@@ -3,6 +3,14 @@
 # listado de carpetas sin index (por ejemplo /services/).
 Options -MultiViews -Indexes
 
+# El visor de PDF (ngx-extended-pdf-viewer) carga sus scripts como módulos .mjs y el
+# navegador los rechaza si llegan sin Content-Type. Apache no trae estos tipos por defecto.
+<IfModule mod_mime.c>
+  AddType text/javascript .mjs
+  AddType application/wasm .wasm
+  AddType text/plain .ftl
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /

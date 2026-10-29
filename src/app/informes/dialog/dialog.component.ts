@@ -4,7 +4,13 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
-import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { NgxExtendedPdfViewerModule, pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
+
+// Los archivos del visor se copian a assets/pdf-viewer (angular.json). Antes estaban en
+// assets/ y el servidor los mandaba sin Content-Type: con la carpeta nueva el navegador no
+// reutiliza esas copias rotas de su caché. Va como URL absoluta porque con una ruta
+// relativa el visor arma mal las de cmaps, fuentes y wasm (les agrega "/..").
+pdfDefaultOptions.assetsFolder = new URL('assets/pdf-viewer', document.baseURI).href;
 
 interface DialogData {
   archivo: string;          // ✅ solo string
