@@ -63,16 +63,13 @@
 }
 
 .sk-day-card {
-  flex: 0 0 94px;
-  min-width: 94px;
-  height: 140px;
-  border-radius: 16px;
+  height: 150px;
+  border-radius: 14px;
 }
 
 .sk-hourly-item {
-  min-width: 74px;
-  height: 118px;
-  border-radius: 14px;
+  height: 36px;
+  border-radius: 10px;
 }
 
 .sk-chart {
@@ -254,27 +251,30 @@
   line-height: 1.4;
 }
 
+/* ---- Días: todos a la vista, con rango térmico de la semana y lluvia ---- */
 .week-forecast {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(66px, 1fr);
+  gap: 8px;
   overflow-x: auto;
-  padding: 2px 2px 8px;
-  scrollbar-gutter: stable;
+  padding: 2px 2px 6px;
 }
 
 .day-card {
   position: relative;
-  flex: 0 0 94px;
-  min-width: 94px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
+  min-width: 0;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-  border-radius: 16px;
-  padding: 10px 8px 12px;
+  border-radius: 14px;
+  padding: 8px 6px 9px;
   text-align: center;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
   transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
 }
@@ -284,112 +284,208 @@
   box-shadow: var(--shadow-sm);
 }
 
+.day-card:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 .day-card.active {
   border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
   background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 12%, white), rgba(255,255,255,.98));
   box-shadow: 0 6px 16px color-mix(in srgb, var(--brand) 18%, transparent);
 }
 
-.day-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 16px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--brand), var(--brand-600));
-  color: #fff;
-  font-size: .6rem;
-  font-weight: 900;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-}
-
 .day-name {
-  font-size: .82rem;
+  font-size: .8rem;
   font-weight: 800;
   color: var(--muted);
-  text-transform: capitalize;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  line-height: 1.1;
 }
 
 .day-card.active .day-name {
   color: var(--brand-600);
 }
 
-.tp-icon img {
-  width: 40px;
-  height: 40px;
+.day-date {
+  font-size: .68rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.day-icon {
+  width: 46px;
+  height: 46px;
+  margin: -4px 0 -6px;
   display: block;
-  margin: 2px auto;
+  filter: drop-shadow(0 2px 2px rgba(15, 23, 42, .12));
 }
 
 .day-temps {
   display: flex;
-  gap: 6px;
+  gap: 5px;
+  align-items: baseline;
   justify-content: center;
   font-weight: 900;
-  font-size: .94rem;
+  line-height: 1.1;
+}
+
+.max-temp {
+  color: #dc2626;
+  font-size: 1rem;
 }
 
 .min-temp {
   color: #2563eb;
+  font-size: .82rem;
 }
 
-.max-temp {
-  color: #ef4444;
+/* Rango del día dentro de la semana: de la mínima a la máxima */
+.temp-bar {
+  position: relative;
+  width: 100%;
+  max-width: 54px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .25);
+  margin: 3px 0 2px;
 }
 
+.temp-bar span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #60a5fa, #fbbf24, #f87171);
+}
+
+.day-rain {
+  font-size: .7rem;
+  font-weight: 700;
+  color: #2563eb;
+  white-space: nowrap;
+}
+
+.day-rain--baja {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ---- Detalle horario: una fila por intervalo ---- */
 .day-details-title {
-  margin: 0 0 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 2px 6px;
   font-size: .9rem;
   font-weight: 800;
   color: var(--text);
 }
 
-.hourly-forecast-container {
-  margin-top: 10px;
+.day-details-title::first-letter {
+  text-transform: uppercase;
+}
+
+.day-details-title span {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.hourly-list {
+  list-style: none;
+  margin: 0;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   background: linear-gradient(180deg, rgba(17,24,39,.025), rgba(248,250,252,.96));
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 12px;
 }
 
-.hourly-forecast-scroll {
+.hourly-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 10px;
-  overflow: visible;
+  grid-template-columns: 44px 34px 38px minmax(70px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.94);
+  font-size: .84rem;
 }
 
-.hourly-item {
-  min-width: 74px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.94);
-  padding: 10px 8px;
-  text-align: center;
-  box-shadow: 0 10px 18px rgba(15, 23, 42, .04);
+/* Horas de noche (ícono nocturno de OpenWeather), como la franja del gráfico */
+.hourly-row--noche {
+  background: rgba(238, 238, 252, .85);
 }
 
 .hourly-time {
-  font-size: .75rem;
+  font-weight: 700;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.hourly-icon img {
-  width: 34px;
-  height: 34px;
-}
-
-.hourly-rain,
-.hourly-wind {
-  color: var(--muted);
-  font-size: .78rem;
+.hourly-icon {
+  width: 32px;
+  height: 32px;
+  margin: -4px 0;
+  display: block;
 }
 
 .hourly-temp {
   font-weight: 900;
-  margin: 4px 0 0;
+  font-size: .98rem;
+  color: var(--text);
+  text-align: right;
+}
+
+.hourly-rain {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hourly-rain__bar {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .22);
+  overflow: hidden;
+}
+
+.hourly-rain__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #93c5fd, #2563eb);
+}
+
+.hourly-rain__pct {
+  width: 34px;
+  text-align: right;
+  font-size: .76rem;
+  font-weight: 700;
+  color: #2563eb;
+  font-variant-numeric: tabular-nums;
+}
+
+.hourly-wind {
+  font-size: .76rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.hourly-wind fa-icon {
+  margin-right: 2px;
+  opacity: .7;
+}
+
+.hourly-wind small {
+  font-size: .68rem;
 }
 
 .forecast-source {
@@ -422,7 +518,7 @@
   display: grid;
   grid-template-columns: minmax(320px, 460px) minmax(360px, 760px);
   justify-content: center;
-  height: clamp(390px, 46vh, 560px);
+  height: clamp(430px, 50vh, 560px);
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "week chart"
@@ -492,7 +588,9 @@
     grid-column: auto;
   }
 
-  .hourly-forecast-scroll {
-    grid-template-columns: 1fr 1fr;
+  .hourly-row {
+    grid-template-columns: 40px 30px 34px minmax(50px, 1fr) auto;
+    gap: 6px;
+    padding: 3px 6px;
   }
 }

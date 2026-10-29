@@ -233,10 +233,10 @@
   background: rgba(255, 255, 255, .56);
 }
 
+/* El panel de tiempo real toma el alto de la fila (el del mapa): no necesita scroll propio */
 .dash2-left app-weather-forecast {
-  max-height: 520px;
-  overflow: auto;
-  scrollbar-gutter: stable;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .dash2-right app-leaflet-goes-viewer {
@@ -262,13 +262,6 @@
 
   .dash2-right {
     min-height: 480px;
-  }
-
-  /* En una sola columna ya no hace falta emparejar el alto con el mapa:
-     que el panel crezca con la página en vez de scrollear por su cuenta. */
-  .dash2-left app-weather-forecast {
-    max-height: none;
-    overflow: visible;
   }
 }
 

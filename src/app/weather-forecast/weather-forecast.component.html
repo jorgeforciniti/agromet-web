@@ -27,8 +27,8 @@
           </div>
         </div>
         <div class="forecast-hours">
-          <div class="hourly-forecast-scroll">
-            <div class="skeleton sk-hourly-item" *ngFor="let i of [0,1,2,3]"></div>
+          <div class="hourly-list">
+            <div class="skeleton sk-hourly-item" *ngFor="let i of [0,1,2,3,4,5]"></div>
           </div>
         </div>
         <div class="forecast-chart">
@@ -127,49 +127,56 @@
             <!-- IZQ / ARRIBA: días -->
             <div class="forecast-week">
               <div class="week-forecast">
-                <div *ngFor="let day of weatherData.forecast; let i = index"
+                <button type="button" *ngFor="let day of weatherData.forecast; let i = index"
                     class="day-card"
                     [class.active]="selectedDayIndex === i"
-                    (click)="selectDay(day, i)"
-                    (keydown.enter)="selectDay(day, i)"
-                    tabindex="0">
-                  <span class="day-badge" *ngIf="i === 0">HOY</span>
-                  <div class="day-name">{{ getDayName(day.date) }}</div>
-                  <div class="tp-icon">
-                    <img [src]="'https://openweathermap.org/img/wn/' + day.intervals[0].weather.icon + '.png'"
-                        [alt]="day.intervals[0].weather.description" loading="lazy">
-                  </div>
-                  <div class="day-temps">
-                    <span class="min-temp">{{ day.temp_min.toFixed(0) }}°</span>
-                    <span class="max-temp">{{ day.temp_max.toFixed(0) }}°</span>
-                  </div>
-                </div>
+                    [attr.aria-pressed]="selectedDayIndex === i"
+                    [title]="iconoDelDia(day).weather.description"
+                    (click)="selectDay(day, i)">
+                  <span class="day-name">{{ i === 0 ? 'Hoy' : getDayName(day.date) }}</span>
+                  <span class="day-date">{{ fechaCorta(day.date) }}</span>
+                  <img class="day-icon" [src]="iconoUrl(iconoDelDia(day).weather.icon)"
+                      [alt]="iconoDelDia(day).weather.description" loading="lazy">
+                  <span class="day-temps">
+                    <span class="max-temp" aria-label="máxima">{{ day.temp_max.toFixed(0) }}°</span>
+                    <span class="min-temp" aria-label="mínima">{{ day.temp_min.toFixed(0) }}°</span>
+                  </span>
+                  <span class="temp-bar" aria-hidden="true">
+                    <span [style.left.%]="barraTemperatura(day).left" [style.width.%]="barraTemperatura(day).width"></span>
+                  </span>
+                  <span class="day-rain" [class.day-rain--baja]="lluviaDelDia(day) < 30"
+                      [attr.aria-label]="'Probabilidad de lluvia ' + lluviaDelDia(day) + '%'">
+                    <fa-icon [icon]="['fas', 'tint']"></fa-icon> {{ lluviaDelDia(day) }}%
+                  </span>
+                </button>
               </div>
             </div>
 
             <!-- IZQ / ABAJO: horas -->
             <div class="forecast-hours" *ngIf="selectedDay">
               <div class="day-details-title">
-                Pronóstico para el día {{ selectedDay.date | date:"EEEE, d 'de' MMMM 'de' y":"":"es-AR" }}
+                {{ selectedDay.date | date:"EEEE d 'de' MMMM":"":"es-AR" }}
+                <span>cada 3 horas</span>
               </div>
 
-              <div class="hourly-forecast-container">
-                <div class="hourly-forecast-scroll">
-                  <div *ngFor="let interval of selectedDay.intervals" class="hourly-item">
-                    <div class="hourly-time">{{ interval.hour }}</div>
-                    <div class="hourly-icon">
-                      <img [src]="'https://openweathermap.org/img/wn/' + interval.weather.icon + '.png'"
-                        [alt]="interval.weather.description" loading="lazy">
-                    </div>
-                    <div class="hourly-rain">
-                      <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
-                      {{ interval.rain_prob }}%
-                    </div>
-                    <div class="hourly-temp">{{ interval.temperature.toFixed(0) }}°C</div>
-                    <div class="hourly-wind">{{ interval.wind.speed }} km/h</div>
-                  </div>
-                </div>
-              </div>
+              <!-- Una fila por intervalo: hora, cielo, temperatura, lluvia (barra) y viento -->
+              <ol class="hourly-list">
+                <li *ngFor="let interval of selectedDay.intervals" class="hourly-row"
+                    [class.hourly-row--noche]="interval.weather.icon.endsWith('n')">
+                  <span class="hourly-time">{{ interval.hour }}</span>
+                  <img class="hourly-icon" [src]="iconoUrl(interval.weather.icon)"
+                      [alt]="interval.weather.description" [title]="interval.weather.description" loading="lazy">
+                  <span class="hourly-temp">{{ interval.temperature.toFixed(0) }}°</span>
+                  <span class="hourly-rain" [attr.aria-label]="'Probabilidad de lluvia ' + interval.rain_prob + '%'">
+                    <span class="hourly-rain__bar"><span [style.width.%]="interval.rain_prob"></span></span>
+                    <span class="hourly-rain__pct">{{ interval.rain_prob }}%</span>
+                  </span>
+                  <span class="hourly-wind">
+                    <fa-icon [icon]="['fas', 'wind']"></fa-icon>
+                    {{ interval.wind.direction }} {{ interval.wind.speed }}<small> km/h</small>
+                  </span>
+                </li>
+              </ol>
             </div>
 
             <!-- DER (SPAN): gráfico -->
