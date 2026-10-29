@@ -1,0 +1,170 @@
+<section class="adm">
+  <header class="adm__head">
+    <div class="adm__eyebrow">ADMINISTRACIÓN</div>
+    <h1 class="adm__title">Administración de datos</h1>
+    <p class="adm__copy">Carga y corrección de informes de la biblioteca técnica, y consulta de lluvias de 9 a 9.</p>
+  </header>
+
+  <mat-tab-group class="adm__tabs" animationDuration="0ms" mat-stretch-tabs="false">
+    <!-- ================= Cargar informe ================= -->
+    <mat-tab label="Cargar informe">
+      <div class="adm__panel">
+        <form #form="ngForm" class="adm-form" (ngSubmit)="cargar(form)" novalidate>
+          <div class="adm-zona" [class.adm-zona--encima]="arrastrando" [class.adm-zona--lista]="archivo"
+            (dragover)="arrastrar($event, true)" (dragleave)="arrastrar($event, false)" (drop)="soltar($event)">
+            <ng-container *ngIf="archivo; else sinArchivo">
+              <mat-icon aria-hidden="true">description</mat-icon>
+              <span class="adm-zona__texto"><strong>{{ archivo.name }}</strong> · {{ tamano(archivo.size) }}</span>
+              <button type="button" class="adm-zona__quitar" (click)="quitarArchivo()" aria-label="Quitar archivo">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ng-container>
+            <ng-template #sinArchivo>
+              <mat-icon aria-hidden="true">upload_file</mat-icon>
+              <span class="adm-zona__texto">Arrastrá el archivo acá o
+                <label class="adm-zona__elegir">elegilo
+                  <input #archivoInput type="file" accept=".pdf,.xlsx" (change)="elegirArchivo(archivoInput)" />
+                </label>
+                <small>PDF o XLSX, hasta {{ maxMb }} MB. Con nombres como Lluvias_28_10_2026.pdf se completan
+                  título y fecha.</small>
+              </span>
+            </ng-template>
+          </div>
+
+          <label class="adm-campo">
+            <span>Título</span>
+            <input type="text" name="titulo" [(ngModel)]="titulo" required maxlength="255"
+              placeholder="Informe de precipitaciones al 28 de octubre de 2026" />
+          </label>
+
+          <div class="adm-fila">
+            <label class="adm-campo">
+              <span>Categoría</span>
+              <select name="categoria" [(ngModel)]="categoria" required>
+                <option *ngFor="let c of categorias" [value]="c.value">{{ c.label }}</option>
+              </select>
+            </label>
+
+            <label class="adm-campo adm-campo--fecha">
+              <span>Fecha</span>
+              <input type="date" name="creado" [(ngModel)]="creado" required [max]="hoy" />
+            </label>
+          </div>
+
+          <div class="adm-acciones">
+            <button type="submit" class="adm-btn" [disabled]="form.invalid || !archivo || enviando">
+              <mat-icon>publish</mat-icon>
+              {{ enviando ? 'Subiendo…' : 'Publicar informe' }}
+            </button>
+          </div>
+
+          <p class="adm-aviso adm-aviso--error" *ngIf="errorCarga" role="alert">{{ errorCarga }}</p>
+          <p class="adm-aviso adm-aviso--ok" *ngIf="cargado" role="status">
+            <mat-icon>check_circle</mat-icon>
+            <span>Publicado: <strong>{{ cargado.titulo }}</strong>.
+              <a [routerLink]="'/informes'" [queryParams]="{ categoria: cargado.categoria }">Ver en Informes</a></span>
+          </p>
+        </form>
+
+        <div class="adm-recientes">
+          <h2 class="adm-subtitulo">Últimos cargados</h2>
+          <p class="adm-vacio" *ngIf="cargandoRecientes">Cargando…</p>
+          <p class="adm-aviso adm-aviso--error" *ngIf="errorRecientes">{{ errorRecientes }}</p>
+          <ul class="adm-lista" *ngIf="!cargandoRecientes && !errorRecientes">
+            <li *ngFor="let i of recientes">
+              <a [href]="urlArchivo(i.archivo)" target="_blank" rel="noopener">{{ i.titulo }}</a>
+              <span>{{ nombreCategoria(i.categoria) }} · {{ i.creado }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ================= Informes publicados ================= -->
+    <mat-tab label="Informes publicados">
+      <div class="adm__panel adm__panel--una">
+        <app-admin-publicados></app-admin-publicados>
+      </div>
+    </mat-tab>
+
+    <!-- ================= Lluvias de 9 a 9 ================= -->
+    <mat-tab label="Lluvias 9 a 9">
+      <div class="adm__panel adm__panel--una">
+        <form class="adm-fila adm-fila--consulta" (ngSubmit)="consultar9a9()">
+          <label class="adm-campo adm-campo--fecha">
+            <span>Hasta las 9 h del día</span>
+            <input type="date" name="fecha9a9" [(ngModel)]="fecha9a9" required [max]="hoy" />
+          </label>
+          <button type="submit" class="adm-btn" [disabled]="!fecha9a9 || consultando">
+            <mat-icon>water_drop</mat-icon>
+            {{ consultando ? 'Consultando…' : 'Consultar' }}
+          </button>
+          <div class="adm-dias" *ngIf="lluvias">
+            <button type="button" class="adm-btn-sec" (click)="moverDia(-1)" [disabled]="consultando">
+              <mat-icon>chevron_left</mat-icon>Día anterior
+            </button>
+            <button type="button" class="adm-btn-sec" (click)="moverDia(1)" [disabled]="consultando || fecha9a9 >= hoy">
+              Día siguiente<mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </form>
+
+        <p class="adm-aviso adm-aviso--error" *ngIf="error9a9" role="alert">{{ error9a9 }}</p>
+
+        <ng-container *ngIf="lluvias">
+          <div class="adm-encabezado-tabla">
+            <div>
+              <h2 class="adm-subtitulo">
+                Lluvia del {{ diaMes(lluvias.desde) }} a las 9 h al {{ diaMes(lluvias.hasta) }} a las 9 h
+              </h2>
+              <p class="adm-resumen">
+                {{ conRegistros }} de {{ lluvias.estaciones.length }} estaciones con registros
+                <ng-container *ngIf="maximo"> · máximo {{ maximo.mm | number:'1.1-1':'es-AR' }} mm en {{ maximo.nombre }}</ng-container>
+                <ng-container *ngIf="conRegistros && !maximo"> · sin lluvia</ng-container>
+              </p>
+            </div>
+            <button type="button" class="adm-btn-sec" (click)="copiarTabla()">
+              <mat-icon>{{ copiado ? 'check' : 'content_copy' }}</mat-icon>{{ copiado ? 'Copiada' : 'Copiar tabla' }}
+            </button>
+          </div>
+
+          <div class="adm-tabla-wrap">
+            <table class="adm-tabla">
+              <thead>
+                <tr>
+                  <th scope="col">Id</th>
+                  <th scope="col" [attr.aria-sort]="ariaOrden('nombre')">
+                    <button type="button" (click)="ordenarPor('nombre')">Estación
+                      <mat-icon *ngIf="orden === 'nombre'">{{ ordenDesc ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                    </button>
+                  </th>
+                  <th scope="col" class="num" [attr.aria-sort]="ariaOrden('mm')">
+                    <button type="button" (click)="ordenarPor('mm')">mm
+                      <mat-icon *ngIf="orden === 'mm'">{{ ordenDesc ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                    </button>
+                  </th>
+                  <th scope="col" class="num" [attr.aria-sort]="ariaOrden('horas')">
+                    <button type="button" (click)="ordenarPor('horas')">Horas con datos
+                      <mat-icon *ngIf="orden === 'horas'">{{ ordenDesc ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of estacionesOrdenadas" [class.sin-datos]="e.mm === null"
+                  [class.incompleta]="e.mm !== null && e.horas < 24">
+                  <td>{{ e.id }}</td>
+                  <td>{{ e.nombre }}</td>
+                  <td class="num">{{ e.mm === null ? '—' : (e.mm | number:'1.1-1':'es-AR') }}</td>
+                  <td class="num">{{ e.horas | number:'1.0-2':'es-AR' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="adm-nota">Las filas resaltadas tienen menos de 24 horas de datos; "—" indica que la estación no
+            tiene registros en el período.</p>
+        </ng-container>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</section>

@@ -12,6 +12,7 @@
       <a mat-menu-item routerLink="/mi-cuenta" fragment="consultas"><mat-icon>bookmarks</mat-icon>Mis consultas</a>
       <a mat-menu-item routerLink="/mi-cuenta" fragment="alertas"><mat-icon>notifications</mat-icon>Mis alertas</a>
       <a mat-menu-item routerLink="/mis-solicitudes"><mat-icon>assignment</mat-icon>Mis solicitudes</a>
+      <a mat-menu-item routerLink="/admin" *ngIf="administrador"><mat-icon>admin_panel_settings</mat-icon>Administración</a>
       <button mat-menu-item type="button" (click)="logout()"><mat-icon>logout</mat-icon>Cerrar sesión</button>
     </mat-menu>
     <span *ngIf="emailSinConfirmar" class="email-aviso" role="status">

@@ -1,0 +1,77 @@
+<div class="pub-filtros">
+  <label class="pub-buscar">
+    <mat-icon aria-hidden="true">search</mat-icon>
+    <input type="search" [(ngModel)]="q" (ngModelChange)="buscarLuego()" placeholder="Buscar por título o archivo"
+      aria-label="Buscar informes" maxlength="100" />
+  </label>
+  <select [(ngModel)]="categoria" (ngModelChange)="buscar()" aria-label="Categoría">
+    <option value="">Todas las categorías</option>
+    <option *ngFor="let c of categorias" [value]="c.value">{{ c.label }}</option>
+  </select>
+  <select [(ngModel)]="anio" (ngModelChange)="buscar()" aria-label="Año">
+    <option value="">Todos los años</option>
+    <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
+  </select>
+</div>
+
+<p class="pub-aviso pub-aviso--ok" *ngIf="aviso" role="status">{{ aviso }}</p>
+<p class="pub-aviso pub-aviso--error" *ngIf="error" role="alert">{{ error }}</p>
+
+<p class="pub-total" *ngIf="!cargando && !error">
+  {{ total === 1 ? '1 informe' : (total | number:'1.0-0':'es-AR') + ' informes' }}
+  <ng-container *ngIf="informes.length < total"> · mostrando {{ informes.length }}</ng-container>
+</p>
+<p class="pub-total" *ngIf="cargando">Buscando…</p>
+
+<ul class="pub-lista" *ngIf="!cargando">
+  <li *ngFor="let i of informes; trackBy: trackId" class="pub-item" [class.pub-item--editando]="editando.has(i.id)">
+    <ng-container *ngIf="editando.get(i.id) as e; else vista">
+      <div class="pub-edicion">
+        <label class="pub-campo pub-campo--titulo">
+          <span>Título</span>
+          <input type="text" [(ngModel)]="e.titulo" maxlength="255" />
+        </label>
+        <label class="pub-campo">
+          <span>Categoría</span>
+          <select [(ngModel)]="e.categoria">
+            <option *ngFor="let c of categorias" [value]="c.value">{{ c.label }}</option>
+          </select>
+        </label>
+        <label class="pub-campo pub-campo--fecha">
+          <span>Fecha</span>
+          <input type="date" [(ngModel)]="e.creado" />
+        </label>
+        <div class="pub-acciones">
+          <button type="button" class="pub-btn pub-btn--primario" (click)="guardar(i)"
+            [disabled]="e.guardando || !e.titulo.trim() || !e.creado">{{ e.guardando ? 'Guardando…' : 'Guardar' }}</button>
+          <button type="button" class="pub-btn" (click)="cancelar(i)" [disabled]="e.guardando">Cancelar</button>
+        </div>
+        <p class="pub-aviso pub-aviso--error" *ngIf="e.error" role="alert">{{ e.error }}</p>
+      </div>
+    </ng-container>
+
+    <ng-template #vista>
+      <div class="pub-info">
+        <a class="pub-titulo" [href]="urlArchivo(i.archivo)" target="_blank" rel="noopener">{{ i.titulo }}</a>
+        <span class="pub-meta">{{ nombreCategoria(i.categoria) }} · {{ fecha(i.creado) }} · {{ i.archivo }}</span>
+      </div>
+      <div class="pub-acciones">
+        <button type="button" class="pub-btn" (click)="editar(i)" [attr.aria-label]="'Editar ' + i.titulo">
+          <mat-icon aria-hidden="true">edit</mat-icon>Editar
+        </button>
+        <button type="button" class="pub-btn pub-btn--peligro" (click)="despublicar(i)" [disabled]="despublicando.has(i.id)"
+          [attr.aria-label]="'Despublicar ' + i.titulo">
+          <mat-icon aria-hidden="true">visibility_off</mat-icon>{{ despublicando.has(i.id) ? 'Despublicando…' : 'Despublicar' }}
+        </button>
+      </div>
+    </ng-template>
+  </li>
+</ul>
+
+<p class="pub-total" *ngIf="!cargando && !error && !informes.length">No hay informes con estos filtros.</p>
+
+<div class="pub-mas" *ngIf="!cargando && informes.length < total">
+  <button type="button" class="pub-btn" (click)="cargarMas()" [disabled]="cargandoMas">
+    {{ cargandoMas ? 'Cargando…' : 'Cargar más' }}
+  </button>
+</div>

@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
+import { esAdministrador } from '../../shared/administradores';
 
 @Component({
   selector: 'app-navbar',
@@ -18,6 +19,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   userEmail: string | null = null;
   /** Cuenta con correo y contraseña cuyo email todavía no se confirmó */
   emailSinConfirmar = false;
+  /** Cuenta con acceso a /admin */
+  administrador = false;
   reenvio: 'listo' | 'enviando' | 'enviado' | 'error' = 'listo';
   private userSubscription!: Subscription;
 
@@ -26,6 +29,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.userSubscription = this.authService.getUserObservable().subscribe(user => {
       this.userEmail = user?.displayName || user?.email || null; // Guarda el email del usuario autenticado
+      this.administrador = esAdministrador(user);
       // Las cuentas de Google ya llegan verificadas; sólo aplica a correo y contraseña
       this.emailSinConfirmar = !!user && !user.emailVerified
         && user.providerData.some(p => p.providerId === 'password');

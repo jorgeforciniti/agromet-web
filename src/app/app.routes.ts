@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './admin/admin.guard';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,12 @@ export const routes: Routes = [
   {
     path: 'privacidad',
     loadComponent: () => import('./privacidad/privacidad.component').then((m) => m.PrivacidadComponent)
+  },
+  {
+    // Sólo para las cuentas de shared/administradores.ts (la API también lo controla)
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent)
   },
   {
     path: 'auth',
