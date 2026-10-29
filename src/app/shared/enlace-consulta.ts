@@ -32,7 +32,7 @@ export const NOMBRE_HERRAMIENTA: Record<Herramienta, string> = {
   'horas-frio': 'Horas de frío',
   'suma-termica': 'Sumas térmicas',
   'enfermedades': 'Enfermedades',
-  'fenologia': 'Fenología y clima',
+  'fenologia': 'Meteorología por estadíos fenológicos',
   'rinde-soja': 'Rinde de soja'
 };
 
