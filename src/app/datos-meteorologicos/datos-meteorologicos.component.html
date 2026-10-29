@@ -104,6 +104,22 @@
           <button mat-button class="dm-btn" (click)="openPhenologyWeatherDialog()">Analizar por fenología</button>
         </mat-card-actions>
       </mat-card>
+
+      <mat-card class="dm-card">
+        <div class="dm-card__media">
+          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/balance-hidrico-card.png"
+               alt="Perfil de suelo con la lluvia que entra, la evapotranspiración que sale y el agua almacenada" loading="lazy">
+          <div class="dm-card__badge">SUELO</div>
+        </div>
+        <mat-card-content class="dm-card__body">
+          <div class="dm-card__kicker">Agua en el suelo</div>
+          <h3 class="dm-card__title">Balance hidrológico seriado teórico</h3>
+          <p class="dm-card__sub">Almacenaje de agua en el suelo, déficit y excedentes de cada década, a partir de la lluvia y la EP de la estación.</p>
+        </mat-card-content>
+        <mat-card-actions class="dm-card__actions">
+          <button mat-button class="dm-btn" (click)="openWaterBalanceDialog()">Calcular el balance</button>
+        </mat-card-actions>
+      </mat-card>
       
     </div>
   </div>
@@ -138,12 +154,6 @@
         <button type="button" class="dm-link tap-feedback" (click)="openThermalSumDialog()">
           <mat-icon inline>functions</mat-icon>
           <span>Sumas térmicas</span>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openWaterBalanceDialog()">
-          <mat-icon inline>water</mat-icon>
-          <span>Balance hidrológico seriado</span>
         </button>
       </li>
       <li>
