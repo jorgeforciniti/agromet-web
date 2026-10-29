@@ -36,7 +36,8 @@ export class DatosMeteorologicosComponent implements OnInit {
     'suma-termica': c => this.openThermalSumDialog(c),
     'enfermedades': c => this.openDiseaseConditionsDialog(c),
     'fenologia': c => this.openPhenologyWeatherDialog(c),
-    'rinde-soja': c => this.openSoyYieldDialog(c)
+    'rinde-soja': c => this.openSoyYieldDialog(c),
+    'balance-hidrico': c => this.openWaterBalanceDialog(c)
   };
 
   ngOnInit(): void {
@@ -165,6 +166,21 @@ export class DatosMeteorologicosComponent implements OnInit {
     const { ChillHoursDialogComponent } = await import('../chill-hours-dialog/chill-hours-dialog.component');
 
     this.dialog.open(ChillHoursDialogComponent, {
+      data: { consulta },
+      width: 'min(1120px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
+    });
+  }
+
+  async openWaterBalanceDialog(consulta: Consulta = {}): Promise<void> {
+    const { WaterBalanceDialogComponent } = await import('../water-balance-dialog/water-balance-dialog.component');
+
+    this.dialog.open(WaterBalanceDialogComponent, {
       data: { consulta },
       width: 'min(1120px, 95vw)',
       maxWidth: '95vw',

@@ -29,4 +29,5 @@ const MAX_ALERTAS = 20;
 const HERRAMIENTAS = [
     'datos-localidad', 'tiempo-real', 'campania-lluvias', 'aplicar', 'comparar-anios',
     'comparar-localidades', 'horas-frio', 'suma-termica', 'enfermedades', 'fenologia', 'rinde-soja',
+    'balance-hidrico',
 ];

@@ -19,7 +19,8 @@ export type Herramienta =
   | 'suma-termica'
   | 'enfermedades'
   | 'fenologia'
-  | 'rinde-soja';
+  | 'rinde-soja'
+  | 'balance-hidrico';
 
 /** Nombre visible de cada herramienta (consultas guardadas) */
 export const NOMBRE_HERRAMIENTA: Record<Herramienta, string> = {
@@ -33,7 +34,8 @@ export const NOMBRE_HERRAMIENTA: Record<Herramienta, string> = {
   'suma-termica': 'Sumas térmicas',
   'enfermedades': 'Enfermedades',
   'fenologia': 'Meteorología por estadíos fenológicos',
-  'rinde-soja': 'Rinde de soja'
+  'rinde-soja': 'Rinde de soja',
+  'balance-hidrico': 'Balance hidrológico seriado'
 };
 
 /** Arma la URL absoluta; omite los parámetros vacíos. */

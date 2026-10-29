@@ -1,0 +1,191 @@
+<mat-dialog-content class="bhs-dialog">
+  <div class="bhs-shell">
+    <div class="bhs-header">
+      <div>
+        <div class="bhs-eyebrow">AGUA EN EL SUELO</div>
+        <h2 class="bhs-titulo">Balance hidrológico seriado decádico</h2>
+        <p class="bhs-lead">
+          Almacenaje de agua en el suelo, déficit y excedentes de cada década, a partir de la lluvia y la
+          evapotranspiración potencial (EP) medidas por la estación.
+        </p>
+      </div>
+      <button type="button" class="bhs-cerrar" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="calcular()" class="bhs-form">
+      <div class="bhs-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Estación</mat-label>
+          <select matNativeControl formControlName="station">
+            <ng-container *ngIf="stations | gruposEstaciones:(favoritas$ | async) as g">
+              <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
+                <option *ngFor="let station of g.favoritas" [value]="station.Identificacion">
+                  {{ station.Identificacion }} - {{ station.nombre }}
+                </option>
+              </optgroup>
+              <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
+                <option *ngFor="let station of g.resto" [value]="station.Identificacion">
+                  {{ station.Identificacion }} - {{ station.nombre }}
+                </option>
+              </optgroup>
+              <ng-container *ngIf="!g.favoritas.length">
+                <option *ngFor="let station of g.resto" [value]="station.Identificacion">
+                  {{ station.Identificacion }} - {{ station.nombre }}
+                </option>
+              </ng-container>
+            </ng-container>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Desde</mat-label>
+          <input matInput [matDatepicker]="desdePicker" formControlName="from">
+          <mat-datepicker-toggle matSuffix [for]="desdePicker"></mat-datepicker-toggle>
+          <mat-datepicker #desdePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Hasta</mat-label>
+          <input matInput [matDatepicker]="hastaPicker" formControlName="to">
+          <mat-datepicker-toggle matSuffix [for]="hastaPicker"></mat-datepicker-toggle>
+          <mat-datepicker #hastaPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="bhs-calcular" type="submit" [disabled]="isLoading">
+          <mat-icon>water</mat-icon>
+          Calcular
+        </button>
+      </div>
+    </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
+
+    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+    <div class="bhs-error" *ngIf="loadError" role="alert">
+      <mat-icon>error</mat-icon>
+      <span>{{ loadError }}</span>
+    </div>
+
+    <ng-container *ngIf="resultado && decadas.length && !isLoading">
+      <div class="bhs-resumen">
+        <div class="bhs-resumen__card">
+          <span>Estación</span>
+          <strong>{{ estacionCalculada }}</strong>
+        </div>
+        <div class="bhs-resumen__card">
+          <span>Almacenaje al final</span>
+          <strong *ngIf="totales.ultima as u; else sinAlm">{{ u.almacenaje | number:'1.0-0' }} mm
+            <small>de {{ cmr }} · {{ u.etiqueta }}</small></strong>
+          <ng-template #sinAlm><strong>—</strong></ng-template>
+        </div>
+        <div class="bhs-resumen__card">
+          <span>Lluvia / EP del período</span>
+          <strong>{{ totales.lluvia | number:'1.0-0' }} / {{ totales.ep | number:'1.0-0' }} mm</strong>
+        </div>
+        <div class="bhs-resumen__card">
+          <span>Déficit / excedente</span>
+          <strong>
+            <span class="neg">{{ totales.deficit | number:'1.0-0' }}</span> /
+            <span class="pos">{{ totales.exceso | number:'1.0-0' }}</span> mm
+          </strong>
+        </div>
+      </div>
+
+      <div class="bhs-aviso" *ngIf="resultado.corte">
+        <mat-icon>warning_amber</mat-icon>
+        <span>La estación no tiene datos en la década que empieza el {{ fechaCorta(resultado.corte) }}: desde ahí no se
+          puede seguir el almacenaje. Se muestran sólo lluvia y EP.</span>
+      </div>
+      <div class="bhs-aviso" *ngIf="resultado.reinicio">
+        <mat-icon>info</mat-icon>
+        <span>Por falta de datos en los meses previos, el balance arranca el {{ fechaCorta(resultado.reinicio) }} con
+          {{ almacenajeInicial }} mm: las primeras décadas pueden estar menos estabilizadas.</span>
+      </div>
+
+      <section class="bhs-grafico">
+        <div class="bhs-grafico__head">
+          <h3>Lluvia, EP y almacenaje</h3>
+          <p>Barras: lluvia y EP de cada década. Área: agua almacenada en el suelo (máximo {{ cmr }} mm).</p>
+        </div>
+        <div class="bhs-grafico__lienzo">
+          <app-exportar-grafico nombre="balance-hidrico"></app-exportar-grafico>
+          <canvas baseChart [data]="balanceData" [options]="balanceOptions" [plugins]="pluginsGrafico" type="bar"></canvas>
+        </div>
+      </section>
+
+      <section class="bhs-grafico">
+        <div class="bhs-grafico__head">
+          <h3>Situación hídrica</h3>
+          <p><i class="bhs-muestra bhs-muestra--deficit"></i>Déficit (la EP real no alcanza a la potencial)
+            <i class="bhs-muestra bhs-muestra--exceso"></i>Excedente (el suelo ya está a capacidad)</p>
+        </div>
+        <div class="bhs-grafico__lienzo bhs-grafico__lienzo--bajo">
+          <app-exportar-grafico nombre="balance-hidrico-situacion"></app-exportar-grafico>
+          <canvas baseChart [data]="situacionData" [options]="situacionOptions" [plugins]="pluginsGrafico" type="bar"></canvas>
+        </div>
+      </section>
+
+      <p class="bhs-leyenda" *ngIf="hayIncompletas || haySinDatos">
+        <span *ngIf="hayIncompletas"><i class="bhs-muestra bhs-muestra--incompleta"></i>Década incompleta (calculada con los
+          días que tienen datos)</span>
+        <span *ngIf="haySinDatos"><i class="bhs-muestra bhs-muestra--sin-datos"></i>Década sin datos</span>
+      </p>
+
+      <div class="bhs-tabla-wrap">
+        <table class="bhs-tabla">
+          <thead>
+            <tr>
+              <th scope="col">Década</th>
+              <th scope="col" class="num">Lluvia</th>
+              <th scope="col" class="num">EP</th>
+              <th scope="col" class="num">P − EP</th>
+              <th scope="col" class="num">Almacenaje</th>
+              <th scope="col" class="num">Sit. hídrica</th>
+              <th scope="col" class="num">EP real</th>
+              <th scope="col" class="num">EP relativa</th>
+              <th scope="col" class="num">Días con datos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of decadas" [class.incompleta]="d.estado === 'incompleta'"
+              [class.sin-datos]="d.estado === 'sin-datos'" [title]="tituloDecada(d)">
+              <th scope="row">{{ d.etiqueta }}</th>
+              <ng-container *ngIf="d.estado !== 'sin-datos'; else filaSinDatos">
+                <td class="num">{{ d.lluvia | number:'1.1-1' }}</td>
+                <td class="num">{{ d.ep | number:'1.1-1' }}</td>
+                <td class="num" [class.neg]="(d.pMenosEp ?? 0) < 0">{{ d.pMenosEp | number:'1.1-1' }}</td>
+                <ng-container *ngIf="d.estado !== 'cortada'; else sinBalance">
+                  <td class="num">{{ d.almacenaje | number:'1.1-1' }}</td>
+                  <td class="num" [class.neg]="(d.situacion ?? 0) < 0" [class.pos]="(d.situacion ?? 0) > 0">
+                    {{ d.situacion | number:'1.1-1' }}</td>
+                  <td class="num">{{ d.erReal | number:'1.1-1' }}</td>
+                  <td class="num">{{ d.erRelativa | number:'1.0-0' }} %</td>
+                </ng-container>
+                <ng-template #sinBalance>
+                  <td class="num sd" colspan="4">Sin balance</td>
+                </ng-template>
+              </ng-container>
+              <ng-template #filaSinDatos>
+                <td class="num sd" colspan="8">Sin datos</td>
+              </ng-template>
+              <td class="num" *ngIf="d.estado !== 'sin-datos'">{{ d.diasEp < d.diasLluvia ? d.diasEp : d.diasLluvia }} / {{ d.dias }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bhs-nota">
+        <mat-icon>info</mat-icon>
+        <div>
+          <p>Capacidad máxima de retención (CMR): {{ cmr }} mm, para 1 m de profundidad, uniforme e idéntica para todos los
+            sitios. El balance arranca con {{ almacenajeInicial }} mm seis meses antes del período elegido para estabilizar el
+            almacenaje.</p>
+          <p>La EP la calcula cada estación a partir de radiación, temperatura, humedad relativa y velocidad del viento.
+            Valores en mm por década (1–10, 11–20 y 21 a fin de mes).</p>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</mat-dialog-content>

@@ -1,0 +1,357 @@
+/* ViewEncapsulation.None (como los demás diálogos de herramientas): todo con prefijo bhs- */
+
+.bhs-dialog {
+  padding: 0 !important;
+  margin: 0;
+  color: var(--text);
+}
+
+.bhs-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--mod-stats) 14%, transparent), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99));
+}
+
+/* Sin esto, los bloques con scroll horizontal (la tabla) se encogen casi a cero dentro de la columna */
+.bhs-shell > * {
+  flex-shrink: 0;
+}
+
+.bhs-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+}
+
+.bhs-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
+  background: rgba(255,255,255,.92);
+  color: color-mix(in srgb, var(--mod-stats) 66%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.bhs-titulo {
+  margin: 8px 0 6px;
+  font-size: 1.3rem;
+  line-height: 1.08;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.bhs-lead {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+  line-height: 1.42;
+  font-size: .98rem;
+}
+
+.bhs-cerrar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.bhs-cerrar:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+.bhs-form,
+.bhs-resumen,
+.bhs-grafico,
+.bhs-tabla-wrap,
+.bhs-nota,
+.bhs-error,
+.bhs-aviso {
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+  border-radius: 18px;
+  background: rgba(255,255,255,.88);
+  box-shadow: var(--shadow-sm);
+}
+
+.bhs-form {
+  padding: 14px;
+}
+
+.bhs-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(170px, .8fr) minmax(170px, .8fr) minmax(150px, .6fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.bhs-grid .mat-mdc-form-field {
+  width: 100%;
+}
+
+.bhs-calcular {
+  min-height: 52px;
+  border-radius: 12px !important;
+  font-weight: 800;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bhs-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.bhs-resumen__card {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
+  border: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+}
+
+.bhs-resumen__card > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.bhs-resumen__card strong {
+  color: var(--text);
+  font-size: .98rem;
+  font-weight: 900;
+}
+
+.bhs-resumen__card small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.neg {
+  color: #c2255c;
+}
+
+.pos {
+  color: #1c64c4;
+}
+
+.bhs-error,
+.bhs-aviso,
+.bhs-nota {
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  line-height: 1.4;
+  font-size: .9rem;
+}
+
+.bhs-error {
+  color: #991b1b;
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.bhs-aviso {
+  color: #854d0e;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.bhs-nota {
+  color: var(--muted);
+}
+
+.bhs-nota p {
+  margin: 0 0 4px;
+}
+
+.bhs-nota p:last-child {
+  margin: 0;
+}
+
+.bhs-error mat-icon,
+.bhs-aviso mat-icon,
+.bhs-nota mat-icon {
+  flex: 0 0 auto;
+}
+
+/* ===== Gráficos ===== */
+.bhs-grafico {
+  padding: 12px;
+}
+
+.bhs-grafico__head h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.bhs-grafico__head p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+.bhs-grafico__lienzo {
+  position: relative;
+  height: 320px;
+}
+
+.bhs-grafico__lienzo--bajo {
+  height: 220px;
+}
+
+.bhs-muestra {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin: 0 5px 0 10px;
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.bhs-grafico__head p .bhs-muestra:first-child {
+  margin-left: 0;
+}
+
+.bhs-muestra--deficit {
+  background: #d6336c;
+}
+
+.bhs-muestra--exceso {
+  background: #2a78d6;
+}
+
+.bhs-muestra--incompleta {
+  background: rgba(16, 152, 173, .35);
+  border: 1px dashed #1098ad;
+}
+
+.bhs-muestra--sin-datos {
+  background: rgba(148, 163, 184, .35);
+}
+
+.bhs-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  color: var(--muted);
+  font-size: .84rem;
+}
+
+.bhs-leyenda .bhs-muestra {
+  margin-left: 0;
+}
+
+/* ===== Tabla ===== */
+.bhs-tabla-wrap {
+  overflow-x: auto;
+}
+
+.bhs-tabla {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: .9rem;
+}
+
+.bhs-tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #111827;
+  color: #fff;
+  font-weight: 900;
+  font-size: .82rem;
+}
+
+.bhs-tabla th,
+.bhs-tabla td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.bhs-tabla tbody th {
+  font-weight: 800;
+  background: rgba(255,255,255,.9);
+}
+
+.bhs-tabla td {
+  font-weight: 700;
+  background: rgba(255,255,255,.88);
+}
+
+.bhs-tabla .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bhs-tabla tr.incompleta td,
+.bhs-tabla tr.incompleta th {
+  background: #fffbeb;
+}
+
+.bhs-tabla td.sd {
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+}
+
+.bhs-tabla tr.sin-datos th {
+  color: #6b7280;
+}
+
+@media (max-width: 980px) {
+  .bhs-grid,
+  .bhs-resumen {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .bhs-shell {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .bhs-grid,
+  .bhs-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .bhs-grafico__lienzo {
+    height: 260px;
+  }
+}
