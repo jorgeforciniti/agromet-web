@@ -32,21 +32,21 @@ const MAPAS: Mapa[] = [
     id: 'lluvias-mensuales',
     titulo: 'Lluvias mensuales',
     descripcion: 'Acumulado de cada mes de la campaña, para comparar zonas.',
-    imagen: 'assets/images/mapas/lluviasmensuales.png',
+    imagen: 'assets/images/mapas/lluviasmensuales.webp',
     cargar: () => import('../map-rain-monthly/map-rain-monthly.component').then(m => m.MapRainMonthlyComponent)
   },
   {
     id: 'temperaturas',
     titulo: 'Temperaturas',
     descripcion: 'Máximas, mínimas y medias de cada estación en el período que elijas.',
-    imagen: 'assets/images/mapas/temperaturas.png',
+    imagen: 'assets/images/mapas/temperaturas.webp',
     cargar: () => import('../map-temperature/map-temperature.component').then(m => m.MapTemperatureComponent)
   },
   {
     id: 'heladas',
     titulo: 'Heladas',
     descripcion: 'Mínima absoluta, horas bajo 0 °C, días con helada y fechas de primera y última helada.',
-    imagen: 'assets/images/mapas/heladas.png',
+    imagen: 'assets/images/mapas/heladas.webp',
     cargar: () => import('../map-frost/map-frost.component').then(m => m.MapFrostComponent),
     data: { hoy: false }
   }
