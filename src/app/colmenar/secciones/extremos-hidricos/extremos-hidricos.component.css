@@ -1,0 +1,64 @@
+.progreso {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.progreso span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width .2s ease;
+}
+
+.kpi--retorno {
+  border-top: 3px solid #2a78d6;
+}
+
+.kpi--anio {
+  border-top: 3px solid var(--brand);
+}
+
+.kpi--anio .tag {
+  margin-left: 6px;
+}
+
+.grafico--alto {
+  height: 340px;
+}
+
+/* Sombreado relativo de la tabla mensual (--int entre 0 y 1) */
+.tabla--mensual td {
+  background: rgba(37, 99, 235, calc(var(--int, 0) * .22));
+}
+
+.detalle-anual summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.detalle-anual[open] summary {
+  margin-bottom: 10px;
+}
+
+.cita {
+  padding: 10px 12px;
+  border-left: 3px solid var(--brand);
+  background: var(--surface);
+  border-radius: 0 10px 10px 0;
+}
+
+@media (max-width: 560px) {
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kpis .kpi__valor {
+    font-size: 1.2rem;
+  }
+
+  .kpis .kpi__det {
+    font-size: .7rem;
+  }
+}

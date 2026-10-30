@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, map, shareReplay } from 'rxjs/operators';
+import { Observable, from, of } from 'rxjs';
+import { catchError, map, mergeMap, shareReplay, toArray } from 'rxjs/operators';
 import {
   AnomaliasResponse,
   ClasificacionLluviasResponse,
+  DiariosResponse,
   EpisodiosAnualResponse,
   EpisodiosDetalleResponse,
   EstadoCarga,
   ExtremosTermicosResponse,
+  LluviaDiariaAnio,
   MensualesResponse,
   NormalesResponse,
   Recurso
@@ -27,6 +29,7 @@ export class ColmenarService {
    */
   private readonly base = '/api/colmenar/';
   private normales$?: Observable<NormalesResponse>;
+  private readonly lluviaDiaria = new Map<number, Observable<LluviaDiariaAnio>>();
 
   constructor(private http: HttpClient) { }
 
@@ -60,6 +63,56 @@ export class ColmenarService {
 
   getEpisodiosAnuales(anioDesde: number, anioHasta: number): Observable<EpisodiosAnualResponse> {
     return this.get<EpisodiosAnualResponse>('episodios.php', { anio_desde: anioDesde, anio_hasta: anioHasta, tipo: 'anual' });
+  }
+
+  /** `desde` y `hasta` en formato YYYY-MM-DD; la API admite hasta 366 días por consulta. */
+  getDiarios(desde: string, hasta: string): Observable<DiariosResponse> {
+    return this.get<DiariosResponse>('diarios.php', { desde, hasta });
+  }
+
+  /**
+   * Lluvia diaria de un año calendario (una consulta por año, guardada en caché durante la sesión).
+   * Un día es válido sólo con estado_pp 0, 1 o 2 y valor informado; los demás quedan en null.
+   */
+  getLluviaDiaria(anio: number): Observable<LluviaDiariaAnio> {
+    let obs = this.lluviaDiaria.get(anio);
+    if (!obs) {
+      obs = this.getDiarios(`${anio}-01-01`, `${anio}-12-31`).pipe(
+        map((r) => {
+          const porFecha = new Map((r.datos ?? []).map((d) => [d.fecha, d]));
+          const fechas: string[] = [];
+          const mm: (number | null)[] = [];
+          for (let t = Date.UTC(anio, 0, 1); new Date(t).getUTCFullYear() === anio; t += 86400000) {
+            const f = new Date(t).toISOString().slice(0, 10);
+            const d = porFecha.get(f);
+            fechas.push(f);
+            mm.push(d && d.precipitacion !== null && d.estado_pp !== null && d.estado_pp <= 2 ? d.precipitacion : null);
+          }
+          return { anio, fechas, mm, completo: mm.every((v) => v !== null) };
+        }),
+        shareReplay(1)
+      );
+      this.lluviaDiaria.set(anio, obs);
+      // Si falla, se descarta de la caché para poder reintentar.
+      obs.subscribe({ error: () => this.lluviaDiaria.delete(anio) });
+    }
+    return obs;
+  }
+
+  /**
+   * Lluvia diaria de varios años, con hasta 6 consultas simultáneas. `progreso` recibe la
+   * cantidad de años ya descargados.
+   */
+  getLluviaDiariaAnios(anios: number[], progreso?: (listos: number) => void): Observable<LluviaDiariaAnio[]> {
+    let listos = 0;
+    return from(anios).pipe(
+      mergeMap((a) => this.getLluviaDiaria(a).pipe(map((d) => {
+        progreso?.(++listos);
+        return d;
+      })), 6),
+      toArray(),
+      map((lista) => lista.sort((x, y) => x.anio - y.anio))
+    );
   }
 
   /**

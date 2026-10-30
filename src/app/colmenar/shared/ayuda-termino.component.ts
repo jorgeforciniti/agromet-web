@@ -26,6 +26,18 @@ export const GLOSARIO: Record<string, { titulo: string; texto: string }> = {
     titulo: 'Extremo térmico',
     texto: 'Cantidad de días en que la temperatura igualó o superó el umbral indicado. No es un récord absoluto de temperatura.'
   },
+  retorno: {
+    titulo: 'Período de retorno',
+    texto: 'Tiempo medio, en años, entre dos eventos que igualan o superan un valor. Una lluvia de 10 años de retorno tiene un 10 % de probabilidad de ser superada en un año cualquiera; no significa que ocurra cada 10 años exactos.'
+  },
+  gumbel: {
+    titulo: 'Distribución de Gumbel',
+    texto: 'Modelo estadístico de valores extremos (Fisher-Tippett tipo I) que se ajusta a los máximos anuales para estimar la lluvia esperable para cada período de retorno.'
+  },
+  confianza: {
+    titulo: 'Intervalo de confianza del 80 %',
+    texto: 'Rango en el que se encuentra el valor estimado con un 80 % de probabilidad; queda un 20 % de probabilidad de que el valor real esté por debajo o por encima. Se ensancha en los períodos de retorno largos.'
+  },
   episodio: {
     titulo: 'Episodio cálido',
     texto: 'Período de al menos 3 días consecutivos en que Tmax y Tmin superan simultáneamente su percentil 90 diario (1991–2020). El excedente es la suma de los grados por encima de ese umbral.'
