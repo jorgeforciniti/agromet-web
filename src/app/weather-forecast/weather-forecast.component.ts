@@ -3,6 +3,7 @@ import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 import { OpenWeatherForecastItem, OpenWeatherForecastResponse, OpenWeatherNowResponse, WeatherService, WeatherStation } from '../services/weather.service';
 import { ESTACION_INICIAL, StationService } from '../services/station.service';
+import { Subscription } from 'rxjs';
 import { SunriseSunsetService } from '../services/sunrise-sunset.service';
 import { WeatherData, Forecast, TimeSpecificForecast } from '../models/weather-data';
 import { FormsModule } from '@angular/forms';
@@ -92,13 +93,17 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
     library.addIcons(faTemperatureHigh, faTint, faWind, faClock, faCloudRain, faSun, faMoon, faEye);
   }
 
+  private readonly subs = new Subscription();
+
   ngOnInit() {
-    this.stationService.selectedStation$.subscribe(station => {
+    this.subs.add(this.stationService.selectedStation$.subscribe(station => {
       this.selectedStation = station;
       if (station) {
         this.updateStationData();
       }
-    });
+    }));
+    // Si cambia la activa desde otra sección (p. ej. "Usar esta estación" en Mis estaciones), se la sigue
+    this.subs.add(this.stationService.activa$.subscribe(() => this.seguirActiva()));
     this.loadStations();
   }
 
@@ -487,19 +492,27 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
       .toUpperCase();
   }
 
+  /** Si en otra sección se eligió otra estación, el pronóstico la sigue. */
+  private seguirActiva(): void {
+    if (!this.stations.length) return;
+    const activa = this.stationService.activa;
+    const actual = this.stationService.getSelectedStation()?.Identificacion;
+    if (actual === activa) return;
+    const enLista = this.stations.find(station => station.Identificacion === activa);
+    // Ya muestra una estación y la activa no está en esta lista: se deja la que está
+    if (!enLista && actual) return;
+    const stationToSelect = enLista ||
+      this.stations.find(station => station.Identificacion === ESTACION_INICIAL) ||
+      this.stations[0];
+    // Si la activa no está en esta lista se muestra otra, pero la activa no cambia
+    this.stationService.setSelectedStation(stationToSelect, false);
+  }
+
   loadStations(): void {
     this.weatherService.getStations().subscribe({
       next: (data) => {
         this.stations = data;
-        // Si en otra sección se eligió otra estación, el pronóstico la sigue
-        if (this.stationService.getSelectedStation()?.Identificacion !== this.stationService.activa) {
-          const defaultStation =
-            this.stations.find(station => station.Identificacion === this.stationService.activa) ||
-            this.stations.find(station => station.Identificacion === ESTACION_INICIAL);
-          const stationToSelect = defaultStation || (this.stations.length > 0 ? this.stations[0] : null);
-          // Si la activa no está en esta lista se muestra otra, pero la activa no cambia
-          this.stationService.setSelectedStation(stationToSelect, false);
-        }
+        this.seguirActiva();
       },
       error: () => {
         this.error = 'Error al cargar las estaciones';
@@ -557,6 +570,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   ngOnDestroy(): void {
+    this.subs.unsubscribe();
     this.temperatureChart?.destroy();
   }
 
