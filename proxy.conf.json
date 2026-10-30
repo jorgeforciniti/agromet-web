@@ -22,5 +22,23 @@
     "secure": true,
     "changeOrigin": true,
     "logLevel": "info"
+  },
+  "/services/pronosticos": {
+    "target": "https://agromet.eeaoc.gob.ar",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/services/forecast.php": {
+    "target": "https://agromet.eeaoc.gob.ar",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
+  },
+  "/services/now.php": {
+    "target": "https://agromet.eeaoc.gob.ar",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
   }
 }

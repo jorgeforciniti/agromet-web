@@ -193,6 +193,9 @@ export interface DiseaseApiRecord {
 })
 export class WeatherService {
   private stationsUrl = 'https://agromet.eeaoc.gob.ar/services/';
+  // Relativa: smn-warning.php, forecast.php y now.php no mandan cabeceras CORS.
+  // En desarrollo pasan por proxy.conf.json.
+  private serviciosSinCorsUrl = '/services/';
 
   // No hay proxy PHP para el índice UV: se llama a OpenWeatherMap directo,
   // misma API key ya usada en leaflet-goes-viewer.component.ts.
@@ -201,11 +204,11 @@ export class WeatherService {
   constructor(private http: HttpClient) { }
 
   getOpenWeatherForecast(lat: number, lon: number): Observable<OpenWeatherForecastResponse> {
-    return this.http.get<OpenWeatherForecastResponse>(this.stationsUrl +`forecast.php`, { params: { lat, lon } });
+    return this.http.get<OpenWeatherForecastResponse>(this.serviciosSinCorsUrl + `forecast.php`, { params: { lat, lon } });
   }
 
   getOpenWeatherNow(lat: number, lon: number): Observable<OpenWeatherNowResponse> {
-    return this.http.get<OpenWeatherNowResponse>(this.stationsUrl +`now.php`, { params: { lat, lon } });
+    return this.http.get<OpenWeatherNowResponse>(this.serviciosSinCorsUrl + `now.php`, { params: { lat, lon } });
   }
 
   getUvIndex(lat: number, lon: number): Observable<OpenWeatherUvResponse> {
@@ -251,17 +254,17 @@ export class WeatherService {
   }
 
   getSmnAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=1`;
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=1`;
     return this.http.get<SmnAlertByAreaResponse>(url);
   }
 
   getSmnShortTermAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=2`;
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=2`;
     return this.http.get<SmnAlertByAreaResponse>(url);
   }
 
   getSmnWarningByArea(): Observable<SmnWarningByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-warning.php`;
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-warning.php`;
     return this.http.get<SmnWarningByAreaResponse>(url);
   }
 
