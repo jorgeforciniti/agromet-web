@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
 /** Valor de ?ver= en /mapas: cada mapa tiene su enlace (/mapas?ver=heladas). */
-type MapaId = 'lluvias-diarias' | 'lluvias-mensuales' | 'temperaturas' | 'heladas';
+type MapaId = 'lluvias-diarias' | 'lluvias-mensuales' | 'temperaturas' | 'heladas' | 'vegetacion';
 
 interface Mapa {
   id: MapaId;
@@ -49,6 +49,13 @@ const MAPAS: Mapa[] = [
     imagen: 'assets/images/mapas/heladas.webp',
     cargar: () => import('../map-frost/map-frost.component').then(m => m.MapFrostComponent),
     data: { hoy: false }
+  },
+  {
+    id: 'vegetacion',
+    titulo: 'Vegetación y humedad del suelo',
+    descripcion: 'Índice verde (NDVI) y humedad del suelo estimados por satélite (NASA).',
+    imagen: 'assets/images/mapas/ndvi.webp',
+    cargar: () => import('../map-ndvi/map-ndvi.component').then(m => m.MapNdviComponent)
   }
 ];
 

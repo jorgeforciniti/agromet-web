@@ -1,0 +1,72 @@
+<mat-dialog-content class="mapa-ndvi">
+  <div class="scroll-container" [formGroup]="form">
+    <div class="dialog-body-wrapper">
+      <div class="app-dialog-eyebrow">SATÉLITE</div>
+      <h2 class="titulo">Vegetación y humedad del suelo</h2>
+
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <div class="form-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>Capa</mat-label>
+          <mat-select formControlName="capa" (selectionChange)="mostrarCapa()">
+            <mat-option *ngFor="let capa of capas" [value]="capa.id">{{ capa.titulo }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Fecha</mat-label>
+          <input matInput type="date" formControlName="fecha" [max]="fechaMaxima" (change)="mostrarCapa()">
+          <mat-hint>Vacía: la imagen más reciente</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Mapa Base</mat-label>
+          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange()">
+            <mat-option value="osm">OpenStreetMap</mat-option>
+            <mat-option value="esri">ESRI Satelital</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <label class="opacidad">
+          <span>Opacidad: {{ form.value.opacidad }} %</span>
+          <input type="range" min="20" max="100" step="5" formControlName="opacidad" (input)="cambiarOpacidad()">
+        </label>
+      </div>
+
+      <div class="map-title">
+        {{ capaActual.titulo }} · {{ capaActual.detalle }} ·
+        <span *ngIf="!form.value.fecha">imagen más reciente</span>
+        <span *ngIf="form.value.fecha">{{ form.value.fecha | date:'dd/MM/yyyy' }}</span>
+        <div class="sin-imagen" *ngIf="sinImagen">
+          No hay imagen para esa fecha.
+          <button type="button" class="link-btn" (click)="usarMasReciente()">Ver la más reciente</button>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <div class="zone-checklist" aria-label="Zonas productivas">
+          <mat-checkbox *ngFor="let zone of zoneLayers"
+                        [checked]="zone.selected"
+                        (change)="toggleZoneLayer(zone, $event.checked)">
+            {{ zone.label }}
+          </mat-checkbox>
+          <div class="zone-reference">
+            Zonas agrícolas procesadas por la Sección SRySIG de la EEAOC.<br>
+            Imágenes satelitales de NASA (GIBS).
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div class="map-container" id="ndviMapContainer">
+            <div *ngIf="cargando" class="map-loader-overlay map-loader-overlay--suave">
+              <span>Cargando imagen satelital...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>

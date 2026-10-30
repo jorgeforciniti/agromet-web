@@ -1,0 +1,227 @@
+/* Encapsulación desactivada (como los demás mapas): todo va bajo .mapa-ndvi. */
+.mapa-ndvi {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  color: var(--text);
+}
+
+.mapa-ndvi .scroll-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mapa-ndvi .dialog-body-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapa-ndvi .titulo {
+  margin: 0 0 12px 0;
+  padding-right: 56px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.mapa-ndvi .close-btn {
+  position: absolute;
+  right: env(safe-area-inset-right);
+  top: env(safe-area-inset-top);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  z-index: 1100;
+}
+
+.mapa-ndvi .close-btn:hover {
+  background: rgba(17, 24, 39, .04);
+}
+
+.mapa-ndvi .close-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
+  outline-offset: 2px;
+}
+
+.mapa-ndvi .form-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(170px, 1fr) minmax(170px, 1fr) minmax(160px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding-right: 72px;
+  box-sizing: border-box;
+}
+
+.mapa-ndvi .opacidad {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .85rem;
+  font-weight: 700;
+  color: rgba(17, 24, 39, .75);
+}
+
+.mapa-ndvi .opacidad input {
+  width: 100%;
+  accent-color: var(--mod-data);
+}
+
+.mapa-ndvi .mat-mdc-form-field .mdc-text-field--filled {
+  background: #fff !important;
+}
+
+.mapa-ndvi .map-title {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(17, 24, 39, .03);
+  color: rgba(17, 24, 39, .85);
+  font-weight: 800;
+  text-align: center;
+}
+
+.mapa-ndvi .sin-imagen {
+  margin-top: 6px;
+  color: #b45309;
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+.mapa-ndvi .link-btn {
+  border: 0;
+  background: none;
+  padding: 0 0 0 4px;
+  color: var(--mod-data);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mapa-ndvi .map-layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 12px;
+}
+
+.mapa-ndvi .zone-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  flex: 0 0 210px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(17, 24, 39, .025);
+}
+
+.mapa-ndvi .zone-reference {
+  margin-top: auto;
+  padding-top: 12px;
+  color: rgba(17, 24, 39, .68);
+  font-size: .75rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.mapa-ndvi .map-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.mapa-ndvi .map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  position: relative;
+}
+
+/* Aviso discreto: los mosaicos van apareciendo, no hace falta tapar el mapa. */
+.mapa-ndvi .map-loader-overlay--suave {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--shadow-sm);
+  font-size: .85rem;
+  font-weight: 700;
+  z-index: 1000;
+}
+
+.ndvi-leyenda {
+  min-width: 170px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+  font-size: 12px;
+}
+
+.ndvi-leyenda__barra {
+  height: 12px;
+  margin: 6px 0 2px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, .2);
+}
+
+.ndvi-leyenda__valores {
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 1100px) {
+  .mapa-ndvi .form-grid {
+    grid-template-columns: 1fr 1fr;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .mapa-ndvi .scroll-container {
+    padding: 12px;
+  }
+
+  .mapa-ndvi .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mapa-ndvi .map-layout {
+    flex-direction: column;
+  }
+
+  .mapa-ndvi .zone-checklist {
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .mapa-ndvi .map-wrap,
+  .mapa-ndvi .map-container {
+    min-height: 360px;
+  }
+}
