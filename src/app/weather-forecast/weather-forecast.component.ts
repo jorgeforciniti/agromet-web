@@ -396,9 +396,9 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
 
         // Sol en su posición actual (sólo hoy y de día)
         const ahora = horaLocal(new Date().toISOString());
-        if (esHoy && ahora > ciclo.salida && ahora < ciclo.puesta) {
-          const xa = xDe(chart, ahora);
-          const ya = yArco(xa);
+        const xa = xDe(chart, ahora);
+        const ya = yArco(xa);
+        if (esHoy && ahora > ciclo.salida && ahora < ciclo.puesta && Number.isFinite(xa) && Number.isFinite(ya)) {
           const halo = ctx.createRadialGradient(xa, ya, 2, xa, ya, 22);
           halo.addColorStop(0, 'rgba(250, 204, 21, .55)');
           halo.addColorStop(1, 'rgba(250, 204, 21, 0)');
@@ -605,7 +605,8 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
 
     this.temperatureChart = new Chart(ctx, {
       type: 'line',
-      plugins: ciclo ? [this.pluginCicloSolar(ciclo, tiempos, esHoy)] : [],
+      // Con un solo intervalo (p. ej. hoy a la noche) no hay eje de horas donde ubicar el sol
+      plugins: ciclo && tiempos.length >= 2 ? [this.pluginCicloSolar(ciclo, tiempos, esHoy)] : [],
       data: {
         labels,
         datasets: [{
