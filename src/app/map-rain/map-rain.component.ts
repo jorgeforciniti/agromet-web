@@ -373,6 +373,11 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map) {
       legend.addTo(this.map);
     }
+
+    // Con hoy=true los datos se piden en ngOnInit y pueden llegar antes que la leyenda.
+    if (this.rainData?.length) {
+      this.updateLegend();
+    }
   }
 
   private updateLegend(): void {
