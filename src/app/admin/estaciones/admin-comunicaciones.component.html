@@ -1,0 +1,111 @@
+<div class="est-barra">
+  <span *ngIf="datos">Hora del servidor: <strong>{{ datos.ahora.slice(11, 16) }}</strong></span>
+  <span *ngIf="datos" class="est-mut">Última hora: {{ ultimaHora }}</span>
+  <span class="est-estado" [class.est-estado--error]="error" role="status">
+    <ng-container *ngIf="error; else estadoOk">{{ error }}</ng-container>
+    <ng-template #estadoOk>{{ actualizado ? 'Actualizado ' + (actualizado | date:'HH:mm:ss') + ' · cada 10 s' : 'Conectando…' }}</ng-template>
+  </span>
+  <button type="button" class="est-btn-sec" (click)="actualizar()" [disabled]="cargando" aria-label="Actualizar ahora">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</div>
+
+<div class="com" *ngIf="datos">
+  <section class="est-caja">
+    <h2 class="est-caja__titulo">Quién reporta
+      <small>“reporta” = recibió datos hace 20 min o menos</small>
+    </h2>
+
+    <div class="com-cifras">
+      <button type="button" class="com-cifra est-c-ok" [class.com-cifra--activa]="filtroEstado === 'ok'"
+        [attr.aria-pressed]="filtroEstado === 'ok'" (click)="filtrarEstado('ok')">
+        <strong>{{ datos.resumen.ok }}</strong>Reportan
+      </button>
+      <button type="button" class="com-cifra est-c-retraso" [class.com-cifra--activa]="filtroEstado === 'retraso'"
+        [attr.aria-pressed]="filtroEstado === 'retraso'" (click)="filtrarEstado('retraso')">
+        <strong>{{ datos.resumen.retraso }}</strong>Con retraso (20–60 min)
+      </button>
+      <button type="button" class="com-cifra est-c-sin" [class.com-cifra--activa]="filtroEstado === 'sin'"
+        [attr.aria-pressed]="filtroEstado === 'sin'" (click)="filtrarEstado('sin')">
+        <strong>{{ datos.resumen.sin }}</strong>Sin reporte (&gt; 60 min)
+      </button>
+    </div>
+
+    <div class="com-filtro">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <input type="search" [(ngModel)]="buscar" placeholder="Buscar estación o número" aria-label="Buscar estación" />
+      <button type="button" class="est-enlace" *ngIf="filtroEstado" (click)="filtroEstado = ''">Ver todas</button>
+    </div>
+
+    <div class="est-scroll">
+      <table class="est-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Estado</th>
+            <th scope="col">Estación</th>
+            <th scope="col" class="num">Últ. recepción</th>
+            <th scope="col" class="num">Dato más reciente</th>
+            <th scope="col" class="num" title="Tramas cortas con error en la última hora">Errores 1 h</th>
+            <th scope="col"><span class="est-oculto">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of estaciones">
+            <td><span class="est-tag est-t-{{ e.estado }}">{{ nombresEstado[e.estado] }}</span></td>
+            <td>{{ e.nombre }} <span class="est-mut">({{ e.id }})</span></td>
+            <td class="num">{{ hace(e.min_recepcion) }}</td>
+            <td class="num">
+              <ng-container *ngIf="e.ult_dato; else sinDato">
+                {{ diaHora(e.ult_dato) }}
+                <span *ngIf="(e.min_dato ?? 0) < 0; else atraso" class="com-detalle est-err"
+                  title="La fecha y hora del dato es posterior a la del servidor: el reloj de la estación está adelantado">(reloj adelantado)</span>
+                <ng-template #atraso><span class="com-detalle est-mut">({{ hace(e.min_dato) }})</span></ng-template>
+              </ng-container>
+              <ng-template #sinDato>—</ng-template>
+            </td>
+            <td class="num" [class.est-err]="e.errores_1h > 0">{{ e.errores_1h }}</td>
+            <td>
+              <button type="button" class="est-enlace" (click)="controlar.emit(e.id)"
+                [attr.aria-label]="'Control de ' + e.nombre" title="Actualizar fecha y hora o borrar memoria">
+                <mat-icon>settings_remote</mat-icon>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!estaciones.length">
+            <td colspan="6" class="est-mut">Ninguna estación coincide.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="est-caja">
+    <h2 class="est-caja__titulo">Últimos eventos
+      <span class="com-opciones">
+        <label><input type="checkbox" [(ngModel)]="soloErrores" /> Sólo errores</label>
+        <label><input type="checkbox" [(ngModel)]="sinConsultasHora" /> Ocultar consultas de hora</label>
+      </span>
+    </h2>
+    <div class="est-scroll">
+      <table class="est-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Hora</th>
+            <th scope="col">Estación</th>
+            <th scope="col">Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of eventos">
+            <td class="num">{{ diaHora(e.fechahora) }}</td>
+            <td>{{ e.nombre || '#' + e.estacion }}</td>
+            <td><span class="est-tag est-t-{{ claseEvento(e) }}">{{ e.detalle }}</span></td>
+          </tr>
+          <tr *ngIf="!eventos.length">
+            <td colspan="3" class="est-mut">Sin eventos con estos filtros.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

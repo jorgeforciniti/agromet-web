@@ -146,3 +146,15 @@ function validar_fecha($valor, string $campo): string
     }
     return $valor;
 }
+
+/** Error de las tablas del visor de estaciones (comunicaciones, comandos_estaciones): mensaje claro. */
+function error_tablas_estaciones(mysqli_sql_exception $e)
+{
+    if ($e->getCode() === 1146) {   // la tabla no existe en esta base
+        error_json('La base `' . DB_ESTACIONES . '` de este servidor no tiene las tablas del visor de estaciones (comunicaciones / comandos_estaciones).', 500);
+    }
+    if ($e->getCode() === 1142) {   // sin permiso sobre la tabla
+        error_json('El usuario de conecta_admin.php no tiene permiso sobre las tablas del visor de estaciones.', 500);
+    }
+    throw $e;
+}

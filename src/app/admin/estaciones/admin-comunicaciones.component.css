@@ -1,0 +1,98 @@
+.com {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.com-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+}
+
+.com-cifra {
+  flex: 1 1 120px;
+  padding: 10px 12px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.com-cifra strong {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.com-cifra--activa {
+  border-color: currentColor;
+}
+
+.com-filtro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px 10px;
+  padding: 0 12px;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.95);
+}
+
+.com-filtro mat-icon {
+  color: var(--muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.com-filtro input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: .9rem;
+}
+
+.com-opciones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.com-opciones label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Atraso del dato debajo de la fecha, para que la tabla entre sin scroll horizontal */
+.com-detalle {
+  display: block;
+  font-size: .74rem;
+}
+
+.est-tabla td {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@media (max-width: 980px) {
+  .com {
+    grid-template-columns: 1fr;
+  }
+}

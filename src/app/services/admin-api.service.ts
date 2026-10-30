@@ -36,6 +36,68 @@ export interface Lluvias9a9 {
   estaciones: LluviaEstacion9a9[];
 }
 
+export type EstadoEstacion = 'ok' | 'retraso' | 'sin';
+
+export interface EstacionComunicacion {
+  id: string;
+  nombre: string;
+  estado: EstadoEstacion;
+  /** Minutos desde la última trama recibida (null: ninguna en 3 días) */
+  min_recepcion: number | null;
+  /** AAAA-MM-DD HH:MM:SS del dato más reciente */
+  ult_dato: string | null;
+  /** Negativo: reloj de la estación adelantado */
+  min_dato: number | null;
+  errores_1h: number;
+}
+
+export interface EventoComunicacion {
+  id: number;
+  fechahora: string;
+  /** 0 hora, 2 ya existía, 3 trama corta, 5 comando web, 7 CRC, 8 recepción, 9 correcto */
+  error_c: number;
+  estacion: string;
+  nombre: string | null;
+  detalle: string;
+}
+
+export interface Comunicaciones {
+  ahora: string;
+  resumen: Record<EstadoEstacion, number>;
+  estaciones: EstacionComunicacion[];
+  eventos: EventoComunicacion[];
+  por_tipo: { error_c: number; n: number }[];
+}
+
+export type ComandoEstacion = 'hora' | 'borrar';
+
+export interface EstacionControl {
+  id: string;
+  nombre: string;
+  /** dd/mm/aahh:mm guardada en estaciones.fecha_I */
+  fecha_i: string | null;
+  min_dato: number | null;
+}
+
+export interface PedidoEstacion {
+  id: number;
+  estacion: string;
+  nombre: string | null;
+  comando: ComandoEstacion;
+  fecha_ref: string;
+  estado: string;
+  creado: string;
+  enviado: string | null;
+}
+
+export interface ControlEstaciones {
+  /** Hora del servidor en dd/mm/aahh:mm */
+  ahora: string;
+  estaciones: EstacionControl[];
+  pendientes: PedidoEstacion[];
+  historial: PedidoEstacion[];
+}
+
 interface RespuestaApi {
   ok: boolean;
   error?: string;
@@ -76,6 +138,23 @@ export class AdminApiService {
 
   lluvias9a9(fecha: string): Promise<Lluvias9a9> {
     return this.pedir<Lluvias9a9>('GET', 'lluvias9a9.php', undefined, new HttpParams().set('fecha', fecha));
+  }
+
+  comunicaciones(): Promise<Comunicaciones> {
+    return this.pedir<Comunicaciones>('GET', 'comunicaciones.php');
+  }
+
+  controlEstaciones(): Promise<ControlEstaciones> {
+    return this.pedir<ControlEstaciones>('GET', 'comandos.php');
+  }
+
+  /** Lo envía UDPAdmin en la próxima trama de la estación. Devuelve el mensaje para mostrar. */
+  pedirComando(datos: { estacion: string; comando: ComandoEstacion; fecha_ref?: string; confirmar?: string }): Promise<string> {
+    return this.pedir<{ mensaje: string }>('POST', 'comandos.php', { accion: 'crear', ...datos }).then(r => r.mensaje);
+  }
+
+  cancelarComando(id: number): Promise<string> {
+    return this.pedir<{ mensaje: string }>('POST', 'comandos.php', { accion: 'cancelar', id }).then(r => r.mensaje);
   }
 
   private async pedir<T>(metodo: 'GET' | 'POST', archivo: string, cuerpo?: unknown, params?: HttpParams): Promise<T> {

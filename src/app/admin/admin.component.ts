@@ -7,16 +7,20 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { AdminApiService, InformeCargado, LluviaEstacion9a9, Lluvias9a9 } from '../services/admin-api.service';
 import { fechaIso } from '../shared/enlace-consulta';
 import { CATEGORIAS_INFORME, nombreCategoria, sugerirDesdeArchivo } from './categorias';
+import { AdminComunicacionesComponent } from './estaciones/admin-comunicaciones.component';
+import { AdminControlComponent } from './estaciones/admin-control.component';
 import { AdminPublicadosComponent } from './publicados/admin-publicados.component';
 
 const MAX_MB = 30;
+const PESTANA_CONTROL = 4;
 
 type Orden9a9 = 'nombre' | 'mm' | 'horas';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, AdminPublicadosComponent],
+  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, AdminPublicadosComponent,
+    AdminComunicacionesComponent, AdminControlComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
@@ -29,6 +33,10 @@ export class AdminComponent implements OnInit {
   readonly nombreCategoria = nombreCategoria;
   readonly hoy = fechaIso(new Date());
   readonly maxMb = MAX_MB;
+
+  pestana = 0;
+  /** Estación a abrir en "Control de estaciones" (objeto nuevo en cada pedido) */
+  estacionControl: { id: string } | null = null;
 
   // ---- Cargar informe ----
   titulo = '';
@@ -55,6 +63,12 @@ export class AdminComponent implements OnInit {
 
   ngOnInit(): void {
     this.leerRecientes();
+  }
+
+  /** Desde el visor de comunicaciones: abre el control con esa estación elegida. */
+  controlarEstacion(id: string): void {
+    this.estacionControl = { id };
+    this.pestana = PESTANA_CONTROL;
   }
 
   // ---- Cargar informe ----

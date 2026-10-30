@@ -1,0 +1,138 @@
+.ctl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.ctl-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ctl-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ctl-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: .84rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.ctl-campo input,
+.ctl-campo select {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.95);
+  font: inherit;
+  font-weight: 600;
+  font-size: .92rem;
+  color: var(--text);
+}
+
+.ctl-campo input:focus-visible,
+.ctl-campo select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 18%, white);
+  border-color: color-mix(in srgb, var(--brand) 50%, var(--border));
+}
+
+.ctl-info {
+  margin: -4px 0 0;
+  font-size: .84rem;
+}
+
+.ctl-bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.ctl-bloque h3 {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 900;
+}
+
+.ctl-bloque > p {
+  margin: 0;
+  font-size: .84rem;
+}
+
+.ctl-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ctl-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: .85rem;
+}
+
+.ctl-aviso mat-icon {
+  flex: 0 0 auto;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.ctl-aviso--ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.ctl-aviso--warn { background: #fff1d6; color: #a86400; }
+.ctl-aviso--error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+.ctl-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 82%, white), var(--brand));
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  font-size: .9rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.ctl-btn--peligro {
+  background: #b3261e;
+}
+
+.ctl-btn:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.ctl-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 900px) {
+  .ctl {
+    grid-template-columns: 1fr;
+  }
+}

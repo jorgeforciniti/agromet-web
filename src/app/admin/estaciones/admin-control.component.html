@@ -1,0 +1,135 @@
+<div class="est-barra">
+  <span class="est-mut">Los pedidos se envían cuando la estación transmite su próxima trama (normalmente en menos de
+    15 minutos).</span>
+  <span class="est-estado" [class.est-estado--error]="errorCarga" role="status">{{ errorCarga || (datos ? '' : 'Cargando…') }}</span>
+  <button type="button" class="est-btn-sec" (click)="leer()" [disabled]="cargando" aria-label="Actualizar">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</div>
+
+<div class="ctl" *ngIf="datos">
+  <section class="est-caja">
+    <h2 class="est-caja__titulo">Nuevo pedido</h2>
+    <div class="est-cuerpo ctl-form">
+      <label class="ctl-campo">
+        <span>Estación</span>
+        <select [(ngModel)]="estacionId" (ngModelChange)="alCambiarEstacion()">
+          <option *ngFor="let e of datos.estaciones; trackBy: porId" [value]="e.id">{{ e.nombre }} ({{ e.id }})</option>
+        </select>
+      </label>
+      <p class="est-mut ctl-info" *ngIf="seleccionada as e">
+        <ng-container *ngIf="e.min_dato !== null; else sinDatos">
+          <ng-container *ngIf="e.min_dato >= 0; else adelantado">Último dato guardado: hace {{ hace(e.min_dato) }}</ng-container>
+          <ng-template #adelantado><span class="est-err">El último dato tiene fecha posterior a la del servidor (reloj
+              adelantado)</span></ng-template>
+          · fecha guardada en estaciones: {{ e.fecha_i || '—' }}
+        </ng-container>
+        <ng-template #sinDatos>Sin datos registrados.</ng-template>
+      </p>
+
+      <p class="ctl-aviso ctl-aviso--ok" *ngIf="mensaje" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje }}</p>
+      <p class="ctl-aviso ctl-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
+
+      <form class="ctl-bloque" (ngSubmit)="pedir('hora')">
+        <h3>Actualizar fecha y hora</h3>
+        <p class="est-mut">La estación pone su reloj con la hora del servidor. La fecha indica desde dónde tiene que
+          reenviar datos.</p>
+        <label class="ctl-campo">
+          <span>Fecha (dd/mm/aahh:mm)</span>
+          <input type="text" name="fechaRef" [(ngModel)]="fechaRef" maxlength="14" autocomplete="off"
+            (ngModelChange)="avisoAhora = false" />
+        </label>
+        <div class="ctl-botones">
+          <button type="button" class="est-btn-sec" (click)="usarUltimaFecha()">Última fecha guardada (recomendado)</button>
+          <button type="button" class="est-btn-sec" (click)="usarAhora()">Ahora</button>
+        </div>
+        <p class="ctl-aviso ctl-aviso--warn" *ngIf="avisoAhora">Con “Ahora” la estación puede considerar que ya no tiene
+          nada pendiente de enviar y saltear los datos que no llegaron.</p>
+        <p class="ctl-aviso ctl-aviso--error" *ngIf="fechaRef && !fechaValida">El formato es dd/mm/aahh:mm, por ejemplo
+          27/10/2613:14.</p>
+        <button type="submit" class="ctl-btn" [disabled]="!fechaValida || enviando">
+          <mat-icon>schedule</mat-icon>{{ enviando === 'hora' ? 'Enviando…' : 'Pedir actualización de fecha y hora' }}
+        </button>
+      </form>
+
+      <form class="ctl-bloque ctl-bloque--peligro" (ngSubmit)="pedir('borrar')">
+        <h3>Borrar memoria</h3>
+        <p class="est-mut">Borra lo que la estación tiene guardado. <strong>No se puede deshacer.</strong> La trama que
+          dispara el borrado no se guarda en la base.</p>
+        <p class="ctl-aviso ctl-aviso--error" *ngIf="atraso as m">Atención: esta estación tiene un atraso de
+          {{ hace(m) }}. Su memoria puede contener datos que todavía no llegaron al servidor; si la borrás se pierden.</p>
+        <label class="ctl-campo">
+          <span>Para confirmar, escribí el número de la estación ({{ estacionId }})</span>
+          <input type="text" name="confirmar" [(ngModel)]="confirmar" autocomplete="off" inputmode="numeric" />
+        </label>
+        <button type="submit" class="ctl-btn ctl-btn--peligro" [disabled]="confirmar.trim() !== estacionId || enviando">
+          <mat-icon>delete_forever</mat-icon>{{ enviando === 'borrar' ? 'Enviando…' : 'Pedir borrado de memoria' }}
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <div class="ctl-col">
+    <section class="est-caja">
+      <h2 class="est-caja__titulo">Pedidos pendientes <small>se envían en la próxima trama</small></h2>
+      <div class="est-scroll">
+        <table class="est-tabla">
+          <thead>
+            <tr>
+              <th scope="col">Estación</th>
+              <th scope="col">Pedido</th>
+              <th scope="col">Cargado</th>
+              <th scope="col"><span class="est-oculto">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of datos.pendientes">
+              <td>{{ p.nombre || p.estacion }}</td>
+              <td>{{ nombresComando[p.comando] || p.comando }}
+                <span class="est-mut" *ngIf="p.comando === 'hora'">({{ p.fecha_ref }})</span></td>
+              <td class="num">{{ diaHora(p.creado) }}</td>
+              <td>
+                <button type="button" class="est-btn-sec" (click)="cancelar(p.id)" [disabled]="cancelando === p.id">
+                  {{ cancelando === p.id ? 'Cancelando…' : 'Cancelar' }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="!datos.pendientes.length">
+              <td colspan="4" class="est-mut">No hay pedidos pendientes.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="est-caja">
+      <h2 class="est-caja__titulo">Últimos pedidos resueltos</h2>
+      <div class="est-scroll">
+        <table class="est-tabla">
+          <thead>
+            <tr>
+              <th scope="col">Estación</th>
+              <th scope="col">Pedido</th>
+              <th scope="col">Estado</th>
+              <th scope="col" class="num">Cargado</th>
+              <th scope="col" class="num">Enviado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of datos.historial">
+              <td>{{ p.nombre || p.estacion }}</td>
+              <td>{{ nombresComando[p.comando] || p.comando }}</td>
+              <td><span class="est-tag" [class.est-t-ok]="p.estado === 'enviado'"
+                  [class.est-t-retraso]="p.estado === 'cancelado'">{{ p.estado }}</span></td>
+              <td class="num">{{ diaHora(p.creado) }}</td>
+              <td class="num">{{ diaHora(p.enviado) }}</td>
+            </tr>
+            <tr *ngIf="!datos.historial.length">
+              <td colspan="5" class="est-mut">Sin historial.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
