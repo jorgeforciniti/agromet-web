@@ -974,6 +974,13 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       return new Date(year, month - 1, day);
     }
 
+    // Como en los otros diálogos: new Date("AAAA-MM-DD") es medianoche UTC, el día anterior en
+    // Argentina, y la consulta salía corrida un día.
+    if (typeof value === 'string' && value.includes('-')) {
+      const [year, month, day] = value.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
     return new Date(value);
   }
 

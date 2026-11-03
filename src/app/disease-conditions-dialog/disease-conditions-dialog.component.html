@@ -1,9 +1,11 @@
 ﻿<mat-dialog-content class="disease-dialog">
   <div class="disease-shell">
     <div class="dialog-header">
-      <div>
-        <div class="dialog-eyebrow">SANIDAD VEGETAL</div>
-        <h2 class="titulo">Condiciones para enfermedades</h2>
+      <div class="dialog-header__texto">
+        <div class="dialog-header__titulo">
+          <h2 class="titulo">Condiciones para enfermedades</h2>
+          <span class="dialog-eyebrow">SANIDAD VEGETAL</span>
+        </div>
         <p class="dialog-lead">
           Evalúa condiciones meteorológicas predisponentes para distintas enfermedades a partir
           de registros horarios de estación.
@@ -74,14 +76,16 @@
       La estación seleccionada no tiene sensor de humedad foliar. Solo se habilitan enfermedades que no dependen de ese sensor.
     </p>
 
-    <div class="disease-summary" *ngIf="rows.length">
-      <div class="disease-summary__card">
-        <span>Estación</span>
-        <strong>{{ stationLabel(appliedStation) }}</strong>
+    <!-- Resumen en una franja: antes eran cuatro tarjetas que ocupaban mucho alto -->
+    <dl class="disease-summary" *ngIf="rows.length">
+      <div class="disease-summary__item">
+        <dt>Estación</dt>
+        <dd>{{ stationLabel(appliedStation) }}</dd>
       </div>
-      <div class="disease-summary__card">
-        <span class="label-with-info">
-          <span>Enfermedad</span>
+      <div class="disease-summary__item disease-summary__item--ancho">
+        <dt>Enfermedad</dt>
+        <dd>
+          {{ selectedDiseaseLabel(appliedDisease) }}
           <button
             type="button"
             class="info-dot"
@@ -89,20 +93,18 @@
             [attr.title]="diseaseCriteria(appliedDisease)">
             i
           </button>
-        </span>
-        <strong>{{ selectedDiseaseLabel(appliedDisease) }}</strong>
+        </dd>
       </div>
-      <div class="disease-summary__card">
-        <span>Período</span>
-        <strong>
-          {{ appliedFromDate | date:'dd/MM/yyyy' }} - {{ appliedToDate | date:'dd/MM/yyyy' }}
-        </strong>
+      <div class="disease-summary__item">
+        <dt>Período</dt>
+        <!-- formatDisplayDate y no el pipe date: "AAAA-MM-DD" se toma como UTC y mostraba el día anterior -->
+        <dd>{{ formatDisplayDate(appliedFromDate) }} – {{ formatDisplayDate(appliedToDate) }}</dd>
       </div>
-      <div class="disease-summary__card">
-        <span>Días evaluados</span>
-        <strong>{{ rows.length }}</strong>
+      <div class="disease-summary__item">
+        <dt>Días</dt>
+        <dd>{{ rows.length }}</dd>
       </div>
-    </div>
+    </dl>
 
     <p class="disease-note">
       <mat-icon>verified_user</mat-icon>
