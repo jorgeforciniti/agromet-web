@@ -7,6 +7,7 @@ import { StationService } from '../services/station.service';
 import { CuentaPreferenciasService } from '../services/cuenta-preferencias.service';
 import { AlertaDisparada, AlertasUsuarioService, MedicionesEstacion, TIPOS_ALERTA } from '../services/alertas-usuario.service';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { leerFechaEstacion } from '../shared/estado-estacion';
 
 /** Tarjeta de una estación favorita con su último dato */
 interface TarjetaEstacion {
@@ -152,7 +153,7 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
       .map(id => this.estaciones.find(e => e.Identificacion === id))
       .filter((e): e is WeatherStation => !!e)
       .map(e => {
-        const actualizado = e.fecha_I ? new Date(e.fecha_I) : null;
+        const actualizado = leerFechaEstacion(e.fecha_I);
         return {
           id: e.Identificacion,
           nombre: e.nombre,

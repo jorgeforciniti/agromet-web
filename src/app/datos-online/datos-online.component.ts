@@ -7,6 +7,8 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
+import { leyendaEstados } from '../maps/leyenda-estados';
+import { estadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
 import { WeatherService } from '../services/weather.service';
@@ -186,6 +188,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
 
       L.control.scale({ imperial: false }).addTo(this.map);
       encuadrarTucuman(this.map);
+      leyendaEstados({ color: this.getStationColor(''), forma: 'circulo' }).addTo(this.map);
 
       if (this.estaciones.length > 0) this.addMarkers(this.estaciones);
       setTimeout(() => this.map!.invalidateSize({ animate: false }), 200);
@@ -214,15 +217,19 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stationsLayer = L.geoJSON(
       this.createStationsGeoJSON(stations),
       {
-        pointToLayer: (feature, latlng) =>
-          L.circleMarker(latlng, {
+        // Estado de comunicación: atrasada = relleno tenue; sin datos hoy = hueco con borde gris punteado
+        pointToLayer: (feature, latlng) => {
+          const estado = estadoComunicacion(leerFechaEstacion(feature.properties.fecha_i));
+          return L.circleMarker(latlng, {
             radius: 6,
-            fillColor: this.getStationColor(feature.properties.id),
-            color: 'rgba(0,0,0,.35)',
-            fillOpacity: 0.85,
-            weight: 1,
+            fillColor: estado === 'sin-datos-hoy' ? '#ffffff' : this.getStationColor(feature.properties.id),
+            color: estado === 'sin-datos-hoy' ? '#9ca3af' : 'rgba(0,0,0,.35)',
+            dashArray: estado === 'sin-datos-hoy' ? '2 2' : undefined,
+            fillOpacity: estado === 'atrasada' ? 0.35 : 0.85,
+            weight: estado === 'sin-datos-hoy' ? 1.5 : 1,
             opacity: 1
-          }),
+          });
+        },
         onEachFeature: (feature, layer) => {
           layer.on('click', () => {
             this.selectedStationId = feature.properties.id;
@@ -268,7 +275,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         <div class="popup-grid">
           <div>ID: ${props.id}</div>
           <div>Altura: ${props.alt} msnm</div>
-          <div>Fecha: ${props.fecha_i}</div>
+          <div class="popup-actualizado popup-actualizado--${estadoComunicacion(leerFechaEstacion(props.fecha_i))}">${textoActualizado(leerFechaEstacion(props.fecha_i))}</div>
           <div>Temp: ${this.fmt(props.temp_af, 'temp')} °C</div>
           <div>Hum: ${this.fmt(props.hum_af, 'hum')}%</div>
           <div>Precip: ${this.fmt(props.rr_dia, 'rain')} mm</div>

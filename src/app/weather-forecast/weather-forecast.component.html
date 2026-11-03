@@ -98,7 +98,8 @@
           <div class="metric metric--wide">
             <mat-icon>schedule</mat-icon>
             <span class="value">{{ rtUpdated | date:'dd-MM-YY HH:mm' }}</span>
-            <span class="label">Última actualización</span>
+            <span class="label">Última actualización<ng-container *ngIf="rtUpdated">
+                · <span class="actualizado" [class]="'actualizado--' + rtEstado">{{ rtHace }}</span></ng-container></span>
           </div>
         </div>
 

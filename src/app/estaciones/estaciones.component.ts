@@ -8,6 +8,8 @@ import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { MAX_FAVORITAS, StationService } from '../services/station.service';
+import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
+import { leyendaEstados } from '../maps/leyenda-estados';
 
 interface StationRow extends WeatherStation {
   temp: number | null;
@@ -147,7 +149,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       temp: isNaN(temp) || temp < -25 || temp > 55 ? null : temp,
       hum: isNaN(hum) || hum < 0 || hum > 100 ? null : hum,
       rain: isNaN(rain) || rain < 0 || rain > 400 ? null : rain,
-      updated: s.fecha_I ? new Date(s.fecha_I) : null
+      updated: leerFechaEstacion(s.fecha_I)
     };
   }
 
@@ -172,6 +174,8 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     }).addTo(this.map);
 
     encuadrarTucuman(this.map);
+    // #f94c3c: el rojo de assets/icons/red-marker.png
+    leyendaEstados({ color: '#f94c3c', forma: 'pin' }).addTo(this.map);
 
     // Botón "favorita" de los popups (el contenido del popup es HTML de Leaflet)
     L.DomEvent.on(this.map.getContainer(), 'click', (e: Event) => {
@@ -225,9 +229,25 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /** Ícono por selección, favorita y estado de comunicación (ver .marcador--* en styles.css) */
   private iconoPara(id: string): L.Icon {
-    if (id === this.selectedStationId) return this.blueIcon;
-    return this.stationService.esFavorita(id) ? this.favIcon : this.redIcon;
+    const base = id === this.selectedStationId ? this.blueIcon
+      : this.stationService.esFavorita(id) ? this.favIcon : this.redIcon;
+    const estado = this.estadoDe(id);
+    if (estado === 'al-dia') return base;
+    const clave = `${base.options.iconUrl}|${base.options.className ?? ''}|${estado}`;
+    let icono = this.iconosEstado.get(clave);
+    if (!icono) {
+      icono = L.icon({ ...base.options, className: [base.options.className, `marcador--${estado}`].filter(Boolean).join(' ') });
+      this.iconosEstado.set(clave, icono);
+    }
+    return icono;
+  }
+
+  private readonly iconosEstado = new Map<string, L.Icon>();
+
+  private estadoDe(id: string): EstadoComunicacion {
+    return estadoComunicacion(this.stations.find(s => s.Identificacion === id)?.updated ?? null);
   }
 
   private popupHtml(station: StationRow, lat: number, lon: number): string {
@@ -245,6 +265,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
           <div>Humedad: ${station.hum !== null ? formatDecimal(station.hum, 0) + ' %' : '—'}</div>
           <div>Lluvia hoy: ${station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—'}</div>
         </div>
+        <div class="popup-actualizado popup-actualizado--${estadoComunicacion(station.updated)}">${textoActualizado(station.updated)}</div>
         <button type="button" class="popup-fav${fav ? ' is-fav' : ''}" data-id="${station.Identificacion}"
           aria-pressed="${fav}">${fav ? '★ Favorita' : '☆ Agregar a favoritas'}</button>
       </div>

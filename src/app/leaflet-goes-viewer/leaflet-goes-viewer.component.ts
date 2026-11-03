@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
+import { estadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
@@ -43,6 +44,8 @@ interface StationFeatureProperties {
   altitud: string;
   humedad: string;
   lluvia: string;
+  /** fecha_I: hora del último dato */
+  actualizado: string;
 }
 
 interface FirmsCsvRow {
@@ -265,19 +268,36 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   private rainViewerAnimationIndex: number = 0;
   private rainViewerAnimationTimer?: ReturnType<typeof setInterval>;
 
+  // Ancla en el centro inferior, como en Red de estaciones (antes era la esquina y, al resaltar
+  // una estación, los demás marcadores se corrían de su lugar)
   private redIcon = L.icon({
     iconUrl: 'assets/icons/red-marker.png',
     iconSize: [25, 25],
-    iconAnchor: [25, 25],
-    popupAnchor: [0, -40]
+    iconAnchor: [12, 25],
+    popupAnchor: [0, -20]
   });
 
   private blueIcon = L.icon({
     iconUrl: 'assets/icons/blue-marker.png',
     iconSize: [30, 30],
-    iconAnchor: [30, 30],
-    popupAnchor: [0, -40]
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -24]
   });
+
+  /** Variantes de los íconos por estado de comunicación (.marcador--* en styles.css) */
+  private readonly iconosEstado = new Map<string, L.Icon>();
+
+  private iconoConEstado(base: L.Icon, actualizado: string): L.Icon {
+    const estado = estadoComunicacion(leerFechaEstacion(actualizado));
+    if (estado === 'al-dia') return base;
+    const clave = `${base.options.iconUrl}|${estado}`;
+    let icono = this.iconosEstado.get(clave);
+    if (!icono) {
+      icono = L.icon({ ...base.options, className: `marcador--${estado}` });
+      this.iconosEstado.set(clave, icono);
+    }
+    return icono;
+  }
 
   /** Zona donde se buscan ecos de radar: la provincia de Tucumán. */
   private focusBounds: L.LatLngBounds = LIMITES_TUCUMAN;
@@ -391,16 +411,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       this.stations = stations;
 
       this.stationsLayer = L.geoJSON(this.createStationsGeoJSON(stations), {
-        pointToLayer: (feature, latlng) => {
-          const customIcon = L.icon({
-            iconUrl: 'assets/icons/red-marker.png',
-            iconSize: [25, 25],      // ajustá el tamaño según necesidad
-            iconAnchor: [12, 25],    // centro inferior del ícono (antes [25, 25]: esquina, desplazaba la estación)
-            popupAnchor: [0, -20]    // posición relativa del popup, igual que en Red de estaciones
-          });
-
-          return L.marker(latlng, { icon: customIcon });
-        },
+        pointToLayer: (feature, latlng) =>
+          L.marker(latlng, { icon: this.iconoConEstado(this.redIcon, feature.properties.actualizado) }),
         onEachFeature: (feature, layer) => {
           layer.bindPopup(`
             <div class="station-popup">
@@ -413,6 +425,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
                 <div>Humedad: ${feature.properties.humedad}%</div>
                 <div>Lluvia: ${feature.properties.lluvia} mm</div>
               </div>
+              <div class="popup-actualizado popup-actualizado--${estadoComunicacion(leerFechaEstacion(feature.properties.actualizado))}">
+                ${textoActualizado(leerFechaEstacion(feature.properties.actualizado))}</div>
             </div>
           `);
 
@@ -460,7 +474,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
           lon: parseFloat(station.lon),  // Guardar como número
           altitud: station.alt != null ? formatDecimal(Number(station.alt), 0) : '—',
           humedad: station.hum_af != null && station.hum_af !== '' ? formatDecimal(Number(station.hum_af), 0) : '—',
-          lluvia: station.RR_dia != null && station.RR_dia !== '' ? formatDecimal(Number(station.RR_dia), 1) : '—'
+          lluvia: station.RR_dia != null && station.RR_dia !== '' ? formatDecimal(Number(station.RR_dia), 1) : '—',
+          actualizado: station.fecha_I ?? ''
         }
       })) as Feature<Point, StationFeatureProperties>[]
     };
@@ -475,11 +490,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         const marker = layer as L.Marker;
         const props = marker.feature?.properties as StationFeatureProperties | undefined;
         if (!props) return;
-        if (props.id === this.selectedStationId) {
-          marker.setIcon(this.blueIcon);
-        } else {
-          marker.setIcon(this.redIcon);
-        }
+        const base = props.id === this.selectedStationId ? this.blueIcon : this.redIcon;
+        marker.setIcon(this.iconoConEstado(base, props.actualizado));
       });
     }
   }

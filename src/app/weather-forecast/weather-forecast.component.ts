@@ -17,6 +17,7 @@ import { VAR_COLOR, GRID_COLOR, conAlfa, fmtNum } from '../charts/chart-theme';
 import { MatIconModule } from '@angular/material/icon';
 import { Input } from '@angular/core';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { EstadoComunicacion, estadoComunicacion, haceCuanto, leerFechaEstacion } from '../shared/estado-estacion';
 
 registerLocaleData(localeEsAr);
 
@@ -83,6 +84,9 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
   rtWind: { direction?: string; speed?: number } | null = null;
 
   rtUpdated: Date | null = null;
+  /** Antigüedad del último dato ("hace 13 min") y su estado, para que un dato viejo se note */
+  rtHace = '';
+  rtEstado: EstadoComunicacion = 'sin-datos-hoy';
   rtStationName: string = '';
 
   constructor(
@@ -539,7 +543,9 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
         direction: this.selectedStation.direc || 'N/A',
         speed: isNaN(rawSpeed) || rawSpeed > 390 ? undefined : rawSpeed
       };
-      this.rtUpdated = this.selectedStation.fecha_I ? new Date(this.selectedStation.fecha_I) : null;
+      this.rtUpdated = leerFechaEstacion(this.selectedStation.fecha_I);
+      this.rtHace = this.rtUpdated ? haceCuanto(this.rtUpdated) : '';
+      this.rtEstado = estadoComunicacion(this.rtUpdated);
       this.rtStationName = this.selectedStation.nombre || 'EstaciÃ³n desconocida';
 
       this.getWeatherForecast(lat, lon);

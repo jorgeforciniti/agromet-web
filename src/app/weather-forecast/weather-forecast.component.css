@@ -594,3 +594,9 @@
     padding: 3px 6px;
   }
 }
+
+/* Antigüedad del último dato (shared/estado-estacion.ts) */
+.actualizado { font-weight: 800; }
+.actualizado--al-dia { color: #166534; }
+.actualizado--atrasada { color: #b45309; }
+.actualizado--sin-datos-hoy { color: #6b7280; }

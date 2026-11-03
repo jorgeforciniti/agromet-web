@@ -540,6 +540,41 @@ table td {
   filter: hue-rotate(40deg) saturate(1.8) brightness(1.05) drop-shadow(0 0 2px rgba(122, 90, 0, .7));
 }
 
+/* Estado de comunicación (shared/estado-estacion.ts): un dato viejo no se ve igual que uno actual.
+   Atrasada = más de 1 h sin datos; sin datos hoy = gris. Van después de .marcador-favorita
+   para ganarle con su filtro. */
+.leaflet-marker-icon.marcador--atrasada {
+  opacity: .55;
+}
+
+.leaflet-marker-icon.marcador--sin-datos-hoy {
+  opacity: .5;
+  filter: grayscale(1);
+}
+
+/* Hora del último dato en los popups de estaciones */
+.popup-actualizado {
+  margin-top: 6px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.popup-actualizado--atrasada { color: #b45309; }
+.popup-actualizado--sin-datos-hoy { color: #6b7280; }
+
+/* Muestras de la referencia de estados (maps/leyenda-estados.ts). El color y la variante de
+   cada estado van en línea: dependen de cómo dibuja sus marcadores cada mapa. */
+.leaflet-container .info.legend i.leyenda-estados__muestra {
+  width: 14px;
+  height: 14px;
+  margin: 2px 8px 0 2px;
+  border-radius: 50%;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, .3);
+  opacity: 1;
+}
+
 /* Texto sólo para lectores de pantalla. Angular Material carga esta clase recién cuando
    la necesita alguno de sus componentes; se define acá para que funcione siempre. */
 .cdk-visually-hidden {
@@ -573,6 +608,19 @@ table td {
 .muestra-sin-datos,
 .muestra-incompleto {
   display: inline-block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: -1px;
+  background: rgba(148, 163, 184, .45);
+}
+.muestra-incompleto {
+  background: transparent;
+  border: 1.5px dashed #667085;
+}
+line-block;
   flex: 0 0 auto;
   width: 14px;
   height: 10px;
