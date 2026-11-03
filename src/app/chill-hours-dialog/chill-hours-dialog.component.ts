@@ -24,6 +24,7 @@ import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { evaluarDia } from '../shared/registros-diarios';
 import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
 
 interface HourlyColdRecord {
@@ -31,9 +32,25 @@ interface HourlyColdRecord {
   temp_af?: number | string | null;
 }
 
+/**
+ * Unidades de frío por hora del modelo Utah (Richardson et al., 1974), para la temperatura del
+ * aire en °C: suman entre 1,5 y 12,4 °C y restan por encima de 16 °C.
+ */
+function unidadesUtah(t: number): number {
+  if (t < 1.5) return 0;
+  if (t < 2.5) return 0.5;
+  if (t < 9.2) return 1;
+  if (t < 12.5) return 0.5;
+  if (t < 16) return 0;
+  if (t <= 18) return -0.5;
+  return -1;
+}
+
 interface ChillHourRow {
   date: string;
   hours: number | null;
+  /** Unidades de frío del modelo Utah (pueden ser negativas en días cálidos) */
+  utah: number | null;
   records: number;
   insufficient: boolean;
 }
@@ -101,10 +118,11 @@ export class ChillHoursDialogComponent implements OnInit {
   form!: FormGroup;
   stations: WeatherStation[] = [];
   rows: ChillHourRow[] = [];
-  displayedColumns = ['date', 'hours', 'records'];
+  displayedColumns = ['date', 'hours', 'utah', 'records'];
   isLoading = false;
   loadError = '';
   totalHours = 0;
+  totalUtah = 0;
   validDays = 0;
 
   readonly bases = [7, 10];
@@ -171,6 +189,7 @@ export class ChillHoursDialogComponent implements OnInit {
     this.loadError = '';
     this.rows = [];
     this.totalHours = 0;
+    this.totalUtah = 0;
     this.validDays = 0;
 
     if (this.form.invalid) {
@@ -186,8 +205,6 @@ export class ChillHoursDialogComponent implements OnInit {
       return;
     }
 
-    const stationInfo = this.stations.find(st => st.Identificacion === station);
-    const minRecords = Number(stationInfo?.habilitada ?? 0) > 2 ? 20 : 80;
     const dates = this.buildDateRange(fromDate, toDate);
 
     this.isLoading = true;
@@ -202,19 +219,24 @@ export class ChillHoursDialogComponent implements OnInit {
       next: (responses) => {
         this.rows = responses.map((response, index) => {
           const records = response.data ?? [];
-          const validRecords = records.filter(item => this.toNumber(item.temp_af) !== null);
-          const belowBaseCount = validRecords.filter(item => (this.toNumber(item.temp_af) ?? Number.POSITIVE_INFINITY) <= Number(base)).length;
-          const insufficient = validRecords.length < minRecords;
+          const temps = records.map(item => this.toNumber(item.temp_af)).filter((t): t is number => t !== null);
+          // Cada registro vale lo que dura su intervalo: 15 min, 30 min o 1 h según la estación
+          const { horasPorRegistro, suficiente } = evaluarDia(records.map(r => r.hora), temps.length);
+          const insufficient = !suficiente;
+          const belowBaseCount = temps.filter(t => t <= Number(base)).length;
+          const utah = temps.reduce((suma, t) => suma + unidadesUtah(t), 0) * horasPorRegistro;
 
           return {
             date: dates[index],
-            hours: insufficient ? null : belowBaseCount * 0.25,
-            records: validRecords.length,
+            hours: insufficient ? null : belowBaseCount * horasPorRegistro,
+            utah: insufficient ? null : utah,
+            records: temps.length,
             insufficient
           };
         });
 
         this.totalHours = this.rows.reduce((sum, row) => sum + (row.hours ?? 0), 0);
+        this.totalUtah = this.rows.reduce((sum, row) => sum + (row.utah ?? 0), 0);
         this.validDays = this.rows.filter(row => !row.insufficient).length;
         this.isLoading = false;
       },

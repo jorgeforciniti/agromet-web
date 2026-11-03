@@ -24,6 +24,7 @@ import { SelectorEstacionComponent } from '../shared/selector-estacion.component
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { evaluarDia } from '../shared/registros-diarios';
 import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
 
 interface ThermalDayRecord {
@@ -192,9 +193,6 @@ export class ThermalSumDialogComponent implements OnInit {
       return;
     }
 
-    const stationInfo = this.stations.find(st => st.Identificacion === station);
-    const minRecords = Number(stationInfo?.habilitada ?? 0) > 2 ? 20 : 80;
-
     this.isLoading = true;
     const fromApi = this.formatApiDate(fromDate);
     const toApi = this.formatApiDate(toDate);
@@ -211,18 +209,18 @@ export class ThermalSumDialogComponent implements OnInit {
     }).subscribe({
       next: ({ daily, hourlyCounts }) => {
         let accumulated = 0;
-        const hourlyCountByDate = new Map<string, number>();
+        // Día con registros suficientes según el intervalo real de la estación (15, 30 o 60 min)
+        const suficientePorFecha = new Map<string, boolean>();
 
         this.buildDateRange(fromDate, toDate).forEach((date, index) => {
-          const response = hourlyCounts[index];
-          const validCount = (response.data ?? []).filter(item => this.toNumber(item.temp_af) !== null).length;
-          hourlyCountByDate.set(date, validCount);
+          const registros = hourlyCounts[index].data ?? [];
+          const validos = registros.filter(item => this.toNumber(item.temp_af) !== null).length;
+          suficientePorFecha.set(date, evaluarDia(registros.map(r => r.hora), validos).suficiente);
         });
 
         this.rows = (daily.data ?? []).map(record => {
           const dailyValue = this.calculateDailyThermalSum(record, Number(base));
-          const recordsCount = hourlyCountByDate.get(record.fecha) ?? 0;
-          const insufficient = (dailyValue > 50 || recordsCount < minRecords);
+          const insufficient = (dailyValue > 50 || !suficientePorFecha.get(record.fecha));
 
           if (!insufficient) {
             accumulated += dailyValue;
