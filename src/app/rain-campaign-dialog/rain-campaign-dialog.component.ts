@@ -11,6 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { WeatherService } from '../services/weather.service';
 import { forkJoin } from 'rxjs';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
 
 
 export interface RainCampaignData { }
@@ -47,6 +49,7 @@ interface StationRain {
   selector: 'app-rain-campaign-dialog',
   standalone: true,
   imports: [
+    CopiarEnlaceComponent,
     CommonModule,
     MatDialogModule,
     MatTableModule,
@@ -80,6 +83,10 @@ export class RainCampaignDialogComponent implements OnInit {
   public selectedMonth!: number;
   public selectedYear!: number;
 
+  /** Enlace con el mes y el año de inicio de la campaña (A5 del informe de mejoras) */
+  readonly enlaceConsulta = (): string =>
+    armarEnlace('campania-lluvias', { mes: this.selectedMonth, anio: this.selectedYear });
+
   constructor(
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<RainCampaignDialogComponent>,
@@ -98,6 +105,13 @@ export class RainCampaignDialogComponent implements OnInit {
     this.selectedMonth = startMonth;              // 8  (Ago)
     this.selectedYear = startYear;               // 2024
     this.currentMonthName = this.monthsList[today.getMonth()].label; // Jul
+
+    // Consulta recibida por enlace o consulta guardada: mes y año de inicio
+    const consulta = consultaDe(this.data);
+    const mes = leerNumero(consulta['mes']);
+    const anio = leerNumero(consulta['anio']);
+    if (mes !== null && mes >= 1 && mes <= 12) this.selectedMonth = mes;
+    if (anio !== null && anio >= 1900 && anio <= today.getFullYear()) this.selectedYear = anio;
 
     this.loadCampaign();
   }

@@ -28,6 +28,8 @@ import { StationService } from '../services/station.service';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
 
 interface PhenologyDailyRecord {
@@ -160,6 +162,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    CopiarEnlaceComponent,
     ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,
@@ -347,6 +350,21 @@ export class PhenologyWeatherDialogComponent implements OnInit {
 
   private readonly normalesService = inject(NormalesService);
 
+  /**
+   * Enlace con la consulta completa (A5 y F5 del informe de mejoras): estación, cultivo, fechas de
+   * los hitos (siembra o emergencia incluida), Kc de cada etapa y si se aplica. Así una consulta
+   * guardada conserva la fecha de siembra de cada lote.
+   */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    const params: Record<string, string | number | Date | null> = {
+      estacion: v.station, cultivo: v.crop, kc: v.applyKc ? 1 : 0
+    };
+    [1, 2, 3, 4, 5, 6].forEach(n => params[`m${n}`] = this.coerceDate(v[`m${n}`]));
+    [1, 2, 3, 4, 5].forEach(n => params[`kc${n}`] = v[`kc${n}`]);
+    return armarEnlace('fenologia', params);
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
@@ -376,6 +394,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     }, { validators: this.milestoneOrderValidator.bind(this) });
 
     this.applyCropPreset('SOJA');
+    this.aplicarConsulta();
 
     // Cambiar la fecha de referencia (siembra o emergencia) sugiere las siguientes; cambiar
     // a mano un hito sugerido lo deja como fecha propia.
@@ -418,6 +437,30 @@ export class PhenologyWeatherDialogComponent implements OnInit {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  /** Consulta recibida por enlace o consulta guardada: cultivo, hitos y Kc (la estación ya llega activa). */
+  private aplicarConsulta(): void {
+    const consulta = consultaDe(this.data);
+    if (!Object.keys(consulta).length) return;
+    const cultivo = consulta['cultivo'] as CropKey;
+    if (this.cropPresets.some(c => c.key === cultivo)) {
+      this.form.controls['crop'].setValue(cultivo, { emitEvent: false });
+      this.applyCropPreset(cultivo);
+    }
+    const patch: Record<string, Date | number | boolean> = {};
+    [1, 2, 3, 4, 5, 6].forEach(n => {
+      const fecha = leerFecha(consulta[`m${n}`]);
+      if (fecha) patch[`m${n}`] = fecha;
+    });
+    [1, 2, 3, 4, 5].forEach(n => {
+      const kc = leerNumero(consulta[`kc${n}`]);
+      if (kc !== null && kc >= 0) patch[`kc${n}`] = kc;
+    });
+    if (consulta['kc'] === '0' || consulta['kc'] === '1') patch['applyKc'] = consulta['kc'] === '1';
+    // Sin eventos: las fechas del enlace no se reemplazan por las sugeridas
+    this.form.patchValue(patch, { emitEvent: false });
+    this.sugeridos.clear();
   }
 
   calculate(): void {
