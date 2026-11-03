@@ -38,6 +38,9 @@
                   (click)="alternarFavorita(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">
                   {{ stationService.esFavorita(s.Identificacion) ? '★' : '☆' }}
                 </button>
+                <button type="button" class="ficha-btn" title="Ver ficha de la estación"
+                  [attr.aria-label]="'Ver ficha de ' + s.nombre"
+                  (click)="abrirFicha(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">ⓘ</button>
                 <strong>{{ s.nombre }}</strong>
                 <span class="station-name__meta">
                   {{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container>

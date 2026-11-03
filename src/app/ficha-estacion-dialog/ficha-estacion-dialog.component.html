@@ -1,0 +1,51 @@
+<div class="fe">
+  <header class="fe__head">
+    <div class="dialogo-texto">
+      <div class="dialogo-titulo">
+        <h2 class="titulo">{{ e.nombre }}</h2>
+        <span class="app-dialog-eyebrow">ESTACIÓN {{ e.Identificacion }}</span>
+      </div>
+      <p class="fe__sub">
+        {{ lugar }}<ng-container *ngIf="zona"> · {{ zona }}</ng-container>
+      </p>
+    </div>
+    <button type="button" class="fe__cerrar" (click)="cerrar()" aria-label="Cerrar ficha">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="fe__cuerpo">
+    <div class="fe__mapa" #mapa role="img" [attr.aria-label]="'Ubicación de la estación ' + e.nombre"></div>
+
+    <div class="fe__datos">
+      <section>
+        <h3>Último dato</h3>
+        <p class="fe__actualizado" [class]="'fe__actualizado fe__actualizado--' + estado">{{ actualizado }}</p>
+        <dl class="fe__medidas">
+          <div *ngFor="let m of medidas"><dt>{{ m.etiqueta }}</dt><dd>{{ m.valor }}</dd></div>
+        </dl>
+      </section>
+
+      <section>
+        <h3>Ubicación y sensores</h3>
+        <dl class="fe__medidas">
+          <div><dt>Latitud</dt><dd>{{ fmt(lat, 3) }}°</dd></div>
+          <div><dt>Longitud</dt><dd>{{ fmt(lon, 3) }}°</dd></div>
+          <div *ngIf="e.alt != null"><dt>Altitud</dt><dd>{{ fmt(+e.alt, 0) }} msnm</dd></div>
+          <ng-container *ngFor="let s of sensores">
+            <div *ngIf="s.tiene !== null"><dt>{{ s.etiqueta }}</dt><dd>{{ s.tiene ? 'Sí' : 'No' }}</dd></div>
+          </ng-container>
+        </dl>
+      </section>
+    </div>
+  </div>
+
+  <section class="fe__accesos">
+    <h3>Consultar con esta estación</h3>
+    <div class="fe__botones">
+      <button type="button" *ngFor="let a of accesos" class="fe__acceso" (click)="abrir(a)">
+        <mat-icon aria-hidden="true">{{ a.icono }}</mat-icon>{{ a.texto }}
+      </button>
+    </div>
+  </section>
+</div>

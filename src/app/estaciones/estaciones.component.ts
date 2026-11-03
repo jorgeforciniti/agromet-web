@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
@@ -75,7 +76,8 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private weatherService: WeatherService,
-    readonly stationService: StationService
+    readonly stationService: StationService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -177,10 +179,13 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     // #f94c3c: el rojo de assets/icons/red-marker.png
     leyendaEstados({ color: '#f94c3c', forma: 'pin' }).addTo(this.map);
 
-    // Botón "favorita" de los popups (el contenido del popup es HTML de Leaflet)
+    // Botones "favorita" y "Ver ficha" de los popups (el contenido del popup es HTML de Leaflet)
     L.DomEvent.on(this.map.getContainer(), 'click', (e: Event) => {
-      const boton = (e.target as HTMLElement).closest<HTMLElement>('.popup-fav');
-      if (boton?.dataset['id']) this.alternarFavorita(boton.dataset['id']);
+      const objetivo = e.target as HTMLElement;
+      const fav = objetivo.closest<HTMLElement>('.popup-fav');
+      if (fav?.dataset['id']) this.alternarFavorita(fav.dataset['id']);
+      const ficha = objetivo.closest<HTMLElement>('.popup-ficha');
+      if (ficha?.dataset['id']) void this.abrirFicha(ficha.dataset['id']);
     });
 
     setTimeout(() => this.map?.invalidateSize(), 150);
@@ -266,10 +271,27 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
           <div>Lluvia hoy: ${station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—'}</div>
         </div>
         <div class="popup-actualizado popup-actualizado--${estadoComunicacion(station.updated)}">${textoActualizado(station.updated)}</div>
-        <button type="button" class="popup-fav${fav ? ' is-fav' : ''}" data-id="${station.Identificacion}"
-          aria-pressed="${fav}">${fav ? '★ Favorita' : '☆ Agregar a favoritas'}</button>
+        <div class="popup-botones">
+          <button type="button" class="popup-fav${fav ? ' is-fav' : ''}" data-id="${station.Identificacion}"
+            aria-pressed="${fav}">${fav ? '★ Favorita' : '☆ Agregar a favoritas'}</button>
+          <button type="button" class="popup-ficha" data-id="${station.Identificacion}">Ver ficha</button>
+        </div>
       </div>
     `;
+  }
+
+  /** Ficha de la estación (ubicación, último dato, sensores y accesos a las herramientas). */
+  async abrirFicha(id: string, evento?: Event): Promise<void> {
+    evento?.stopPropagation();
+    const estacion = this.stations.find(s => s.Identificacion === id);
+    if (!estacion) return;
+    const { FichaEstacionDialogComponent } = await import('../ficha-estacion-dialog/ficha-estacion-dialog.component');
+    this.dialog.open(FichaEstacionDialogComponent, {
+      data: estacion,
+      width: 'min(760px, 96vw)',
+      maxWidth: '96vw',
+      autoFocus: false
+    });
   }
 
   /** Estrella de la lista o del popup. */
