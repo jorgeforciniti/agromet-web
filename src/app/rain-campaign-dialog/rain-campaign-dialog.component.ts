@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
@@ -83,6 +83,7 @@ export class RainCampaignDialogComponent implements OnInit {
   constructor(
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<RainCampaignDialogComponent>,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: RainCampaignData
   ) { }
 
@@ -203,6 +204,31 @@ export class RainCampaignDialogComponent implements OnInit {
     if (ratio <= 1.5) return 'above-100-50';
     if (ratio <= 2) return 'above-150-100';
     return 'above-200';
+  }
+
+  /**
+   * Abre el diálogo de la estación (mapa y estadísticas de su serie). `idx` es el mes de la
+   * campaña en el que se hizo clic, o null si fue en el total.
+   */
+  public async abrirEstacion(row: StationRain, idx: number | null): Promise<void> {
+    const { EstacionLluviaDialogComponent } = await import('../estacion-lluvia-dialog/estacion-lluvia-dialog.component');
+    this.dialog.open(EstacionLluviaDialogComponent, {
+      data: {
+        id: row.id,
+        name: row.name,
+        lat: row.lat,
+        lon: row.lon,
+        referencePeriod: row.reference_period,
+        inicioMes: this.selectedMonth,
+        inicioAnio: this.selectedYear,
+        campania: row.dataset,
+        mesIdx: idx
+      },
+      width: 'min(900px, 96vw)',
+      maxWidth: '96vw',
+      panelClass: 'do-dialog',
+      autoFocus: false
+    });
   }
 
   public close(): void {

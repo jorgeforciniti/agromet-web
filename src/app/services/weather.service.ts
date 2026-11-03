@@ -145,6 +145,25 @@ export interface RainCampaignStation {
   dataset: RainCampaignRecord[];
 }
 
+/** Respuesta de lluvias-estacion.php: datos de la estación y su serie de lluvias mensuales (mm). */
+export interface LluviasEstacionResponse {
+  status: 'success' | 'sin_datos' | 'error';
+  estacion?: {
+    id: number;
+    name: string;
+    lat: number;
+    lon: number;
+    alt: number;
+    zone: string;
+    reference_period: string;
+    /** Enero a diciembre; null si no hay normal. */
+    normales: (number | null)[];
+  };
+  /** Enero a diciembre por año; null en los meses sin dato. */
+  anios?: { anio: number; meses: (number | null)[] }[];
+  message?: string;
+}
+
 export interface TminMaxRecord {
   lat: string | number;
   lon: string | number;
@@ -271,6 +290,10 @@ export class WeatherService {
   getRainCampaign<TStation = RainCampaignStation>(month: number, year: number): Observable<StatusDataApiResponse<TStation>> {
     const url = this.stationsUrl + `datos-campania.php?mes=${month}&anio=${year}&tipo=2`;
     return this.http.get<StatusDataApiResponse<TStation>>(url);
+  }
+
+  getLluviasEstacion(estacion: number): Observable<LluviasEstacionResponse> {
+    return this.http.get<LluviasEstacionResponse>(this.stationsUrl + 'lluvias-estacion.php', { params: { estacion } });
   }
 
   getRainCurrentMonth<TCurrent = unknown>(): Observable<StatusDataApiResponse<TCurrent>> {

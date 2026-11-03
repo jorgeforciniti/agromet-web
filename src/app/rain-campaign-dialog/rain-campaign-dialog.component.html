@@ -47,7 +47,8 @@
   <div class="table-wrapper tabla-fija" *ngIf="dataSource.length">
     <p class="rain-note">
       <mat-icon>info</mat-icon>
-      Valores en mm. Pasá el mouse sobre un valor para ver el promedio normal del período.
+      Valores en mm. Pasá el mouse sobre un valor para ver el promedio normal del período; hacé clic para ver la estación en
+      el mapa y las estadísticas de su serie.
     </p>
 
     <table mat-table [dataSource]="dataSource" class="tabla-datos rain-table">
@@ -76,6 +77,9 @@
             row.dataset?.[idx]?.normal ?? 0,
             row.dataset?.[idx]?.isCurrent
           )"
+          class="celda-click" tabindex="0" role="button"
+          [attr.aria-label]="row.name + ', ' + month + ': ver ubicación y estadísticas de la estación'"
+          (click)="abrirEstacion(row, idx)" (keydown.enter)="abrirEstacion(row, idx)"
           [matTooltip]="tooltipText(row.dataset?.[idx]?.normal ?? 0, row.reference_period)">
           {{
             row.dataset?.[idx]?.value === -999.9
@@ -98,6 +102,9 @@
           mat-cell
           *matCellDef="let row"
           [ngClass]="{ 'no-data': hasMissingData(row.dataset) }"
+          class="celda-click" tabindex="0" role="button"
+          [attr.aria-label]="row.name + ', total de la campaña: ver estadísticas de la estación'"
+          (click)="abrirEstacion(row, null)" (keydown.enter)="abrirEstacion(row, null)"
           [matTooltip]="hasMissingData(row.dataset) ? '' : ('Suma normal: ' + (totalNormal(row.dataset) | number:'1.1-1') + ' mm')">
           {{ hasMissingData(row.dataset) ? '—' : (totalPeriod(row.dataset) | number:'1.1-1') }}
         </td>

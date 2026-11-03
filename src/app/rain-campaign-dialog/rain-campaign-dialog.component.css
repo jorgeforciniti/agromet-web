@@ -357,3 +357,18 @@
 .rain-table .mat-column-name {
   text-align: left;
 }
+
+/* Valores que abren el diálogo de la estación */
+.celda-click {
+  cursor: pointer;
+}
+
+.celda-click:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.celda-click:focus-visible {
+  outline: 2px solid var(--accent, #0284c7);
+  outline-offset: -2px;
+}
