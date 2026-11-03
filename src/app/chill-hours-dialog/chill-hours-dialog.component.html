@@ -10,6 +10,11 @@
           Suma diaria de horas con temperatura del aire igual o menor al umbral elegido,
           usando registros horarios de la estación seleccionada.
         </p>
+        <app-como-se-lee>
+          <p>Se cuentan los registros de cada día con temperatura igual o menor a la base térmica; un registro
+            equivale a 0,25 horas.</p>
+          <p>Un día con datos insuficientes se informa sin cálculo y no suma al total.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -70,11 +75,7 @@
       </div>
     </div>
 
-    <p class="chill-note">
-      <mat-icon>info</mat-icon>
-      Un registro equivale a 0,25 horas. Si la estación tiene datos insuficientes para un día,
-      ese día se informa sin cálculo y no suma al total.
-    </p>
+    <app-aviso-calidad *ngIf="rows.length" [validos]="validDays" [total]="rows.length"></app-aviso-calidad>
 
     <div class="chill-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>

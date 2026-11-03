@@ -10,6 +10,10 @@
           Reorganiza la serie diaria según hitos fenológicos del lote y resume lluvia, ETo,
           demanda hídrica ajustada con Kc, humectación foliar, radiación y extremos térmicos.
         </p>
+        <app-como-se-lee>
+          <p>Cada etapa va de un hito al siguiente. La demanda hídrica es la ETo multiplicada por el Kc de la
+            etapa; el balance simple es lluvia menos demanda.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -78,11 +82,6 @@
       </p>
     </form>
 
-    <p class="phenology-note">
-      <mat-icon>info</mat-icon>
-      Cada etapa va de un hito al siguiente. La demanda hídrica es la ETo multiplicada por el Kc de la etapa;
-      el balance simple es lluvia menos demanda.
-    </p>
 
     <div class="phenology-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>

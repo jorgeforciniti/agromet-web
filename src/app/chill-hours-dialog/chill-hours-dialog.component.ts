@@ -23,6 +23,8 @@ import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
 
 interface HourlyColdRecord {
   hora: string;
@@ -72,6 +74,7 @@ class ChillDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ComoSeLeeComponent, AvisoCalidadComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,

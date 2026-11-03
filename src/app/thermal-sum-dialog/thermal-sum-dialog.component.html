@@ -10,6 +10,11 @@
           Estima la suma térmica diaria a partir de temperaturas máximas y mínimas,
           aplicando temperatura base y acumulado del período.
         </p>
+        <app-como-se-lee>
+          <p>Cada día suma <code>((Tmáx + Tmín) / 2) − base</code>, con la máxima limitada a 30 °C y sin
+            valores negativos.</p>
+          <p>Un día con datos insuficientes no se computa en el acumulado.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -70,11 +75,7 @@
       </div>
     </div>
 
-    <p class="thermal-note">
-      <mat-icon>info</mat-icon>
-      Se usa la fórmula `((Tmax + Tmin) / 2) - base`, con Tmax limitada a 30 °C y sin valores negativos.
-      Los días con datos insuficientes no se computan en el acumulado.
-    </p>
+    <app-aviso-calidad *ngIf="rows.length" [validos]="validDays" [total]="rows.length"></app-aviso-calidad>
 
     <div class="thermal-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>

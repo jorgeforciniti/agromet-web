@@ -23,6 +23,8 @@ import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
 
 interface ThermalDayRecord {
   fecha: string;
@@ -78,6 +80,7 @@ class ThermalDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ComoSeLeeComponent, AvisoCalidadComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,

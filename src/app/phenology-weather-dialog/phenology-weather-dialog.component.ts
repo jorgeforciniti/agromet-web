@@ -27,6 +27,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 
 interface PhenologyDailyRecord {
@@ -159,6 +160,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,
     CommonModule,

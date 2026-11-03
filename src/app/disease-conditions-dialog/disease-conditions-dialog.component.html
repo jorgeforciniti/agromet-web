@@ -10,6 +10,10 @@
           Evalúa condiciones meteorológicas predisponentes para distintas enfermedades a partir
           de registros horarios de estación.
         </p>
+        <app-como-se-lee>
+          <p>{{ diseaseHelp() }}</p>
+          <p>Los criterios de cada enfermedad se ven también en la «i» junto a su nombre.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -86,10 +90,6 @@
       </div>
     </dl>
 
-    <p class="disease-note">
-      <mat-icon>verified_user</mat-icon>
-      {{ diseaseHelp() }}
-    </p>
 
     <div class="disease-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>
