@@ -1,5 +1,7 @@
 import { Chart, registerables } from 'chart.js';
 import { FUENTE_TEXTO } from '../shared/fuente';
+// Registra el plugin de líneas de referencia (options.plugins.referencias)
+import './referencias';
 
 /*
  * Configuración común de Chart.js para todos los gráficos del sitio.

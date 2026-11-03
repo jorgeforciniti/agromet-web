@@ -19,6 +19,7 @@ import { ChartConfiguration } from 'chart.js';
 import { FeatureCollection, Point } from 'geojson';
 import { SIN_DATO, formatValor } from '../pipes/valor.pipe';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
+import { referenciasHelada } from '../charts/referencias';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
 
@@ -454,6 +455,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         interaction: { mode: 'nearest', intersect: false },  // tooltip al pasar
         plugins: {
+          referencias: { lineas: this.variableKind(variable) === 'temp' ? referenciasHelada() : [] },
           legend: {
             labels: { color: text, font: { size: 12, weight: 'bold' } }
           },

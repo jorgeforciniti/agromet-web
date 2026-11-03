@@ -575,6 +575,54 @@ table td {
   opacity: 1;
 }
 
+/* Resumen de cuatro cifras sobre un gráfico (charts/resumen-series.ts): una línea por serie */
+.resumen-grafico {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .88);
+  font-size: .88rem;
+}
+
+.resumen-grafico__serie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 16px;
+}
+
+.resumen-grafico dt {
+  min-width: 140px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.resumen-grafico dt i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.resumen-grafico dd {
+  margin: 0;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.resumen-grafico dd span {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
 /* Texto sólo para lectores de pantalla. Angular Material carga esta clase recién cuando
    la necesita alguno de sus componentes; se define acá para que funcione siempre. */
 .cdk-visually-hidden {
@@ -608,19 +656,6 @@ table td {
 .muestra-sin-datos,
 .muestra-incompleto {
   display: inline-block;
-  flex: 0 0 auto;
-  width: 14px;
-  height: 10px;
-  margin-right: 6px;
-  border-radius: 2px;
-  vertical-align: -1px;
-  background: rgba(148, 163, 184, .45);
-}
-.muestra-incompleto {
-  background: transparent;
-  border: 1.5px dashed #667085;
-}
-line-block;
   flex: 0 0 auto;
   width: 14px;
   height: 10px;

@@ -1,5 +1,7 @@
 import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { SERIE_COLOR } from '../charts/chart-theme';
+import { referenciaCalor, referenciaNocheCalida, referenciasHelada } from '../charts/referencias';
+import { ResumenSerie, resumirSeries, unidadDe } from '../charts/resumen-series';
 import { NORMAL_DE_VARIABLE, Normales, datasetNormal, normalDeGrupo, normalDiaria, tieneValores } from '../charts/normales';
 import {
   FormatoSerie, Periodo, SerieConFaltantes, VARIABLES_ACUMULADAS, datasetsConFaltantes, esIncompleto, fechasDelPeriodo,
@@ -129,6 +131,12 @@ export class ComparisonByYearComponent implements OnInit {
   hayIncompletos = false;
   readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   isLoading = false;
+
+  /** Variable del gráfico actual: decide las líneas de referencia (helada, 35 °C) */
+  private variableGraficada = '';
+
+  /** Máxima, mínima, total o promedio y comparación con la normal de cada serie */
+  resumenSeries: ResumenSerie[] = [];
 
   chartOptions: any = {
     responsive: true,
@@ -340,6 +348,7 @@ export class ComparisonByYearComponent implements OnInit {
       : periodos.map((p, i) => normalDeGrupo(normales, clave, series[0].fechasConDato[i].length ? series[0].fechasConDato[i] : p.fechas));
     const normal = tieneValores(serie) ? [datasetNormal('Normal', serie)] : [];
 
+    this.variableGraficada = key;
     this.mostrarSeries(meta.label, isBar, periodos, series, nombres.map(a => `${meta.label} (${a})`), nombres, normal);
   }
 
@@ -358,6 +367,7 @@ export class ComparisonByYearComponent implements OnInit {
       this.lineChartData = { labels: this.chartLabels, datasets: datasets as unknown as ChartDataset<'line', number[]>[] };
     }
 
+    this.resumenSeries = resumirSeries(series, nombres, SERIE_COLOR, isBar, normales, unidadDe(tituloEje));
     this.indicesSinRegistro = indicesSinDatos(series);
     this.textoFaltantes = textoFaltantesSeries(series, nombres);
     this.hayIncompletos = series.some(s => s.valores.some((_, i) => esIncompleto(s, i)));
@@ -371,7 +381,11 @@ export class ComparisonByYearComponent implements OnInit {
       },
       plugins: {
         ...this.chartOptions.plugins,
-        tooltip: tooltipConFaltantes(series, isBar)
+        tooltip: tooltipConFaltantes(series, isBar),
+        referencias: {
+          lineas: this.variableGraficada === 'temp_min' ? [...referenciasHelada(), referenciaNocheCalida()]
+            : this.variableGraficada === 'temp_max' ? [referenciaCalor()] : []
+        }
       }
     };
   }

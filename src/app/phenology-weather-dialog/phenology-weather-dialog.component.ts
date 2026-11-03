@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartData, ChartDataset } from 'chart.js';
 import { VAR_COLOR, conAlfa } from '../charts/chart-theme';
+import { LineaReferencia, referenciaCalor, referenciaNocheCalida, referenciasHelada } from '../charts/referencias';
 import { dibujarFranjasSinDatos } from '../charts/dias-faltantes';
 import { ClaveNormal, Normales, datasetNormal, normalDelDia, normalDiaria, tieneValores } from '../charts/normales';
 import { NormalesService } from '../services/normales.service';
@@ -269,7 +270,9 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   } as const;
 
   /** Gráficos diarios de temperaturas y de radiación solar (uno por variable) */
-  readonly tempChartOptions = this.opcionesDiarias('Temperatura (°C)', false);
+  // Helada y 35 °C (los umbrales que cuenta la tabla: días ≥ 35 / ≤ 0) y mínima de 22 °C
+  readonly tempChartOptions = this.conReferencias(this.opcionesDiarias('Temperatura (°C)', false),
+    [...referenciasHelada(), referenciaNocheCalida(), referenciaCalor()]);
   readonly radChartOptions = this.opcionesDiarias('Radiación solar (W/m²)', true);
 
   /**
@@ -973,6 +976,10 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   }
 
   /** Opciones comunes de los gráficos diarios: un eje Y con su título y la leyenda abajo. */
+  private conReferencias<T extends { plugins: object }>(opciones: T, lineas: LineaReferencia[]): T {
+    return { ...opciones, plugins: { ...opciones.plugins, referencias: { lineas } } };
+  }
+
   private opcionesDiarias(tituloEje: string, desdeCero: boolean) {
     return {
       responsive: true,

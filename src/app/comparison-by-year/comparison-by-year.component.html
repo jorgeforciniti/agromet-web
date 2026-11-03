@@ -67,6 +67,18 @@
     <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <div class="chart-section">
+      <!-- Resumen de cuatro cifras por serie (charts/resumen-series.ts) -->
+      <dl class="resumen-grafico" *ngIf="resumenSeries.length && (lineChartData.datasets.length || barChartData.datasets.length)">
+        <div class="resumen-grafico__serie" *ngFor="let r of resumenSeries">
+          <dt><i [style.background]="r.color" aria-hidden="true"></i>{{ r.nombre }}</dt>
+          <dd><span>Máx.</span> {{ r.maxima }}</dd>
+          <dd><span>Mín.</span> {{ r.minima }}</dd>
+          <dd><span>{{ r.etiquetaValor }}</span> {{ r.valor }}</dd>
+          <dd *ngIf="r.frenteNormal" class="resumen-grafico__normal" [class.is-mas]="r.signo === 'mas'"
+            [class.is-menos]="r.signo === 'menos'">{{ r.frenteNormal }}</dd>
+        </div>
+      </dl>
+
       <div class="chart-container" *ngIf="lineChartData.datasets.length">
         <app-exportar-grafico nombre="comparacion-anios" [maxFilas]="31"></app-exportar-grafico>
         <canvas baseChart [data]="lineChartData" [options]="chartOptions" [plugins]="pluginsGrafico"

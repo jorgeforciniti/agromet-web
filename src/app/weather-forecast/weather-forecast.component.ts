@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Chart, Plugin } from 'chart.js';
 import { VAR_COLOR, GRID_COLOR, conAlfa, fmtNum } from '../charts/chart-theme';
+import { referenciasHelada } from '../charts/referencias';
 import { MatIconModule } from '@angular/material/icon';
 import { Input } from '@angular/core';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
@@ -656,6 +657,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
           }
         },
         plugins: {
+          referencias: { lineas: referenciasHelada() },
           legend: { display: false },
           title: {
             display: true,

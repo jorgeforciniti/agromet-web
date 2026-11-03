@@ -14,6 +14,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ChartDataset } from 'chart.js';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
+import { referenciasHelada } from '../charts/referencias';
 import { ClaveNormal, Normales, datasetNormal, normalDiaria, tieneValores } from '../charts/normales';
 import { NormalesService } from '../services/normales.service';
 import { describirFaltantes, etiquetaDia, fechasDelPeriodo, pluginFranjasSinDatos, porFecha, valorDiario } from '../charts/dias-faltantes';
@@ -617,6 +618,7 @@ export class WeatherDashboardComponent implements OnInit {
         maintainAspectRatio: false,
         scales,
         plugins: {
+          referencias: { lineas: this.selectedVariables.temperatura ? referenciasHelada('yTemp') : [] },
           legend: {
             labels: {
               color: '#111827',   // texto leyenda
