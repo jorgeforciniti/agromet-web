@@ -18,6 +18,21 @@ import { referenciasHelada } from '../charts/referencias';
 import { MatIconModule } from '@angular/material/icon';
 import { Input } from '@angular/core';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+
+/**
+ * Aviso de helada pronosticada (E9 del informe de mejoras), con el pronóstico horario de
+ * OpenWeatherMap para las próximas 48 h. Temperatura del aire en abrigo: con 3 °C o menos ya
+ * puede helar a nivel del suelo; con 0 °C o menos hay helada en abrigo.
+ */
+const HORAS_AVISO_HELADA = 48;
+const UMBRAL_POSIBLE_HELADA = 3;
+const UMBRAL_HELADA = 0;
+
+export interface AvisoHelada {
+  nivel: 'helada' | 'posible';
+  minima: number;
+  cuando: Date;
+}
 import { EstadoComunicacion, estadoComunicacion, haceCuanto, leerFechaEstacion } from '../shared/estado-estacion';
 
 registerLocaleData(localeEsAr);
@@ -85,6 +100,8 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
   rtWind: { direction?: string; speed?: number } | null = null;
 
   rtUpdated: Date | null = null;
+  /** Mínima pronosticada más baja de las próximas 48 h, si llega al umbral de helada */
+  avisoHelada: AvisoHelada | null = null;
   /** Antigüedad del último dato ("hace 13 min") y su estado, para que un dato viejo se note */
   rtHace = '';
   rtEstado: EstadoComunicacion = 'sin-datos-hoy';
@@ -139,6 +156,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
     this.weatherService.getOpenWeatherForecast(lat, lon).subscribe({
       next: (response: OpenWeatherForecastResponse) => {
         const groupedForecast = this.groupForecastByDay(response.list);
+        this.avisoHelada = this.buscarHelada(response.list);
         this.weatherData = {
           location: {
             name: response.city.name,
@@ -161,6 +179,24 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
         this.loading = false;
       }
     });
+  }
+
+  /** Intervalo con la temperatura más baja de las próximas 48 h, si llega a posible helada. */
+  private buscarHelada(list: OpenWeatherForecastItem[]): AvisoHelada | null {
+    const ahora = Date.now();
+    const limite = ahora + HORAS_AVISO_HELADA * 3600_000;
+    let peor: OpenWeatherForecastItem | null = null;
+    for (const item of list ?? []) {
+      const t = item.dt * 1000;
+      if (t < ahora - 3 * 3600_000 || t > limite) continue;
+      if (!peor || item.main.temp_min < peor.main.temp_min) peor = item;
+    }
+    if (!peor || peor.main.temp_min > UMBRAL_POSIBLE_HELADA) return null;
+    return {
+      nivel: peor.main.temp_min <= UMBRAL_HELADA ? 'helada' : 'posible',
+      minima: peor.main.temp_min,
+      cuando: new Date(peor.dt * 1000)
+    };
   }
 
   private groupForecastByDay(list: OpenWeatherForecastItem[]): Forecast[] {

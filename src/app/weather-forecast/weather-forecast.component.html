@@ -122,6 +122,16 @@
           </div>
           <p class="forecast-lead">Seguimiento operativo con días clave, detalle horario y evolución térmica.</p>
 
+          <!-- Helada pronosticada en las próximas 48 h (pronóstico de modelo, no medición) -->
+          <p class="aviso-helada" *ngIf="avisoHelada as a" [class.aviso-helada--fuerte]="a.nivel === 'helada'" role="status">
+            <mat-icon aria-hidden="true">ac_unit</mat-icon>
+            <span>
+              <strong>{{ a.nivel === 'helada' ? 'Helada pronosticada' : 'Posible helada' }}:</strong>
+              mínima de {{ a.minima | number:'1.0-1' }} °C el {{ a.cuando | date:'EEEE d':'':'es-AR' }} cerca de las
+              {{ a.cuando | date:'HH':'':'es-AR' }} h, según el pronóstico para las próximas 48 h.
+            </span>
+          </p>
+
           <!-- Grid principal: días, detalle horario y gráfico -->
           <div class="forecast-grid" *ngIf="selectedDay">
 

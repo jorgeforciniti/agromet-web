@@ -600,3 +600,27 @@
 .actualizado--al-dia { color: #166534; }
 .actualizado--atrasada { color: #b45309; }
 .actualizado--sin-datos-hoy { color: #6b7280; }
+
+/* Helada pronosticada en las próximas 48 h */
+.aviso-helada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: .9rem;
+  line-height: 1.38;
+}
+
+.aviso-helada--fuerte {
+  border-color: #93c5fd;
+  background: #dbeafe;
+}
+
+.aviso-helada mat-icon {
+  flex: 0 0 auto;
+}
