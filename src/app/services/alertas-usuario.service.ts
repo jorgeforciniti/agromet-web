@@ -15,12 +15,13 @@ export interface AlertaUsuario {
 
 /**
  * Qué se compara en cada alerta. Sólo con datos medidos que el sitio ya recibe:
- * la mínima del día (datos-alerta.php), la última temperatura y la lluvia del día (estaciones.php).
- * No hay máxima diaria publicada, por eso la de calor usa la última medición.
+ * la mínima del día (datos-alerta.php), la máxima del día (datos-diarios.php, parcial hasta la
+ * última medición) y la lluvia del día (estaciones.php). Antes la de calor usaba la última
+ * medición y no avisaba si la máxima había pasado el umbral más temprano.
  */
 export const TIPOS_ALERTA: Record<VariableAlerta, { operador: '<=' | '>='; texto: string; unidad: string; min: number; max: number }> = {
   temp_min: { operador: '<=', texto: 'Mínima de hoy menor o igual a', unidad: '°C', min: -25, max: 55 },
-  temp_max: { operador: '>=', texto: 'Temperatura medida mayor o igual a', unidad: '°C', min: -25, max: 55 },
+  temp_max: { operador: '>=', texto: 'Máxima de hoy mayor o igual a', unidad: '°C', min: -25, max: 55 },
   lluvia_dia: { operador: '>=', texto: 'Lluvia de hoy mayor o igual a', unidad: 'mm', min: 0, max: 400 }
 };
 
@@ -33,6 +34,8 @@ export interface AlertaDisparada {
 /** Valores medidos de una estación, ya filtrados por rango físico (null = sin dato) */
 export interface MedicionesEstacion {
   minima: number | null;
+  /** Máxima de hoy hasta la última medición */
+  maxima: number | null;
   temperatura: number | null;
   lluvia: number | null;
 }
@@ -73,7 +76,8 @@ export class AlertasUsuarioService {
         const m = mediciones.get(a.estacion_id);
         const valor = !m ? null
           : a.variable === 'temp_min' ? m.minima
-            : a.variable === 'temp_max' ? m.temperatura
+            // Sin la máxima del día queda la última medición, que nunca la supera
+            : a.variable === 'temp_max' ? (m.maxima ?? m.temperatura)
               : m.lluvia;
         if (valor === null) return null;
         const supera = a.operador === '<=' ? valor <= a.umbral : valor >= a.umbral;

@@ -54,6 +54,9 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
   /** Mínima del día por estación (datos-alerta.php); se pide sólo si hay alertas de helada */
   private minimas = new Map<string, number>();
   private minimasPedidas = false;
+  /** Máxima de hoy de las estaciones con alerta de máxima (datos-diarios.php) */
+  private maximas = new Map<string, number>();
+  private maximasPedidas = new Set<string>();
 
   private estaciones: WeatherStation[] = [];
   private sub?: Subscription;
@@ -86,6 +89,7 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
 
     this.subAlertas = this.alertas.alertas$.subscribe(lista => {
       if (lista?.some(a => a.activa && a.variable === 'temp_min')) this.pedirMinimas();
+      this.pedirMaximas((lista ?? []).filter(a => a.activa && a.variable === 'temp_max').map(a => a.estacion_id));
       this.evaluarAlertas();
     });
   }
@@ -115,12 +119,34 @@ export class MisEstacionesComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Máxima de hoy de cada estación pedida (una consulta por estación, como mucho 20 alertas). */
+  private pedirMaximas(estaciones: string[]): void {
+    const hoy = new Date();
+    const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    for (const id of new Set(estaciones)) {
+      if (this.maximasPedidas.has(id)) continue;
+      this.maximasPedidas.add(id);
+      this.weatherService.getWeatherDataDiary<{ fecha: string; temp_max: number | string | null }>(fecha, fecha, id).subscribe({
+        next: r => {
+          const dia = (r.data ?? []).find(d => String(d.fecha).slice(0, 10) === fecha);
+          const max = this.enRango(dia?.temp_max == null ? '' : String(dia.temp_max), -25, 55);
+          if (max !== null) {
+            this.maximas.set(id, max);
+            this.evaluarAlertas();
+          }
+        },
+        error: () => undefined
+      });
+    }
+  }
+
   /** Arma las mediciones de cada estación y pregunta qué alertas se cumplen. */
   private evaluarAlertas(): void {
     const mediciones = new Map<string, MedicionesEstacion>();
     for (const e of this.estaciones) {
       mediciones.set(e.Identificacion, {
         minima: this.minimas.get(e.Identificacion) ?? null,
+        maxima: this.maximas.get(e.Identificacion) ?? null,
         temperatura: this.enRango(e.temp_af, -25, 55),
         lluvia: this.enRango(e.RR_dia, 0, 400)
       });

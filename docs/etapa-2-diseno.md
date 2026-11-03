@@ -4,7 +4,8 @@ Estado: **implementada** (API en `/services/usuarios`, ver `server/usuario/LEEME
 - Favoritas y predeterminada de la cuenta (`CuentaPreferenciasService`).
 - Consultas guardadas: botón "Guardar consulta" junto a "Copiar enlace" y sección en `/mi-cuenta`.
 - Alertas propias: se configuran en `/mi-cuenta#alertas` y se avisan arriba de "Mis estaciones".
-  Como no hay máxima diaria publicada, la de calor compara con la última temperatura medida.
+  La de calor compara con la máxima de hoy de `datos-diarios.php` (parcial, hasta la última
+  medición); antes usaba la última temperatura medida y no avisaba si la máxima había sido más temprano.
 - Menú de usuario en la barra superior.
 - La validación del token es propia (`firebase_token.php`), compatible con PHP 7.3 y sin curl.
 
@@ -151,7 +152,8 @@ que el usuario lo pida.
 **Alertas en la web:**
 - en cada tarjeta de "Mis estaciones": "Avisarme si…" (mínima ≤, máxima ≥, lluvia del día ≥);
 - se evalúan **en el navegador** al cargar "Mis estaciones", con los datos que ya trae
-  `estaciones.php` y la mínima de `datos-alerta.php` [verificado: devuelve `minimaTemperatura`];
+  `estaciones.php`, la mínima de `datos-alerta.php` [verificado: devuelve `minimaTemperatura`] y la
+  máxima de hoy de `datos-diarios.php` [verificado: devuelve `temp_max` del día en curso];
 - si se supera un umbral: franja arriba del bloque ("Monteros: mínima −1,2 °C · tu umbral 0 °C").
   Con el mismo estilo de los avisos de la red;
 - avisa de lo **medido**, no de lo pronosticado; descarta lecturas fuera de rango físico.
