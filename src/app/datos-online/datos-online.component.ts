@@ -17,11 +17,14 @@ import { Chart } from 'chart.js';
 import { HttpClient } from '@angular/common/http';
 import { ChartConfiguration } from 'chart.js';
 import { FeatureCollection, Point } from 'geojson';
-import { SIN_DATO, formatValor } from '../pipes/valor.pipe';
+import { SIN_DATO, formatDecimal, formatValor } from '../pipes/valor.pipe';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { referenciasHelada } from '../charts/referencias';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
+
+/** Zoom desde el que se muestran las etiquetas con el valor de cada estación */
+const ZOOM_ETIQUETAS = 9;
 
 // Tipo para las claves de los mapas base
 type BaseMapKey = 'satellite' | 'osm';
@@ -191,6 +194,12 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       encuadrarTucuman(this.map);
       leyendaEstados({ color: this.getStationColor(''), forma: 'circulo' }).addTo(this.map);
 
+      // Etiquetas con el valor de cada estación (B5): desde zoom 9; más lejos se superponen
+      const mostrarEtiquetas = () => this.map?.getContainer()
+        .classList.toggle('con-etiquetas', (this.map?.getZoom() ?? 0) >= ZOOM_ETIQUETAS);
+      this.map.on('zoomend', mostrarEtiquetas);
+      mostrarEtiquetas();
+
       if (this.estaciones.length > 0) this.addMarkers(this.estaciones);
       setTimeout(() => this.map!.invalidateSize({ animate: false }), 200);
 
@@ -238,9 +247,36 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
             this.actualizarGrafico();
           });
           layer.bindPopup(this.makePopupHTML(feature.properties));
+          layer.bindTooltip(this.etiquetaValor(feature.properties), {
+            permanent: true, direction: 'top', offset: [0, -6], className: 'etiqueta-valor', interactive: false
+          });
         }
       }
     ).addTo(this.map);
+  }
+
+  /** Cambió la variable elegida: las etiquetas del mapa pasan a mostrarla */
+  actualizarEtiquetas(): void {
+    this.stationsLayer?.eachLayer(layer => {
+      const props = (layer as L.CircleMarker).feature?.properties as StationFeatureProperties | undefined;
+      if (props) layer.setTooltipContent(this.etiquetaValor(props));
+    });
+  }
+
+  /** Valor de la variable elegida para la etiqueta; vacío si no hay dato de hoy */
+  private etiquetaValor(props: StationFeatureProperties): string {
+    if (estadoComunicacion(leerFechaEstacion(props.fecha_i)) === 'sin-datos-hoy') return '';
+    // [valor, tipo para validar el rango, unidad, decimales]
+    const campos: Record<string, [string | number | null | undefined, 'temp' | 'hum' | 'wind' | 'rain', string, number]> = {
+      temp_af: [props.temp_af, 'temp', ' °C', 1],
+      hum_af: [props.hum_af, 'hum', ' %', 0],
+      lluvia: [props.rr_dia, 'rain', ' mm', 1],
+      viento_medio: [props.viento_medio, 'wind', ' km/h', 0],
+      viento_max: [props.viento_max, 'wind', ' km/h', 0]
+    };
+    const campo = campos[this.selectedVariable];
+    if (!campo || this.fmt(campo[0], campo[1]) === SIN_DATO) return '';
+    return formatDecimal(Number(campo[0]), campo[3]) + campo[2];
   }
 
   private createStationsGeoJSON(

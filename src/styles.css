@@ -575,6 +575,32 @@ table td {
   opacity: 1;
 }
 
+/* Etiqueta con el valor de cada estación en el mapa de datos en línea: sólo desde zoom 9
+   (.con-etiquetas en el contenedor), sin flecha y oculta si no hay dato de hoy */
+.leaflet-tooltip.etiqueta-valor {
+  display: none;
+  padding: 1px 5px;
+  border: 1px solid rgba(0, 0, 0, .2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: none;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.leaflet-tooltip.etiqueta-valor::before {
+  display: none;
+}
+
+.con-etiquetas .leaflet-tooltip.etiqueta-valor {
+  display: block;
+}
+
+.con-etiquetas .leaflet-tooltip.etiqueta-valor:empty {
+  display: none;
+}
+
 /* Resumen de cuatro cifras sobre un gráfico (charts/resumen-series.ts): una línea por serie */
 .resumen-grafico {
   display: flex;

@@ -39,7 +39,7 @@
         <div class="variable-selector" [class.is-disabled]="!selectedStationId">
           <label for="varSelect"><strong>Variable:</strong></label>
 
-          <select id="varSelect" [(ngModel)]="selectedVariable" (change)="actualizarGrafico()"
+          <select id="varSelect" [(ngModel)]="selectedVariable" (change)="actualizarGrafico(); actualizarEtiquetas()"
             [disabled]="!selectedStationId">
             <option value="temp_af">Temperatura (°C)</option>
             <option value="hum_af">Humedad relativa (%)</option>
