@@ -25,7 +25,11 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { evaluarDia } from '../shared/registros-diarios';
+import { gradosDia, MetodoGradosDia } from '../shared/grados-dia';
 import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
+
+/** Tope de la máxima en los grados-día (corte horizontal) */
+const TOPE_GRADOS_DIA = 30;
 
 interface ThermalDayRecord {
   fecha: string;
@@ -115,6 +119,10 @@ export class ThermalSumDialogComponent implements OnInit {
   validDays = 0;
 
   readonly baseOptions = [0, 5, 10, 12, 12.5, 15, 18];
+  readonly metodos: { valor: MetodoGradosDia; texto: string }[] = [
+    { valor: 'promedio', texto: 'Promedio' },
+    { valor: 'seno', texto: 'Seno simple' }
+  ];
   readonly data: Record<string, unknown>;
 
   /** Favoritas del usuario, para mostrarlas primero en el selector */
@@ -123,7 +131,7 @@ export class ThermalSumDialogComponent implements OnInit {
   /** Enlace a la consulta actual (botón "Copiar enlace") */
   readonly enlaceConsulta = (): string => {
     const v = this.form.getRawValue();
-    return armarEnlace('suma-termica', { estacion: v.station, desde: v.from, hasta: v.to, base: v.base });
+    return armarEnlace('suma-termica', { estacion: v.station, desde: v.from, hasta: v.to, base: v.base, metodo: v.metodo });
   };
 
   constructor(
@@ -144,6 +152,7 @@ export class ThermalSumDialogComponent implements OnInit {
     this.form = this.fb.group({
       station: [this.stationService.activa, Validators.required],
       base: [10, Validators.required],
+      metodo: ['promedio' as MetodoGradosDia, Validators.required],
       from: [monthStart, Validators.required],
       to: [yesterday, Validators.required]
     }, { validators: this.dateRangeValidator });
@@ -156,6 +165,7 @@ export class ThermalSumDialogComponent implements OnInit {
     if (desde) this.form.controls['from'].setValue(desde);
     if (hasta) this.form.controls['to'].setValue(hasta);
     if (base !== null) this.form.controls['base'].setValue(base);
+    if (consulta['metodo'] === 'promedio' || consulta['metodo'] === 'seno') this.form.controls['metodo'].setValue(consulta['metodo']);
 
     this.weatherService.getStationsAll().subscribe({
       next: (stations) => {
@@ -184,7 +194,7 @@ export class ThermalSumDialogComponent implements OnInit {
       return;
     }
 
-    const { station, base, from, to } = this.form.getRawValue();
+    const { station, base, metodo, from, to } = this.form.getRawValue();
     const fromDate = this.coerceDate(from);
     const toDate = this.coerceDate(to);
 
@@ -219,7 +229,7 @@ export class ThermalSumDialogComponent implements OnInit {
         });
 
         this.rows = (daily.data ?? []).map(record => {
-          const dailyValue = this.calculateDailyThermalSum(record, Number(base));
+          const dailyValue = this.calculateDailyThermalSum(record, Number(base), metodo);
           const insufficient = (dailyValue > 50 || !suficientePorFecha.get(record.fecha));
 
           if (!insufficient) {
@@ -259,11 +269,9 @@ export class ThermalSumDialogComponent implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
-  private calculateDailyThermalSum(record: ThermalDayRecord, base: number): number {
-    const maxCapped = Math.min(Number(record.temp_max ?? 0), 30);
-    const min = Number(record.temp_min ?? 0);
-    const value = ((maxCapped + min) / 2) - base;
-    return value < 0 ? 0 : value;
+  /** Grados-día del día con el método elegido; la máxima se corta en 30 °C (shared/grados-dia.ts) */
+  private calculateDailyThermalSum(record: ThermalDayRecord, base: number, metodo: MetodoGradosDia): number {
+    return gradosDia(Number(record.temp_min ?? 0), Number(record.temp_max ?? 0), base, TOPE_GRADOS_DIA, metodo);
   }
 
   private dateRangeValidator(group: AbstractControl): ValidationErrors | null {

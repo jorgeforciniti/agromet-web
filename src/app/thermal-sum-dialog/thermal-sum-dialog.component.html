@@ -11,8 +11,11 @@
           aplicando temperatura base y acumulado del período.
         </p>
         <app-como-se-lee>
-          <p>Cada día suma <code>((Tmáx + Tmín) / 2) − base</code>, con la máxima limitada a 30 °C y sin
-            valores negativos.</p>
+          <p><strong>Promedio:</strong> cada día suma <code>((Tmáx + Tmín) / 2) − base</code>, con la máxima
+            limitada a 30 °C y sin valores negativos.</p>
+          <p><strong>Seno simple</strong> (Baskerville y Emin, 1969): la temperatura del día se aproxima con una
+            onda entre la mínima y la máxima, y se suma el tiempo que pasa entre la base y 30 °C. Cuenta el calor
+            de los días con la mínima por debajo de la base, que el promedio subestima.</p>
           <p>Un día con datos insuficientes no se computa en el acumulado.</p>
         </app-como-se-lee>
       </div>
@@ -31,6 +34,13 @@
           <mat-label>Base térmica</mat-label>
           <select matNativeControl formControlName="base">
             <option *ngFor="let base of baseOptions" [value]="base">{{ base }} °C</option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Método</mat-label>
+          <select matNativeControl formControlName="metodo">
+            <option *ngFor="let m of metodos" [value]="m.valor">{{ m.texto }}</option>
           </select>
         </mat-form-field>
 
@@ -63,7 +73,7 @@
       </div>
       <div class="thermal-summary__card">
         <span>Base térmica</span>
-        <strong>{{ form.get('base')?.value }} °C</strong>
+        <strong>{{ form.get('base')?.value }} °C · {{ form.get('metodo')?.value === 'seno' ? 'seno simple' : 'promedio' }}</strong>
       </div>
       <div class="thermal-summary__card">
         <span>Total acumulado</span>
