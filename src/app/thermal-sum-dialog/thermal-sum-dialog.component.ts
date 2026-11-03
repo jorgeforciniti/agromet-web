@@ -20,7 +20,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
-import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -79,7 +79,7 @@ class ThermalDateAdapter extends NativeDateAdapter {
   encapsulation: ViewEncapsulation.None,
   imports: [
     CopiarEnlaceComponent,
-    GruposEstacionesPipe,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,

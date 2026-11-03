@@ -24,7 +24,7 @@ import {
 } from '@angular/material/core';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
-import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 
@@ -159,7 +159,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   encapsulation: ViewEncapsulation.None,
   imports: [
     ExportarGraficoComponent,
-    GruposEstacionesPipe,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,

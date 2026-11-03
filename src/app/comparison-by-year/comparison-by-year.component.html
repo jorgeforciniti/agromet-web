@@ -15,28 +15,8 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-section">
       <div class="form-grid-compact">
-        <mat-form-field appearance="fill">
-          <mat-label>Estación</mat-label>
-          <select matNativeControl formControlName="estacion">
-            <ng-container *ngIf="stations | gruposEstaciones:(favoritas$ | async) as g">
-              <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
-                <option *ngFor="let st of g.favoritas" [value]="st.Identificacion">
-                  {{ st.Identificacion }} - {{ st.nombre }}
-                </option>
-              </optgroup>
-              <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
-                <option *ngFor="let st of g.resto" [value]="st.Identificacion">
-                  {{ st.Identificacion }} - {{ st.nombre }}
-                </option>
-              </optgroup>
-              <ng-container *ngIf="!g.favoritas.length">
-                <option *ngFor="let st of g.resto" [value]="st.Identificacion">
-                  {{ st.Identificacion }} - {{ st.nombre }}
-                </option>
-              </ng-container>
-            </ng-container>
-          </select>
-        </mat-form-field>
+        <app-selector-estacion formControlName="estacion" etiqueta="Estación"
+          [estaciones]="stations"></app-selector-estacion>
 
         <mat-form-field appearance="fill">
           <mat-label>Desde</mat-label>

@@ -31,7 +31,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
-import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
@@ -91,7 +91,7 @@ const MY_DATE_FORMATS = {
   imports: [
     ExportarGraficoComponent,
     CopiarEnlaceComponent,
-    GruposEstacionesPipe,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,

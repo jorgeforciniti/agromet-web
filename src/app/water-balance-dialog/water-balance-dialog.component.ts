@@ -19,7 +19,7 @@ import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
-import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ALMACENAJE_INICIAL, CMR, DecadaBalance, OpcionesBalance, ResultadoBalance, calcularBalance, inicioDelCalculo } from './balance-hidrico';
 
 const FORMATOS_FECHA = {
@@ -54,7 +54,7 @@ const COLOR_ALMACENAJE = '#5c940d';
   imports: [
     CopiarEnlaceComponent,
     ExportarGraficoComponent,
-    GruposEstacionesPipe,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,

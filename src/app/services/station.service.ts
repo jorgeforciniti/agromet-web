@@ -9,6 +9,9 @@ export const ESTACION_INICIAL = '2049'; // El Colmenar
 /** Máximo de favoritas: más que esto deja de ser un acceso rápido */
 export const MAX_FAVORITAS = 8;
 
+/** Estaciones recientes que se recuerdan (las últimas activas, con o sin cuenta) */
+export const MAX_RECIENTES = 5;
+
 const CLAVE_PREFERENCIAS = 'agromet.estaciones';
 /** Copia local de las preferencias de la cuenta (se borra al cerrar sesión) */
 const CLAVE_CUENTA = 'agromet.estaciones.cuenta';
@@ -22,6 +25,8 @@ export interface FavoritasEstaciones {
 /** Preferencias de estaciones que se guardan en el navegador */
 interface PreferenciasEstaciones extends FavoritasEstaciones {
   ultima: string | null;
+  /** Últimas estaciones activas, la más reciente primero */
+  recientes: string[];
 }
 
 /**
@@ -70,6 +75,10 @@ export class StationService {
   private readonly predeterminadaSubject = new BehaviorSubject<string | null>(this.preferencias.predeterminada);
   readonly predeterminada$ = this.predeterminadaSubject.asObservable();
 
+  private readonly recientesSubject = new BehaviorSubject<string[]>(this.preferencias.recientes);
+  /** Últimas estaciones activas en este navegador (la más reciente primero) */
+  readonly recientes$ = this.recientesSubject.asObservable();
+
   /**
    * Objeto completo de la estación seleccionada (pronóstico y visor de Estado actual).
    * Con activar=false no cambia la activa (por ejemplo, al caer en una estación de respaldo
@@ -95,6 +104,7 @@ export class StationService {
     const valor = String(id ?? '').trim();
     if (!valor || valor === this.activaSubject.value) return;
     this.activaSubject.next(valor);
+    this.recientesSubject.next([valor, ...this.recientesSubject.value.filter(r => r !== valor)].slice(0, MAX_RECIENTES));
     this.guardar();
     this.analytics.registrar('elegir_estacion', { estacion: valor });
   }
@@ -203,7 +213,7 @@ export class StationService {
   }
 
   private leerPreferencias(): PreferenciasEstaciones {
-    const vacias: PreferenciasEstaciones = { favoritas: [], predeterminada: null, ultima: null };
+    const vacias: PreferenciasEstaciones = { favoritas: [], predeterminada: null, ultima: null, recientes: [] };
     try {
       const guardadas = JSON.parse(localStorage.getItem(CLAVE_PREFERENCIAS) ?? 'null');
       if (!guardadas || typeof guardadas !== 'object') return vacias;
@@ -213,7 +223,11 @@ export class StationService {
           ? [...new Set(guardadas.favoritas.map(texto).filter(Boolean) as string[])].slice(0, MAX_FAVORITAS)
           : [],
         predeterminada: texto(guardadas.predeterminada),
-        ultima: texto(guardadas.ultima)
+        ultima: texto(guardadas.ultima),
+        // Antes de que existiera la lista, la última estación usada es la primera reciente
+        recientes: Array.isArray(guardadas.recientes)
+          ? [...new Set(guardadas.recientes.map(texto).filter(Boolean) as string[])].slice(0, MAX_RECIENTES)
+          : [texto(guardadas.ultima)].filter(Boolean) as string[]
       };
     } catch {
       return vacias;
@@ -232,7 +246,11 @@ export class StationService {
     } else {
       this.visitante = { favoritas: this.favoritasSubject.value, predeterminada: this.predeterminadaSubject.value };
     }
-    const datos: PreferenciasEstaciones = { ...this.visitante, ultima: this.activaSubject.value };
+    const datos: PreferenciasEstaciones = {
+      ...this.visitante,
+      ultima: this.activaSubject.value,
+      recientes: this.recientesSubject.value
+    };
     try {
       localStorage.setItem(CLAVE_PREFERENCIAS, JSON.stringify(datos));
     } catch {

@@ -21,7 +21,7 @@ import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
-import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { BaseChartDirective } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -159,7 +159,7 @@ import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
   imports: [
     ExportarGraficoComponent,
     CopiarEnlaceComponent,
-    GruposEstacionesPipe,
+    SelectorEstacionComponent,
     CommonModule,
     ValorPipe,
     ReactiveFormsModule,

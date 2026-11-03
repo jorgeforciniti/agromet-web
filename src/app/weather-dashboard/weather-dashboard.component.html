@@ -18,31 +18,9 @@
   <form [formGroup]="weatherForm" (ngSubmit)="loadData()" class="search-form">
     <div class="form-grid">
 
-      <mat-form-field appearance="outline">
-        <mat-label>Estación meteorológica</mat-label>
-        <mat-select formControlName="station" required (selectionChange)="onStationChange()">
-          <ng-container *ngIf="stations | gruposEstaciones:(favoritas$ | async) as g">
-            <mat-optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
-              <mat-option *ngFor="let station of g.favoritas" [value]="station.Identificacion">
-                {{ station.nombre }} ({{ station.provincia }})
-              </mat-option>
-            </mat-optgroup>
-            <mat-optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
-              <mat-option *ngFor="let station of g.resto" [value]="station.Identificacion">
-                {{ station.nombre }} ({{ station.provincia }})
-              </mat-option>
-            </mat-optgroup>
-            <ng-container *ngIf="!g.favoritas.length">
-              <mat-option *ngFor="let station of g.resto" [value]="station.Identificacion">
-                {{ station.nombre }} ({{ station.provincia }})
-              </mat-option>
-            </ng-container>
-          </ng-container>
-        </mat-select>
-        <mat-error *ngIf="weatherForm.get('station')?.hasError('required')">
-          Seleccione una estación
-        </mat-error>
-      </mat-form-field>
+      <app-selector-estacion formControlName="station" etiqueta="Estación meteorológica" appearance="outline" required
+        (cambio)="onStationChange()"
+        [estaciones]="stations"></app-selector-estacion>
 
       <mat-form-field appearance="outline">
         <mat-label>Fecha inicial</mat-label>

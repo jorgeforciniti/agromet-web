@@ -19,7 +19,7 @@ import {
 } from '@angular/material/core';
 import { DiseaseApiRecord, WeatherService, WeatherStation } from '../services/weather.service';
 import { ESTACION_INICIAL, StationService } from '../services/station.service';
-import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 
 interface DiseaseOption {
   code: number;
@@ -131,7 +131,7 @@ class DiseaseDateAdapter extends NativeDateAdapter {
   encapsulation: ViewEncapsulation.None,
   imports: [
     CopiarEnlaceComponent,
-    GruposEstacionesPipe,
+    SelectorEstacionComponent,
     CommonModule,
     FormsModule,
     MatDialogModule,

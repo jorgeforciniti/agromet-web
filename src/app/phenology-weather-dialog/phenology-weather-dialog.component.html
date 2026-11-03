@@ -19,28 +19,8 @@
 
     <form [formGroup]="form" (ngSubmit)="calculate()" class="phenology-form">
       <div class="phenology-grid">
-        <mat-form-field appearance="fill">
-          <mat-label>Estación</mat-label>
-          <select matNativeControl formControlName="station">
-            <ng-container *ngIf="stations | gruposEstaciones:(favoritas$ | async) as g">
-              <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
-                <option *ngFor="let station of g.favoritas" [value]="station.Identificacion">
-                  {{ station.Identificacion }} - {{ station.nombre }}
-                </option>
-              </optgroup>
-              <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
-                <option *ngFor="let station of g.resto" [value]="station.Identificacion">
-                  {{ station.Identificacion }} - {{ station.nombre }}
-                </option>
-              </optgroup>
-              <ng-container *ngIf="!g.favoritas.length">
-                <option *ngFor="let station of g.resto" [value]="station.Identificacion">
-                  {{ station.Identificacion }} - {{ station.nombre }}
-                </option>
-              </ng-container>
-            </ng-container>
-          </select>
-        </mat-form-field>
+        <app-selector-estacion formControlName="station" etiqueta="Estación"
+          [estaciones]="stations"></app-selector-estacion>
 
         <mat-form-field appearance="fill">
           <mat-label>Cultivo</mat-label>
