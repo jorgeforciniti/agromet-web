@@ -186,6 +186,36 @@
 }
 
 /* Primera y última columna con el mismo margen que el borde del panel */
+/* Encabezados que ordenan la lista: la flecha indica la columna y el sentido */
+.orden {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.orden::after {
+  content: '↕';
+  margin-left: 3px;
+  opacity: .35;
+}
+
+th[aria-sort='ascending'] .orden::after { content: '▲'; opacity: .9; }
+th[aria-sort='descending'] .orden::after { content: '▼'; opacity: .9; }
+th[aria-sort='ascending'] .orden,
+th[aria-sort='descending'] .orden { color: var(--text); }
+
+.orden:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .estaciones-table th:first-child,
 .estaciones-table td:first-child {
   padding-left: 14px;

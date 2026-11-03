@@ -12,6 +12,9 @@ import { MAX_FAVORITAS, StationService } from '../services/station.service';
 import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
 import { leyendaEstados } from '../maps/leyenda-estados';
 
+/** Columnas por las que se puede ordenar la lista (D1 del informe de mejoras) */
+export type ColumnaOrden = 'nombre' | 'temp' | 'hum' | 'rain' | 'updated';
+
 interface StationRow extends WeatherStation {
   temp: number | null;
   hum: number | null;
@@ -39,6 +42,9 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
   private dejarDeSeguirTamanio?: () => void;
   stations: StationRow[] = [];
+
+  /** Orden de la lista: por nombre al entrar; los valores, de mayor a menor en el primer clic */
+  orden: { columna: ColumnaOrden; asc: boolean } = { columna: 'nombre', asc: true };
   loading = true;
   error: string | null = null;
   selectedStationId: string | null = null;
@@ -88,8 +94,8 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (stations) => {
         this.stations = stations
           .filter(s => (s.habilitada ?? 0) > 0)
-          .map(s => this.toRow(s))
-          .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+          .map(s => this.toRow(s));
+        this.aplicarOrden();
         this.loading = false;
         this.renderMarkers();
       },
@@ -291,6 +297,39 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       width: 'min(760px, 96vw)',
       maxWidth: '96vw',
       autoFocus: false
+    });
+  }
+
+  ordenarPor(columna: ColumnaOrden): void {
+    this.orden = this.orden.columna === columna
+      ? { columna, asc: !this.orden.asc }
+      : { columna, asc: columna === 'nombre' };
+    this.aplicarOrden();
+  }
+
+  /** Valor de aria-sort del encabezado */
+  ariaSort(columna: ColumnaOrden): string {
+    return this.orden.columna !== columna ? 'none' : this.orden.asc ? 'ascending' : 'descending';
+  }
+
+  /**
+   * Ordena la lista; las estaciones sin dato quedan siempre al final. Al ordenar por un valor,
+   * también las que no reportaron hoy: su último valor es viejo y no se compara con los actuales.
+   */
+  private aplicarOrden(): void {
+    const { columna, asc } = this.orden;
+    const signo = asc ? 1 : -1;
+    const valor = (s: StationRow): number | null => {
+      if (columna === 'updated') return s.updated ? s.updated.getTime() : null;
+      if (estadoComunicacion(s.updated) === 'sin-datos-hoy') return null;
+      return s[columna as 'temp' | 'hum' | 'rain'] ?? null;
+    };
+    this.stations = [...this.stations].sort((a, b) => {
+      if (columna === 'nombre') return signo * (a.nombre || '').localeCompare(b.nombre || '');
+      const va = valor(a);
+      const vb = valor(b);
+      if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
+      return signo * (va - vb) || (a.nombre || '').localeCompare(b.nombre || '');
     });
   }
 

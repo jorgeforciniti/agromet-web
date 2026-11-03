@@ -18,11 +18,17 @@
         <table class="estaciones-table">
           <thead>
             <tr>
-              <th scope="col">Estación</th>
-              <th scope="col"><abbr title="Temperatura del aire">°C</abbr></th>
-              <th scope="col"><abbr title="Humedad relativa">HR %</abbr></th>
-              <th scope="col"><abbr title="Lluvia de hoy">mm</abbr></th>
-              <th scope="col"><abbr title="Última medición">Hora</abbr></th>
+              <!-- Un clic ordena por la columna; otro invierte el orden -->
+              <th scope="col" [attr.aria-sort]="ariaSort('nombre')">
+                <button type="button" class="orden" (click)="ordenarPor('nombre')">Estación</button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('temp')">
+                <button type="button" class="orden" (click)="ordenarPor('temp')"><abbr title="Temperatura del aire">°C</abbr></button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('hum')">
+                <button type="button" class="orden" (click)="ordenarPor('hum')"><abbr title="Humedad relativa">HR %</abbr></button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('rain')">
+                <button type="button" class="orden" (click)="ordenarPor('rain')"><abbr title="Lluvia de hoy">mm</abbr></button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('updated')">
+                <button type="button" class="orden" (click)="ordenarPor('updated')"><abbr title="Última medición">Hora</abbr></button></th>
             </tr>
           </thead>
           <tbody *ngIf="!loading; else cargando">
