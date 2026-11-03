@@ -53,7 +53,8 @@
         </div>
 
         <div class="chart-box" *ngIf="selectedStationId">
-          <app-exportar-grafico nombre="datos-en-tiempo-real"></app-exportar-grafico>
+          <!-- Registros de 15 minutos: 31 días = 31 × 96 filas como máximo en el CSV -->
+          <app-exportar-grafico nombre="datos-en-tiempo-real" [maxFilas]="31 * 96"></app-exportar-grafico>
           <canvas id="graficoVariables"></canvas>
         </div>
         <p class="aviso-faltantes" *ngIf="selectedStationId && textoSinRegistro" role="status">

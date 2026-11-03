@@ -356,6 +356,25 @@ body {
   color: #111 !important;
 }
 
+/* Las tablas de datos no se pueden seleccionar ni copiar en todo el sitio (como en El Colmenar):
+   quien necesite los datos los pide a la Sección, que figura como fuente. Los gráficos se
+   descargan en PNG con la fuente y, donde está permitido, en CSV de hasta 31 días
+   (shared/exportar-grafico.component.ts). La excepción es /admin. */
+table,
+.mat-mdc-table,
+.tabla-fija {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+app-admin table,
+app-admin .mat-mdc-table {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 /* Tablas largas con encabezado fijo. El contenedor desplaza en ambos ejes y tiene altura
    máxima: así el encabezado sticky queda visible al recorrer las filas (con sólo
    overflow-x: auto y sin altura, el sticky no tenía efecto). !important porque cada

@@ -16,6 +16,7 @@ import { Chart, Plugin } from 'chart.js';
 import { VAR_COLOR, GRID_COLOR, conAlfa, fmtNum } from '../charts/chart-theme';
 import { MatIconModule } from '@angular/material/icon';
 import { Input } from '@angular/core';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 registerLocaleData(localeEsAr);
 
@@ -49,6 +50,7 @@ function hhmm(d: Date): string {
     MatSelectModule,
     MatFormFieldModule,
     MatIconModule,
+    ExportarGraficoComponent,
   ],
   templateUrl: './weather-forecast.component.html',
   styleUrls: ['./weather-forecast.component.css']

@@ -37,8 +37,12 @@ comentarios, los nombres y los mensajes de commit van en **español**.
 
 - **Secretos**: `.htaccess` con contraseñas, `conecta_*.php` y similares **no se suben al
   repositorio**. Hay que usar los `*.ejemplo.php`.
-- **El Colmenar** (`/estadisticas-historicas`): no agregar exportaciones, tablas de datos crudos ni
-  texto seleccionable. La única excepción es `/admin`.
+- **Descargas y copia de datos** (en todo el sitio): los gráficos se descargan en PNG con la fuente;
+  el CSV sólo donde está permitido y con 31 días como máximo (`[maxFilas]` de
+  `shared/exportar-grafico.component.ts`). Las tablas no se pueden seleccionar ni copiar (regla
+  global en `styles.css`). Quien necesite más datos los pide a la Sección. La excepción es `/admin`.
+- **El Colmenar** (`/estadisticas-historicas`): sólo PNG; sin CSV, tablas de datos crudos ni texto
+  seleccionable.
 - **Código comentado a propósito** (por ejemplo los accesos a Solicitudes/Trámites): no se reactiva ni
   se expone en la navegación sin pedido explícito.
 - Los PHP nuevos siguen el patrón de `comun.php` de su carpeta (respuestas `error_json`, validar el

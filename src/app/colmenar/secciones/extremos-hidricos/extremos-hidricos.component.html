@@ -61,6 +61,7 @@
           <h3 class="panel__titulo panel__titulo--sm">Curva de Gumbel · {{ etiquetaDuracion }}</h3>
           <p class="panel__sub">Puntos: máximos anuales con su frecuencia empírica n/(N+1). Línea: ajuste de Gumbel. Banda: intervalo
             de confianza del 80 % <app-ayuda-termino termino="confianza"></app-ayuda-termino>.</p>
+          <app-exportar-grafico nombre="colmenar-extremos-hidricos-gumbel"></app-exportar-grafico>
           <div class="grafico grafico--alto" role="img"
             [attr.aria-label]="'Curva de Gumbel de la ' + etiquetaDuracion + ' para ' + periodo.etiqueta + '. Valores en la tabla.'">
             <canvas baseChart [type]="'scatter'" [data]="datosGumbel" [options]="opcionesGumbel"></canvas>
@@ -142,6 +143,7 @@
       <div class="panel">
         <h3 class="panel__titulo panel__titulo--sm">Mes de ocurrencia de la lluvia máxima diaria anual</h3>
         <p class="panel__sub">Cantidad de años en que el máximo diario del año ocurrió en cada mes · más frecuente: {{ mesesConMasMaximos }}.</p>
+        <app-exportar-grafico nombre="colmenar-extremos-hidricos-ocurrencia"></app-exportar-grafico>
         <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Cantidad de máximos diarios anuales por mes. Más frecuente: ' + mesesConMasMaximos">
           <canvas baseChart [type]="'bar'" [data]="datosOcurrencia" [options]="opcionesOcurrencia"></canvas>
         </div>
@@ -157,6 +159,7 @@
           {{ c.r > 0 && c.p < 0.05 ? 'Las campañas más lluviosas se asocian a lluvias diarias más intensas.' : '' }}
         </p>
         <ng-template #sinCorrelacion><p class="panel__sub">No hay campañas completas suficientes en el período.</p></ng-template>
+        <app-exportar-grafico nombre="colmenar-extremos-hidricos-correlacion"></app-exportar-grafico>
         <div class="grafico grafico--bajo" role="img" aria-label="Dispersión entre la lluvia total de octubre a marzo y la suma de sus máximas diarias mensuales">
           <canvas baseChart [type]="'scatter'" [data]="datosCorrelacion" [options]="opcionesCorrelacion"></canvas>
         </div>

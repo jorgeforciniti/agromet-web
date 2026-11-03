@@ -43,6 +43,7 @@
             <ng-container *ngIf="m.value !== -999.9 && m.normal"> · {{ fmt(100 * m.value / m.normal, 0) }} % de la normal</ng-container>
             <ng-container *ngIf="posicionMes as p"> · superó a {{ p.menores }} de {{ p.n }} años registrados</ng-container>
           </p>
+          <app-exportar-grafico nombre="estacion-lluvia-campania-mensual"></app-exportar-grafico>
           <div class="ed__chart" role="img"
             [attr.aria-label]="'Lluvia mensual de la campaña frente a la normal y al rango histórico de ' + data.name">
             <canvas baseChart [type]="'bar'" [data]="$any(datosMes)" [options]="opcionesMes" [plugins]="pluginMes"></canvas>
@@ -64,6 +65,7 @@
               mediana {{ fmt(e.mediana) }} mm
             </p>
           </div>
+          <app-exportar-grafico nombre="estacion-lluvia-serie-del-mes"></app-exportar-grafico>
           <div class="ed__chart" role="img"
             [attr.aria-label]="'Lluvia de ' + MESES[mesSerie - 1] + ' en cada año de la serie de ' + data.name">
             <canvas baseChart [type]="'bar'" [data]="$any(datosSerieMes)" [options]="opcionesSerieMes" [plugins]="pluginSerieMes"></canvas>
@@ -90,6 +92,7 @@
             </ng-container>
             <ng-template #sinTotal>La campaña consultada está incompleta o en curso: no se compara su total.</ng-template>
           </p>
+          <app-exportar-grafico nombre="estacion-lluvia-por-campania"></app-exportar-grafico>
           <div class="ed__chart" role="img" [attr.aria-label]="'Lluvia total de cada campaña registrada en ' + data.name">
             <canvas baseChart [type]="'bar'" [data]="$any(datosCampania)" [options]="opcionesCampania" [plugins]="pluginCampania"></canvas>
           </div>

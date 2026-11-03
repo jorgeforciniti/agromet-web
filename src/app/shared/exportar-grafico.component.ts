@@ -1,11 +1,16 @@
 import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
 import { Chart } from 'chart.js';
 import { fechaIso } from './enlace-consulta';
-import { FUENTE_NOMBRE, FUENTE_URL } from './fuente';
+import { FUENTE_NOMBRE, FUENTE_TEXTO, FUENTE_URL, MAX_DIAS_DESCARGA } from './fuente';
 
 /**
  * Botones "PNG" y "CSV" para descargar un gráfico de Chart.js. Busca el gráfico con
  * Chart.getChart al momento del clic, así que sirve igual para ng2-charts y para new Chart().
+ *
+ * Política de descargas: el PNG está en todos los gráficos y siempre lleva la fuente. El CSV
+ * sólo aparece cuando se indica [maxFilas], que tiene que equivaler a 31 días de datos como
+ * máximo (31 filas diarias, 31 × 96 registros de 15 minutos…). Quien necesite más datos los
+ * pide a la Sección. En El Colmenar no se pasa [maxFilas]: ahí no hay CSV.
  *
  * Dentro del contenedor del <canvas> queda flotando arriba a la derecha:
  *   <div class="chart-container">
@@ -23,8 +28,10 @@ import { FUENTE_NOMBRE, FUENTE_URL } from './fuente';
   template: `
     <button type="button" (click)="png()" title="Descargar el gráfico como imagen PNG"
       aria-label="Descargar el gráfico como imagen PNG">PNG</button>
-    <button type="button" (click)="csv()" title="Descargar los datos del gráfico en CSV"
-      aria-label="Descargar los datos del gráfico en CSV">CSV</button>
+    @if (maxFilas) {
+      <button type="button" (click)="csv()" title="Descargar los datos del gráfico en CSV (hasta 31 días)"
+        aria-label="Descargar los datos del gráfico en CSV, hasta 31 días">CSV</button>
+    }
   `,
   styles: [`
     :host {
@@ -69,7 +76,10 @@ import { FUENTE_NOMBRE, FUENTE_URL } from './fuente';
 export class ExportarGraficoComponent implements AfterViewInit {
   /** Base del nombre del archivo; se le agrega la fecha de hoy */
   @Input() nombre = 'grafico';
-  /** Para series de datos diarios: el CSV incluye sólo las últimas N filas (ver MAX_DIAS_DESCARGA) */
+  /**
+   * Filas del CSV, equivalentes a 31 días como máximo (ver MAX_DIAS_DESCARGA): se incluyen las
+   * últimas N. Sin este valor el gráfico sólo se descarga como imagen.
+   */
   @Input() maxFilas: number | null = null;
 
   /** Está antes del contenedor del gráfico (barra) en vez de adentro (flotante) */
@@ -95,20 +105,33 @@ export class ExportarGraficoComponent implements AfterViewInit {
     if (!chart) return;
     // Fondo blanco: el canvas es transparente y la imagen quedaría negra en algunos visores
     const origen = chart.canvas;
+    // La fuente va siempre en la imagen. Casi todos los gráficos la dibujan al pie (subtítulo de
+    // chart-theme); a los que usan el subtítulo para otra cosa se les agrega una franja abajo.
+    const subtitulo = chart.options.plugins?.subtitle;
+    const conFuente = !!subtitulo?.display && subtitulo.text === FUENTE_TEXTO;
+    const escala = origen.width / (origen.clientWidth || origen.width);
+    const franja = conFuente ? 0 : Math.round(22 * escala);
     const lienzo = document.createElement('canvas');
     lienzo.width = origen.width;
-    lienzo.height = origen.height;
+    lienzo.height = origen.height + franja;
     const ctx = lienzo.getContext('2d')!;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, lienzo.width, lienzo.height);
     ctx.drawImage(origen, 0, 0);
+    if (franja) {
+      ctx.fillStyle = '#5f6670';
+      ctx.font = `${Math.round(12 * escala)}px sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(FUENTE_TEXTO, lienzo.width - 8 * escala, origen.height + franja / 2);
+    }
     this.descargar(lienzo.toDataURL('image/png'), 'png');
   }
 
   /** CSV con ";" y coma decimal (lo que espera Excel en castellano), en UTF-8 con BOM. */
   csv(): void {
     const chart = this.grafico();
-    if (!chart) return;
+    if (!chart || !this.maxFilas) return;
     const datasets = chart.data.datasets;
     const etiquetas = (chart.data.labels ?? []) as unknown[];
     const filas = Math.max(etiquetas.length, ...datasets.map(d => d.data.length));
@@ -127,15 +150,16 @@ export class ExportarGraficoComponent implements AfterViewInit {
       return punto?.x ?? i + 1;
     };
 
-    const desde = this.maxFilas ? Math.max(0, filas - this.maxFilas) : 0;
+    const desde = Math.max(0, filas - this.maxFilas);
     const lineas = [['', ...datasets.map(d => celda(d.label ?? ''))].join(';')];
     for (let i = desde; i < filas; i++) {
       lineas.push([celda(etiquetaFila(i)), ...datasets.map(d => celda(d.data[i]))].join(';'));
     }
     lineas.push('');
     if (desde > 0) {
-      lineas.push(celda(`Se incluyen las últimas ${this.maxFilas} filas del gráfico (máximo de descarga).`));
+      lineas.push(celda(`Se incluyen los últimos ${MAX_DIAS_DESCARGA} días del gráfico (máximo de descarga).`));
     }
+    lineas.push(celda(`Para períodos más largos, solicite los datos a la ${FUENTE_NOMBRE}.`));
     lineas.push(celda('Los datos son de carácter provisorio y pueden estar sujetos a revisión.'));
     lineas.push(celda(`Fuente: ${FUENTE_NOMBRE} - ${FUENTE_URL}`));
     const blob = new Blob(['﻿' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
