@@ -24,14 +24,6 @@
           <mat-datepicker #hastaPicker></mat-datepicker>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange($event)">
-            <mat-option value="osm">OpenStreetMap</mat-option>
-            <mat-option value="esri">ESRI Satelital</mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <div class="actions">
           <button mat-raised-button color="primary"
                   (click)="loadData()"

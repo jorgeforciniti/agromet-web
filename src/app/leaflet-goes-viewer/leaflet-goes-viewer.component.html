@@ -13,16 +13,6 @@
           </mat-select>
         </mat-form-field>
       </label>
-      <label class="map-toolbar__field">
-        <span>Base</span>
-        <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
-          <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="setBaseMap(selectedBaseMap)"
-            aria-label="Selección de mapa base">
-            <mat-option value="satellite">Satelital</mat-option>
-            <mat-option value="osm">OSM Estándar</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </label>
     </div>
 
     <div class="map-wrapper">

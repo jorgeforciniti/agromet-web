@@ -5,12 +5,14 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
-import { estadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
+import { estadoComunicacion, leerFechaEstacion } from '../shared/estado-estacion';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { GeoJsonObject } from 'geojson';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { FeatureCollection, Feature, Point } from 'geojson';
@@ -26,13 +28,6 @@ interface LayerOption {
   isGeoJSON?: boolean;
   isTileLayer?: boolean;
   isCSV?: boolean;
-}
-
-interface BaseMapOption {
-  name: string;
-  url: string;
-  attribution: string;
-  maxZoom: number;
 }
 
 interface StationFeatureProperties {
@@ -246,11 +241,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   private dejarDeSeguirTamanio?: () => void;
   private map: L.Map | undefined;
   private baseLayer: L.ImageOverlay | L.GeoJSON | L.TileLayer | undefined;
-  private baseMapLayer: L.TileLayer | undefined; // Mapa base
   private legend: L.Control | undefined;
-  private provincesLayer: L.GeoJSON | undefined;
   public selectedLayer: string = 'precipitacion';
-  public selectedBaseMap: string = 'osm'; // Mapa osm por defecto
   public currentDateTime: string = '';
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
@@ -312,20 +304,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
   private nasaFirmsMapKey = '05a7411727303e238b4b425a1b7fef16';
 
-  public baseMaps: Record<string, BaseMapOption> = {
-    osm: {
-      name: 'OSM Estándar',
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '© OpenStreetMap',
-      maxZoom: 19
-    },
-    satellite: {
-      name: 'Satelital',
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Tiles © Esri',
-      maxZoom: 18
-    }
-  };
 
   public layers: Record<string, LayerOption> = {
     precipitacion: {
@@ -373,14 +351,16 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
 
   constructor(private http: HttpClient,
     private weatherService: WeatherService, // Inyectar servicio
-    private stationService: StationService
+    private stationService: StationService,
+    private fichaEstacion: FichaEstacionService
   ) {
 
   }
 
   async ngOnInit(): Promise<void> {
-    this.initMap();
-    await this.loadProvinces();
+    const control = this.initMap();
+    // 450: el límite queda sobre las capas de lluvia, nubes, etc. (owmPane, 401) y bajo las estaciones
+    if (this.map) await cargarProvincias(this.map, this.http, { control, zIndex: 450 });
     await this.loadStations();
     this.loadLatestData();
 
@@ -414,21 +394,18 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         pointToLayer: (feature, latlng) =>
           L.marker(latlng, { icon: this.iconoConEstado(this.redIcon, feature.properties.actualizado) }),
         onEachFeature: (feature, layer) => {
-          layer.bindPopup(`
-            <div class="station-popup">
-              <h4>${feature.properties.nombre}</h4>
-              <div class="popup-grid">
-                <div>Latitud: ${formatDecimal(feature.properties.lat, 2)}°</div>
-                <div>Longitud: ${formatDecimal(feature.properties.lon, 2)}°</div>
-                <div>Altitud: ${feature.properties.altitud} msnm</div>
-                <div>Temperatura: ${feature.properties.temperatura} °C</div>
-                <div>Humedad: ${feature.properties.humedad}%</div>
-                <div>Lluvia: ${feature.properties.lluvia} mm</div>
-              </div>
-              <div class="popup-actualizado popup-actualizado--${estadoComunicacion(leerFechaEstacion(feature.properties.actualizado))}">
-                ${textoActualizado(leerFechaEstacion(feature.properties.actualizado))}</div>
-            </div>
-          `);
+          const p = feature.properties;
+          layer.bindPopup(popupEstacion({
+            titulo: p.nombre,
+            subtitulos: [`Lat: ${formatDecimal(p.lat, 2)}° · Lon: ${formatDecimal(p.lon, 2)}° · ${p.altitud} msnm`],
+            filas: [
+              { etiqueta: 'Temperatura', valor: `${p.temperatura} °C` },
+              { etiqueta: 'Humedad', valor: `${p.humedad} %` },
+              { etiqueta: 'Lluvia', valor: `${p.lluvia} mm` }
+            ],
+            actualizado: leerFechaEstacion(p.actualizado),
+            ficha: { id: p.id, lat: Number(p.lat), lon: Number(p.lon) }
+          }));
 
           layer.on('click', () => {
             this.selectedStationId = feature.properties.id;
@@ -544,7 +521,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   }
 
 
-  private initMap(): void {
+  /** Devuelve el control de capas del mapa base, para sumarle las provincias. */
+  private initMap(): L.Control.Layers | undefined {
     const center: L.LatLng = this.focusBounds.getCenter();
     this.map = L.map('map', {
       center: center,
@@ -557,37 +535,11 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     // de cada capa no afecta a las provincias ni a las estaciones (que comparten 'overlayPane').
     this.map.createPane('owmPane');
 
-    this.setBaseMap(this.selectedBaseMap);
+    // El mapa base tiene zIndex 0: las capas de mosaicos de datos (zIndex 1) quedan encima
+    const control = agregarMapaBase(this.map);
+    conectarBotonesFicha(this.map, this.fichaEstacion);
     encuadrarTucuman(this.map);
-  }
-  private async loadProvinces(): Promise<void> {
-    try {
-      const provincesUrl = '../../assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(
-        this.http.get<GeoJsonObject>(provincesUrl)
-      );
-
-      this.provincesLayer = L.geoJSON(provincesData, {
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
-        },
-        onEachFeature: (feature, layer) => {
-          if (feature.properties && feature.properties.nam) {
-            layer.bindPopup(feature.properties.nam);
-          }
-        }
-      });
-
-      if (this.map) {
-        this.provincesLayer.addTo(this.map);
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    } catch {
-      this.errorMessage = 'No se pudieron cargar los límites provinciales';
-    }
+    return control;
   }
 
   public setLayer(layerKey: string): void {
@@ -601,32 +553,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     // 👉 Ocultar estaciones solo para “incendios”
     const hideStations = layerKey === 'incendios';
     this.toggleStations(!hideStations);
-  }
-
-  public setBaseMap(baseMapKey: string): void {
-    this.selectedBaseMap = baseMapKey;
-
-    if (this.baseMapLayer && this.map) {
-      this.map.removeLayer(this.baseMapLayer);
-    }
-
-    const baseMap = this.baseMaps[baseMapKey];
-    this.baseMapLayer = L.tileLayer(baseMap.url, {
-      attribution: baseMap.attribution,
-      maxZoom: baseMap.maxZoom,
-      pane: 'tilePane' // Renderizar en el panel de mapas base (por defecto)
-    });
-
-    if (this.map) {
-      this.baseMapLayer.addTo(this.map);
-      this.baseMapLayer.setZIndex(0); // Mapa base en el fondo
-      if (this.baseLayer) {
-        this.baseLayer.setZIndex(1); // Capa de datos en medio
-      }
-      if (this.provincesLayer) {
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    }
   }
 
   private async loadLatestData(): Promise<void> {
@@ -1108,13 +1034,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     });
 
     this.baseLayer.addTo(this.map!);
-    if (this.map && this.baseMapLayer) {
-      this.baseMapLayer.setZIndex(0); // Mapa base en el fondo
-      this.baseLayer.setZIndex(1); // Capa de datos en medio
-      if (this.provincesLayer) {
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    }
   }
 
   /**
@@ -1177,21 +1096,9 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         pane.style.filter = estilo.filter;
       }
     }
-
-    if (this.map && this.baseMapLayer) {
-      this.baseMapLayer.setZIndex(0);
-      this.baseLayer.setZIndex(1);
-      if (this.provincesLayer) {
-        this.provincesLayer.setZIndex(2);
-      }
-    }
   }
 
   get layerKeys(): string[] {
     return Object.keys(this.layers);
-  }
-
-  get baseMapKeys(): string[] {
-    return Object.keys(this.baseMaps);
   }
 }

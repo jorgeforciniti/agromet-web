@@ -76,27 +76,7 @@
   color: var(--text);
 }
 
-/* Controls */
-.controls {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.control-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-label {
-  color: var(--muted);
-  font-weight: 700;
-}
-
 /* Selects con tokens */
-.controls select,
 .variable-selector select {
   appearance: none;
   background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
@@ -108,7 +88,6 @@
   outline: none;
 }
 
-.controls select:focus,
 .variable-selector select:focus {
   border-color: rgba(79, 121, 50, .6);
   box-shadow: 0 0 0 3px rgba(79, 121, 50, .14);

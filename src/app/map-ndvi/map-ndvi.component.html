@@ -22,14 +22,6 @@
           <mat-hint>Vacía: la imagen más reciente</mat-hint>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange()">
-            <mat-option value="osm">OpenStreetMap</mat-option>
-            <mat-option value="esri">ESRI Satelital</mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <label class="opacidad">
           <span>Opacidad: {{ form.value.opacidad }} %</span>
           <input type="range" min="20" max="100" step="5" formControlName="opacidad" (input)="cambiarOpacidad()">

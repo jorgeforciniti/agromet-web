@@ -8,7 +8,10 @@ import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaEstados } from '../maps/leyenda-estados';
-import { estadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
+import { estadoComunicacion, leerFechaEstacion } from '../shared/estado-estacion';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
 import { WeatherService } from '../services/weather.service';
@@ -25,16 +28,6 @@ import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
 
 /** Zoom desde el que se muestran las etiquetas con el valor de cada estación */
 const ZOOM_ETIQUETAS = 9;
-
-// Tipo para las claves de los mapas base
-type BaseMapKey = 'satellite' | 'osm';
-
-interface BaseMapOption {
-  name: string;
-  url: string;
-  attribution: string;
-  maxZoom: number;
-}
 
 interface StationFeatureProperties {
   id: string;
@@ -106,30 +99,16 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   error = false;
 
   private map?: L.Map;
-  private baseMapLayer?: L.TileLayer;
+  /** Control de capas del mapa base: las provincias se suman ahí al cargarse. */
+  private controlCapas?: L.Control.Layers;
   private stationsLayer?: L.GeoJSON;
-
-  public selectedBaseMap: BaseMapKey = 'osm';
-  public baseMaps: Record<BaseMapKey, BaseMapOption> = {
-    osm: {
-      name: 'OSM Estándar',
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19
-    },
-    satellite: {
-      name: 'ESRI Satelital',
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Tiles © Esri',
-      maxZoom: 17
-    }
-  };
 
   constructor(
     private http: HttpClient,
     private weatherService: WeatherService,
     private stationService: StationService,
     private datosService: DatosOnlineService,
+    private fichaEstacion: FichaEstacionService,
     private dialogRef: MatDialogRef<DatosOnlineComponent>
   ) { }
 
@@ -152,7 +131,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initMap();
-    this.loadProvincias();
+    if (this.map) void cargarProvincias(this.map, this.http, { control: this.controlCapas });
     setTimeout(() => {
       this.selectedStationId = this.stationService.activa;
       this.actualizarGrafico();
@@ -183,12 +162,8 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
-      const bm = this.baseMaps[this.selectedBaseMap];
-      this.baseMapLayer = L.tileLayer(bm.url, {
-        attribution: bm.attribution,
-        maxZoom: bm.maxZoom,
-        detectRetina: true
-      }).addTo(this.map);
+      this.controlCapas = agregarMapaBase(this.map);
+      conectarBotonesFicha(this.map, this.fichaEstacion);
 
       L.control.scale({ imperial: false }).addTo(this.map);
       encuadrarTucuman(this.map);
@@ -206,18 +181,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch (error) {
       console.error('Error al inicializar el mapa:', error);
     }
-  }
-
-  public setBaseMap(key: BaseMapKey): void {
-    if (!this.map) return;
-    if (this.baseMapLayer) this.map.removeLayer(this.baseMapLayer);
-    const bm = this.baseMaps[key];
-    this.baseMapLayer = L.tileLayer(bm.url, {
-      attribution: bm.attribution,
-      maxZoom: bm.maxZoom,
-      detectRetina: true
-    }).addTo(this.map);
-    this.selectedBaseMap = key;
   }
 
   private addMarkers(stations: Estacion[]): void {
@@ -246,7 +209,8 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
             this.stationService.setActiva(this.selectedStationId);
             this.actualizarGrafico();
           });
-          layer.bindPopup(this.makePopupHTML(feature.properties));
+          const { lat, lng } = (layer as L.CircleMarker).getLatLng();
+          layer.bindPopup(this.makePopupHTML(feature.properties, lat, lng));
           layer.bindTooltip(this.etiquetaValor(feature.properties), {
             permanent: true, direction: 'top', offset: [0, -6], className: 'etiqueta-valor', interactive: false
           });
@@ -305,21 +269,20 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     return '#fcfaa5'; // mismo acento que usás en varios lados
   }
 
-  private makePopupHTML(props: StationFeatureProperties): string {
-    return `
-      <div class="station-popup">
-        <h4>${props.nombre}</h4>
-        <div class="popup-grid">
-          <div>ID: ${props.id}</div>
-          <div>Altura: ${props.alt} msnm</div>
-          <div class="popup-actualizado popup-actualizado--${estadoComunicacion(leerFechaEstacion(props.fecha_i))}">${textoActualizado(leerFechaEstacion(props.fecha_i))}</div>
-          <div>Temp: ${this.fmt(props.temp_af, 'temp')} °C</div>
-          <div>Hum: ${this.fmt(props.hum_af, 'hum')}%</div>
-          <div>Precip: ${this.fmt(props.rr_dia, 'rain')} mm</div>
-          <div>Viento medio: ${this.fmt(props.viento_medio, 'wind')} km/h</div>
-          <div>Ráfaga: ${this.fmt(props.viento_max, 'wind')} km/h</div>
-        </div>
-      </div>`;
+  private makePopupHTML(props: StationFeatureProperties, lat: number, lon: number): string {
+    return popupEstacion({
+      titulo: props.nombre,
+      subtitulos: [`ID: ${props.id} · ${props.alt} msnm`],
+      filas: [
+        { etiqueta: 'Temperatura', valor: `${this.fmt(props.temp_af, 'temp')} °C` },
+        { etiqueta: 'Humedad', valor: `${this.fmt(props.hum_af, 'hum')} %` },
+        { etiqueta: 'Lluvia hoy', valor: `${this.fmt(props.rr_dia, 'rain')} mm` },
+        { etiqueta: 'Viento medio', valor: `${this.fmt(props.viento_medio, 'wind')} km/h` },
+        { etiqueta: 'Ráfaga', valor: `${this.fmt(props.viento_max, 'wind')} km/h` }
+      ],
+      actualizado: leerFechaEstacion(props.fecha_i),
+      ficha: { id: props.id, lat, lon }
+    });
   }
 
   public fmt(v: string | number | null | undefined, kind?: 'temp' | 'hum' | 'wind' | 'rain'): string {
@@ -340,10 +303,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Cierra el diálogo */
   public closeWindow(): void {
     this.dialogRef.close();
-  }
-
-  get baseMapKeys(): BaseMapKey[] {
-    return Object.keys(this.baseMaps) as BaseMapKey[];
   }
 
   actualizarGrafico() {
@@ -533,41 +492,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   get nombreEstacionSeleccionada(): string {
     const est = this.estaciones.find(e => e.identificacion === Number(this.selectedStationId));
     return est ? est.nombre : '';
-  }
-
-  private provinceLayer?: L.GeoJSON;
-
-  /** Llama a esto una vez que el mapa ya esté creado (`initMap()` listo) */
-  loadProvincias(): void {
-    const url = 'assets/shapes/provincias.geojson';
-
-    this.http.get<GeoJSON.FeatureCollection>(url).subscribe(geojson => {
-
-      /* 1. crea (una sola vez) un pane con z-index bajo            */
-      if (!this.map!.getPane('provincePane')) {
-        this.map!.createPane('provincePane');
-        this.map!.getPane('provincePane')!.style.zIndex = '350';   // overlayPane = 400
-      }
-
-      /* 2. elimina capa previa si existía                          */
-      if (this.provinceLayer) this.provinceLayer.remove();
-
-      /* 3. pinta toda la colección en ese pane, sin interactividad */
-      const style: L.PathOptions = {
-        color: '#4fa6ff',
-        weight: 2,
-        opacity: 0.2
-      };
-
-      this.provinceLayer = L.geoJSON(geojson, {
-        style,
-        pane: 'provincePane',   // ← se dibuja debajo de los markers
-        interactive: false      // ← no captura clic ni hover
-      }).addTo(this.map!);
-
-      /* 4. ajusta la vista si lo necesitas                          */
-      // this.map!.fitBounds(this.provinceLayer.getBounds(), { padding: [20, 20] });
-    });
   }
 
   /**

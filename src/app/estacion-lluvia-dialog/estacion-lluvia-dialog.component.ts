@@ -9,6 +9,7 @@ import { LluviasEstacionResponse, WeatherService } from '../services/weather.ser
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { agregarMapaBase } from '../maps/mapa-base';
 
 Chart.register(...registerables);
 
@@ -247,7 +248,7 @@ export class EstacionLluviaDialogComponent implements OnInit, AfterViewInit, OnD
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || (!lat && !lon)) return;
     this.mapa = L.map(this.mapaRef.nativeElement, { center: [lat, lon], zoom: 9, attributionControl: true, ...OPCIONES_GESTOS });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 18 }).addTo(this.mapa);
+    agregarMapaBase(this.mapa, { selector: false });
     L.circleMarker([lat, lon], { radius: 8, color: '#ffffff', weight: 2, fillColor: COLOR.campania, fillOpacity: 1 })
       .addTo(this.mapa)
       .bindTooltip(this.data.name, { direction: 'top', offset: [0, -8] });

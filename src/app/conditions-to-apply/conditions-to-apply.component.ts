@@ -7,6 +7,8 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { HttpClient } from '@angular/common/http';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -213,7 +215,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
     private kp: KpService,
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<ConditionsToApplyComponent>,
-    private advisor: SprayAdvisorService
+    private advisor: SprayAdvisorService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -552,9 +555,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
     encuadrarTucuman(this.map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OSM'
-    }).addTo(this.map);
+    const control = agregarMapaBase(this.map);
+    void cargarProvincias(this.map, this.http, { control });
   }
 
   private refreshMarkers(): void {

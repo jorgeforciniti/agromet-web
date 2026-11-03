@@ -3,19 +3,20 @@ import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable, Option
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
-import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
-import { MatSelectChange } from '@angular/material/select';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatTabsModule } from '@angular/material/tabs';
-import { FeatureCollection } from 'geojson';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -158,28 +159,10 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
   form: FormGroup;
   mapa?: L.Map;
-  baseMapsList = [
-    {
-      label: 'OpenStreetMap',
-      value: 'osm',
-      layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap contributors'
-      })
-    },
-    {
-      label: 'ESRI Satelital',
-      value: 'esri',
-      layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles © Esri'
-      })
-    }
-  ];
-  currentBaseLayer = this.baseMapsList[0].layer;
 
   heladasData: FrostMapRecord[] = [];
   heladasSubscription: Subscription | undefined;
   markersLayer = L.layerGroup();
-  provincesLayer: L.GeoJSON | null = null;
   loading = false;
   zoneLayers: ZonaProductiva[] = crearZonasProductivas();
 
@@ -189,6 +172,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialogRef: MatDialogRef<MapFrostComponent>,
     private http: HttpClient, // Añadir HttpClient
     private kmzLayerService: KmzLayerService,
+    private fichaEstacion: FichaEstacionService,
     private dateAdapter: DateAdapter<Date>, // Añadir DateAdapter
     @Inject(MAT_DIALOG_DATA) @Optional() public data: { hoy?: boolean } | null
 
@@ -206,8 +190,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.form = this.fb.group({
       desde: [firstDay, [Validators.required]],
-      hasta: [new Date(), [Validators.required]],
-      baseMap: [this.baseMapsList[0].value]
+      hasta: [new Date(), [Validators.required]]
     });
   }
 
@@ -225,12 +208,13 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
     encuadrarTucuman(this.mapa);
-    this.currentBaseLayer.addTo(this.mapa);
+    const control = agregarMapaBase(this.mapa);
+    conectarBotonesFicha(this.mapa, this.fichaEstacion);
     this.mapa.createPane('zonePane').style.zIndex = '450';
     this.mapa.createPane('frostMarkersPane').style.zIndex = '600';
     this.markersLayer.addTo(this.mapa);
 
-    await this.loadProvinces(); // Cargar provincias al inicio
+    await cargarProvincias(this.mapa, this.http, { control });
     await this.loadZoneLayers();
 
     this.addLegend();
@@ -243,44 +227,6 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
     alternarZona(this.mapa, zone, selected);
-  }
-
-  private async loadProvinces(): Promise<void> {
-    try {
-      const url = 'assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(this.http.get<FeatureCollection>(url));
-
-      /* 1 ─ pane específico, z-index bajo */
-      if (!this.mapa!.getPane('provincePane')) {
-        this.mapa!.createPane('provincePane');
-        this.mapa!.getPane('provincePane')!.style.zIndex = '350';   // markerPane = 600
-      }
-
-      if (this.provincesLayer) this.provincesLayer.remove();
-
-      /* 2 ─ dibuja TODA la colección, sin capturar eventos */
-      this.provincesLayer = L.geoJSON(provincesData, {
-        pane: 'provincePane',
-        interactive: false,                //  ←  no bloquea los clics
-        style: ESTILO_PROVINCIAS
-      }).addTo(this.mapa!);
-
-      // opcional: ajustar vista
-      // this.mapa.fitBounds(this.provincesLayer.getBounds(), { padding: [20, 20] });
-
-    } catch (err) {
-      console.error('Error al cargar provincias:', err);
-    }
-  }
-
-
-  onBaseMapChange(event?: MatSelectChange): void {
-    const selectedBase = this.baseMapsList.find(b => b.value === this.form.value.baseMap);
-    if (selectedBase && this.mapa) {
-      this.mapa.removeLayer(this.currentBaseLayer);
-      this.currentBaseLayer = selectedBase.layer;
-      this.currentBaseLayer.addTo(this.mapa);
-    }
   }
 
   public loadData(): void {
@@ -336,14 +282,17 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
         color: '#000',
         weight: 1,
         fillOpacity: 1
-      }).bindPopup(`
-        <b>${d.nombre}</b><br>
-        MinAbs: ${d.minAbs}°C<br>
-        Horas por debajo de -4°C: ${d['hsDebajo-4']}<br>
-        Horas por debajo de -2°C: ${d['hsDebajo-2']}<br>
-        Total horas de helada: ${d.hsDebajo0}<br>
-        Registros: ${d.cantidadDias} de ${totalDias}
-      `);
+      }).bindPopup(popupEstacion({
+        titulo: d.nombre,
+        filas: [
+          { etiqueta: 'Mínima absoluta', valor: `${formatDecimal(Number(d.minAbs), 1)} °C`, destacada: true },
+          { etiqueta: 'Horas por debajo de −4 °C', valor: formatDecimal(Number(d['hsDebajo-4']), 1) },
+          { etiqueta: 'Horas por debajo de −2 °C', valor: formatDecimal(Number(d['hsDebajo-2']), 1) },
+          { etiqueta: 'Total de horas de helada', valor: formatDecimal(Number(d.hsDebajo0), 1) }
+        ],
+        registros: { cantidad: Number(d.cantidadDias), total: totalDias },
+        ficha: { lat, lon }
+      }));
 
       this.markersLayer.addLayer(marker);
     });

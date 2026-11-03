@@ -9,6 +9,7 @@ import { StationService } from '../services/station.service';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { ZOOM_TUCUMAN } from '../maps/encuadre';
+import { agregarMapaBase } from '../maps/mapa-base';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { Herramienta } from '../shared/enlace-consulta';
 import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
@@ -97,7 +98,7 @@ export class FichaEstacionDialogComponent implements AfterViewInit, OnDestroy {
     // Zoom común de los mapas, centrado en la estación: se ve dónde queda dentro de la provincia
     this.mapa = L.map(this.mapaRef.nativeElement, { center: [this.lat, this.lon], zoom: ZOOM_TUCUMAN, ...OPCIONES_GESTOS });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 18 }).addTo(this.mapa);
+    agregarMapaBase(this.mapa, { selector: false });
     L.circleMarker([this.lat, this.lon], { radius: 8, color: '#ffffff', weight: 2, fillColor: '#f94c3c', fillOpacity: 1 })
       .addTo(this.mapa);
   }

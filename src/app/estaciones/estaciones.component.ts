@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { OPCIONES_GESTOS } from '../maps/gestos';
@@ -9,8 +9,11 @@ import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { MAX_FAVORITAS, StationService } from '../services/station.service';
-import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
+import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion } from '../shared/estado-estacion';
 import { leyendaEstados } from '../maps/leyenda-estados';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { escaparHtml, popupEstacion } from '../maps/popup';
 
 /** Columnas por las que se puede ordenar la lista (D1 del informe de mejoras) */
 export type ColumnaOrden = 'nombre' | 'temp' | 'hum' | 'rain' | 'updated';
@@ -83,7 +86,8 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private weatherService: WeatherService,
     readonly stationService: StationService,
-    private dialog: MatDialog
+    private fichaEstacion: FichaEstacionService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -176,10 +180,8 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
-      maxZoom: 18
-    }).addTo(this.map);
+    const control = agregarMapaBase(this.map);
+    void cargarProvincias(this.map, this.http, { control });
 
     encuadrarTucuman(this.map);
     // #f94c3c: el rojo de assets/icons/red-marker.png
@@ -266,38 +268,29 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     const zona = this.zonaLabel(station.zona);
     const altura = station.alt != null ? station.alt + ' msnm' : 'S/D';
     const fav = this.stationService.esFavorita(station.Identificacion);
-    return `
-      <div class="station-popup">
-        <h4>${station.nombre}</h4>
-        ${location ? `<div class="popup-location">${location}${zona ? ' · ' + zona : ''}</div>` : ''}
-        <div class="popup-location popup-location--coords">Lat: ${formatDecimal(lat, 2)}° · Lon: ${formatDecimal(lon, 2)}° · ${altura}</div>
-        <div class="popup-grid">
-          <div>Temperatura: ${station.temp !== null ? formatDecimal(station.temp, 1) + ' °C' : '—'}</div>
-          <div>Humedad: ${station.hum !== null ? formatDecimal(station.hum, 0) + ' %' : '—'}</div>
-          <div>Lluvia hoy: ${station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—'}</div>
-        </div>
-        <div class="popup-actualizado popup-actualizado--${estadoComunicacion(station.updated)}">${textoActualizado(station.updated)}</div>
-        <div class="popup-botones">
-          <button type="button" class="popup-fav${fav ? ' is-fav' : ''}" data-id="${station.Identificacion}"
-            aria-pressed="${fav}">${fav ? '★ Favorita' : '☆ Agregar a favoritas'}</button>
-          <button type="button" class="popup-ficha" data-id="${station.Identificacion}">Ver ficha</button>
-        </div>
-      </div>
-    `;
+    return popupEstacion({
+      titulo: station.nombre,
+      subtitulos: [
+        location ? `${location}${zona ? ' · ' + zona : ''}` : '',
+        `Lat: ${formatDecimal(lat, 2)}° · Lon: ${formatDecimal(lon, 2)}° · ${altura}`
+      ],
+      filas: [
+        { etiqueta: 'Temperatura', valor: station.temp !== null ? formatDecimal(station.temp, 1) + ' °C' : '—' },
+        { etiqueta: 'Humedad', valor: station.hum !== null ? formatDecimal(station.hum, 0) + ' %' : '—' },
+        { etiqueta: 'Lluvia hoy', valor: station.rain !== null ? formatDecimal(station.rain, 1) + ' mm' : '—' }
+      ],
+      actualizado: station.updated,
+      botonesExtra: `<button type="button" class="popup-fav${fav ? ' is-fav' : ''}" data-id="${escaparHtml(station.Identificacion)}"` +
+        ` aria-pressed="${fav}">${fav ? '★ Favorita' : '☆ Agregar a favoritas'}</button>`,
+      ficha: { id: station.Identificacion, lat, lon }
+    });
   }
 
   /** Ficha de la estación (ubicación, último dato, sensores y accesos a las herramientas). */
   async abrirFicha(id: string, evento?: Event): Promise<void> {
     evento?.stopPropagation();
     const estacion = this.stations.find(s => s.Identificacion === id);
-    if (!estacion) return;
-    const { FichaEstacionDialogComponent } = await import('../ficha-estacion-dialog/ficha-estacion-dialog.component');
-    this.dialog.open(FichaEstacionDialogComponent, {
-      data: estacion,
-      width: 'min(760px, 96vw)',
-      maxWidth: '96vw',
-      autoFocus: false
-    });
+    if (estacion) await this.fichaEstacion.abrir(estacion);
   }
 
   ordenarPor(columna: ColumnaOrden): void {

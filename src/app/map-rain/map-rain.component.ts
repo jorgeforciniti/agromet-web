@@ -2,18 +2,18 @@ import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable } from 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
-import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service';
-import { MatSelectChange } from '@angular/material/select';
 import { MatDialogRef } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { FeatureCollection } from 'geojson';
 import { CommonModule } from '@angular/common';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -109,28 +109,10 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   hoy: boolean = false;
   form: FormGroup;
   map?: L.Map;
-  baseMapsList = [
-    {
-      label: 'OpenStreetMap',
-      value: 'osm',
-      layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap contributors'
-      })
-    },
-    {
-      label: 'ESRI Satelital',
-      value: 'esri',
-      layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles © Esri'
-      })
-    }
-  ];
-  currentBaseLayer = this.baseMapsList[0].layer;
   rainData: RainMapRecord[] = [];
   rainSubscription: Subscription | undefined;
   markersLayer = L.layerGroup();
   zoneLayers: ZonaProductiva[] = crearZonasProductivas();
-  provincesLayer: L.GeoJSON | null = null;
   loading = false;
   rainScales: RainScale[] = [];
   maxRainValue: number = 0;
@@ -141,6 +123,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialogRef: MatDialogRef<MapRainComponent>,
     private http: HttpClient,
     private kmzLayerService: KmzLayerService,
+    private fichaEstacion: FichaEstacionService,
     private dateAdapter: DateAdapter<Date>,
     @Inject(MAT_DIALOG_DATA) public data: { hoy: boolean }
   ) {
@@ -150,8 +133,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     const firstDay = new Date(currentYear, 0, 1);
     this.form = this.fb.group({
       desde: [firstDay, [Validators.required]],
-      hasta: [new Date(), [Validators.required]],
-      baseMap: [this.baseMapsList[0].value]
+      hasta: [new Date(), [Validators.required]]
     });
   }
 
@@ -171,11 +153,12 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
     encuadrarTucuman(this.map);
 
-    this.currentBaseLayer.addTo(this.map);
+    const control = agregarMapaBase(this.map);
+    conectarBotonesFicha(this.map, this.fichaEstacion);
     this.map.createPane('zonePane').style.zIndex = '450';
     this.map.createPane('rainMarkersPane').style.zIndex = '600';
     this.markersLayer.addTo(this.map);
-    await this.loadProvinces();
+    await cargarProvincias(this.map, this.http, { control });
     await this.loadZoneLayers();
     this.addLegend(); // Add the color scale legend to the map
 
@@ -188,37 +171,6 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
     alternarZona(this.map, zone, selected);
-  }
-
-  private async loadProvinces(): Promise<void> {
-    try {
-      const provincesUrl = '../../assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(
-        this.http.get<FeatureCollection>(provincesUrl)
-      );
-      this.provincesLayer = L.geoJSON(provincesData, {
-        style: ESTILO_PROVINCIAS,
-        onEachFeature: (feature, layer) => {
-          const name = feature.properties?.['nam'];
-          if (name) layer.bindPopup(name);
-        }
-      });
-      if (this.map && this.provincesLayer) {
-        this.provincesLayer.addTo(this.map);
-        this.provincesLayer.setZIndex(2);
-      }
-    } catch (error) {
-      console.error('Error al cargar provincias:', error);
-    }
-  }
-
-  onBaseMapChange(event?: MatSelectChange): void {
-    const selectedBase = this.baseMapsList.find(b => b.value === this.form.value.baseMap);
-    if (selectedBase && this.map) {
-      this.map.removeLayer(this.currentBaseLayer);
-      this.currentBaseLayer = selectedBase.layer;
-      this.currentBaseLayer.addTo(this.map);
-    }
   }
 
   loadData(): void {
@@ -275,12 +227,15 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
         color: '#000',
         weight: 1,
         fillOpacity: 1
-      }).bindPopup(`
-          <b>${d.nombre}</b><br>
-          Total Lluvia: ${formatDecimal(totalLluvia, 1)} mm<br>
-          Max Lluvia: ${formatDecimal(maxLluvia, 1)} mm<br>
-          Horas de Lluvia: ${formatDecimal((registrosLluvia * frecuenciaDato) / 60, 1)}
-        `);
+      }).bindPopup(popupEstacion({
+        titulo: d.nombre,
+        filas: [
+          { etiqueta: 'Lluvia total', valor: `${formatDecimal(totalLluvia, 1)} mm`, destacada: true },
+          { etiqueta: 'Lluvia máxima', valor: `${formatDecimal(maxLluvia, 1)} mm` },
+          { etiqueta: 'Horas de lluvia', valor: formatDecimal((registrosLluvia * frecuenciaDato) / 60, 1) }
+        ],
+        ficha: { lat, lon }
+      }));
       this.markersLayer.addLayer(marker);
     });
 

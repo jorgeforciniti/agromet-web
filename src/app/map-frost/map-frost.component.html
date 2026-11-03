@@ -23,15 +23,6 @@
           <mat-datepicker #pickerHasta></mat-datepicker>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange($event)">
-            <mat-option *ngFor="let base of baseMapsList" [value]="base.value">
-              {{ base.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <div class="actions">
           <button mat-raised-button color="primary" (click)="loadData()" [disabled]="loading" class="search-button">
             <mat-icon *ngIf="!loading">ac_unit</mat-icon>

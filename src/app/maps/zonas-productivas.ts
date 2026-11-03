@@ -53,11 +53,3 @@ export function alternarZona(map: L.Map | undefined, zone: ZonaProductiva, selec
     map.removeLayer(zone.layer);
   }
 }
-
-/** Estilo común del límite provincial en los mapas temáticos. */
-export const ESTILO_PROVINCIAS: L.PathOptions = {
-  color: 'blue',
-  weight: 1,
-  opacity: 0.8,
-  fillOpacity: 0
-};

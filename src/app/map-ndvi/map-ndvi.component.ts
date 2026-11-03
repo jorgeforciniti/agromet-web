@@ -8,14 +8,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { FeatureCollection } from 'geojson';
 import * as L from 'leaflet';
-import { firstValueFrom } from 'rxjs';
 import { OPCIONES_GESTOS } from '../maps/gestos';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
-import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
 import { KmzLayerService } from '../services/kmz-layer.service';
 
 /**
@@ -95,24 +94,8 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
   readonly fechaMaxima = this.aIso(new Date(Date.now() - 86400000));
   form: FormGroup;
   map?: L.Map;
-  baseMapsList = [
-    {
-      value: 'osm',
-      layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap contributors'
-      })
-    },
-    {
-      value: 'esri',
-      layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles © Esri'
-      })
-    }
-  ];
-  currentBaseLayer = this.baseMapsList[0].layer;
   capaSatelital?: L.TileLayer;
   zoneLayers: ZonaProductiva[] = crearZonasProductivas();
-  provincesLayer: L.GeoJSON | null = null;
   // Arranca en true: la primera capa se pide en ngAfterViewInit.
   cargando = true;
   sinImagen = false;
@@ -128,8 +111,7 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
       capa: [CAPAS[0].id],
       // Vacía: la imagen más reciente que tenga GIBS.
       fecha: [''],
-      opacidad: [80],
-      baseMap: [this.baseMapsList[0].value]
+      opacidad: [80]
     });
   }
 
@@ -147,11 +129,12 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
     encuadrarTucuman(this.map);
 
-    this.currentBaseLayer.addTo(this.map);
+    const control = agregarMapaBase(this.map);
     this.map.createPane('satelitePane').style.zIndex = '350';
     this.map.createPane('zonePane').style.zIndex = '450';
     this.mostrarCapa();
-    await this.loadProvinces();
+    // 400: el límite queda sobre la imagen satelital (satelitePane, 350)
+    await cargarProvincias(this.map, this.http, { control, zIndex: 400 });
     await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
@@ -216,35 +199,6 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
 
   toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
     alternarZona(this.map, zone, selected);
-  }
-
-  private async loadProvinces(): Promise<void> {
-    try {
-      const provincesData = await firstValueFrom(
-        this.http.get<FeatureCollection>('../../assets/shapes/provincias.geojson')
-      );
-      this.provincesLayer = L.geoJSON(provincesData, {
-        style: ESTILO_PROVINCIAS,
-        onEachFeature: (feature, layer) => {
-          const name = feature.properties?.['nam'];
-          if (name) layer.bindPopup(name);
-        }
-      });
-      if (this.map) {
-        this.provincesLayer.addTo(this.map);
-      }
-    } catch (error) {
-      console.error('Error al cargar provincias:', error);
-    }
-  }
-
-  onBaseMapChange(): void {
-    const selectedBase = this.baseMapsList.find(b => b.value === this.form.value.baseMap);
-    if (selectedBase && this.map) {
-      this.map.removeLayer(this.currentBaseLayer);
-      this.currentBaseLayer = selectedBase.layer;
-      this.currentBaseLayer.addTo(this.map);
-    }
   }
 
   private aIso(fecha: Date): string {

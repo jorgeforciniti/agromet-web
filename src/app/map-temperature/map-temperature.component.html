@@ -30,13 +30,6 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange()">
-            <mat-option *ngFor="let bm of baseMapsList" [value]="bm.value">{{ bm.label }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <div class="actions">
           <button mat-raised-button color="primary" (click)="loadData()" [disabled]="loading" class="search-button">
             <mat-icon *ngIf="!loading">map</mat-icon>

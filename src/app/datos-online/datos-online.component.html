@@ -9,17 +9,6 @@
           <span class="app-dialog-eyebrow">MONITOREO</span>
         </div>
       </div>
-
-      <div class="controls" *ngIf="!loading && !error">
-        <div class="control-group">
-          <label class="control-label" for="baseMapSelect">Mapa Base:</label>
-          <select id="baseMapSelect" [(ngModel)]="selectedBaseMap" (ngModelChange)="setBaseMap($event)">
-            <option *ngFor="let key of baseMapKeys" [ngValue]="key">
-              {{ baseMaps[key].name }}
-            </option>
-          </select>
-        </div>
-      </div>
     </div>
 
 
