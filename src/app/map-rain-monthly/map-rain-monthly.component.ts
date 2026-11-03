@@ -20,6 +20,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
 import { firstValueFrom } from 'rxjs';
@@ -401,7 +402,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     <i style="background:#00BFFF; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
     <i style="background:#00008B; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
 `;
-      return div;
+      return leyendaPlegable(div);
     };
 
     legend.addTo(this.map);

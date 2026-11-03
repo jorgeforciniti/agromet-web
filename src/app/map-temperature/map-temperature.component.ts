@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -390,7 +391,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
                 <span>&ge;35</span>
             </div>
         `;
-      return div;
+      return leyendaPlegable(div);
     };
 
     legend.addTo(this.map);

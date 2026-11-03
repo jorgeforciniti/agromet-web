@@ -13,6 +13,7 @@ import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { KmzLayerService } from '../services/kmz-layer.service';
 
@@ -206,7 +207,7 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
         <div class="ndvi-leyenda__barra" style="background: linear-gradient(90deg, ${capa.leyenda.colores.join(', ')})"></div>
         <div class="ndvi-leyenda__valores"><span>${capa.leyenda.min}</span><span>${capa.leyenda.max}</span></div>
       `;
-      return div;
+      return leyendaPlegable(div);
     };
     this.leyenda.addTo(this.map);
   }

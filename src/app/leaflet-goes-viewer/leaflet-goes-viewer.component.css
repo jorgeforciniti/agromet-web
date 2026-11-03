@@ -186,13 +186,16 @@
 
 /* Responsive */
 @media (max-width: 620px){
+  /* Los dos selectores en una fila: en columna la barra tapaba un tercio del mapa */
   .map-toolbar {
-    flex-direction: column;
     top: 8px;
     left: 8px;
     right: 8px;
+    gap: 8px;
+    padding: 6px 8px;
   }
 
+  .map-toolbar__field{ flex: 1; min-width: 0; }
   .map-toolbar .select-wrapper{ width: 100%; }
   .map-wrapper{ height: 55vh; min-height: 360px; }
 

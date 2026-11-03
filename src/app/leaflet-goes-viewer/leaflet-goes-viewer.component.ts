@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -93,7 +94,7 @@ class LegendControl extends L.Control {
     }
 
     div.innerHTML = labels.join('');
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
@@ -138,7 +139,7 @@ class TemperatureLegendControl extends L.Control {
       `;
     }
 
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
@@ -158,14 +159,14 @@ class PrecipitationLegendControl extends L.Control {
       { limit: 140, color: 'rgba(20, 20, 255, 0.9)' }
     ];
 
-    for (let i = 0; i < stops.length; i++) {
+    // Desde el segundo stop: cada fila es el rango entre el stop anterior y el actual
+    // (empezando en 0 salía «0–0,1» dos veces).
+    for (let i = 1; i < stops.length; i++) {
       const { limit, color } = stops[i];
       let label: string;
 
       const coma = (n: number) => String(n).replace('.', ',');   // coma decimal, como el resto del sitio
-      if (i === 0) {
-        label = `0–${coma(stops[1].limit)}`;
-      } else if (i === stops.length - 1) {
+      if (i === stops.length - 1) {
         label = `${coma(stops[i - 1].limit)}+`;
       } else {
         label = `${coma(stops[i - 1].limit)}–${coma(limit)}`;
@@ -178,7 +179,7 @@ class PrecipitationLegendControl extends L.Control {
       `;
     }
 
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
@@ -218,7 +219,7 @@ class WindLegendControl extends L.Control {
       `;
     }
 
-    return div;
+    return leyendaPlegable(div);
   }
 }
 

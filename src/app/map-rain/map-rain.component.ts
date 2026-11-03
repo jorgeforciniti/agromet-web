@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service';
@@ -367,7 +368,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
         <strong>Precipitaciones</strong><br>
         <p style="font-size: 12px; margin: 5px 0;">Cargando datos...</p>
       `;
-      return div;
+      return leyendaPlegable(div);
     };
 
     if (this.map) {

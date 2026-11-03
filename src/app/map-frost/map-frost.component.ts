@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
 import { MatSelectChange } from '@angular/material/select';
@@ -372,7 +373,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
         <i style="background:red"></i> -4 a -6°C<br>
         <i style="background:#8B0000"></i> < -6°C
       `;
-        return div;
+        return leyendaPlegable(div);
       }
     });
     if (this.mapa) {
