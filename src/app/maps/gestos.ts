@@ -9,6 +9,18 @@ import { GestureHandling } from 'leaflet-gesture-handling';
  */
 L.Map.addInitHook('addHandler', 'gestureHandling', GestureHandling);
 
+/*
+ * El plugin habilita el arrastre con el evento "mouseover" del mapa, pero Leaflet no lo emite
+ * cuando el puntero entra sobre una capa vectorial que cubre el mapa (el canvas de preferCanvas,
+ * el SVG de las provincias): el mapa quedaba rígido con el mouse. "mouseenter" del contenedor se
+ * dispara siempre. En pantallas táctiles no cambia nada: cada toque con un dedo lo vuelve a
+ * deshabilitar (el plugin escucha touchstart) y el mapa se sigue moviendo con dos dedos.
+ */
+L.Map.addInitHook(function (this: L.Map) {
+  if (!(this.options as { gestureHandling?: boolean }).gestureHandling) return;
+  this.getContainer().addEventListener('mouseenter', () => this.dragging?.enable());
+});
+
 /** Opciones para L.map(): activan el manejo de gestos con los avisos en castellano. */
 export const OPCIONES_GESTOS = {
   gestureHandling: true,
