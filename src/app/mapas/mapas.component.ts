@@ -24,7 +24,7 @@ const MAPAS: Mapa[] = [
     id: 'lluvias-diarias',
     titulo: 'Lluvias diarias',
     descripcion: 'Lluvia caída en cada estación, en un día o en el período que elijas.',
-    imagen: 'assets/images/mapas/lluviasdiarias.png',
+    imagen: 'assets/images/mapas/lluviasdiarias.jpg',
     cargar: () => import('../map-rain/map-rain.component').then(m => m.MapRainComponent),
     data: { hoy: false }
   },
