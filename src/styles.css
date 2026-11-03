@@ -237,6 +237,12 @@ body {
    su estilo es global (antes vivía en map-rain/map-frost y sólo se aplicaba al resto
    después de abrir uno de esos mapas).
    ========================= */
+/* Los z-index internos de Leaflet (controles en 1000) quedan dentro del mapa: sin esto la
+   leyenda y el zoom se dibujaban encima del menú fijo del sitio al desplazar la página. */
+.leaflet-container {
+  isolation: isolate;
+}
+
 .leaflet-container .info.legend,
 .leaflet-container .temperature-legend {
   background: #fff;

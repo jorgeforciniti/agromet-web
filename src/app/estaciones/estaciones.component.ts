@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { MAX_FAVORITAS, StationService } from '../services/station.service';
@@ -41,11 +42,6 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private map: L.Map | undefined;
   private markers = new Map<string, L.Marker>();
-
-  private readonly focusBounds: L.LatLngBounds = L.latLngBounds(
-    L.latLng(-25.994679, -66.390178),
-    L.latLng(-28.092109, -63.895287)
-  );
 
   private readonly redIcon = L.icon({
     iconUrl: 'assets/icons/red-marker.png',
@@ -164,7 +160,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initMap(): void {
     this.map = L.map('estaciones-map', {
-      center: this.focusBounds.getCenter(),
+      center: LIMITES_TUCUMAN.getCenter(),
       zoom: 7,
       ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
@@ -175,7 +171,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       maxZoom: 18
     }).addTo(this.map);
 
-    this.map.fitBounds(this.focusBounds);
+    encuadrarTucuman(this.map);
 
     // Botón "favorita" de los popups (el contenido del popup es HTML de Leaflet)
     L.DomEvent.on(this.map.getContainer(), 'click', (e: Event) => {

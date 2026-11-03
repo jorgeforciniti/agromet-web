@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
@@ -220,10 +221,10 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mapa = L.map('mapfrost', {
       center: this.defaultMapCenter,
       zoom: 8,
-      maxBoundsViscosity: 0.0,
       ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
+    encuadrarTucuman(this.mapa);
     this.currentBaseLayer.addTo(this.mapa);
     this.mapa.createPane('zonePane').style.zIndex = '450';
     this.mapa.createPane('frostMarkersPane').style.zIndex = '600';

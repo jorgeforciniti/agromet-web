@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
 import { DatosOnlineService, Estacion } from '../services/datos-online.service';
 import { ChartType, ChartOptions } from 'chart.js';
 import { WeatherService } from '../services/weather.service';
@@ -101,10 +102,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   private map?: L.Map;
   private baseMapLayer?: L.TileLayer;
   private stationsLayer?: L.GeoJSON;
-  private focusBounds: L.LatLngBounds = L.latLngBounds(
-    L.latLng(-25.994679, -66.390178),
-    L.latLng(-28.092109, -63.895287)
-  );
 
   public selectedBaseMap: BaseMapKey = 'osm';
   public baseMaps: Record<BaseMapKey, BaseMapOption> = {
@@ -175,7 +172,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       this.map = L.map('mapDatosOnline', {
         center: [-27, -65],
         zoom: 5,
-        maxBoundsViscosity: 0.0,
         preferCanvas: true,
         ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
       });
@@ -189,7 +185,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       }).addTo(this.map);
 
       L.control.scale({ imperial: false }).addTo(this.map);
-      this.map.fitBounds(this.focusBounds);
+      encuadrarTucuman(this.map);
 
       if (this.estaciones.length > 0) this.addMarkers(this.estaciones);
       setTimeout(() => this.map!.invalidateSize({ animate: false }), 200);
@@ -237,9 +233,6 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     ).addTo(this.map);
-
-    const bounds = this.stationsLayer.getBounds();
-    if (bounds.isValid()) this.map.fitBounds(bounds, { padding: [30, 30] });
   }
 
   private createStationsGeoJSON(

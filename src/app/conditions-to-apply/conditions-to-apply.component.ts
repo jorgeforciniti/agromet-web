@@ -6,6 +6,7 @@ import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dial
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -549,6 +550,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
     }
     this.map = L.map('mapConditions', { center: [-26.8, -65.2], zoom: 8, preferCanvas: true, ...OPCIONES_GESTOS });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+    encuadrarTucuman(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OSM'

@@ -13,6 +13,7 @@ import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { KmzLayerService } from '../services/kmz-layer.service';
@@ -144,6 +145,7 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
       ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+    encuadrarTucuman(this.map);
 
     this.currentBaseLayer.addTo(this.map);
     this.map.createPane('satelitePane').style.zIndex = '350';

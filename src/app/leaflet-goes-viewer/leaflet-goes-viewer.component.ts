@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
@@ -278,10 +279,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     popupAnchor: [0, -40]
   });
 
-  private focusBounds: L.LatLngBounds = L.latLngBounds(
-    L.latLng(-25.994679, -66.390178),
-    L.latLng(-28.092109, -63.895287)
-  );
+  /** Zona donde se buscan ecos de radar: la provincia de Tucumán. */
+  private focusBounds: L.LatLngBounds = LIMITES_TUCUMAN;
 
   private filterBbox = {
     west: -180,
@@ -489,7 +488,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
    * Si ya había un popup abierto (de un click manual anterior en el mapa), lo mueve a la
    * estación recién seleccionada en vez de dejarlo "pegado" en la anterior. Si no había
    * ninguno abierto (ej. selección por defecto al cargar la página), no fuerza uno nuevo.
-   * De cualquier forma, centra el mapa en la estación elegida.
+   * Mueve el mapa sólo si la estación elegida quedó fuera de la vista: centrarla siempre
+   * desplazaba el encuadre inicial y pisaba lo que el usuario había movido.
    */
   private syncPopupToSelectedStation(): void {
     if (!this.stationsLayer) return;
@@ -508,7 +508,9 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         if (anyPopupWasOpen) {
           marker.openPopup();
         }
-        this.map?.panTo(marker.getLatLng());
+        if (this.map && !this.map.getBounds().contains(marker.getLatLng())) {
+          this.map.panTo(marker.getLatLng());
+        }
       } else if (marker.isPopupOpen()) {
         marker.closePopup();
       }
@@ -535,8 +537,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.map = L.map('map', {
       center: center,
       zoom: 6,
-      maxBounds: this.focusBounds,
-      maxBoundsViscosity: 0.0,
       ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
@@ -546,8 +546,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.map.createPane('owmPane');
 
     this.setBaseMap(this.selectedBaseMap);
-    this.map.fitBounds(this.focusBounds);
-
+    encuadrarTucuman(this.map);
   }
   private async loadProvinces(): Promise<void> {
     try {
@@ -738,7 +737,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.rainViewerAnimationIndex = this.rainViewerFrames.length - 1;
     this.radarIsPlaying = true;
     this.renderRainViewerFrame(attribution);
-    this.map?.fitBounds(this.focusBounds);
     this.evaluateRainViewerEchoes();
 
     if (this.rainViewerFrames.length === 1) {
@@ -966,7 +964,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.updateGeoJSONLayer(geojson, attribution);
     this.addLegend();
     this.isLoading = false;
-    this.map?.fitBounds(this.focusBounds);
   }
 
   private displayTileLayer(url: string, attribution: string, date: string): void {
@@ -989,7 +986,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       this.map.removeControl(this.legend);
       this.legend = undefined;
     }
-    this.map?.fitBounds(this.focusBounds);
   }
 
   private addTemperatureLegend(): void {

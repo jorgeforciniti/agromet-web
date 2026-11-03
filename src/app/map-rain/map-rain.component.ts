@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { Subscription } from 'rxjs';
@@ -165,10 +166,10 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map = L.map('mapContainer', {
       center: [-27, -65],
       zoom: 8,
-      maxBoundsViscosity: 0.0,
       ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
     this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+    encuadrarTucuman(this.map);
 
     this.currentBaseLayer.addTo(this.map);
     this.map.createPane('zonePane').style.zIndex = '450';

@@ -20,6 +20,7 @@ import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas, ESTILO_PROVINCIAS } from '../maps/zonas-productivas';
 import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
@@ -169,10 +170,10 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       this.map = L.map('rainMapDialog', {
         center: this.defaultMapCenter,
         zoom: this.defaultMapZoom,
-        maxBoundsViscosity: 0.0,
         ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
       });
       this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+      encuadrarTucuman(this.map);
       this.map.createPane('zonePane').style.zIndex = '450';
       this.map.createPane('rainMarkersPane').style.zIndex = '600';
 

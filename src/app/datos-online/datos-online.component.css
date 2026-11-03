@@ -140,10 +140,11 @@
 }
 
 /* Map */
+/* 480 px como mínimo: con el zoom inicial común (maps/encuadre.ts) la provincia mide ~410 px */
 #mapDatosOnline {
   width: 100%;
-  height: clamp(280px, 42vh, 430px);
-  min-height: 280px;
+  height: clamp(480px, 55vh, 560px);
+  min-height: 480px;
 }
 
 .chart-box {
@@ -324,10 +325,6 @@
 @media (max-width: 1100px) {
   .contenido-wrapper {
     grid-template-columns: 1fr;
-  }
-
-  #mapDatosOnline {
-    height: clamp(260px, 40vh, 360px);
   }
 
   .chart-box {

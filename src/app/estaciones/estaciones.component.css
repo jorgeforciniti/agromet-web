@@ -101,7 +101,7 @@
     position: relative;
     top: auto;
     order: -1;
-    height: clamp(320px, 55vh, 560px);
+    height: clamp(480px, 60vh, 600px);
   }
 
   .estaciones-list .tabla-fija {

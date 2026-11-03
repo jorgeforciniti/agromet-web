@@ -1,32 +1,32 @@
 ﻿  <div class="viewer-container">
     <h2 class="panel-title"><mat-icon>satellite_alt</mat-icon> Visor de Imágenes Satelitales</h2>
 
+    <div class="map-toolbar">
+      <label class="map-toolbar__field">
+        <span>Capa</span>
+        <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
+          <mat-select [(ngModel)]="selectedLayer" (selectionChange)="setLayer($event.value)"
+            aria-label="Seleccioná una capa" title="Seleccioná una capa">
+            <mat-option *ngFor="let key of layerKeys" [value]="key">
+              {{ layers[key].name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </label>
+      <label class="map-toolbar__field">
+        <span>Base</span>
+        <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
+          <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="setBaseMap(selectedBaseMap)"
+            aria-label="Selección de mapa base">
+            <mat-option value="satellite">Satelital</mat-option>
+            <mat-option value="osm">OSM Estándar</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </label>
+    </div>
+
     <div class="map-wrapper">
       <div id="map"></div>
-
-      <div class="map-toolbar">
-        <label class="map-toolbar__field">
-          <span>Capa</span>
-          <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
-            <mat-select [(ngModel)]="selectedLayer" (selectionChange)="setLayer($event.value)"
-              aria-label="Seleccioná una capa" title="Seleccioná una capa">
-              <mat-option *ngFor="let key of layerKeys" [value]="key">
-                {{ layers[key].name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </label>
-        <label class="map-toolbar__field">
-          <span>Base</span>
-          <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
-            <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="setBaseMap(selectedBaseMap)"
-              aria-label="Selección de mapa base">
-              <mat-option value="satellite">Satelital</mat-option>
-              <mat-option value="osm">OSM Estándar</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </label>
-      </div>
 
       <!-- Overlay de carga -->
       <div *ngIf="isLoading" class="loading-overlay">

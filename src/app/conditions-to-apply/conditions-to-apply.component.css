@@ -130,7 +130,8 @@ mat-form-field.select-wrapper {
 /* ===== Map ===== */
 .map-wrapper {
   width: 100%;
-  height: clamp(260px, 42vh, 420px);
+  /* 480 px como mínimo: con el zoom inicial común (maps/encuadre.ts) la provincia mide ~410 px */
+  height: clamp(480px, 55vh, 560px);
   margin-bottom: 12px;
   border-radius: 12px;
   overflow: hidden;
@@ -1250,7 +1251,7 @@ mat-form-field.date-field{ width: 100%; }
   }
 
   .map-wrapper {
-    height: clamp(240px, 36vh, 320px);
+    height: 480px;
   }
 }
 
