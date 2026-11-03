@@ -1,9 +1,11 @@
 <mat-dialog-content class="bhs-dialog">
   <div class="bhs-shell">
     <div class="bhs-header">
-      <div>
-        <div class="bhs-eyebrow">AGUA EN EL SUELO</div>
-        <h2 class="bhs-titulo">Balance hidrológico seriado decádico</h2>
+      <div class="bhs-header__texto">
+        <div class="bhs-header__titulo">
+          <h2 class="bhs-titulo">Balance hidrológico seriado decádico</h2>
+          <span class="bhs-eyebrow">AGUA EN EL SUELO</span>
+        </div>
         <p class="bhs-lead">
           Almacenaje de agua en el suelo, déficit y excedentes de cada década, a partir de la lluvia y la
           evapotranspiración potencial (EP) medidas por la estación.
@@ -84,6 +86,7 @@
     </div>
 
     <ng-container *ngIf="resultado && decadas.length && !isLoading">
+      <!-- Resumen en una franja: los cuatro datos en línea, separados por divisores -->
       <div class="bhs-resumen">
         <div class="bhs-resumen__card">
           <span>Estación</span>

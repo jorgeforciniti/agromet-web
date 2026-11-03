@@ -189,6 +189,39 @@ body {
 /* Etiqueta superior del encabezado de los dialogs (misma apariencia que .dialog-eyebrow
    de lluvias, comparaciones y enfermedades). Clase propia y global para que no dependa
    de qué componente sin encapsulación se cargó antes. */
+/* Encabezado de los dialogs: título y etiqueta en una sola línea, y la descripción a todo
+   el ancho que deja el botón de cerrar. Los selectores llevan el elemento para ganarle a los
+   márgenes que cada componente le pone a .titulo y a su etiqueta. */
+.dialogo-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.dialogo-titulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+
+/* Diálogos con el botón de cerrar flotando en la esquina */
+.dialogo-titulo--con-cerrar {
+  padding-right: 56px;
+}
+
+.dialogo-titulo > h2.titulo {
+  margin: 0;
+  padding-right: 0;
+}
+
+.dialogo-titulo > span.dialog-eyebrow,
+.dialogo-titulo > span.app-dialog-eyebrow {
+  min-height: 24px;
+  margin: 0;
+  padding: 0 10px;
+}
+
 .app-dialog-eyebrow {
   display: inline-flex;
   align-items: center;

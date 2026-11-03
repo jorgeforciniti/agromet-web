@@ -74,7 +74,6 @@
 
 .dialog-lead {
   margin: 0;
-  max-width: 54ch;
   color: var(--muted);
   line-height: 1.42;
   font-size: .98rem;
@@ -119,7 +118,9 @@
 
 .thermal-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(140px, .55fr) minmax(180px, .8fr) minmax(180px, .8fr) minmax(170px, .7fr);
+  /* Mínimos que suman menos que el diálogo: con los anteriores (~950 px) el formulario
+     desbordaba y aparecía desplazamiento horizontal */
+  grid-template-columns: minmax(0, 1.4fr) minmax(110px, .55fr) minmax(150px, .8fr) minmax(150px, .8fr) minmax(140px, .7fr);
   gap: 10px;
   align-items: end;
 }
@@ -134,26 +135,33 @@
   gap: 8px;
 }
 
+/* Resumen en una franja: los cuatro datos en línea, separados por divisores
+   (antes eran tarjetas que ocupaban mucho alto) */
 .thermal-summary {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 0;
+  padding: 10px 4px;
 }
 
 .thermal-summary__card {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 14px;
+}
+
+.thermal-summary__card + .thermal-summary__card {
+  border-left: 1px solid color-mix(in srgb, var(--mod-stats) 14%, var(--border));
 }
 
 .thermal-summary__card span {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: var(--muted);
-  font-size: .8rem;
-  font-weight: 700;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .thermal-summary__card strong {
@@ -165,12 +173,27 @@
 .thermal-note,
 .thermal-error {
   margin: 0;
-  padding: 10px 12px;
-  display: inline-flex;
-  align-items: start;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
   gap: 8px;
   color: var(--muted);
   line-height: 1.38;
+}
+
+/* Nota de método: más liviana que una tarjeta */
+.thermal-note {
+  font-size: .88rem;
+  box-shadow: none;
+  background: color-mix(in srgb, var(--mod-stats) 4%, white);
+}
+
+.thermal-note mat-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: color-mix(in srgb, var(--mod-stats) 60%, #475569);
 }
 
 .thermal-error {
@@ -255,8 +278,7 @@
 }
 
 @media (max-width: 980px) {
-  .thermal-grid,
-  .thermal-summary {
+  .thermal-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -300,8 +322,7 @@
     line-height: 1.32;
   }
 
-  .thermal-grid,
-  .thermal-summary {
+  .thermal-grid {
     grid-template-columns: 1fr;
   }
 
@@ -309,13 +330,14 @@
     padding: 10px;
   }
 
-  .thermal-summary {
-    padding: 10px;
-    gap: 8px;
+  /* En el teléfono, los datos de a dos por fila y sin divisores */
+  .thermal-summary__card {
+    flex: 1 1 40%;
+    padding: 0 10px;
   }
 
-  .thermal-summary__card {
-    padding: 9px 10px;
+  .thermal-summary__card + .thermal-summary__card {
+    border-left: 0;
   }
 
   .thermal-note,

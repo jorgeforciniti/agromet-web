@@ -46,15 +46,30 @@
   align-items: start;
   justify-content: space-between;
   gap: 16px;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
+}
+
+/* El texto ocupa todo el ancho que deja el botón de cerrar */
+.dialog-header__texto {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Título y etiqueta en una sola línea */
+.dialog-header__titulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 4px;
 }
 
 .dialog-eyebrow {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
+  min-height: 24px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
   background: rgba(255,255,255,.92);
@@ -65,7 +80,7 @@
 }
 
 .titulo {
-  margin: 8px 0 6px;
+  margin: 0;
   font-size: 1.3rem;
   line-height: 1.08;
   font-weight: 900;
@@ -74,10 +89,9 @@
 
 .dialog-lead {
   margin: 0;
-  max-width: 64ch;
   color: var(--muted);
-  line-height: 1.42;
-  font-size: .98rem;
+  line-height: 1.4;
+  font-size: .94rem;
 }
 
 .close-btn {
@@ -204,12 +218,27 @@
 .phenology-note,
 .phenology-error {
   margin: 0;
-  padding: 10px 12px;
-  display: inline-flex;
-  align-items: start;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
   gap: 8px;
   color: var(--muted);
   line-height: 1.38;
+}
+
+/* Nota de método: más liviana que una tarjeta */
+.phenology-note {
+  font-size: .88rem;
+  box-shadow: none;
+  background: color-mix(in srgb, var(--mod-stats) 4%, white);
+}
+
+.phenology-note mat-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: color-mix(in srgb, var(--mod-stats) 60%, #475569);
 }
 
 .phenology-error {
@@ -218,31 +247,37 @@
   border-color: #fecdd3;
 }
 
+/* Resumen en una franja: contexto arriba y los cuatro indicadores en línea, separados por
+   divisores (antes eran tarjetas que ocupaban mucho alto) */
 .phenology-summary {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 0;
+  padding: 10px 4px;
 }
 
 .summary-card {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 14px;
 }
 
-.summary-card--warn {
-  border-color: rgba(220, 38, 38, .25);
-  background: linear-gradient(180deg, rgba(255,245,245,.98), rgba(255,250,250,.95));
+.summary-card + .summary-card {
+  border-left: 1px solid color-mix(in srgb, var(--mod-stats) 14%, var(--border));
+}
+
+.summary-card--warn strong {
+  color: #b91c1c;
 }
 
 .summary-card span {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: var(--muted);
-  font-size: .8rem;
-  font-weight: 700;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .summary-card strong {
@@ -365,7 +400,6 @@
 
 @media (max-width: 1100px) {
   .phenology-grid,
-  .phenology-summary,
   .chart-grid,
   .stage-editor {
     grid-template-columns: 1fr 1fr;
@@ -392,13 +426,12 @@
   }
 
   .dialog-eyebrow {
-    min-height: 24px;
-    padding: 0 10px;
-    font-size: .68rem;
+    min-height: 22px;
+    padding: 0 8px;
+    font-size: .64rem;
   }
 
   .titulo {
-    margin: 6px 0 4px;
     font-size: 1.1rem;
   }
 
@@ -408,7 +441,6 @@
   }
 
   .phenology-grid,
-  .phenology-summary,
   .chart-grid,
   .stage-editor {
     grid-template-columns: 1fr;
@@ -717,12 +749,14 @@
 /* ===== Resumen: contexto en una línea y cuatro indicadores ===== */
 
 .summary-contexto {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 14px;
-  margin: 0 2px 2px;
+  margin: 0;
+  padding: 0 14px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
   color: var(--muted);
   font-size: .9rem;
   font-weight: 600;
@@ -741,7 +775,7 @@
 }
 
 .summary-card strong {
-  font-size: 1.12rem;
+  font-size: 1.05rem;
 }
 
 /* ===== Tabla por etapa ===== */
@@ -794,8 +828,14 @@
     margin-right: 8px;
   }
 
-  .phenology-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  /* En el teléfono, los indicadores de a dos por fila y sin divisores */
+  .summary-card {
+    flex: 1 1 40%;
+    padding: 0 10px;
+  }
+
+  .summary-card + .summary-card {
+    border-left: 0;
   }
 
   .phenology-table {
