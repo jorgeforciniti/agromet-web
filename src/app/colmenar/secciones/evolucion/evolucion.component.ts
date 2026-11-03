@@ -28,6 +28,24 @@ interface DefVariable {
   normal: (n: NormalMensual) => number | null;
 }
 
+/**
+ * Franjas de calentamiento / de precipitación (C5 del informe de mejoras, al estilo de las
+ * «warming stripes» de Ed Hawkins): una franja por año coloreada por su anomalía. Paletas de
+ * ColorBrewer aptas para daltonismo, de la anomalía más negativa a la más positiva.
+ */
+const PALETA_TEMPERATURA = ['#053061', '#2166ac', '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7',
+  '#fddbc7', '#f4a582', '#d6604d', '#b2182b', '#67001f'];   // RdBu: frío → cálido
+const PALETA_LLUVIA = ['#543005', '#8c510a', '#bf812d', '#dfc27d', '#f6e8c3', '#f5f5f5',
+  '#c7eae5', '#80cdc1', '#35978f', '#01665e', '#003c30'];   // BrBG: seco → lluvioso
+/** El color llega al extremo de la paleta en ±2,5 desvíos estándar de las anomalías */
+const DESVIOS_EXTREMO = 2.5;
+
+function colorFranja(anomalia: number | null, escala: number, paleta: string[]): string {
+  if (anomalia === null || !escala) return 'rgba(0,0,0,0)';
+  const t = Math.max(-1, Math.min(1, anomalia / escala));
+  return paleta[Math.round(((t + 1) / 2) * (paleta.length - 1))];
+}
+
 interface PuntoAnual {
   anio: number;
   valor: number | null;
@@ -79,7 +97,10 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
   readonly fmtSigno = fmtSigno;
   readonly MESES = MESES;
   readonly VARIABLES = VARIABLES;
-  readonly longitudes = [10, 20, 30, 50];
+  /** TODA_LA_SERIE: desde 1910 (lo acota el getter desde); sirve sobre todo para las franjas */
+  readonly TODA_LA_SERIE = 999;
+  readonly longitudes = [10, 20, 30, 50, this.TODA_LA_SERIE];
+  readonly ANIO_INICIO = COLMENAR_ANIO_INICIO;
 
   variable: DefVariable = VARIABLES[0];
   /** 0 = anual; 1–12 = mes. */
@@ -104,6 +125,8 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
   datosAnomalia: ChartData<'bar'> = { labels: [], datasets: [] };
   opcionesSerie: ChartOptions<'bar'> = opcionesBase('°C') as ChartOptions<'bar'>;
   opcionesAnomalia: ChartOptions<'bar'> = opcionesBase('°C') as ChartOptions<'bar'>;
+  datosFranjas: ChartData<'bar'> = { labels: [], datasets: [] };
+  opcionesFranjas: ChartOptions<'bar'> = {};
 
   private sub?: Subscription;
 
@@ -350,6 +373,41 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     const o = opcionesBase(v.unidad) as ChartOptions<'bar'>;
     o.plugins = { ...o.plugins, legend: { display: false } };
     this.opcionesAnomalia = o;
+
+    // Franjas: barras de altura completa, una por año, sin ejes verticales ni separación
+    const validas = anomalias.filter((x): x is number => x !== null);
+    const promedio = validas.reduce((a, b) => a + b, 0) / (validas.length || 1);
+    const desvio = Math.sqrt(validas.reduce((a, b) => a + (b - promedio) ** 2, 0) / (validas.length || 1));
+    const escala = desvio * DESVIOS_EXTREMO;
+    const paleta = lluvia ? PALETA_LLUVIA : PALETA_TEMPERATURA;
+    this.datosFranjas = {
+      labels: anios.map(String),
+      datasets: [{
+        label: 'Anomalía',
+        data: anomalias.map((x) => (x === null ? null : 1)) as number[],
+        backgroundColor: anomalias.map((x) => colorFranja(x, escala, paleta)),
+        barPercentage: 1,
+        categoryPercentage: 1,
+        borderWidth: 0
+      }]
+    };
+    this.opcionesFranjas = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 12, maxRotation: 0 } },
+        y: { display: false, min: 0, max: 1 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Anomalía ${fmtSigno(anomalias[ctx.dataIndex])} ${v.unidad}`
+          }
+        }
+      }
+    };
   }
 
   get excluidos(): PuntoAnual[] {
