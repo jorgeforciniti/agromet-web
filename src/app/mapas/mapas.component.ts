@@ -56,7 +56,11 @@ const MAPAS: Mapa[] = [
     imagen: 'assets/images/mapas/heladas.webp',
     cargar: () => import('../map-frost/map-frost.component').then(m => m.MapFrostComponent),
     data: { hoy: false }
-  },
+  }
+  /*
+   * Retirado por ahora (B6 del informe de mejoras): no se reactiva sin pedido explícito.
+   * Antes de publicarlo falta mostrar la fecha real de la imagen, agregar «¿Cómo se lee?», que
+   * lo revise SRySIG y prever el reemplazo de MODIS Terra; además, NASA GIBS responde 404 al azar.
   {
     id: 'vegetacion',
     titulo: 'Vegetación y humedad del suelo',
@@ -64,6 +68,7 @@ const MAPAS: Mapa[] = [
     imagen: 'assets/images/mapas/ndvi.webp',
     cargar: () => import('../map-ndvi/map-ndvi.component').then(m => m.MapNdviComponent)
   }
+  */
 ];
 
 /** De mayo a septiembre las heladas van primero; el resto del año, las lluvias. */
