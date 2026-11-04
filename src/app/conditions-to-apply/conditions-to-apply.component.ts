@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, Injectable, TemplateRef, V
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Feature, FeatureCollection, Point } from 'geojson';
 import { FormsModule } from '@angular/forms';
-import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
 import { seguirTamanioMapa } from '../maps/map-size';
@@ -36,6 +36,8 @@ import {
   EvaluacionAplicacion,
   Semaforo
 } from '../services/spray-advisor.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, fechaIso, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
 // ===== Formato fechas dd/MM/yyyy =====
 export const MY_DATE_FORMATS = {
@@ -96,8 +98,10 @@ interface HourlyWeatherRow {
   lluvia?: number | string | null;
 }
 
-type TipoProducto = 'HERBICIDA' | 'FUNGICIDA' | 'INSECTICIDA';
-type TamGota = 'MUY_FINA' | 'FINA' | 'MEDIA' | 'GRUESA' | 'MUY_GRUESA';
+const TIPOS_PRODUCTO = ['HERBICIDA', 'FUNGICIDA', 'INSECTICIDA'] as const;
+const TAMANIOS_GOTA = ['MUY_FINA', 'FINA', 'MEDIA', 'GRUESA', 'MUY_GRUESA'] as const;
+type TipoProducto = typeof TIPOS_PRODUCTO[number];
+type TamGota = typeof TAMANIOS_GOTA[number];
 type InfoKey =
   | 'ESTACION' | 'FECHA' | 'METODO' | 'PRIORIDAD' | 'CULTIVO' | 'PRODUCTO' | 'GOTA'
   | 'KP' | 'GNSS'
@@ -120,6 +124,7 @@ type InfoKey =
     MatButtonModule,
     MatSelectModule,
     MatTooltipModule,
+    CopiarEnlaceComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },
@@ -209,6 +214,28 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   /** Favoritas del usuario, para mostrarlas primero en el selector */
   readonly favoritas$ = inject(StationService).favoritas$;
 
+  /** Consulta recibida por enlace (ver shared/enlace-consulta.ts) */
+  private readonly consulta = consultaDe(inject(MAT_DIALOG_DATA, { optional: true }));
+
+  /**
+   * Enlace a la consulta actual (botón "Copiar enlace"). La fecha va sólo si no es hoy: así una
+   * consulta guardada sigue mostrando el día en que se abre. Los satélites sólo cuentan con dron o avión.
+   */
+  readonly enlaceConsulta = (): string => {
+    const hoy = fechaIso(new Date());
+    const fecha = this.selectedDate ? fechaIso(new Date(this.selectedDate)) : hoy;
+    return armarEnlace('aplicar', {
+      estacion: this.selectedStation,
+      fecha: fecha === hoy ? null : fecha,
+      metodo: this.metodo.toLowerCase(),
+      prioridad: this.prioridad.toLowerCase(),
+      cultivo: this.cultivo.toLowerCase(),
+      producto: this.tipoProducto.toLowerCase(),
+      gota: this.tamGota.toLowerCase(),
+      satelites: this.metodo === 'DRON' || this.metodo === 'AVION' ? this.sats : null
+    });
+  };
+
   constructor(
     private weatherService: WeatherService,
     private stationService: StationService,
@@ -221,12 +248,32 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
 
   ngOnInit(): void {
     this.selectedDate = new Date();
+    this.aplicarConsulta();
     this.loadKp();
     this.loadStations();
   }
 
   ngAfterViewInit(): void {
     setTimeout(() => this.initMap(), 0);
+  }
+
+  /**
+   * Parámetros del enlace (la estación ya llega como activa). Sólo se aplican valores que existen
+   * en los selectores: un enlace editado a mano no rompe la evaluación.
+   */
+  private aplicarConsulta(): void {
+    const c = this.consulta;
+    const elegir = <T extends string>(valor: string | undefined, opciones: readonly T[]): T | undefined =>
+      opciones.find(o => o === valor?.toUpperCase());
+    const fecha = leerFecha(c['fecha']);
+    if (fecha && fecha <= new Date()) this.selectedDate = fecha;
+    this.metodo = elegir(c['metodo'], this.metodos) ?? this.metodo;
+    this.prioridad = elegir(c['prioridad'], this.prioridades) ?? this.prioridad;
+    this.cultivo = elegir(c['cultivo'], this.cultivos) ?? this.cultivo;
+    this.tipoProducto = elegir(c['producto'], TIPOS_PRODUCTO) ?? this.tipoProducto;
+    this.tamGota = elegir(c['gota'], TAMANIOS_GOTA) ?? this.tamGota;
+    const sats = leerNumero(c['satelites']);
+    if (sats !== null && sats >= 0) this.sats = Math.round(sats);
   }
 
   closeWindow(): void {

@@ -40,6 +40,7 @@
 
           <span class="rango-fechas" *ngIf="selectedStationId">Período: {{ fechasPeriodo }}</span>
         </div>
+        <app-copiar-enlace *ngIf="selectedStationId" [enlace]="enlaceConsulta"></app-copiar-enlace>
 
         <div class="chart-box" *ngIf="selectedStationId">
           <!-- Registros de 15 minutos: 31 días = 31 × 96 filas como máximo en el CSV -->

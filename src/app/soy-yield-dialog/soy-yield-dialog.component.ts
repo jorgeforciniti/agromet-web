@@ -1,11 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
+
+/** Campo del formulario ↔ parámetro del enlace */
+const PARAMETROS_ENLACE = { s1: 'v1', s2: 'v2', s3: 'v3', s4: 'v4', ps: 'pms', hg: 'humedad' } as const;
 
 interface YieldBreakdown {
   seedsPerMeter: number;
@@ -25,7 +30,8 @@ interface YieldBreakdown {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    CopiarEnlaceComponent
   ],
   templateUrl: './soy-yield-dialog.component.html',
   styleUrls: ['./soy-yield-dialog.component.css']
@@ -33,6 +39,14 @@ interface YieldBreakdown {
 export class SoyYieldDialogComponent {
   readonly form;
   result: YieldBreakdown | null = null;
+
+  /** Enlace con el conteo de vainas, el peso de mil semillas y la humedad (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    const params: Record<string, number> = {};
+    for (const [campo, clave] of Object.entries(PARAMETROS_ENLACE)) params[clave] = v[campo as keyof typeof v];
+    return armarEnlace('rinde-soja', params);
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -46,6 +60,16 @@ export class SoyYieldDialogComponent {
       ps: [150, [Validators.required, Validators.min(50), Validators.max(200)]],
       hg: [13.5, [Validators.required, Validators.min(7), Validators.max(20)]]
     });
+
+    // Valores recibidos por enlace; uno fuera de rango queda marcado con su error
+    const consulta = consultaDe(inject(MAT_DIALOG_DATA, { optional: true }));
+    for (const [campo, clave] of Object.entries(PARAMETROS_ENLACE)) {
+      const valor = leerNumero(consulta[clave]);
+      if (valor === null) continue;
+      const control = this.form.controls[campo as keyof typeof PARAMETROS_ENLACE];
+      control.setValue(valor);
+      control.markAsTouched();
+    }
 
     this.result = this.calculateCurrentResult();
     this.form.valueChanges.subscribe(() => {

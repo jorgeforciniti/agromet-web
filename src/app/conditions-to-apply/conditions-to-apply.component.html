@@ -168,6 +168,7 @@
         </div>
       </div>
     </div>
+    <app-copiar-enlace *ngIf="!loadingEstaciones && !errorEstaciones" [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <!-- Resumen -->
     <div *ngIf="weatherData.length" class="resumen-consulta">

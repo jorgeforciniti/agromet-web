@@ -1,7 +1,7 @@
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import * as L from 'leaflet';
 import { OPCIONES_GESTOS } from '../maps/gestos';
@@ -24,6 +24,8 @@ import { SIN_DATO, formatDecimal, formatValor } from '../pipes/valor.pipe';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { referenciasHelada } from '../charts/referencias';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe } from '../shared/enlace-consulta';
 import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
 
 /** Zoom desde el que se muestran las etiquetas con el valor de cada estación */
@@ -64,9 +66,12 @@ interface ChartWeatherRow extends HourlyWeatherRow {
   timestamp: Date;
 }
 
+/** Variables del selector (las que acepta un enlace) */
+const VARIABLES_ONLINE = ['temp_af', 'hum_af', 'presion', 'lluvia', 'viento_medio', 'viento_max'];
+
 @Component({
   standalone: true,
-  imports: [ExportarGraficoComponent, CommonModule, FormsModule, MatDialogModule, MatIconModule],
+  imports: [ExportarGraficoComponent, CopiarEnlaceComponent, CommonModule, FormsModule, MatDialogModule, MatIconModule],
   templateUrl: './datos-online.component.html',
   styleUrls: ['./datos-online.component.css']
 })
@@ -80,6 +85,13 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedStationId: string = '';
   selectedVariable: string = 'temp_af';
   fechasPeriodo: string = '';
+
+  /** Consulta recibida por enlace (ver shared/enlace-consulta.ts) */
+  private readonly consulta = consultaDe(inject(MAT_DIALOG_DATA, { optional: true }));
+
+  /** Enlace a la consulta actual: estación y variable (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string =>
+    armarEnlace('tiempo-real', { estacion: this.selectedStationId, variable: this.selectedVariable });
 
   chartData: ChartWeatherRow[] = [];
   chartLabels: Array<string | number> = [];
@@ -113,6 +125,10 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    // Variable recibida por enlace (la estación ya llega como activa); sólo una de las del selector
+    const variable = this.consulta['variable'];
+    if (VARIABLES_ONLINE.includes(variable)) this.selectedVariable = variable;
+
     this.datosService.getEstaciones().subscribe({
       next: data => {
         this.estaciones = data;
