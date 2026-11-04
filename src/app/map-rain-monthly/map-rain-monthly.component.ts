@@ -356,12 +356,12 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     }
     const ratio = value / normal;
 
-    if (ratio < 0.33) return '#FF0000'; // Rojo
-    if (ratio < 0.66) return '#FFA500'; // Naranja
-    if (ratio < 1.00) return '#FFFF00'; // Amarillo
-    if (ratio <= 1.5) return '#87CEEB'; // Celeste (Sky Blue)
-    if (ratio < 2.0) return '#00BFFF';  // Azul claro (Deep Sky Blue)
-    return '#00008B'; // Azul oscuro (Dark Blue)
+    if (ratio < 0.33) return '#d73027'; // Rojo (paleta RdYlBu, apta para daltonismo)
+    if (ratio < 0.66) return '#fc8d59'; // Naranja
+    if (ratio < 1.00) return '#fee090'; // Amarillo
+    if (ratio <= 1.5) return '#e0f3f8'; // Celeste muy claro
+    if (ratio < 2.0) return '#91bfdb';  // Azul claro
+    return '#4575b4'; // Azul
   }
 
   private addRainLegendControl(): void {
@@ -372,12 +372,12 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
 
       div.innerHTML = `
   <div class="legend-title">Relación al normal</div>
-    <i style="background:#FF0000; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
-    <i style="background:#FFA500; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
-    <i style="background:#FFFF00; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
-    <i style="background:#87CEEB; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
-    <i style="background:#00BFFF; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
-    <i style="background:#00008B; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
+    <i style="background:#d73027; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
+    <i style="background:#fc8d59; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
+    <i style="background:#fee090; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
+    <i style="background:#e0f3f8; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
+    <i style="background:#91bfdb; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
+    <i style="background:#4575b4; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
 `;
       return leyendaPlegable(div);
     };

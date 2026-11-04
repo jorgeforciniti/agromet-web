@@ -186,12 +186,12 @@ mat-form-field.select-wrapper {
 
 /* ✅ Semáforo: NO cambiar */
 .apto-row {
-  background-color: #4caf50;
+  background-color: #009e73;
   color: #000;
 }
 
 .no-apto-row {
-  background-color: #c0392b;
+  background-color: #b84a00;
   color: #fff;
 }
 
@@ -489,7 +489,7 @@ mat-form-field.select-wrapper {
 
 /* 1) AMARILLO real */
 .precaucion-row{
-  background: #ffeb3b !important; /* amarillo */
+  background: #f0e442 !important; /* amarillo */
   color: #111 !important;
 }
 .precaucion-row td b{ color:#111 !important; }
@@ -692,7 +692,7 @@ mat-form-field.select-wrapper{
 
 /* ===== Semáforo (AGREGAR AMARILLO) ===== */
 .precaucion-row{
-  background: #ffeb3b; /* amarillo real */
+  background: #f0e442; /* amarillo real */
   color: #000;
 }
 .precaucion-row td{ color:#000; }
@@ -700,11 +700,11 @@ mat-form-field.select-wrapper{
 
 /* Mantener verde/rojo si ya los tenías */
 .apto-row{
-  background-color: #4caf50;
+  background-color: #009e73;
   color: #000;
 }
 .no-apto-row{
-  background-color: #c0392b;
+  background-color: #b84a00;
   color: #fff;
 }
 
@@ -806,7 +806,7 @@ mat-form-field.date-field{ width: 100%; }
 
 /* 7) Semáforo: agregar AMARILLO (tu CSS no lo tenía) */
 .precaucion-row{
-  background-color: #ffeb3b;
+  background-color: #f0e442;
   color: #000;
 }
 .precaucion-row td{ color: #000; }
@@ -884,7 +884,7 @@ mat-form-field.date-field{ width: 100%; }
 
 /* ===== Amarillo real ===== */
 .precaucion-row{
-  background-color: #ffeb3b;  /* amarillo */
+  background-color: #f0e442;  /* amarillo */
   color: #000;
 }
 .precaucion-row td{ color: #000; }
@@ -1004,7 +1004,7 @@ mat-form-field.date-field{ width: 100%; }
 
 /* Amarillo real */
 .precaucion-row{
-  background: #ffeb3b !important;
+  background: #f0e442 !important;
   color: #000 !important;
 }
 
@@ -1027,13 +1027,13 @@ mat-form-field.date-field{ width: 100%; }
 
 /* Amarillo REAL */
 .precaucion-row{
-  background-color: #ffeb3b; /* amarillo */
+  background-color: #f0e442; /* amarillo */
   color: #000;
 }
 
 /* Mantener verde/rojo como ya tenías */
-.apto-row{ background-color:#4caf50; color:#000; }
-.no-apto-row{ background-color:#c0392b; color:#fff; }
+.apto-row{ background-color:#009e73; color:#000; }
+.no-apto-row{ background-color:#b84a00; color:#fff; }
 
 /* Sticky header confiable */
 .tabla-datos th{
@@ -1103,13 +1103,13 @@ mat-form-field.date-field{ width: 100%; }
 .info-dot--th:hover{ background: rgba(255,255,255,.20); }
 
 .precaucion-row{
-  background-color: #ffeb3b;
+  background-color: #f0e442;
   color: #000;
 }
 .precaucion-row td{ color:#000; }
 
 .precaucion-row{
-  background-color: #ffeb3b;
+  background-color: #f0e442;
   color: #000;
 }
 .precaucion-row td{ color:#000; }

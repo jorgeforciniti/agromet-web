@@ -631,9 +631,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   }
 
   private semaforoColor(s: Semaforo): string {
-    if (s === 'VERDE') return '#2e7d32';
-    if (s === 'AMARILLO') return '#ffeb3b';
-    return '#c0392b';
+    if (s === 'VERDE') return '#009e73';
+    if (s === 'AMARILLO') return '#f0e442';
+    return '#b84a00';
   }
 
   // ===== helpers =====

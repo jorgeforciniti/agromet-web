@@ -259,7 +259,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.maxRainValue = precipitationValues[precipitationValues.length - 1];
 
     // Define color palette for progressive scales
-    const colors = ['#90EE90', '#87CEEB', '#4169E1', '#2424da', '#06068a'];
+    // YlGnBu (apta para daltonismo): rocío, cuatro clases por percentil y la última sin tope
+    const colors = ['#edf8b1', '#a1dab4', '#41b6c4', '#2c7fb8', '#253494', '#081d58'];
 
     // Calculate percentile-based intervals
     // We'll create up to 5 scales based on percentiles: 20%, 40%, 60%, 80%, 100%
@@ -272,7 +273,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       // Add minimum to trace rain
       const minValue = precipitationValues[0];
       if (minValue > 0) {
-        scales.push({ min: 0.001, max: minValue, color: '#90EE90' }); // Light green for trace
+        scales.push({ min: 0.001, max: minValue, color: colors[0] }); // Amarillo verdoso: rocío
       }
 
       // Calculate intervals using percentiles
@@ -291,7 +292,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       // Add the final scale to max value
-      const finalColorIndex = Math.min(4, colors.length - 1);
+      const finalColorIndex = colors.length - 1;
       scales.push({ min: lastMax, max: this.maxRainValue, color: colors[finalColorIndex] });
     }
 
@@ -300,7 +301,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getRainColor(totalLluvia: number, registrosLluvia: number): string {
     if (totalLluvia === 0) return '#808080'; // gris (mismo valor que la leyenda)
-    if (registrosLluvia === 0 && totalLluvia > 0) return '#90EE90'; // Light green for dew
+    if (registrosLluvia === 0 && totalLluvia > 0) return '#edf8b1'; // Amarillo verdoso: rocío
 
     // Find the appropriate scale for this value
     for (const scale of this.rainScales) {
@@ -354,7 +355,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       if (scale.min === 0.001) {
         label = `< ${formatDecimal(scale.max, 1)} mm (rocío)`;
       } else if (scale.max === this.maxRainValue) {
-        label = `${formatDecimal(scale.min, 1)} - ${formatDecimal(scale.max, 1)} mm`;
+        // Sin tope: un valor erróneo de una estación (p. ej. 27007,6 mm) no aparece en la leyenda
+        label = `> ${formatDecimal(scale.min, 1)} mm`;
       } else {
         label = `${formatDecimal(scale.min, 1)} - ${formatDecimal(scale.max, 1)} mm`;
       }

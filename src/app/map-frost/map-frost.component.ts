@@ -299,14 +299,14 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getColor(minAbs: number): string {
-    if (minAbs >= -2) return '#fffb07';
-    if (minAbs >= -4) return '#ff9800';
-    if (minAbs >= -6) return 'red';
-    return '#8B0000'; // rojo oscuro
+    if (minAbs >= -2) return '#fed976';
+    if (minAbs >= -4) return '#fd8d3c';
+    if (minAbs >= -6) return '#e31a1c';
+    return '#800026'; // bordó (paleta YlOrRd, apta para daltonismo)
   }
 
   getColorLetra(minAbs: number): string {
-    if (minAbs >= -2) return 'black';
+    if (minAbs >= -4) return 'black'; // amarillo y naranja: el blanco no contrasta
     return 'white';
   }
 
@@ -318,10 +318,10 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
         const div = L.DomUtil.create('div', 'info legend');
         div.innerHTML = `
         <strong>Intensidad de Helada</strong><br>
-        <i style="background:#fffb07"></i> 0 a -2°C<br>
-        <i style="background:#ff9800"></i> -2 a -4°C<br>
-        <i style="background:red"></i> -4 a -6°C<br>
-        <i style="background:#8B0000"></i> < -6°C
+        <i style="background:#fed976"></i> 0 a -2°C<br>
+        <i style="background:#fd8d3c"></i> -2 a -4°C<br>
+        <i style="background:#e31a1c"></i> -4 a -6°C<br>
+        <i style="background:#800026"></i> < -6°C
       `;
         return leyendaPlegable(div);
       }

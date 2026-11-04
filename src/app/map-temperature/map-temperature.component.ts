@@ -291,12 +291,14 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
 
       div.innerHTML = `
             <h4 style="margin: 0 0 8px 0; font-size:14px">Escala de Temperatura (°C)</h4>
-            <div style="background: linear-gradient(to right, 
-                rgb(0,0,255), 
-                rgb(0,255,255), 
-                rgb(0,255,0), 
-                rgb(255,255,0), 
-                rgb(255,0,0));
+            <div style="background: linear-gradient(to right,
+                rgb(49,54,149) 0%,
+                rgb(69,117,180) 17.5%,
+                rgb(116,173,209) 32.5%,
+                rgb(254,224,144) 50%,
+                rgb(253,174,97) 67.5%,
+                rgb(244,109,67) 82.5%,
+                rgb(165,0,38) 100%);
                 height: 20px;
                 margin-bottom: 5px;">
             </div>
@@ -320,12 +322,16 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
     const clampedTemp = Math.max(-5, Math.min(35, temperature));
     const p = (clampedTemp + 5) / 40; // Normalizar a rango 0-1
 
+    // Paleta RdYlBu invertida (apta para daltonismo) sin su centro casi blanco, para que las
+    // temperaturas templadas no se confundan con el fondo. La leyenda usa los mismos colores.
     const colorStops = [
-      { pos: 0, color: [0, 0, 255] },    // -5 °C - Azul
-      { pos: 0.25, color: [0, 255, 255] }, // 5 °C - Cian
-      { pos: 0.5, color: [0, 255, 0] },    // 15 °C - Verde
-      { pos: 0.75, color: [255, 255, 0] }, // 25 °C - Amarillo
-      { pos: 1, color: [255, 0, 0] }       // 35 °C o más - Rojo
+      { pos: 0, color: [49, 54, 149] },       // -5 °C - Azul
+      { pos: 0.175, color: [69, 117, 180] },  // 2 °C
+      { pos: 0.325, color: [116, 173, 209] }, // 8 °C - Celeste
+      { pos: 0.5, color: [254, 224, 144] },   // 15 °C - Amarillo
+      { pos: 0.675, color: [253, 174, 97] },  // 22 °C - Naranja
+      { pos: 0.825, color: [244, 109, 67] },  // 28 °C
+      { pos: 1, color: [165, 0, 38] }         // 35 °C o más - Rojo oscuro
     ];
 
 

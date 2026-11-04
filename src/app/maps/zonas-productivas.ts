@@ -13,11 +13,11 @@ export interface ZonaProductiva {
 /** Lista nueva (cada mapa guarda su propio estado de selección y sus capas). */
 export function crearZonasProductivas(): ZonaProductiva[] {
   return [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
+    { label: 'Zona Cañera', file: 'cania.kmz', color: '#009e73', selected: false },
+    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#f0e442', selected: false },
+    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#d55e00', selected: false },
+    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#5b3a1a', selected: false },
+    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#a6d96a', selected: false },
   ];
 }
 
