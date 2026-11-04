@@ -1,7 +1,8 @@
 import { AfterViewInit, Component, ElementRef, Input } from '@angular/core';
 import { Chart } from 'chart.js';
 import { fechaIso } from './enlace-consulta';
-import { FUENTE_NOMBRE, FUENTE_TEXTO, FUENTE_URL, MAX_DIAS_DESCARGA } from './fuente';
+import { FUENTE_NOMBRE, FUENTE_TEXTO, MAX_DIAS_DESCARGA } from './fuente';
+import { descargarCsv } from './descargar-csv';
 
 /**
  * Botones "PNG" y "CSV" para descargar un gráfico de Chart.js. Busca el gráfico con
@@ -128,7 +129,7 @@ export class ExportarGraficoComponent implements AfterViewInit {
     this.descargar(lienzo.toDataURL('image/png'), 'png');
   }
 
-  /** CSV con ";" y coma decimal (lo que espera Excel en castellano), en UTF-8 con BOM. */
+  /** Datos del gráfico en CSV (formato y pie de shared/descargar-csv.ts). */
   csv(): void {
     const chart = this.grafico();
     if (!chart || !this.maxFilas) return;
@@ -136,14 +137,6 @@ export class ExportarGraficoComponent implements AfterViewInit {
     const etiquetas = (chart.data.labels ?? []) as unknown[];
     const filas = Math.max(etiquetas.length, ...datasets.map(d => d.data.length));
 
-    const celda = (v: unknown): string => {
-      if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) return '';
-      // Hasta 2 decimales: las sumas del gráfico arrastran restos de punto flotante (229,34000000000006)
-      if (typeof v === 'number') return String(Math.round(v * 100) / 100).replace('.', ',');
-      if (typeof v === 'object' && 'y' in (v as object)) return celda((v as { y: unknown }).y);
-      const texto = Array.isArray(v) ? v.join(' ') : String(v);
-      return /[";\n]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
-    };
     const etiquetaFila = (i: number): unknown => {
       if (etiquetas.length) return etiquetas[i];
       const punto = datasets[0]?.data[i] as { x?: unknown } | undefined;
@@ -151,21 +144,13 @@ export class ExportarGraficoComponent implements AfterViewInit {
     };
 
     const desde = Math.max(0, filas - this.maxFilas);
-    const lineas = [['', ...datasets.map(d => celda(d.label ?? ''))].join(';')];
+    const tabla: unknown[][] = [['', ...datasets.map(d => d.label ?? '')]];
     for (let i = desde; i < filas; i++) {
-      lineas.push([celda(etiquetaFila(i)), ...datasets.map(d => celda(d.data[i]))].join(';'));
+      tabla.push([etiquetaFila(i), ...datasets.map(d => d.data[i])]);
     }
-    lineas.push('');
-    if (desde > 0) {
-      lineas.push(celda(`Se incluyen los últimos ${MAX_DIAS_DESCARGA} días del gráfico (máximo de descarga).`));
-    }
-    lineas.push(celda(`Para períodos más largos, solicite los datos a la ${FUENTE_NOMBRE}.`));
-    lineas.push(celda('Los datos son de carácter provisorio y pueden estar sujetos a revisión.'));
-    lineas.push(celda(`Fuente: ${FUENTE_NOMBRE} - ${FUENTE_URL}`));
-    const blob = new Blob(['﻿' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    this.descargar(url, 'csv');
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const notas = desde > 0 ? [`Se incluyen los últimos ${MAX_DIAS_DESCARGA} días del gráfico (máximo de descarga).`] : [];
+    notas.push(`Para períodos más largos, solicite los datos a la ${FUENTE_NOMBRE}.`);
+    descargarCsv(this.nombre, tabla, notas);
   }
 
   private grafico(): Chart | undefined {

@@ -190,6 +190,41 @@
    Tabla abajo (clara)
    ============================= */
 
+/* Descarga de la tabla: misma píldora que los botones PNG/CSV de los gráficos */
+.tabla-acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 6px;
+}
+
+.tabla-csv {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--border, #d9dee5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--muted, #5b6470);
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  cursor: pointer;
+}
+
+.tabla-csv:hover {
+  color: var(--brand, #4a7a2c);
+  border-color: currentColor;
+}
+
+.tabla-csv mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
 .tabla-wrapper {
   border: 1px solid var(--border);
   border-radius: 14px;

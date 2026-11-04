@@ -26,6 +26,7 @@ import { referenciasHelada } from '../charts/referencias';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe } from '../shared/enlace-consulta';
+import { descargarCsv } from '../shared/descargar-csv';
 import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
 
 /** Zoom desde el que se muestran las etiquetas con el valor de cada estación */
@@ -545,4 +546,29 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     const [fecha, hora] = fechaCompleta.split(' ');
     return `${this.formatFechaDMY(fecha)} ${this.formatHora(hora)}`;
   }
-} 
+
+  /**
+   * Último dato de cada estación (la tabla de abajo) en CSV. Es una sola fila por estación, así
+   * que entra en la política de descargas; los valores fuera de rango quedan vacíos, como en la tabla.
+   */
+  descargarTablaCsv(): void {
+    const valor = (v: string | number | null | undefined, kind: 'temp' | 'hum' | 'wind' | 'rain'): string => {
+      const texto = this.fmt(v, kind);
+      return texto === SIN_DATO ? '' : texto;
+    };
+    const fecha = (f: string): string => {
+      const [dia, hora] = (f ?? '').split(' ');
+      const [a, m, d] = (dia ?? '').split('-');
+      if (!a || !m || !d) return '';
+      return hora?.includes(':') ? `${d}/${m}/${a} ${this.formatHora(hora)}` : `${d}/${m}/${a}`;
+    };
+    const filas: unknown[][] = [
+      ['ID', 'Nombre', 'Fecha', 'Temp. (°C)', 'Humedad (%)', 'Precip. (mm)', 'V. Medio (km/h)', 'Ráfaga (km/h)'],
+      ...this.estaciones.map(e => [
+        String(e.identificacion), e.nombre, fecha(e.fecha_i), valor(e.temp_af, 'temp'), valor(e.hum_af, 'hum'),
+        valor(e.rr_dia, 'rain'), valor(e.viento_medio, 'wind'), valor(e.viento_max, 'wind')
+      ])
+    ];
+    descargarCsv('datos-en-tiempo-real-estaciones', filas);
+  }
+}

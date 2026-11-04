@@ -57,6 +57,13 @@
       </div>
     </div>
 
+    <div class="tabla-acciones" *ngIf="!loading && !error && estaciones.length">
+      <button type="button" class="tabla-csv" (click)="descargarTablaCsv()"
+        title="Descargar en CSV el último dato de cada estación"
+        aria-label="Descargar en CSV el último dato de cada estación">
+        <mat-icon aria-hidden="true">download</mat-icon>CSV
+      </button>
+    </div>
     <div class="tabla-wrapper">
       <div class="tabla-scroll-x tabla-fija">
         <table *ngIf="!loading && !error" class="tabla-datos">
