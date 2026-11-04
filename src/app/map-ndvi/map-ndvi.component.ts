@@ -14,6 +14,7 @@ import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
+import { capaMosaicosConReintentos } from '../maps/mosaicos-con-reintentos';
 import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
 import { KmzLayerService } from '../services/kmz-layer.service';
 
@@ -150,8 +151,9 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
     this.sinImagen = false;
     this.cargando = true;
     let mosaicosConError = 0;
+    let mosaicosCargados = 0;
 
-    this.capaSatelital = L.tileLayer(
+    this.capaSatelital = capaMosaicosConReintentos(
       `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${capa.id}/default/${fecha}/GoogleMapsCompatible_Level${capa.nivelMaximo}/{z}/{y}/{x}.png`,
       {
         pane: 'satelitePane',
@@ -162,10 +164,12 @@ export class MapNdviComponent implements AfterViewInit, OnDestroy {
       }
     )
       .on('tileerror', () => mosaicosConError++)
+      .on('tileload', () => mosaicosCargados++)
       .on('load', () => {
         this.cargando = false;
-        // Fuera del período de la imagen GIBS responde 404 en todos los mosaicos.
-        this.sinImagen = mosaicosConError > 0;
+        // Fuera del período de la imagen GIBS responde 404 en todos los mosaicos. Un mosaico suelto
+        // que siguió fallando después de los reintentos no significa que falte la imagen.
+        this.sinImagen = mosaicosConError > 0 && mosaicosCargados === 0;
       })
       .addTo(this.map);
 
