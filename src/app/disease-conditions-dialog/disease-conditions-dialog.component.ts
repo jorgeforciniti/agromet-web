@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -194,9 +195,13 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<DiseaseConditionsDialogComponent>
   ) { }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
     const today = new Date();
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.periodoPorDefecto = { desde: monthStart, hasta: today };
 
     this.selectedStation = this.stationService.activa;
     this.selectedDisease = 1;
@@ -205,6 +210,12 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
     // Consulta recibida por enlace (la estación ya llega como activa)
     const consulta = consultaDe(this.dialogData);
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('enfermedades', consulta);
+    if (recordado) {
+      this.fromDate = this.formatApiDate(recordado.desde);
+      this.toDate = this.formatApiDate(recordado.hasta);
+    }
     const desde = leerFecha(consulta['desde']);
     const hasta = leerFecha(consulta['hasta']);
     const enfermedad = leerNumero(consulta['enfermedad']);
@@ -257,6 +268,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       this.loadError = 'Revisa el rango de fechas antes de consultar las condiciones sanitarias.';
       return;
     }
+    recordarPeriodo('enfermedades', fromDate, toDate, this.periodoPorDefecto);
 
     this.isLoading = true;
     this.weatherService.getDiseaseData<DiseaseApiRecord>(

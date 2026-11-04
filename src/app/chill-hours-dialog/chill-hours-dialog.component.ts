@@ -22,6 +22,7 @@ import { WeatherService, WeatherStation, WeatherDataApiResponse } from '../servi
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { evaluarDia } from '../shared/registros-diarios';
@@ -147,16 +148,22 @@ export class ChillHoursDialogComponent implements OnInit {
     this.data = dialogData ?? {};
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
     const today = new Date();
     const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     const monthStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
+    this.periodoPorDefecto = { desde: monthStart, hasta: yesterday };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('horas-frio', consultaDe(this.data));
 
     this.form = this.fb.group({
       station: [this.stationService.activa, Validators.required],
       base: [7, Validators.required],
-      from: [monthStart, Validators.required],
-      to: [yesterday, Validators.required]
+      from: [recordado?.desde ?? monthStart, Validators.required],
+      to: [recordado?.hasta ?? yesterday, Validators.required]
     }, { validators: this.dateRangeValidator });
 
     // Consulta recibida por enlace (la estación ya llega como activa)
@@ -204,6 +211,7 @@ export class ChillHoursDialogComponent implements OnInit {
       this.loadError = 'Revisa el rango de fechas para continuar.';
       return;
     }
+    recordarPeriodo('horas-frio', fromDate, toDate, this.periodoPorDefecto);
 
     const dates = this.buildDateRange(fromDate, toDate);
 

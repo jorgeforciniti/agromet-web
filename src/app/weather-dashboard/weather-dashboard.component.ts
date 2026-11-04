@@ -30,6 +30,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { FUENTE_NOMBRE, FUENTE_URL, MAX_DIAS_DESCARGA } from '../shared/fuente';
 import { armarEnlace, consultaDe, leerFecha } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MAT_DATE_LOCALE, MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DATE_FORMATS } from '@angular/material/core';
@@ -287,8 +288,13 @@ export class WeatherDashboardComponent implements OnInit {
     });
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
-    const defaultDates = this.getDefaultDates();
+    this.periodoPorDefecto = this.getDefaultDates();
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const defaultDates = periodoRecordado('datos-localidad', this.consulta) ?? this.periodoPorDefecto;
     this.weatherForm = this.fb.group({
       station: ['', Validators.required],
       desde: [defaultDates.desde, [Validators.required, dmyDateValidator()]],
@@ -351,6 +357,7 @@ export class WeatherDashboardComponent implements OnInit {
     const hastaDate = new Date(rawHasta);
     const desde = this.formatDate(desdeDate);
     const hasta = this.formatDate(hastaDate);
+    recordarPeriodo('datos-localidad', desdeDate, hastaDate, this.periodoPorDefecto);
 
     try {
       // 3) Ahora paso strings '2025-04-01' y no objetos Date

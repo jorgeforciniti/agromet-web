@@ -19,6 +19,7 @@ import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ALMACENAJE_INICIAL, CMR, DecadaBalance, OpcionesBalance, ResultadoBalance, calcularBalance, inicioDelCalculo } from './balance-hidrico';
 
@@ -118,16 +119,22 @@ export class WaterBalanceDialogComponent implements OnInit {
     this.data = dialogData ?? {};
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
     const hoy = new Date();
     const ayer = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 1);
     // Por defecto, la campaña en curso: desde el 1 de julio
     const julio = new Date(ayer.getMonth() >= 6 ? ayer.getFullYear() : ayer.getFullYear() - 1, 6, 1);
+    this.periodoPorDefecto = { desde: julio, hasta: ayer };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('balance-hidrico', consultaDe(this.data));
 
     this.form = this.fb.group({
       station: [this.stationService.activa, Validators.required],
-      from: [julio, Validators.required],
-      to: [ayer, Validators.required],
+      from: [recordado?.desde ?? julio, Validators.required],
+      to: [recordado?.hasta ?? ayer, Validators.required],
       // 'estimado': 100 mm seis meses antes; 'conocido': el valor indicado al inicio del período
       modoInicio: ['estimado'],
       almacenaje: [ALMACENAJE_INICIAL, [Validators.required, Validators.min(0), Validators.max(CMR)]]
@@ -170,6 +177,7 @@ export class WaterBalanceDialogComponent implements OnInit {
       return;
     }
     const desde = this.aFecha(from), hasta = this.aFecha(to);
+    recordarPeriodo('balance-hidrico', desde, hasta, this.periodoPorDefecto);
     const opciones: OpcionesBalance = conocido
       ? { almacenajeInicial: Number(almacenaje), estabilizar: false }
       : { almacenajeInicial: ALMACENAJE_INICIAL, estabilizar: true };

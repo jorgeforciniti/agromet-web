@@ -33,6 +33,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
@@ -198,6 +199,9 @@ export class ComparisonByLocationComponent implements OnInit {
     this.data = dialogData ?? {};
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit() {
     this.weatherService.getStationsAll().subscribe(res => this.stations = res);
     const currentYear = new Date().getFullYear();
@@ -207,10 +211,13 @@ export class ComparisonByLocationComponent implements OnInit {
     const today = new Date();
     const start = new Date();
     start.setDate(today.getDate() - 59);
+    this.periodoPorDefecto = { desde: start, hasta: today };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('comparar-localidades', consultaDe(this.data));
     this.form = this.fb.group({
       estacion: [this.stationService.activa, Validators.required],
-      fechaDesde: [start, Validators.required],
-      fechaHasta: [today, Validators.required],
+      fechaDesde: [recordado?.desde ?? start, Validators.required],
+      fechaHasta: [recordado?.hasta ?? today, Validators.required],
       compStation: ['', Validators.required],  // <- Cambiado aquí
       variable: ['temp_max', Validators.required],
       formato: ['diario', Validators.required]
@@ -274,6 +281,7 @@ export class ComparisonByLocationComponent implements OnInit {
 
     const dFrom = this.coerceDate(fechaDesde);
     const dTo = this.coerceDate(fechaHasta);
+    recordarPeriodo('comparar-localidades', dFrom, dTo, this.periodoPorDefecto);
 
     if (isNaN(dFrom.getTime()) || isNaN(dTo.getTime())) {
       this.isLoading = false;

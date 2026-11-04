@@ -20,6 +20,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -144,17 +145,23 @@ export class ThermalSumDialogComponent implements OnInit {
     this.data = dialogData ?? {};
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
     const today = new Date();
     const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     const monthStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
+    this.periodoPorDefecto = { desde: monthStart, hasta: yesterday };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('suma-termica', consultaDe(this.data));
 
     this.form = this.fb.group({
       station: [this.stationService.activa, Validators.required],
       base: [10, Validators.required],
       metodo: ['promedio' as MetodoGradosDia, Validators.required],
-      from: [monthStart, Validators.required],
-      to: [yesterday, Validators.required]
+      from: [recordado?.desde ?? monthStart, Validators.required],
+      to: [recordado?.hasta ?? yesterday, Validators.required]
     }, { validators: this.dateRangeValidator });
 
     // Consulta recibida por enlace (la estación ya llega como activa)
@@ -202,6 +209,7 @@ export class ThermalSumDialogComponent implements OnInit {
       this.loadError = 'Revisa el rango de fechas para continuar.';
       return;
     }
+    recordarPeriodo('suma-termica', fromDate, toDate, this.periodoPorDefecto);
 
     this.isLoading = true;
     const fromApi = this.formatApiDate(fromDate);
