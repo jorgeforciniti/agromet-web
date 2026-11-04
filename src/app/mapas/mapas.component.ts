@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
 /** Valor de ?ver= en /mapas: cada mapa tiene su enlace (/mapas?ver=heladas). */
-type MapaId = 'lluvias-diarias' | 'lluvias-mensuales' | 'temperaturas' | 'heladas' | 'vegetacion';
+type MapaId = 'lluvias-diarias' | 'lluvias-mensuales' | 'lluvia-acumulada' | 'temperaturas' | 'heladas' | 'vegetacion';
 
 interface Mapa {
   id: MapaId;
@@ -34,6 +34,13 @@ const MAPAS: Mapa[] = [
     descripcion: 'Acumulado de cada mes de la campaña, para comparar zonas.',
     imagen: 'assets/images/mapas/lluviasmensuales.webp',
     cargar: () => import('../map-rain-monthly/map-rain-monthly.component').then(m => m.MapRainMonthlyComponent)
+  },
+  {
+    id: 'lluvia-acumulada',
+    titulo: 'Lluvia acumulada',
+    descripcion: 'Lluvia de los últimos 30, 60 y 90 días en cada estación, comparada con la normal.',
+    imagen: 'assets/images/mapas/lluviaacumulada.webp',
+    cargar: () => import('../mapa-lluvia-acumulada/mapa-lluvia-acumulada.component').then(m => m.MapaLluviaAcumuladaComponent)
   },
   {
     id: 'temperaturas',

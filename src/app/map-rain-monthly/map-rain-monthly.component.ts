@@ -25,6 +25,7 @@ import { conectarBotonesFicha, filasConNormal, popupEstacion } from '../maps/pop
 import { seguirTamanioMapa } from '../maps/map-size';
 import { encuadrarTucuman } from '../maps/encuadre';
 import { leyendaPlegable } from '../maps/leyenda-plegable';
+import { colorPorcentajeNormal, filasLeyendaPorcentajeNormal } from '../maps/paleta-porcentaje-normal';
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
 import { KmzLayerService } from '../services/kmz-layer.service';
@@ -351,17 +352,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private getRainColor(value: number, normal: number): string {
-    if (normal === 0) {
-      return '#808080'; // Grey for no normal data or normal is zero
-    }
-    const ratio = value / normal;
-
-    if (ratio < 0.33) return '#d73027'; // Rojo (paleta RdYlBu, apta para daltonismo)
-    if (ratio < 0.66) return '#fc8d59'; // Naranja
-    if (ratio < 1.00) return '#fee090'; // Amarillo
-    if (ratio <= 1.5) return '#e0f3f8'; // Celeste muy claro
-    if (ratio < 2.0) return '#91bfdb';  // Azul claro
-    return '#4575b4'; // Azul
+    return colorPorcentajeNormal(value, normal);
   }
 
   private addRainLegendControl(): void {
@@ -370,15 +361,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'info legend');
 
-      div.innerHTML = `
-  <div class="legend-title">Relación al normal</div>
-    <i style="background:#d73027; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
-    <i style="background:#fc8d59; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
-    <i style="background:#fee090; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
-    <i style="background:#e0f3f8; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
-    <i style="background:#91bfdb; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
-    <i style="background:#4575b4; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
-`;
+      div.innerHTML = `<div class="legend-title">Relación al normal</div>${filasLeyendaPorcentajeNormal()}`;
       return leyendaPlegable(div);
     };
 
