@@ -328,3 +328,9 @@
 .heladas-table td:nth-child(n+2):nth-child(-n+6) {
   text-align: right;
 }
+
+/* «¿Cómo se lee?» bajo el título: se acerca al título y deja aire antes de los controles.
+   Selector con el elemento para ganarle al :host del componente compartido. */
+app-como-se-lee.mapa-como-se-lee {
+  margin: -6px 0 12px;
+}

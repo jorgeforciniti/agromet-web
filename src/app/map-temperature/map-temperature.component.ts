@@ -30,6 +30,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { KmzLayerService } from '../services/kmz-layer.service';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
@@ -108,7 +109,8 @@ export const MY_DATE_FORMATS = {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    ComoSeLeeComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },

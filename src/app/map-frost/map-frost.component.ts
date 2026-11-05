@@ -113,6 +113,7 @@ export class DmyDateAdapter extends NativeDateAdapter {
   }
 }
 import { ValorPipe } from '../pipes/valor.pipe';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 @Component({
   selector: 'app-map-temperature',
@@ -134,7 +135,8 @@ import { ValorPipe } from '../pipes/valor.pipe';
     MatProgressSpinnerModule,
     MatTabsModule,
     HttpClientModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    ComoSeLeeComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },    // ← nuevo

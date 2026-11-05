@@ -10,6 +10,7 @@ import { OPCIONES_GESTOS } from '../maps/gestos';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { seguirTamanioMapa } from '../maps/map-size';
 import { agregarMapaBase } from '../maps/mapa-base';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 Chart.register(...registerables);
 
@@ -132,7 +133,7 @@ const fmtNum = (v: number | null | undefined, dec = 1) =>
 @Component({
   selector: 'app-estacion-lluvia-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatIconModule, BaseChartDirective, ExportarGraficoComponent],
+  imports: [CommonModule, MatDialogModule, MatIconModule, BaseChartDirective, ExportarGraficoComponent, ComoSeLeeComponent],
   templateUrl: './estacion-lluvia-dialog.component.html',
   styleUrls: ['./estacion-lluvia-dialog.component.css']
 })

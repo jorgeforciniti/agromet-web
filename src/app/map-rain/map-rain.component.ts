@@ -29,6 +29,7 @@ import { MAT_DATE_FORMATS, DateAdapter, NativeDateAdapter } from '@angular/mater
 import { ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog'; // Añade esta importación
 import { KmzLayerService } from '../services/kmz-layer.service';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 
 @Injectable()
@@ -96,6 +97,7 @@ interface RainScale {
     MatProgressSpinnerModule,
     MatIconModule,
     MatCheckboxModule,
+    ComoSeLeeComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter }, // Cambiar NativeDateAdapter por DmyDateAdapter

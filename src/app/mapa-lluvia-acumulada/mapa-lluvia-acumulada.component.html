@@ -3,6 +3,21 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">LLUVIA ACUMULADA</div>
       <h2 class="titulo">Lluvia de los últimos 30, 60 y 90 días</h2>
+      <!-- Pregunta para la Sección: ¿es correcto repartir la normal mensual en partes iguales por día para comparar períodos que no son meses completos? -->
+      <!-- Pregunta para la Sección: ¿el dato del mes en curso (datos-campania-mes-en-curso.php) es provisorio y puede corregirse? Si es así, convendría decirlo. -->
+      <!-- Pregunta para la Sección: la nota al pie repite parte de este texto; ¿se deja la nota, se quita o se pasa todo acá? -->
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es un pluviómetro de la red EEAOC con la lluvia acumulada en el período elegido. El
+          color indica qué porcentaje de la normal de esas mismas fechas llovió: rojo, naranja y amarillo,
+          menos que la normal; celeste y azul, igual o más. La normal de cada mes se reparte en partes
+          iguales entre sus días, para que cubra exactamente las mismas fechas.</p>
+        <p>Si a un pluviómetro le falta el dato de alguno de los meses completos del período, no se muestra
+          en ese período. Al tocar un punto se ven la normal, el desvío, los otros dos períodos y «Ver
+          ficha», con la serie histórica del pluviómetro.</p>
+        <p>Si hay una estación automática a menos de 2 km, el popup muestra lo que midió en las mismas
+          fechas. El borde punteado aparece cuando el pluviómetro suma al menos 10 mm y la automática midió
+          menos del 70 % de ese valor.</p>
+      </app-como-se-lee>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>

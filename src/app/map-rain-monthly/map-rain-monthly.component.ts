@@ -29,6 +29,7 @@ import { colorPorcentajeNormal, filasLeyendaPorcentajeNormal } from '../maps/pal
 import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
 import { KmzLayerService } from '../services/kmz-layer.service';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 // Interfaces based on your provided JSON structure and rain-campaign-dialog.component.ts
 interface RainRecord {
@@ -71,6 +72,7 @@ interface Month {
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatCheckboxModule,
+    ComoSeLeeComponent,
   ],
   templateUrl: './map-rain-monthly.component.html',
   styleUrls: ['./map-rain-monthly.component.css'],

@@ -295,3 +295,9 @@
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
 }
+
+/* «¿Cómo se lee?» bajo el título: se acerca al título y deja aire antes de los controles.
+   Selector con el elemento para ganarle al :host del componente compartido. */
+app-como-se-lee.mapa-como-se-lee {
+  margin: -6px 0 12px;
+}

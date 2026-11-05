@@ -8,6 +8,19 @@
         <ng-container *ngIf="primerAnio">· serie {{ primerAnio }}–{{ ultimoAnio }}</ng-container>
         <ng-container *ngIf="data.referencePeriod">· normal {{ data.referencePeriod }}</ng-container>
       </p>
+      <!-- Pregunta para la Sección: las estadísticas (mediana, bandas, promedio) usan toda la serie, mientras que la normal usa el período de referencia; ¿se prefiere calcularlas sobre el mismo período que la normal? -->
+      <app-como-se-lee>
+        <p>Totales mensuales de la red pluviométrica de la EEAOC. «Por mes» muestra cada mes de la campaña
+          consultada (barras; en naranja, el mes elegido; en celeste claro, el mes en curso, que es un
+          acumulado parcial) frente a la normal (línea punteada), la mediana histórica y dos bandas: entre
+          el 25 y el 75 % de los años y entre el mínimo y el máximo registrados.</p>
+        <p>«Serie del mes» muestra el mismo mes en cada año de la serie, con sus estadísticas. «Por campaña»
+          compara el total de 12 meses de cada campaña que empieza en el mismo mes; las campañas con algún
+          mes sin dato quedan en gris y no entran en la comparación.</p>
+        <p>Las estadísticas usan todos los años con dato de la serie, sin el mes en curso ni los posteriores;
+          la normal corresponde al período indicado arriba, por eso la mediana y la normal pueden diferir.
+          «Superó a X de N años» cuenta los años con menos lluvia que el valor consultado.</p>
+      </app-como-se-lee>
     </div>
     <button type="button" class="ed__cerrar" (click)="cerrar()" aria-label="Cerrar">
       <mat-icon>close</mat-icon>

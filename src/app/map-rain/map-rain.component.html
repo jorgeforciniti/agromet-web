@@ -3,6 +3,20 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">LLUVIAS DIARIAS</div>
       <h2 class="titulo">Mapa de Precipitaciones</h2>
+      <!-- Pregunta para la Sección: ¿qué es «Lluvia máxima» en el popup (máximo de un registro, de una hora, de un día)? -->
+      <!-- Pregunta para la Sección: ¿cómo se define «rocío»? En el código es la clase entre 0 mm y el menor valor del mapa, y también una estación con lluvia total > 0 sin registros con lluvia. -->
+      <!-- Pregunta para la Sección: en la vista «Hoy», ¿el período es desde las 0 h o las últimas 24 h? ¿Cómo devuelve datos-alerta.php una estación sin datos (hoy se vería gris, igual que 0 mm)? -->
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es una estación automática habilitada de la red EEAOC, con la lluvia total registrada
+          en el período elegido. Al tocar un punto se ven la lluvia total, la lluvia máxima y las horas con
+          lluvia (los registros con lluvia por la duración de cada registro).</p>
+        <p>Los colores no tienen cortes fijos: en cada consulta se reparten las estaciones con lluvia en
+          clases según sus valores, del amarillo verdoso (menos lluvia) al azul oscuro (más lluvia). Por eso
+          un mismo color puede indicar cantidades distintas en dos consultas; los límites de cada clase están
+          en la leyenda. En gris, las estaciones con 0 mm.</p>
+        <p>La última clase no tiene tope, para que un valor anómalo de una estación no estire la escala. El
+          mapa muestra sólo los puntos de las estaciones: no estima la lluvia entre ellas.</p>
+      </app-como-se-lee>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>

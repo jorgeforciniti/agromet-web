@@ -3,6 +3,19 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">EXTREMOS Y MEDIAS</div>
       <h2 class="titulo">Mapa de Temperaturas</h2>
+      <!-- Pregunta para la Sección: ¿cómo calcula datos-temperatura.php las medias (promedio de las mínimas/máximas diarias, de todos los registros)? ¿Con cuántos días faltantes una estación deja de ser representativa? -->
+      <!-- Pregunta para la Sección: el filtro de −25 a 50 °C sólo se aplica a las absolutas; ¿hace falta uno para las medias? ¿Se muestran todas las estaciones o sólo las habilitadas? -->
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es una estación de la red EEAOC con el valor de la variable elegida en el período: la
+          temperatura mínima o máxima absoluta (el valor extremo del período) o una de las medias (mínima
+          media, media o máxima media).</p>
+        <p>El color sigue una escala fija, igual en todas las consultas, de −5 °C (azul) a 35 °C (rojo
+          oscuro); los valores fuera de ese rango toman el color del extremo. Al tocar un punto se ven el
+          valor y cuántos días del período tienen datos («Registros: X de N días»).</p>
+        <p>Las estaciones sin dato de la variable no se muestran, y en las absolutas se descartan los
+          valores fuera del rango de −25 a 50 °C. Una estación con pocos días con datos puede no representar
+          todo el período. El mapa no estima valores entre estaciones.</p>
+      </app-como-se-lee>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>

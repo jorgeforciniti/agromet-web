@@ -3,6 +3,17 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">IMPACTO TÉRMICO</div>
       <h2 class="titulo">Mapa de Heladas</h2>
+      <!-- Pregunta para la Sección: ¿qué umbral y qué sensor (altura, abrigo) definen un día con helada en datos-heladas.php? ¿Las horas bajo 0, −2 y −4 °C se calculan como registros por la duración de cada registro? -->
+      <!-- Pregunta para la Sección: FPH y FUH, ¿son la fecha de la primera y de la última helada del período? Si es así, conviene explicarlo en el texto o en el encabezado de la tabla. -->
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es una estación de la red EEAOC que registró al menos un día con helada en el período
+          elegido. El color indica la temperatura mínima absoluta del período: amarillo, de 0 a −2 °C;
+          naranja, de −2 a −4 °C; rojo, de −4 a −6 °C; bordó, menos de −6 °C.</p>
+        <p>Al tocar un punto se ven las horas por debajo de 0, −2 y −4 °C y cuántos días del período tienen
+          datos. La pestaña «Datos» resume lo mismo en una tabla, con la cantidad de días con helada.</p>
+        <p>Las estaciones sin heladas en el período y las que no tienen datos no aparecen en el mapa: un
+          lugar sin punto no significa necesariamente que no haya helado.</p>
+      </app-como-se-lee>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>

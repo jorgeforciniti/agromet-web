@@ -20,6 +20,7 @@ import { formatDecimal } from '../pipes/valor.pipe';
 import { KmzLayerService } from '../services/kmz-layer.service';
 import { RainCampaignRecord, RainCampaignStation, WeatherService } from '../services/weather.service';
 import { MesCampania } from '../estacion-lluvia-dialog/estacion-lluvia-dialog.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 /*
  * E6 del informe de mejoras: lluvia acumulada de los últimos 30, 60 y 90 días, comparada con la
@@ -136,7 +137,8 @@ function diasEntre(desde: Date, hasta: Date): number {
     MatButtonToggleModule,
     MatCheckboxModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ComoSeLeeComponent
   ],
   templateUrl: './mapa-lluvia-acumulada.component.html',
   styleUrls: ['./mapa-lluvia-acumulada.component.css']

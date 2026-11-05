@@ -3,6 +3,19 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">COBERTURA MENSUAL</div>
       <h2 class="titulo">Mapa de Lluvias Mensuales Acumuladas por campaña</h2>
+      <!-- Pregunta para la Sección: si el período incluye el mes en curso, ¿datos-campania.php devuelve un acumulado parcial o el mes sin dato (-999,9)? Hoy un mes sin dato oculta el punto. -->
+      <!-- Pregunta para la Sección: ¿los puntos son sólo pluviómetros o también estaciones automáticas cargadas en la red pluviométrica? -->
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es una estación de la red pluviométrica de la EEAOC, con la lluvia acumulada entre el
+          mes de inicio y el mes de fin elegidos (si el mes de fin es anterior al de inicio, corresponde al
+          año siguiente). Los datos son totales mensuales.</p>
+        <p>El color compara esa lluvia con la normal de los mismos meses (la suma de las normales mensuales
+          del punto): los tonos rojo, naranja y amarillo indican menos lluvia que la normal, y los celestes y
+          azul, igual o más; los cortes están en la leyenda. El número junto a cada punto es la lluvia del
+          período en mm; al tocarlo se ven la normal y el desvío, y «Ver ficha» abre la serie histórica.</p>
+        <p>Un punto con algún mes sin dato en el período, o sin normal, no se muestra, para no comparar un
+          acumulado incompleto con la normal completa.</p>
+      </app-como-se-lee>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>
