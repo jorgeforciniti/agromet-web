@@ -18,6 +18,7 @@ import { referenciasHelada } from '../charts/referencias';
 import { MatIconModule } from '@angular/material/icon';
 import { Input } from '@angular/core';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 /**
  * Aviso de helada pronosticada (E9 del informe de mejoras), con el pronóstico horario de
@@ -68,6 +69,7 @@ function hhmm(d: Date): string {
     MatFormFieldModule,
     MatIconModule,
     ExportarGraficoComponent,
+    ComoSeLeeComponent,
   ],
   templateUrl: './weather-forecast.component.html',
   styleUrls: ['./weather-forecast.component.css']

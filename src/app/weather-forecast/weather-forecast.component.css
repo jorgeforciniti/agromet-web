@@ -624,3 +624,12 @@
 .aviso-helada mat-icon {
   flex: 0 0 auto;
 }
+
+/* «¿Cómo se lee?»: bajo el encabezado de la estación y bajo el lead del pronóstico */
+.como-se-lee--realtime {
+  margin: -4px 0 12px;
+}
+
+.como-se-lee--forecast {
+  margin: -8px 0 14px;
+}

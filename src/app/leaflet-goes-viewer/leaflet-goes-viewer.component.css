@@ -188,3 +188,8 @@
     align-items: flex-start;
   }
 }
+
+/* «¿Cómo se lee?» entre el título y la barra de capas */
+app-como-se-lee {
+  margin: -6px 0 10px;
+}

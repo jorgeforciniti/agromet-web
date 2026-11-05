@@ -1,5 +1,24 @@
 ﻿  <div class="viewer-container">
     <h2 class="panel-title"><mat-icon>satellite_alt</mat-icon> Visor de Imágenes Satelitales</h2>
+    <!-- Pregunta para la Sección: el componente se llama «GOES», pero hoy ninguna capa usa imágenes GOES/NOAA de
+         ese satélite: cuatro son mapas de OpenWeatherMap y una es NASA FIRMS (VIIRS en NOAA-21). ¿Se mantiene el
+         título «Imágenes satelitales»? ¿Cada cuánto se actualizan las capas de OpenWeatherMap y son análisis o
+         pronóstico? La referencia de viento está en m/s y el resto del sitio usa km/h: ¿se unifica?
+         ¿Conviene aclarar que un foco de calor no siempre es un incendio? -->
+    <app-como-se-lee>
+      <p>Las capas Precipitación, Nubosidad, Temperatura de la superficie y Vientos son mapas de OpenWeatherMap,
+        un proveedor externo; no son mediciones de la EEAOC. Incendios muestra los focos de calor que detecta el
+        sensor VIIRS del satélite NOAA-21, publicados por NASA FIRMS.</p>
+      <p>Cada capa tiene su referencia de colores abajo a la derecha: precipitación en mm, temperatura en °C y
+        viento en m/s. La nubosidad se ve en grises. Las capas se dibujan con más contraste para que se distingan
+        sobre el mapa base, así que los tonos pueden no coincidir exactamente con la referencia.</p>
+      <p>En Incendios, cada punto es un foco detectado en el día (fecha UTC). El color y el tamaño dependen de la
+        temperatura de brillo: verde hasta 45 °C, amarillo de 45 a 65 °C, naranja de 65 a 85 °C y rojo por encima
+        de 85 °C. Las detecciones de confianza baja no se muestran.</p>
+      <p>Los marcadores rojos son las estaciones EEAOC (en azul, la seleccionada): se atenúan si el último dato
+        tiene más de 1 hora y pasan a gris si no hay datos de hoy. La fecha bajo el mapa es la del día de consulta,
+        no la hora exacta de la imagen.</p>
+    </app-como-se-lee>
 
     <div class="map-toolbar">
       <label class="map-toolbar__field">

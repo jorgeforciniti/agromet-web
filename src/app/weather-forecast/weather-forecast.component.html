@@ -74,6 +74,22 @@
           </mat-form-field>
         </header>
 
+        <!-- Pregunta para la Sección: ¿desde qué hora se acumula la «Lluvia» del día (0 h, 9 h)? ¿El viento es
+             el promedio de qué intervalo? ¿Confirmar que todas las estaciones transmiten cada 15 o 30 minutos? -->
+        @if (mode === 'realtime' || mode === 'full') {
+          <app-como-se-lee class="como-se-lee--realtime">
+            <p>Muestra el último registro de la estación automática de la EEAOC elegida: temperatura del aire,
+              lluvia acumulada del día, humedad relativa y viento (dirección y velocidad media, en km/h).</p>
+            <p>«Última actualización» es la hora de ese registro y cuánto hace que llegó: en verde si es de la última
+              hora, en naranja si está atrasado más de 1 hora y en gris si no hay datos de hoy. En esos dos últimos
+              casos los valores no reflejan las condiciones actuales.</p>
+            <p>Las lecturas de temperatura, lluvia o viento fuera de rango físico (errores del sensor) no se muestran. El ícono del cielo junto al
+              nombre no lo mide la estación: viene de OpenWeatherMap; la salida y la puesta del sol, de
+              sunrise-sunset.org.</p>
+            <p>Los datos se cargan al abrir la página; para verlos actualizados hay que recargarla.</p>
+          </app-como-se-lee>
+        }
+
         <div class="station-metrics">
           <div class="metric">
             <mat-icon>thermostat</mat-icon>
@@ -121,6 +137,23 @@
             Pronóstico para los próximos días para <span>{{ selectedStation?.nombre || 'la estación seleccionada' }}</span>
           </div>
           <p class="forecast-lead">Seguimiento operativo con días clave, detalle horario y evolución térmica.</p>
+          <!-- Pregunta para la Sección: ¿cada cuánto se renueva el pronóstico en el servidor (forecast.php)? ¿Qué
+               modelo usa OpenWeatherMap para esta zona y conviene nombrarlo? -->
+          @if (mode === 'forecast' || mode === 'full') {
+            <app-como-se-lee class="como-se-lee--forecast">
+              <p>Es el pronóstico de OpenWeatherMap, un proveedor externo, calculado para la ubicación de la estación
+                elegida. No lo elabora la EEAOC ni lo mide la estación.</p>
+              <p>Cada día muestra la máxima y la mínima pronosticadas, una barra que ubica ese rango dentro del de
+                toda la semana y la mayor probabilidad de lluvia del día. Al elegir un día se ve el detalle cada 3
+                horas: cielo, temperatura, probabilidad de lluvia (no la cantidad) y viento en km/h.</p>
+              <p>El gráfico muestra la temperatura pronosticada del día elegido, con referencias en 0 °C (helada) y
+                −2 °C. El sombreado azul marca la noche, el tono cálido el alba y el ocaso, y el arco punteado el
+                recorrido del sol (horarios de sunrise-sunset.org).</p>
+              <p>Si en las próximas 48 h alguna mínima pronosticada es de 3 °C o menos aparece «Posible helada»
+                (puede helar a nivel del suelo); con 0 °C o menos, «Helada pronosticada». Es temperatura del aire
+                en abrigo según el pronóstico, y puede diferir de lo que registren las estaciones.</p>
+            </app-como-se-lee>
+          }
 
           <!-- Helada pronosticada en las próximas 48 h (pronóstico de modelo, no medición) -->
           <p class="aviso-helada" *ngIf="avisoHelada as a" [class.aviso-helada--fuerte]="a.nivel === 'helada'" role="status">

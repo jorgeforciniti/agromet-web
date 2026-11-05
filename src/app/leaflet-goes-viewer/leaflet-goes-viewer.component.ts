@@ -20,6 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 interface LayerOption {
   name: string;
@@ -231,7 +232,8 @@ class WindLegendControl extends L.Control {
     MatSelectModule,
     MatFormFieldModule,
     MatIconModule,
-    MatOptionModule
+    MatOptionModule,
+    ComoSeLeeComponent
   ],
   templateUrl: './leaflet-goes-viewer.component.html',
   styleUrls: ['./leaflet-goes-viewer.component.css']

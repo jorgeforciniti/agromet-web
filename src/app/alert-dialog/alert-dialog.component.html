@@ -4,6 +4,16 @@
       <div class="alert-dialog__eyebrow">RIESGO METEOROLÓGICO</div>
       <h2 class="alert-dialog__title">Alertas meteorológicas</h2>
       <p class="alert-dialog__copy">Detalle por región, vigencia y nivel de severidad.</p>
+      <!-- Pregunta para la Sección: este diálogo hoy no se abre desde ninguna parte (la apertura está comentada en
+           alert.component.ts). ¿Se va a volver a usar o se puede dar de baja? -->
+      <app-como-se-lee>
+        <p>Las alertas son las que publica el Servicio Meteorológico Nacional (SMN) para la Provincia de Tucumán y
+          los Valles Calchaquíes, agrupadas por región.</p>
+        <p>Cada fila indica la fecha y el momento del día (madrugada, mañana, tarde o noche) en que rige la alerta.
+          Al abrirla se ve el nivel en la escala del SMN (3 = amarilla, 4 = naranja, 5 = roja) y la descripción del
+          SMN. Sólo se incluyen los niveles amarillo, naranja y rojo.</p>
+        <p>Ante cualquier diferencia, vale la publicación oficial en smn.gob.ar.</p>
+      </app-como-se-lee>
     </div>
 
     <button type="button" class="alert-dialog__close" (click)="close()" aria-label="Cerrar diálogo">

@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { forkJoin, map, Observable } from 'rxjs';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 /**
  * Tipo interno para la franja de temperaturas extremas
@@ -92,7 +93,7 @@ const EVENTO_POR_TEXTO: [string, string][] = [
 @Component({
   selector: 'app-alert',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, ComoSeLeeComponent],
   templateUrl: './alert.component.html',
   styleUrls: ['./alert.component.css']
 })
