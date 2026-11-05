@@ -10,9 +10,23 @@
           Evalúa condiciones meteorológicas predisponentes para distintas enfermedades a partir
           de registros horarios de estación.
         </p>
+        <!-- Pregunta para la Sección: un día sin ningún registro no aparece en la tabla y un dato faltante
+             dentro del día se toma como 0. ¿Conviene marcar los días incompletos? -->
         <app-como-se-lee>
           <p>{{ diseaseHelp() }}</p>
-          <p>Los criterios de cada enfermedad se ven también en la «i» junto a su nombre.</p>
+          <p>Cada fila es un día calendario (de 0 a 24 h) de la estación elegida. Las horas se cuentan con los
+            registros de ese día: cada registro que cumple la condición suma 15 minutos. «Hs mojado» son las horas
+            con la hoja mojada: el sensor de humedad foliar informa de 0 (seca) a 15 (mojada) y se toma como
+            mojada por encima de 10, criterio del proveedor de las estaciones. «Temp. mojado» es la temperatura
+            media durante esas horas.</p>
+          <p>La calificación aplica a esos valores los criterios de la enfermedad, aportados por la <strong>Sección
+            Fitopatología de la EEAOC</strong>, que se ven al tocar la «i» junto a su nombre. El color de cada fila va del verde
+            (bajo o no apto) al amarillo, el naranja, el rojo y el bordó (muy alto o condición positiva), y las
+            tarjetas de arriba cuentan los días del período en cada clase.</p>
+          <p>Indica si el tiempo fue favorable para la enfermedad, no si hubo infección: no tiene en cuenta la
+            presencia del patógeno, la variedad ni el estado del cultivo. Las enfermedades que dependen del mojado
+            de hoja sólo se habilitan en estaciones con ese sensor. Los días sin registros no aparecen en la tabla
+            y, si faltan registros, las horas pueden quedar por debajo de las reales.</p>
         </app-como-se-lee>
       </div>
 
@@ -70,11 +84,16 @@
         <dt>Enfermedad</dt>
         <dd>
           {{ selectedDiseaseLabel(appliedDisease) }}
+          <!-- El title sólo se ve con mouse: al tocarla se despliegan los criterios debajo (celulares) -->
           <button
             type="button"
             class="info-dot"
+            [class.info-dot--activo]="criteriosVisibles"
             [attr.aria-label]="'Condiciones de ' + selectedDiseaseLabel(appliedDisease)"
-            [attr.title]="diseaseCriteria(appliedDisease)">
+            [attr.aria-expanded]="criteriosVisibles"
+            aria-controls="criterios-enfermedad"
+            [attr.title]="diseaseCriteria(appliedDisease)"
+            (click)="criteriosVisibles = !criteriosVisibles">
             i
           </button>
         </dd>
@@ -89,6 +108,9 @@
         <dd>{{ rows.length }}</dd>
       </div>
     </dl>
+    <div class="criterios" id="criterios-enfermedad" *ngIf="rows.length && criteriosVisibles">
+      <p *ngFor="let linea of criteriosLineas(appliedDisease)">{{ linea }}</p>
+    </div>
 
 
     <div class="disease-error" *ngIf="loadError">

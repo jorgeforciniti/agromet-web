@@ -56,6 +56,12 @@ interface SummaryItem {
 
 const DISEASES_REQUIRING_LEAF_WETNESS = new Set([1, 2, 3, 4, 5, 9, 10, 11, 14, 15, 16]);
 
+/**
+ * El sensor de hoja (Davis) informa de 0 (seca) a 15 (mojada). La hoja se toma como mojada por
+ * encima de 10 en todas las reglas, criterio de Mercobras, el proveedor de las estaciones.
+ */
+const UMBRAL_HOJA_MOJADA = 10;
+
 const DISEASE_DATE_FORMATS = {
   parse: {
     dateInput: 'DD/MM/YYYY',
@@ -169,6 +175,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   summaryItems: SummaryItem[] = [];
   loadError = '';
   isLoading = false;
+  /** Panel con los criterios de la enfermedad (lo abre la «i»; el title no se ve en celulares) */
+  criteriosVisibles = false;
   readonly diseaseGroups = DISEASE_GROUPS;
 
   get selectedStationData(): WeatherStation | undefined {
@@ -339,6 +347,11 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       default:
         return 'Las condiciones predisponentes se calculan en forma nativa a partir de la API horaria de enfermedades.';
     }
+  }
+
+  /** Criterios de la enfermedad, uno por renglón, para el panel que abre la «i». */
+  criteriosLineas(diseaseCode = Number(this.appliedDisease || this.selectedDisease)): string[] {
+    return this.diseaseCriteria(diseaseCode).split('\n');
   }
 
   diseaseCriteria(diseaseCode = Number(this.appliedDisease || this.selectedDisease)): string {
@@ -616,8 +629,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private buildSoyRustRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
-    const wetHours = this.hours(records, (record) => this.num(record.hum_hoja) > 10);
-    const wetTempSum = this.sum(records, (record) => this.num(record.hum_hoja) >= 10 ? this.num(record.temp_af) : 0);
+    const wetHours = this.hours(records, (record) => this.hojaMojada(record));
+    const wetTempSum = this.sum(records, (record) => this.hojaMojada(record) ? this.num(record.temp_af) : 0);
     const wetTemp = wetHours > 0 ? wetTempSum / (wetHours * 4) : 0;
     const humHighHours = this.hours(records, (record) => this.num(record.hum_af) >= 90);
     const rain = this.sum(records, (record) => this.num(record.lluvia));
@@ -662,7 +675,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const favHours = this.hours(records, (record) =>
       this.inRange(this.num(record.temp_af), 17, 23) &&
       this.num(record.hum_af) >= 90 &&
-      this.num(record.hum_hoja) > 9
+      this.hojaMojada(record)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 8;
@@ -679,8 +692,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private buildBrownSpotRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
-    const wetHours = this.hours(records, (record) => this.num(record.hum_hoja) > 10);
-    const wetTempSum = this.sum(records, (record) => this.num(record.hum_hoja) >= 10 ? this.num(record.temp_af) : 0);
+    const wetHours = this.hours(records, (record) => this.hojaMojada(record));
+    const wetTempSum = this.sum(records, (record) => this.hojaMojada(record) ? this.num(record.temp_af) : 0);
     const wetTemp = wetHours > 0 ? wetTempSum / (wetHours * 4) : 0;
     const windMax = this.max(records, (record) => this.num(record.viento_max));
     const rain = this.sum(records, (record) => this.num(record.lluvia));
@@ -718,7 +731,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       this.inRange(this.num(record.temp_af), 24, 32) &&
       this.num(record.hum_af) >= 70
     );
-    const gerHours = this.hours(records, (record) => this.num(record.hum_hoja) > 9);
+    const gerHours = this.hours(records, (record) => this.hojaMojada(record));
     const windMax = this.max(records, (record) => this.num(record.viento_max));
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const dispersion = windMax >= 15 || rain >= 5;
@@ -755,7 +768,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const favHours = this.hours(records, (record) =>
       this.inRange(this.num(record.temp_af), 18, 21) &&
       this.num(record.hum_af) >= 80 &&
-      this.num(record.hum_hoja) > 9
+      this.hojaMojada(record)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 24;
@@ -791,10 +804,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildMelanosisRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const wetWide = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 10, 35)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 10, 35)
     );
     const wetNarrow = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 20, 28)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 20, 28)
     );
     const { classification, tone } = this.scaleRisk(wetWide, wetNarrow);
 
@@ -811,10 +824,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildLeafBlightRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const wetWide = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 20, 32)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 20, 32)
     );
     const wetNarrow = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 24, 28)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 24, 28)
     );
     const { classification, tone } = this.scaleRisk(wetWide, wetNarrow, 2, 6, 2, 12, 6, 12);
 
@@ -831,13 +844,13 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildPolysoraRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const wetWide = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 16, 33)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 16, 33)
     );
     const wetMid = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 21, 27)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 21, 27)
     );
     const wetNarrow = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 22, 24)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 22, 24)
     );
     const { classification, tone } = this.scalePolisora(wetWide, wetMid, wetNarrow);
 
@@ -855,7 +868,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildStripeRustRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const aptHours = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 10, 20)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 10, 20)
     );
     const apt = aptHours >= 3;
 
@@ -871,7 +884,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildGrayLeafSpotRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const favHours = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 22, 30)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 22, 30)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 12;
@@ -889,7 +902,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildFusariumRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const favHours = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 25, 28)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 25, 28)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 20;
@@ -1003,6 +1016,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private hojaMojada(record: DiseaseApiRecord): boolean {
+    return this.num(record.hum_hoja) > UMBRAL_HOJA_MOJADA;
   }
 
   private num(value: unknown): number {

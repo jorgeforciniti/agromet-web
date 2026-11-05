@@ -188,6 +188,43 @@
   border-color: color-mix(in srgb, var(--mod-stats) 34%, var(--border));
 }
 
+.info-dot--activo {
+  background: color-mix(in srgb, var(--mod-stats) 16%, white);
+  border-color: color-mix(in srgb, var(--mod-stats) 50%, var(--border));
+}
+
+/* En pantallas táctiles, más área para tocarla */
+@media (pointer: coarse) {
+  .info-dot {
+    width: 28px;
+    height: 28px;
+    font-size: .9rem;
+  }
+}
+
+.criterios {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-left: 3px solid color-mix(in srgb, var(--mod-stats) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--mod-stats) 6%, white);
+  color: #1f2937;
+  font-size: .88rem;
+  line-height: 1.45;
+}
+
+.criterios p {
+  margin: 0 0 4px;
+}
+
+.criterios p:first-child {
+  font-weight: 800;
+}
+
+.criterios p:last-child {
+  margin-bottom: 0;
+}
+
 .info-dot:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--mod-stats) 35%, white);
   outline-offset: 2px;
