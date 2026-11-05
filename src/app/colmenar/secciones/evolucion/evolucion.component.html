@@ -37,8 +37,7 @@
       <span class="kpi__valor">{{ fmt(promedio) }} <small>{{ variable.unidad }}</small></span>
       <span class="kpi__det">{{ validos.length }} años válidos · normal {{ fmt(normalPeriodo) }} {{ variable.unidad }}
         <ng-container *ngIf="promedio !== null && normalPeriodo !== null">
-          (<strong [class.pos]="!esLluvia && promedio > normalPeriodo" [class.neg]="!esLluvia && promedio < normalPeriodo"
-            [class.pos-pp]="esLluvia && promedio > normalPeriodo" [class.neg-pp]="esLluvia && promedio < normalPeriodo">
+          (<strong [ngClass]="claseSigno(promedio - normalPeriodo)">
             {{ fmtSigno(promedio - normalPeriodo) }} {{ variable.unidad }}</strong>)
         </ng-container>
       </span>
@@ -46,21 +45,20 @@
     <article class="kpi">
       <span class="kpi__label">Tendencia lineal</span>
       <ng-container *ngIf="tendencia as t; else sinTendencia">
-        <span class="kpi__valor" [class.pos]="!esLluvia && t.pendienteDecada > 0" [class.neg]="!esLluvia && t.pendienteDecada < 0"
-          [class.pos-pp]="esLluvia && t.pendienteDecada > 0" [class.neg-pp]="esLluvia && t.pendienteDecada < 0">
+        <span class="kpi__valor" [ngClass]="claseSigno(t.pendienteDecada)">
           {{ fmtSigno(t.pendienteDecada, esLluvia ? 1 : 2) }} <small>{{ variable.unidad }}/década</small></span>
         <span class="kpi__det">Mínimos cuadrados sobre {{ t.n }} años. Indicativa, sin prueba de significancia estadística.</span>
       </ng-container>
       <ng-template #sinTendencia><span class="kpi__det">Se requieren al menos 5 años válidos.</span></ng-template>
     </article>
     <article class="kpi">
-      <span class="kpi__label">{{ esLluvia ? 'Año más lluvioso' : 'Año más cálido' }}</span>
+      <span class="kpi__label">{{ variable.mayor }}</span>
       <span class="kpi__valor" *ngIf="mayor">{{ mayor.anio }} <small>{{ fmt(mayor.valor) }} {{ variable.unidad }}</small></span>
       <span class="kpi__det" *ngIf="mayor">Anomalía {{ fmtSigno(mayor.anomalia) }} {{ variable.unidad }}
         <ng-container *ngIf="esLluvia">({{ fmtSigno(mayor.anomaliaPct, 0) }} %)</ng-container></span>
     </article>
     <article class="kpi">
-      <span class="kpi__label">{{ esLluvia ? 'Año más seco' : 'Año más frío' }}</span>
+      <span class="kpi__label">{{ variable.menor }}</span>
       <span class="kpi__valor" *ngIf="menor">{{ menor.anio }} <small>{{ fmt(menor.valor) }} {{ variable.unidad }}</small></span>
       <span class="kpi__det" *ngIf="menor">Anomalía {{ fmtSigno(menor.anomalia) }} {{ variable.unidad }}
         <ng-container *ngIf="esLluvia">({{ fmtSigno(menor.anomaliaPct, 0) }} %)</ng-container></span>
@@ -85,8 +83,7 @@
       </div>
       <div>
         <h3 class="panel__titulo panel__titulo--sm">Anomalía por año ({{ variable.unidad }}) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
-        <p class="panel__sub" *ngIf="!esLluvia">Rojo: más cálido que lo normal · Azul: más frío. Sin barra: dato no válido.</p>
-        <p class="panel__sub" *ngIf="esLluvia">Azul: más lluvioso que lo normal · Naranja: más seco. Sin barra: dato no válido.</p>
+        <p class="panel__sub">{{ variable.leyendaAnomalia }} Sin barra: dato no válido.</p>
         <app-exportar-grafico nombre="colmenar-evolucion-anomalias"></app-exportar-grafico>
         <div class="grafico" role="img" [attr.aria-label]="'Anomalías de ' + descripcionValor + ' por año'">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
@@ -95,12 +92,11 @@
     </div>
     <!-- Franjas de calentamiento / de precipitación: un año por franja (sólo imagen, sin datos) -->
     <h3 class="panel__titulo panel__titulo--sm">
-      Franjas {{ esLluvia ? 'de precipitación' : 'de temperatura' }} · {{ etiquetaPeriodo }}
+      Franjas {{ variable.franjas }} · {{ etiquetaPeriodo }}
     </h3>
     <p class="panel__sub">
       Cada franja es un año entre {{ desde }} y {{ anio }}, coloreado por su anomalía frente a la normal 1991–2020:
-      <ng-container *ngIf="!esLluvia">azul, más frío; rojo, más cálido.</ng-container>
-      <ng-container *ngIf="esLluvia">marrón, más seco; verde azulado, más lluvioso.</ng-container>
+      {{ variable.leyendaFranjas }}
       Cuanto más intenso el color, mayor la anomalía. En blanco, los años sin dato válido.
     </p>
     <app-exportar-grafico nombre="colmenar-franjas"></app-exportar-grafico>
@@ -135,8 +131,7 @@
             <th scope="row">{{ p.anio }}</th>
             <td class="num">{{ fmt(p.valor) }}</td>
             <td class="num">{{ fmt(p.normal) }}</td>
-            <td class="num" [class.pos]="!esLluvia && (p.anomalia ?? 0) > 0" [class.neg]="!esLluvia && (p.anomalia ?? 0) < 0"
-              [class.pos-pp]="esLluvia && (p.anomalia ?? 0) > 0" [class.neg-pp]="esLluvia && (p.anomalia ?? 0) < 0">{{ fmtSigno(p.anomalia) }}</td>
+            <td class="num" [ngClass]="claseSigno(p.anomalia)">{{ fmtSigno(p.anomalia) }}</td>
             <td class="num" *ngIf="esLluvia">{{ fmtSigno(p.anomaliaPct, 0) }}</td>
             <td>
               <span class="tag tag--parcial" *ngIf="p.motivo; else ok">{{ p.motivo }}</span>

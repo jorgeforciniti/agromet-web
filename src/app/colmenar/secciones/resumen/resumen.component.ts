@@ -11,7 +11,7 @@ import {
   NormalesResponse,
   Recurso
 } from '../../colmenar.models';
-import { fmt, fmtSigno, INDICADORES, listaMeses, media, MESES, normalDeMes, suma } from '../../colmenar.utils';
+import { amplitud, fmt, fmtSigno, INDICADORES, listaMeses, media, MESES, normalDeMes, suma } from '../../colmenar.utils';
 import { ClasificacionBadgeComponent } from '../../shared/clasificacion-badge.component';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
@@ -70,6 +70,7 @@ export class ResumenComponent implements OnChanges {
   lluvia: ResumenLluvia | null = null;
   tmax: ResumenTemp | null = null;
   tmin: ResumenTemp | null = null;
+  amp: ResumenTemp | null = null;
   absMax: Absoluta | null = null;
   absMin: Absoluta | null = null;
   extremosRes: ResumenExtremo[] = [];
@@ -143,6 +144,19 @@ export class ResumenComponent implements OnChanges {
     };
     this.tmax = temp('tmax_media_valida', 'anomalia_tmax');
     this.tmin = temp('tmin_media_valida', 'anomalia_tmin');
+
+    // Amplitud térmica: meses con Tmax y Tmin validadas; normal = Tmax normal − Tmin normal.
+    const conAmp = anom
+      .map((d) => ({ mes: d.mes, v: amplitud(d.tmax_media_valida, d.tmin_media_valida), n: amplitud(d.tmax_normal, d.tmin_normal) }))
+      .filter((x) => x.v !== null);
+    this.amp = conAmp.length
+      ? {
+        media: media(conAmp.map((x) => x.v as number)) as number,
+        anomalia: conAmp.every((x) => x.n !== null) ? media(conAmp.map((x) => (x.v as number) - (x.n as number))) : null,
+        meses: conAmp.map((x) => x.mes),
+        anual: conAmp.length === 12
+      }
+      : null;
 
     const mens = this.mensuales.datos?.datos ?? [];
     const absoluta = (campo: 'tmax_absoluta' | 'tmin_absoluta', mayor: boolean): Absoluta | null => {

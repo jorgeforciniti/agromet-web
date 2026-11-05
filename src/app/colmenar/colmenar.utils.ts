@@ -108,6 +108,14 @@ export function fmtEje(v: number): string {
   return Number.isInteger(v) ? fmt(v, 0) : fmt(v, 1);
 }
 
+/**
+ * Amplitud térmica = Tmax − Tmin. Con medias mensuales validadas (mismos días) es igual a la media de
+ * las amplitudes diarias del mes. Devuelve null si falta alguno de los dos valores.
+ */
+export function amplitud(tmax: number | null | undefined, tmin: number | null | undefined): number | null {
+  return tmax === null || tmax === undefined || tmin === null || tmin === undefined ? null : redondear(tmax - tmin, 2);
+}
+
 /** Igual que fmt, con signo explícito (+/−) para anomalías. */
 export function fmtSigno(v: number | null | undefined, decimales = 1): string {
   if (v === null || v === undefined || Number.isNaN(v)) {
@@ -174,6 +182,10 @@ export const COLOR = {
   negativoTermico: '#2563eb',
   humedo: '#2563eb',
   seco: '#c2410c',
+  /** Amplitud térmica: violeta (mayor que lo normal) y verde (menor), distintos del rojo/azul de cálido/frío. */
+  amplitud: '#862e9c',
+  positivoAmplitud: '#862e9c',
+  negativoAmplitud: '#2b8a3e',
   grilla: 'rgba(17, 24, 39, .08)',
   texto: '#52514e'
 };

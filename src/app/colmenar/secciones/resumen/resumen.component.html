@@ -71,6 +71,22 @@
         </ng-container>
       </article>
 
+      <!-- Amplitud térmica media -->
+      <article class="kpi kpi--amp">
+        <span class="kpi__label">Amplitud térmica media <app-ayuda-termino termino="amplitud"></app-ayuda-termino></span>
+        <ng-container *ngIf="amp as t; else sinDato">
+          <span class="kpi__valor">{{ fmt(t.media) }} <small>°C</small></span>
+          <span class="kpi__det">
+            <span class="tag" [class.tag--ok]="t.anual" [class.tag--parcial]="!t.anual">
+              {{ t.anual ? 'Media anual' : 'Promedio de ' + listaMeses(t.meses) }}
+            </span>
+          </span>
+          <span class="kpi__det" *ngIf="t.anomalia !== null">
+            Anomalía vs. normal: <strong [class.pos-amp]="t.anomalia > 0" [class.neg-amp]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong>
+          </span>
+        </ng-container>
+      </article>
+
       <!-- Absolutas -->
       <article class="kpi kpi--tmax">
         <span class="kpi__label">Temperatura máxima absoluta</span>

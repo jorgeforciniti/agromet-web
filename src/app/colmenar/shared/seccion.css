@@ -237,6 +237,8 @@
 .neg { color: #1d4ed8; }
 .pos-pp { color: #1d4ed8; }
 .neg-pp { color: #c2410c; }
+.pos-amp { color: #862e9c; }
+.neg-amp { color: #2b8a3e; }
 
 /* Columnas de diferencias en las tablas: positivos en azul, negativos en rojo. */
 .dif-pos { color: #1d4ed8; }

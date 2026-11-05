@@ -5,12 +5,12 @@ import { ChartData, ChartOptions } from 'chart.js';
 import { Subscription, forkJoin } from 'rxjs';
 import { COLMENAR_ANIO_INICIO, COLMENAR_MAX_ANIOS_RANGO, ColmenarService } from '../../../services/colmenar.service';
 import { AnomaliaMensual, AnomaliasResponse, EstadoCarga, NormalesResponse, NormalMensual, Recurso } from '../../colmenar.models';
-import { COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from '../../colmenar.utils';
+import { amplitud, COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from '../../colmenar.utils';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
 
-type Variable = 'max' | 'min' | 'pp';
+type Variable = 'max' | 'min' | 'amp' | 'pp';
 
 interface DefVariable {
   id: Variable;
@@ -26,6 +26,16 @@ interface DefVariable {
   valor: (d: AnomaliaMensual) => number | null;
   normalFila: (d: AnomaliaMensual) => number | null;
   normal: (n: NormalMensual) => number | null;
+  /** Textos y colores que dependen del significado de la variable. */
+  mayor: string;
+  menor: string;
+  leyendaAnomalia: string;
+  franjas: string;
+  leyendaFranjas: string;
+  /** Clases CSS para anomalías positivas y negativas. */
+  clasePos: string;
+  claseNeg: string;
+  paleta: string[];
 }
 
 /**
@@ -37,6 +47,8 @@ const PALETA_TEMPERATURA = ['#053061', '#2166ac', '#4393c3', '#92c5de', '#d1e5f0
   '#fddbc7', '#f4a582', '#d6604d', '#b2182b', '#67001f'];   // RdBu: frío → cálido
 const PALETA_LLUVIA = ['#543005', '#8c510a', '#bf812d', '#dfc27d', '#f6e8c3', '#f5f5f5',
   '#c7eae5', '#80cdc1', '#35978f', '#01665e', '#003c30'];   // BrBG: seco → lluvioso
+const PALETA_AMPLITUD = ['#00441b', '#1b7837', '#5aae61', '#a6dba0', '#d9f0d3', '#f7f7f7',
+  '#e7d4e8', '#c2a5cf', '#9970ab', '#762a83', '#40004b'];   // PRGn invertida: menor → mayor amplitud
 /** El color llega al extremo de la paleta en ±2,5 desvíos estándar de las anomalías */
 const DESVIOS_EXTREMO = 2.5;
 
@@ -68,17 +80,37 @@ const VARIABLES: DefVariable[] = [
   {
     id: 'max', boton: 'Máximas', nombre: 'Temperatura máxima media', corta: 'Tmax media', unidad: '°C', agregado: 'media',
     color: COLOR.tmax, colorPositivo: COLOR.positivoTermico, colorNegativo: COLOR.negativoTermico,
-    valor: (d) => d.tmax_media_valida, normalFila: (d) => d.tmax_normal, normal: (n) => n.tmax_normal
+    valor: (d) => d.tmax_media_valida, normalFila: (d) => d.tmax_normal, normal: (n) => n.tmax_normal,
+    mayor: 'Año más cálido', menor: 'Año más frío', leyendaAnomalia: 'Rojo: más cálido que lo normal · Azul: más frío.',
+    franjas: 'de temperatura', leyendaFranjas: 'azul, más frío; rojo, más cálido.', clasePos: 'pos', claseNeg: 'neg',
+    paleta: PALETA_TEMPERATURA
   },
   {
     id: 'min', boton: 'Mínimas', nombre: 'Temperatura mínima media', corta: 'Tmin media', unidad: '°C', agregado: 'media',
     color: COLOR.tmin, colorPositivo: COLOR.positivoTermico, colorNegativo: COLOR.negativoTermico,
-    valor: (d) => d.tmin_media_valida, normalFila: (d) => d.tmin_normal, normal: (n) => n.tmin_normal
+    valor: (d) => d.tmin_media_valida, normalFila: (d) => d.tmin_normal, normal: (n) => n.tmin_normal,
+    mayor: 'Año más cálido', menor: 'Año más frío', leyendaAnomalia: 'Rojo: más cálido que lo normal · Azul: más frío.',
+    franjas: 'de temperatura', leyendaFranjas: 'azul, más frío; rojo, más cálido.', clasePos: 'pos', claseNeg: 'neg',
+    paleta: PALETA_TEMPERATURA
+  },
+  {
+    id: 'amp', boton: 'Amplitud', nombre: 'Amplitud térmica media', corta: 'Amplitud', unidad: '°C', agregado: 'media',
+    color: COLOR.amplitud, colorPositivo: COLOR.positivoAmplitud, colorNegativo: COLOR.negativoAmplitud,
+    valor: (d) => amplitud(d.tmax_media_valida, d.tmin_media_valida),
+    normalFila: (d) => amplitud(d.tmax_normal, d.tmin_normal),
+    normal: (n) => amplitud(n.tmax_normal, n.tmin_normal),
+    mayor: 'Año de mayor amplitud', menor: 'Año de menor amplitud',
+    leyendaAnomalia: 'Violeta: mayor amplitud que lo normal · Verde: menor.',
+    franjas: 'de amplitud térmica', leyendaFranjas: 'verde, menor amplitud; violeta, mayor amplitud.', clasePos: 'pos-amp', claseNeg: 'neg-amp',
+    paleta: PALETA_AMPLITUD
   },
   {
     id: 'pp', boton: 'Precipitación', nombre: 'Precipitación', corta: 'Precipitación', unidad: 'mm', agregado: 'suma',
     color: COLOR.lluvia, colorPositivo: COLOR.humedo, colorNegativo: COLOR.seco,
-    valor: (d) => d.lluvia_mensual_valida, normalFila: (d) => d.pp_normal, normal: (n) => n.pp_normal
+    valor: (d) => d.lluvia_mensual_valida, normalFila: (d) => d.pp_normal, normal: (n) => n.pp_normal,
+    mayor: 'Año más lluvioso', menor: 'Año más seco', leyendaAnomalia: 'Azul: más lluvioso que lo normal · Naranja: más seco.',
+    franjas: 'de precipitación', leyendaFranjas: 'marrón, más seco; verde azulado, más lluvioso.', clasePos: 'pos-pp', claseNeg: 'neg-pp',
+    paleta: PALETA_LLUVIA
   }
 ];
 
@@ -149,7 +181,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     if (this.esLluvia) {
       return this.mes ? `Precipitación de ${MESES[this.mes - 1].toLowerCase()}` : 'Precipitación anual (enero–diciembre)';
     }
-    return `${this.variable.nombre} de ${this.mes ? MESES[this.mes - 1].toLowerCase() : 'cada año'}`;
+    return this.mes ? `${this.variable.nombre} de ${MESES[this.mes - 1].toLowerCase()}` : `${this.variable.nombre} anual`;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -379,7 +411,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     const promedio = validas.reduce((a, b) => a + b, 0) / (validas.length || 1);
     const desvio = Math.sqrt(validas.reduce((a, b) => a + (b - promedio) ** 2, 0) / (validas.length || 1));
     const escala = desvio * DESVIOS_EXTREMO;
-    const paleta = lluvia ? PALETA_LLUVIA : PALETA_TEMPERATURA;
+    const paleta = v.paleta;
     this.datosFranjas = {
       labels: anios.map(String),
       datasets: [{
@@ -408,6 +440,12 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
         }
       }
     };
+  }
+
+  /** Clase de color de una anomalía según su signo y la variable. */
+  claseSigno(x: number | null | undefined): string {
+    if (x === null || x === undefined || x === 0) return '';
+    return x > 0 ? this.variable.clasePos : this.variable.claseNeg;
   }
 
   get excluidos(): PuntoAnual[] {

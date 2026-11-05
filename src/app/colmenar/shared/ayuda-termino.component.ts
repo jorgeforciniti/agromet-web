@@ -26,6 +26,10 @@ export const GLOSARIO: Record<string, { titulo: string; texto: string }> = {
     titulo: 'Extremo térmico',
     texto: 'Cantidad de días en que la temperatura igualó o superó el umbral indicado. No es un récord absoluto de temperatura.'
   },
+  amplitud: {
+    titulo: 'Amplitud térmica',
+    texto: 'Diferencia entre la temperatura máxima y la mínima. La amplitud media del mes es la Tmax media menos la Tmin media; su normal es la diferencia entre las normales 1991–2020 de Tmax y Tmin.'
+  },
   retorno: {
     titulo: 'Período de retorno',
     texto: 'Tiempo medio, en años, entre dos eventos que igualan o superan un valor. Una lluvia de 10 años de retorno tiene un 10 % de probabilidad de ser superada en un año cualquiera; no significa que ocurra cada 10 años exactos.'
