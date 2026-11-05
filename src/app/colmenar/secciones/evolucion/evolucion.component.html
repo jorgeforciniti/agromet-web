@@ -46,20 +46,20 @@
       <span class="kpi__label">Tendencia lineal</span>
       <ng-container *ngIf="tendencia as t; else sinTendencia">
         <span class="kpi__valor" [ngClass]="claseSigno(t.pendienteDecada)">
-          {{ fmtSigno(t.pendienteDecada, esLluvia ? 1 : 2) }} <small>{{ variable.unidad }}/década</small></span>
+          {{ fmtSigno(t.pendienteDecada, enBarras ? 1 : 2) }} <small>{{ variable.unidad }}/década</small></span>
         <span class="kpi__det">Mínimos cuadrados sobre {{ t.n }} años. Indicativa, sin prueba de significancia estadística.</span>
       </ng-container>
       <ng-template #sinTendencia><span class="kpi__det">Se requieren al menos 5 años válidos.</span></ng-template>
     </article>
     <article class="kpi">
       <span class="kpi__label">{{ variable.mayor }}</span>
-      <span class="kpi__valor" *ngIf="mayor">{{ mayor.anio }} <small>{{ fmt(mayor.valor) }} {{ variable.unidad }}</small></span>
+      <span class="kpi__valor" *ngIf="mayor">{{ mayor.anio }} <small>{{ fmt(mayor.valor, variable.decValor ?? 1) }} {{ variable.unidad }}</small></span>
       <span class="kpi__det" *ngIf="mayor">Anomalía {{ fmtSigno(mayor.anomalia) }} {{ variable.unidad }}
         <ng-container *ngIf="esLluvia">({{ fmtSigno(mayor.anomaliaPct, 0) }} %)</ng-container></span>
     </article>
     <article class="kpi">
       <span class="kpi__label">{{ variable.menor }}</span>
-      <span class="kpi__valor" *ngIf="menor">{{ menor.anio }} <small>{{ fmt(menor.valor) }} {{ variable.unidad }}</small></span>
+      <span class="kpi__valor" *ngIf="menor">{{ menor.anio }} <small>{{ fmt(menor.valor, variable.decValor ?? 1) }} {{ variable.unidad }}</small></span>
       <span class="kpi__det" *ngIf="menor">Anomalía {{ fmtSigno(menor.anomalia) }} {{ variable.unidad }}
         <ng-container *ngIf="esLluvia">({{ fmtSigno(menor.anomaliaPct, 0) }} %)</ng-container></span>
     </article>
@@ -78,7 +78,7 @@
         <app-exportar-grafico nombre="colmenar-evolucion"></app-exportar-grafico>
         <div class="grafico" role="img"
           [attr.aria-label]="descripcionValor + ' entre ' + desde + ' y ' + anio + ', normal y tendencia. Valores en la tabla.'">
-          <canvas baseChart [type]="esLluvia ? 'bar' : 'line'" [data]="$any(datosSerie)" [options]="$any(opcionesSerie)"></canvas>
+          <canvas baseChart [type]="enBarras ? 'bar' : 'line'" [data]="$any(datosSerie)" [options]="$any(opcionesSerie)"></canvas>
         </div>
       </div>
       <div>
@@ -129,7 +129,7 @@
         <tbody>
           <tr *ngFor="let p of puntosDesc" [class.fila--parcial]="p.valor === null">
             <th scope="row">{{ p.anio }}</th>
-            <td class="num">{{ fmt(p.valor) }}</td>
+            <td class="num">{{ fmt(p.valor, variable.decValor ?? 1) }}</td>
             <td class="num">{{ fmt(p.normal) }}</td>
             <td class="num" [ngClass]="claseSigno(p.anomalia)">{{ fmtSigno(p.anomalia) }}</td>
             <td class="num" *ngIf="esLluvia">{{ fmtSigno(p.anomaliaPct, 0) }}</td>

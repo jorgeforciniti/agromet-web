@@ -2,15 +2,24 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
 import { COLMENAR_ANIO_INICIO, COLMENAR_MAX_ANIOS_RANGO, ColmenarService } from '../../../services/colmenar.service';
-import { AnomaliaMensual, AnomaliasResponse, EstadoCarga, NormalesResponse, NormalMensual, Recurso } from '../../colmenar.models';
+import { AnomaliaMensual, AnomaliasResponse, EstadoCarga, MensualesResponse, NormalesResponse, NormalMensual, Recurso } from '../../colmenar.models';
 import { amplitud, COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from '../../colmenar.utils';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
 
-type Variable = 'max' | 'min' | 'amp' | 'pp';
+type Variable = 'max' | 'min' | 'amp' | 'pp' | 'dias';
+
+/** Fila mensual de anomalias.php con los días con lluvia de mensuales.php (null si el mes de lluvia no está completo). */
+interface FilaEvolucion extends AnomaliaMensual {
+  dias_lluvia: number | null;
+}
+
+/** Período de las normales: la de días con lluvia se calcula en el navegador con mensuales.php. */
+const NORMAL_DESDE = 1991;
+const NORMAL_HASTA = 2020;
 
 interface DefVariable {
   id: Variable;
@@ -23,8 +32,8 @@ interface DefVariable {
   color: string;
   colorPositivo: string;
   colorNegativo: string;
-  valor: (d: AnomaliaMensual) => number | null;
-  normalFila: (d: AnomaliaMensual) => number | null;
+  valor: (d: FilaEvolucion) => number | null;
+  normalFila: (d: FilaEvolucion) => number | null;
   normal: (n: NormalMensual) => number | null;
   /** Textos y colores que dependen del significado de la variable. */
   mayor: string;
@@ -36,6 +45,8 @@ interface DefVariable {
   clasePos: string;
   claseNeg: string;
   paleta: string[];
+  /** Decimales de los valores observados (los conteos de días van sin decimales). */
+  decValor?: number;
 }
 
 /**
@@ -111,6 +122,18 @@ const VARIABLES: DefVariable[] = [
     mayor: 'Año más lluvioso', menor: 'Año más seco', leyendaAnomalia: 'Azul: más lluvioso que lo normal · Naranja: más seco.',
     franjas: 'de precipitación', leyendaFranjas: 'marrón, más seco; verde azulado, más lluvioso.', clasePos: 'pos-pp', claseNeg: 'neg-pp',
     paleta: PALETA_LLUVIA
+  },
+  {
+    // Días con 0,1 mm o más (dias_lluvia_medible de mensuales.php). La normal 1991–2020 no está en
+    // normales.php: la calcula el componente (normalDias), por eso normal y normalFila devuelven null.
+    id: 'dias', boton: 'Días con lluvia', nombre: 'Días con lluvia (0,1 mm o más)', corta: 'Días con lluvia', unidad: 'días',
+    agregado: 'suma', color: COLOR.lluvia, colorPositivo: COLOR.humedo, colorNegativo: COLOR.seco,
+    valor: (d) => d.dias_lluvia, normalFila: () => null, normal: () => null,
+    mayor: 'Año con más días de lluvia', menor: 'Año con menos días de lluvia',
+    leyendaAnomalia: 'Azul: más días con lluvia que lo normal · Naranja: menos.',
+    franjas: 'de días con lluvia', leyendaFranjas: 'marrón, menos días con lluvia; verde azulado, más días.', clasePos: 'pos-pp', claseNeg: 'neg-pp',
+    paleta: PALETA_LLUVIA,
+    decValor: 0
   }
 ];
 
@@ -141,7 +164,10 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
 
   estado: EstadoCarga = 'cargando';
   mensaje?: string;
-  private datos: AnomaliaMensual[] = [];
+  private datos: FilaEvolucion[] = [];
+  /** Normal 1991–2020 de días con lluvia por mes (null si no pudo calcularse). */
+  private normalDias: (number | null)[] = [];
+  private normalDiasCargada = false;
   private claveCargada = '';
 
   puntos: PuntoAnual[] = [];
@@ -166,6 +192,11 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
 
   get esLluvia(): boolean {
     return this.variable.id === 'pp';
+  }
+
+  /** Precipitación y días con lluvia se grafican en barras; las temperaturas, en líneas. */
+  get enBarras(): boolean {
+    return this.variable.id === 'pp' || this.variable.id === 'dias';
   }
 
   get desde(): number {
@@ -227,11 +258,26 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     this.estado = 'cargando';
     this.mensaje = undefined;
     this.sub?.unsubscribe();
-    this.sub = forkJoin(
-      tramos.map(([d, h]) => this.api.recurso(this.api.getAnomalias(d, h), (r: AnomaliasResponse) => !r.datos?.length))
-    ).subscribe((res) => {
+    // La normal de días con lluvia se calcula una sola vez, con los meses completos de 1991–2020.
+    const normalTramos: [number, number][] = this.normalDiasCargada ? [] : [[NORMAL_DESDE, 2010], [2011, NORMAL_HASTA]];
+    this.sub = forkJoin({
+      anomalias: forkJoin(tramos.map(([d, h]) => this.api.recurso(this.api.getAnomalias(d, h), (r: AnomaliasResponse) => !r.datos?.length))),
+      mensuales: forkJoin(tramos.map(([d, h]) => this.api.recurso(this.api.getMensuales(d, h), (r: MensualesResponse) => !r.datos?.length))),
+      normal: normalTramos.length
+        ? forkJoin(normalTramos.map(([d, h]) => this.api.recurso(this.api.getMensuales(d, h), (r: MensualesResponse) => !r.datos?.length)))
+        : of([] as Recurso<MensualesResponse>[])
+    }).subscribe(({ anomalias: res, mensuales, normal }) => {
       const error = res.find((r) => r.estado === 'error');
-      this.datos = res.flatMap((r) => r.datos?.datos ?? []);
+      if (normalTramos.length) {
+        this.normalDias = this.calcularNormalDias(normal);
+        this.normalDiasCargada = normal.every((r) => r.estado === 'ok');
+      }
+      // Días con lluvia sólo en meses de lluvia completa; si mensuales.php falla, la variable queda sin datos.
+      const dias = new Map<string, number>();
+      for (const m of mensuales.flatMap((r) => r.datos?.datos ?? [])) {
+        if (m.lluvia_completa) dias.set(`${m.anio}-${m.mes}`, m.dias_lluvia_medible);
+      }
+      this.datos = res.flatMap((r) => r.datos?.datos ?? []).map((d) => ({ ...d, dias_lluvia: dias.get(`${d.anio}-${d.mes}`) ?? null }));
       this.claveCargada = clave;
       if (error) {
         // Un tramo con error invalida la serie: no se muestra una evolución con huecos no explicados.
@@ -244,6 +290,18 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     });
   }
 
+  /** Promedio de días con lluvia de cada mes en 1991–2020, sobre los meses de lluvia completa. */
+  private calcularNormalDias(res: Recurso<MensualesResponse>[]): (number | null)[] {
+    const suma = new Array(12).fill(0);
+    const n = new Array(12).fill(0);
+    for (const m of res.flatMap((r) => r.datos?.datos ?? [])) {
+      if (!m.lluvia_completa || m.anio < NORMAL_DESDE || m.anio > NORMAL_HASTA) continue;
+      suma[m.mes - 1] += m.dias_lluvia_medible;
+      n[m.mes - 1]++;
+    }
+    return suma.map((s, i) => (n[i] ? s / n[i] : null));
+  }
+
   private calcular(): void {
     if (this.estado !== 'ok') {
       this.puntos = [];
@@ -253,7 +311,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     }
     const v = this.variable;
     const agregar = (vals: number[]) => (v.agregado === 'suma' ? suma(vals) : (media(vals) as number));
-    const porAnio = new Map<number, AnomaliaMensual[]>();
+    const porAnio = new Map<number, FilaEvolucion[]>();
     for (const d of this.datos) {
       porAnio.set(d.anio, [...(porAnio.get(d.anio) ?? []), d]);
     }
@@ -261,6 +319,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     // Normal del período elegido: la del mes, o el promedio (temperatura) / suma (lluvia) de las 12 normales mensuales.
     const normalesMes = this.normales.datos?.datos ?? [];
     const normalMensual = (m: number) => {
+      if (v.id === 'dias') return this.normalDias[m - 1] ?? null;
       const n = normalesMes.find((x) => x.mes === m);
       return n ? v.normal(n) : null;
     };
@@ -340,7 +399,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
 
   private armarGraficos(anios: number[]): void {
     const v = this.variable;
-    const lluvia = this.esLluvia;
+    const lluvia = this.enBarras;
     const decTendencia = lluvia ? 1 : 2;
     this.datosSerie = {
       labels: anios.map(String),
