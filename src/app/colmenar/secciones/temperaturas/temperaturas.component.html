@@ -11,6 +11,17 @@
           <app-ayuda-termino *ngIf="variable === 'amp'" termino="amplitud"></app-ayuda-termino></h2>
         <p class="panel__sub">{{ etiquetaVariable }} observada frente a la normal 1991–2020. Los meses incompletos se marcan
           con un rombo hueco y no se comparan con la normal.</p>
+        <!-- Pregunta para la Sección: ¿cuántos días faltantes admite mensuales.php para considerar validada la media mensual
+          de Tmax o de Tmin? -->
+        <app-como-se-lee>
+          <p>La línea muestra, mes a mes, la media de la temperatura máxima, de la mínima o de la amplitud térmica (según el
+            botón elegido) frente a la normal 1991–2020, en línea punteada gris. Sólo se unen los meses validados; un mes
+            incompleto aparece como rombo hueco con la media de los días registrados, como referencia.</p>
+          <p>Las barras de anomalía muestran la diferencia de cada mes completo con su normal: rojo, más cálido, y azul, más
+            frío. En la amplitud, violeta indica más diferencia entre máxima y mínima que lo normal, y verde, menos.</p>
+          <p>La tabla reúne los tres indicadores, los extremos absolutos de cada mes y los días con dato válido de máxima y de
+            mínima. Entre paréntesis, la media parcial de un mes incompleto, sin anomalía.</p>
+        </app-como-se-lee>
       </div>
       <div class="chips" role="group" aria-label="Variable">
         <button type="button" class="chip" [class.chip--activo]="variable === 'max'" [attr.aria-pressed]="variable === 'max'"

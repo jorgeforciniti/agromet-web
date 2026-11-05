@@ -4,6 +4,17 @@
       <h2 class="panel__titulo">Días con lluvia {{ anio }} <app-ayuda-termino termino="clasesLluvia"></app-ayuda-termino></h2>
       <p class="panel__sub">Cantidad de días según la lluvia diaria registrada, frente a la normal {{ NORMAL_DESDE }}–{{ NORMAL_HASTA }}.
         Sólo se comparan meses con dato todos los días.</p>
+      <!-- Pregunta para la Sección: esta normal se calcula con los registros diarios (días con estado_pp 0, 1 o 2) y la
+        de «Evolución» (días con lluvia) con dias_lluvia_medible de mensuales.php en meses de lluvia completa; ¿deben
+        coincidir? Pueden diferir si los criterios de mes completo no son iguales. -->
+      <app-como-se-lee>
+        <p>Cada día se asigna a una clase según la lluvia registrada. Las barras apiladas muestran cuántos días de cada clase
+          tuvo cada mes, y la línea punteada, el promedio de días con lluvia (0,1 mm o más) del mismo mes en 1991–2020. Un mes
+          incompleto se ve con colores atenuados y cuenta sólo los días con dato.</p>
+        <p>La normal de cada clase se calcula con los registros diarios de El Colmenar: es el promedio de días de esa clase en
+          los meses de 1991–2020 con dato todos los días. Las tarjetas y el gráfico por clase suman sólo los meses completos del
+          año y los comparan con la normal de esos mismos meses. La «?» explica las clases y la traza.</p>
+      </app-como-se-lee>
     </div>
   </div>
   <div class="leyenda" aria-label="Clases de lluvia diaria">

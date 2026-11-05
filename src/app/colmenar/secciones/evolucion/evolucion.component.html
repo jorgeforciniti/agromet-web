@@ -4,6 +4,18 @@
       <h2 class="panel__titulo">Evolución térmica e hídrica <app-ayuda-termino termino="normal"></app-ayuda-termino></h2>
       <p class="panel__sub">{{ descripcionValor }} en cada año entre {{ desde }} y {{ anio }}, frente a la normal 1991–2020.
         El año final se cambia con el selector de la página.</p>
+      <!-- Pregunta para la Sección: el valor anual de temperatura es el promedio simple de las 12 medias mensuales; ¿es
+        correcto? ¿Conviene informar la significancia de la tendencia (hoy se aclara que no se calcula)? -->
+      <app-como-se-lee>
+        <p>Cada punto o barra es un año: el valor del mes elegido o, en «Anual», el promedio de los 12 meses (temperaturas) o
+          su suma (precipitación y días con lluvia). El valor anual sólo se calcula con los 12 meses validados; los años sin
+          valor válido quedan como hueco y se listan debajo de las franjas.</p>
+        <p>La línea punteada gris es la normal 1991–2020 y la negra, la tendencia lineal por mínimos cuadrados con los años
+          válidos (al menos 5), expresada por década. Es indicativa: no incluye prueba de significancia. La normal de días con
+          lluvia se calcula con los meses completos de 1991–2020 de la serie de El Colmenar.</p>
+        <p>Las franjas pintan cada año según su anomalía. El color llega al tono más intenso a partir de 2,5 desvíos estándar de
+          las anomalías del período mostrado, por lo que la escala cambia con el período y la variable.</p>
+      </app-como-se-lee>
     </div>
     <div class="chips" role="group" aria-label="Variable">
       <button *ngFor="let v of VARIABLES" type="button" class="chip" [class.chip--activo]="variable.id === v.id"

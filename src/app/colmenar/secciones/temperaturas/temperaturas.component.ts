@@ -7,6 +7,7 @@ import { amplitud, COLOR, fmt, fmtSigno, MESES, MESES_CORTOS, opcionesBase, porM
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
 type Variable = 'max' | 'min' | 'amp';
 
@@ -26,7 +27,7 @@ interface FilaTemp {
 @Component({
   selector: 'app-colmenar-temperaturas',
   standalone: true,
-  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './temperaturas.component.html',
   styleUrls: ['../../shared/seccion.css']
 })

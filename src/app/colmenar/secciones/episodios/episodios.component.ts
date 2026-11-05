@@ -14,13 +14,14 @@ import { COLOR, fmt, opcionesBase } from '../../colmenar.utils';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
 type ColumnaEpisodio = keyof EpisodioCalido;
 
 @Component({
   selector: 'app-colmenar-episodios',
   standalone: true,
-  imports: [ExportarGraficoComponent, CommonModule, MatIconModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, MatIconModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './episodios.component.html',
   styleUrls: ['../../shared/seccion.css']
 })

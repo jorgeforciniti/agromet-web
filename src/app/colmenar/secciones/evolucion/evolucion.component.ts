@@ -9,6 +9,7 @@ import { amplitud, COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
 type Variable = 'max' | 'min' | 'amp' | 'pp' | 'dias';
 
@@ -140,7 +141,7 @@ const VARIABLES: DefVariable[] = [
 @Component({
   selector: 'app-colmenar-evolucion',
   standalone: true,
-  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './evolucion.component.html',
   styleUrls: ['../../shared/seccion.css']
 })

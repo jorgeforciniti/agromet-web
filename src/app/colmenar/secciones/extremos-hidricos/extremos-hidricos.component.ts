@@ -9,6 +9,7 @@ import { COLOR, fmt, MESES, MESES_CORTOS, opcionesBase } from '../../colmenar.ut
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 import {
   AjusteGumbel,
   ajustarGumbel,
@@ -70,7 +71,7 @@ const PRIMER_ANIO_LLUVIA = 1911;
 @Component({
   selector: 'app-colmenar-extremos-hidricos',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ExportarGraficoComponent],
+  imports: [CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ExportarGraficoComponent, ComoSeLeeComponent],
   templateUrl: './extremos-hidricos.component.html',
   styleUrls: ['../../shared/seccion.css', './extremos-hidricos.component.css']
 })

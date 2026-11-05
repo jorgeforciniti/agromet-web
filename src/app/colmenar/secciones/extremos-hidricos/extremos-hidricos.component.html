@@ -4,6 +4,20 @@
       <h2 class="panel__titulo">Extremos hídricos <app-ayuda-termino termino="retorno"></app-ayuda-termino></h2>
       <p class="panel__sub">Frecuencia de lluvias máximas de 1 a 5 días consecutivos y períodos de retorno estimados con la
         distribución de Gumbel <app-ayuda-termino termino="gumbel"></app-ayuda-termino>, sobre los máximos de cada año del período.</p>
+      <!-- Pregunta para la Sección: se toma como válido el día con estado_pp 0, 1 o 2 y valor informado; ¿es el criterio
+        correcto? ¿Alcanzan 5 años completos como mínimo para mostrar el ajuste, o conviene exigir más? -->
+      <app-como-se-lee>
+        <p>Para cada año del período elegido se toma la mayor lluvia caída en 1 día, o en 2 a 5 días consecutivos según el
+          botón. Con esos máximos anuales se ajusta una distribución de Gumbel que estima la lluvia esperable para 2, 5, 10, 25,
+          50 y 100 años de retorno, con su intervalo de confianza del 80 %. Sólo entran los años con lluvia válida todos los
+          días, y se necesitan al menos 5.</p>
+        <p>En la curva, cada punto es un máximo anual ubicado según su frecuencia empírica; la línea es el ajuste y la banda,
+          el intervalo. La tarjeta del año elegido muestra su máximo y el período de retorno que le asigna ese ajuste; con el
+          año incompleto es provisorio.</p>
+        <p>La tabla por mes repite el ajuste con los máximos (o los totales) de cada mes; los eventos de varios días se asignan
+          al mes de su día central. Debajo, un gráfico cuenta en qué mes cayó la máxima diaria de cada año y otro relaciona la
+          lluvia de octubre a marzo con la suma de las máximas diarias de esos meses. Cada «?» explica el término.</p>
+      </app-como-se-lee>
     </div>
     <div class="chips" role="group" aria-label="Duración del evento">
       <button *ngFor="let d of duraciones" type="button" class="chip" [class.chip--activo]="duracion === d"

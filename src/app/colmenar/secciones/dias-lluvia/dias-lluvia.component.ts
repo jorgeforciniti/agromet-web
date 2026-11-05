@@ -9,6 +9,7 @@ import { COLOR, fmt, fmtSigno, MESES, MESES_CORTOS, opcionesBase } from '../../c
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
 import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
 /** Clases de lluvia diaria (mm, resolución 0,1 mm). La clase 0 agrupa días sin lluvia y con traza. */
 export interface ClaseLluvia {
@@ -56,7 +57,7 @@ interface FilaMes {
 @Component({
   selector: 'app-colmenar-dias-lluvia',
   standalone: true,
-  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './dias-lluvia.component.html',
   styleUrls: ['../../shared/seccion.css', './dias-lluvia.component.css']
 })

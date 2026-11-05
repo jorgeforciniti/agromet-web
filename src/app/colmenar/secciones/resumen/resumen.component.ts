@@ -15,6 +15,7 @@ import { amplitud, fmt, fmtSigno, INDICADORES, listaMeses, media, MESES, normalD
 import { ClasificacionBadgeComponent } from '../../shared/clasificacion-badge.component';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
 interface ResumenLluvia {
   total: number;
@@ -49,7 +50,7 @@ interface ResumenExtremo {
 @Component({
   selector: 'app-colmenar-resumen',
   standalone: true,
-  imports: [CommonModule, MatIconModule, ClasificacionBadgeComponent, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [CommonModule, MatIconModule, ClasificacionBadgeComponent, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './resumen.component.html',
   styleUrls: ['../../shared/seccion.css', './resumen.component.css']
 })

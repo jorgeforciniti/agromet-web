@@ -33,6 +33,12 @@
   line-height: 1.2;
 }
 
+/* «¿Cómo se lee?» bajo la descripción de la sección: ancho de lectura cómodo, sin desbordar en móviles. */
+app-como-se-lee {
+  max-width: 75ch;
+  margin-top: 6px;
+}
+
 .panel__titulo--sm {
   font-size: .9rem;
 }
