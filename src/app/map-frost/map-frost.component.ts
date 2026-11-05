@@ -369,6 +369,8 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.dejarDeSeguirTamanio?.();
     this.mapa?.remove();
+    // Sin mapa: los pasos que siguen a las cargas asíncronas no tocan un mapa ya destruido
+    this.mapa = undefined;
     this.heladasSubscription?.unsubscribe();
   }
 

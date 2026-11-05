@@ -378,6 +378,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.dejarDeSeguirTamanio?.();
     this.map?.remove();
+    // Sin mapa: los pasos que siguen a las cargas asíncronas no tocan un mapa ya destruido
+    this.map = undefined;
     this.rainSubscription?.unsubscribe();
   }
 

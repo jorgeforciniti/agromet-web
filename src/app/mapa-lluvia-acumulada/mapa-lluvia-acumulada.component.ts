@@ -231,6 +231,8 @@ export class MapaLluviaAcumuladaComponent implements OnInit, AfterViewInit, OnDe
     this.pedidos.unsubscribe();
     this.dejarDeSeguirTamanio?.();
     this.map?.remove();
+    // Sin mapa: los pasos que siguen a las cargas asíncronas no tocan un mapa ya destruido
+    this.map = undefined;
   }
 
   /** Fin del período en el título: el último dato del mes en curso, o el fin del mes anterior. */

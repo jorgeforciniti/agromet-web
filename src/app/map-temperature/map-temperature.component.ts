@@ -122,7 +122,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
   private dejarDeSeguirTamanio?: () => void;
   public currentVariableLabel: string = '';
   form!: FormGroup;
-  map!: L.Map;
+  map?: L.Map;
   layerGroup!: L.LayerGroup;
   zoneLayers: ZonaProductiva[] = crearZonasProductivas();
   loading = false;
@@ -280,6 +280,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private addColorLegend() {
+    if (!this.map) return;
     const existingLegend = document.getElementById('temperature-legend');
     if (existingLegend) existingLegend.remove();
 
@@ -385,5 +386,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
   ngOnDestroy(): void {
     this.dejarDeSeguirTamanio?.();
     this.map?.remove();
+    // Sin mapa: los pasos que siguen a las cargas asíncronas no tocan un mapa ya destruido
+    this.map = undefined;
   }
 }
