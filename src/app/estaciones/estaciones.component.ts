@@ -14,6 +14,7 @@ import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion } from '../sh
 import { leyendaEstados } from '../maps/leyenda-estados';
 import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
 import { escaparHtml, popupEstacion } from '../maps/popup';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 /** Columnas por las que se puede ordenar la lista (D1 del informe de mejoras) */
 export type ColumnaOrden = 'nombre' | 'temp' | 'hum' | 'rain' | 'updated';
@@ -37,7 +38,7 @@ const ZONA_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-estaciones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ComoSeLeeComponent],
   templateUrl: './estaciones.component.html',
   styleUrl: './estaciones.component.css'
 })
