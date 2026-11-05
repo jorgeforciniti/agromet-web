@@ -8,6 +8,21 @@
       <h2 class="titulo">Condiciones actuales para aplicación de agroquímicos</h2>
       <span class="app-dialog-eyebrow">MANEJO</span>
     </div>
+    <!-- Pregunta para la Sección: en el mapa se evalúa con la ráfaga (viento_max) como viento medio y sin lluvia ni ráfagas; en la tabla, con el viento medio, la ráfaga y la lluvia. ¿Es intencional? Por eso el semáforo del mapa puede no coincidir con la tabla. -->
+    <!-- Pregunta para la Sección: un dato faltante de temperatura, humedad o viento se toma como 0 en la evaluación de la tabla (Number(null ?? 0)); ¿debería mostrarse la fila sin evaluar? -->
+    <!-- Pregunta para la Sección: el Kp que se usa es el último publicado por NOAA, también al consultar fechas pasadas; y la noche para la inversión es fija (antes de las 7 o después de las 19 h) en todo el año. ¿Se aclara o se corrige? ¿Validan los umbrales de viento, ráfaga y ΔT por método (spray-advisor.service.ts)? La columna dice «AT (°C)»: ¿debería decir «ΔT (°C)»? -->
+    <app-como-se-lee>
+      <p>Evalúa, para cada registro del día elegido, si las condiciones medidas en la estación permitían aplicar con
+        el método, la prioridad y el cultivo indicados. Cada botón «i» explica un criterio en detalle.</p>
+      <p>El semáforo combina dos puntajes de riesgo, deriva y eficacia (más alto es peor), ponderados según la
+        prioridad, y nunca es mejor que el peor criterio individual: viento medio, diferencia entre ráfaga y viento
+        medio, ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la
+        fila en rojo.</p>
+      <p>La inversión no se mide: se estima como probable de noche (antes de las 7 o después de las 19 h) con viento
+        menor a 5 km/h y humedad de 85 % o más. El producto y el tamaño de gota no cambian el semáforo: sólo agregan
+        razones y recomendaciones al seleccionar una fila.</p>
+      <p>El mapa muestra sólo las estaciones con datos de las últimas 2 horas, evaluadas con su último dato.</p>
+    </app-como-se-lee>
 
     <div *ngIf="loadingEstaciones" class="loading-overlay">
       <div class="spinner"></div>

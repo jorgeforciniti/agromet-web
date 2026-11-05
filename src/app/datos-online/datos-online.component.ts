@@ -25,6 +25,7 @@ import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { referenciasHelada } from '../charts/referencias';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { armarEnlace, consultaDe } from '../shared/enlace-consulta';
 import { descargarCsv } from '../shared/descargar-csv';
 import { pluginFranjasSinDatos } from '../charts/dias-faltantes';
@@ -72,7 +73,7 @@ const VARIABLES_ONLINE = ['temp_af', 'hum_af', 'presion', 'lluvia', 'viento_medi
 
 @Component({
   standalone: true,
-  imports: [ExportarGraficoComponent, CopiarEnlaceComponent, CommonModule, FormsModule, MatDialogModule, MatIconModule],
+  imports: [ComoSeLeeComponent, ExportarGraficoComponent, CopiarEnlaceComponent, CommonModule, FormsModule, MatDialogModule, MatIconModule],
   templateUrl: './datos-online.component.html',
   styleUrls: ['./datos-online.component.css']
 })

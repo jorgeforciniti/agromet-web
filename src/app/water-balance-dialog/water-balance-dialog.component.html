@@ -10,6 +10,28 @@
           Almacenaje de agua en el suelo, déficit y excedentes de cada década, a partir de la lluvia y la
           evapotranspiración potencial (EP) medidas por la estación.
         </p>
+        <!-- Preguntas para la Sección:
+             1. ¿Con qué ecuación calcula cada estación la EP (campo `et`)? ¿Es la ETo de Penman-Monteith FAO-56?
+             2. ¿De dónde sale la CMR de 300 mm para 1 m, igual para todos los sitios? ¿Se quiere aclarar
+                para qué suelos es razonable? -->
+        <app-como-se-lee>
+          <p>Es el balance hidrológico seriado de Pascale y Damario (1977). Para cada década (1–10, 11–20 y 21 a
+            fin de mes) se suman la lluvia (P) y la EP de la estación. Si
+            la lluvia cubre la EP, el sobrante se suma al almacenaje hasta la capacidad máxima de retención
+            (CMR, {{ cmr }} mm); lo que la supera es excedente. Si no la cubre, el almacenaje baja en forma
+            exponencial: <code>Alm = Alm anterior × e<sup>−(EP − P) / CMR</sup></code>.</p>
+          <p>La EP real es la lluvia más el agua que cede el suelo. En «Situación hídrica», las barras hacia
+            abajo son déficit (EP real menor que la EP) y las barras hacia arriba, excedente. La EP relativa es
+            EP real / EP en %: 100 % indica que no hubo déficit.</p>
+          <p>Sin un almacenaje conocido, el cálculo arranca con {{ almacenajeInicial }} mm unas 18 décadas (seis
+            meses) antes del período, para que ese valor inicial pese poco. Si se indica el almacenaje al inicio,
+            arranca con ese valor en la primera década.</p>
+          <p>Una década con días sin dato se calcula con los días que hay y se muestra más clara. Una década sin
+            lluvia o sin EP corta el balance: desde ahí sólo se muestran lluvia y EP. La CMR es la misma para
+            todos los sitios y no considera el tipo de suelo ni el cultivo.</p>
+          <p class="bhs-cita">Pascale, A. J. y Damario, E. A. (1977). El balance hidrológico seriado y su utilización en
+            estudios agroclimáticos. <em>Revista de la Facultad de Agronomía de La Plata</em>, 53(1-2): 15-34. Buenos Aires.</p>
+        </app-como-se-lee>
       </div>
       <button type="button" class="bhs-cerrar" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>

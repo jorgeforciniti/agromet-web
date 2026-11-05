@@ -7,6 +7,20 @@
         <h2 class="titulo">Datos meteorológicos por localidad</h2>
         <span class="app-dialog-eyebrow">CONSULTA DETALLADA</span>
       </div>
+      <!-- Pregunta para la Sección: el resumen lo calcula el servidor. ¿Qué criterio usa para «Días con heladas» (mínima ≤ 0 °C?), «Días de lluvia» (umbral en mm?) y las horas (duración de cada registro)? -->
+      <!-- Pregunta para la Sección: ¿con qué método se calcula la evapotranspiración (Penman-Monteith FAO-56?) y qué umbral define las horas de humedad de hoja? ¿El día pluviométrico va de 9 a 9 h? -->
+      <!-- Pregunta para la Sección: ¿qué período de referencia tienen las normales que se grafican? -->
+      <app-como-se-lee>
+        <p>Resume los datos de la estación elegida entre las dos fechas indicadas: extremos y medias de temperatura
+          y humedad, horas por encima o por debajo de distintos umbrales, lluvia y viento y, si la estación tiene
+          los sensores, radiación solar, evapotranspiración y humedad de hoja.</p>
+        <p>En Gráficos, cada punto es un valor diario. La línea punteada del mismo color es la normal de la
+          estación, cuando la tiene; la lluvia normal se muestra como promedio diario (la normal del mes dividida
+          por sus días).</p>
+        <p>Los días sin registro quedan como huecos con una franja gris y se enumeran debajo del gráfico. Los totales
+          y conteos se calculan con los registros disponibles, así que con datos faltantes pueden quedar por debajo
+          del valor real. La tabla muestra como máximo los últimos 31 días del período.</p>
+      </app-como-se-lee>
     </div>
 
     <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">

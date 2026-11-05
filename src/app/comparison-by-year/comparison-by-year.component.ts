@@ -32,6 +32,7 @@ import { forkJoin } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
@@ -93,6 +94,7 @@ const MY_DATE_FORMATS = {
   encapsulation: ViewEncapsulation.None,
   imports: [
     ExportarGraficoComponent,
+    ComoSeLeeComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,

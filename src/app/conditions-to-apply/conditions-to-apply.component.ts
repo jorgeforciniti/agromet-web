@@ -37,6 +37,7 @@ import {
   Semaforo
 } from '../services/spray-advisor.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { armarEnlace, consultaDe, fechaIso, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
 // ===== Formato fechas dd/MM/yyyy =====
@@ -125,6 +126,7 @@ type InfoKey =
     MatSelectModule,
     MatTooltipModule,
     CopiarEnlaceComponent,
+    ComoSeLeeComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },

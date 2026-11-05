@@ -10,9 +10,27 @@
           Reorganiza la serie diaria según hitos fenológicos del lote y resume lluvia, ETo,
           demanda hídrica ajustada con Kc, humectación foliar, radiación y extremos térmicos.
         </p>
+        <!-- Preguntas para la Sección:
+             1. ¿De dónde salen los Kc por defecto de cada cultivo y las duraciones con que se sugieren los
+                hitos (soja: R1 a 45 días de la siembra, R5 a 80, R6 a 95, cosecha a 135; maíz y caña)? Se
+                podrían citar.
+             2. ¿Con qué ecuación calcula la estación la ETo (campo et)?
+             3. Un día con ET 0 y radiación 0 se toma como falla del sensor. ¿Es correcto? -->
         <app-como-se-lee>
-          <p>Cada etapa va de un hito al siguiente. La demanda hídrica es la ETo multiplicada por el Kc de la
-            etapa; el balance simple es lluvia menos demanda.</p>
+          <p>Cada etapa va de un hito al siguiente: empieza el día del hito y termina el día anterior al hito
+            que sigue. Al cambiar la fecha de referencia (siembra o emergencia), las demás se sugieren con la
+            duración típica del cultivo y se pueden corregir a mano.</p>
+          <p>Para cada etapa se suman la lluvia, la ETo y las horas de hoja mojada de la estación, y se promedian
+            la radiación solar y las temperaturas máxima y mínima. También se cuentan los días con máxima de
+            35 °C o más y con mínima de 0 °C o menos.</p>
+          <p>La demanda hídrica es la ETo de cada día multiplicada por el Kc de la etapa; los Kc propuestos son
+            valores de referencia y se pueden cambiar. Sin «Aplicar Kc», la demanda es la ETo. El balance simple
+            es lluvia menos demanda: no considera el agua del suelo, el escurrimiento ni la lluvia que no
+            infiltra (para eso está el balance hidrológico seriado).</p>
+          <p>En el gráfico por etapa, las líneas punteadas son la lluvia y la demanda normales de la estación en
+            las mismas fechas. Los días sin datos se marcan en gris y los totales afectados llevan «≥». Si la
+            estación tiene normales, «Completar con la normal» llena la lluvia y la ETo que faltan con la normal
+            diaria de ese mes; esos tramos se dibujan punteados.</p>
         </app-como-se-lee>
       </div>
 

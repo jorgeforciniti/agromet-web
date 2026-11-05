@@ -152,6 +152,7 @@ type DashboardScales = NonNullable<ChartConfiguration<'line' | 'bar', number[], 
 
 import { ValorPipe } from '../pipes/valor.pipe';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 @Component({
   selector: 'app-weather-dashboard',
@@ -159,6 +160,7 @@ import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
   styleUrls: ['./weather-dashboard.component.css'],
   standalone: true,
   imports: [
+    ComoSeLeeComponent,
     ExportarGraficoComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,

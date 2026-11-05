@@ -6,6 +6,22 @@
           <h2 class="titulo">Comparar períodos entre años</h2>
           <span class="dialog-eyebrow">COMPARATIVA HISTÓRICA</span>
         </div>
+        <!-- Pregunta para la Sección: ¿de qué período (años) y de qué fuente son las normales de cada
+             estación (normales.php)? Si conviene, se puede nombrar en el texto. -->
+        <app-como-se-lee>
+          <p>Se grafica la variable elegida en el período seleccionado y en las mismas fechas del año de
+            comparación, para la misma estación: cada día se compara con el mismo día del otro año.</p>
+          <p>En formato decádico (1–10, 11–20 y 21 a fin de mes) o mensual, la lluvia, la evapotranspiración y
+            las horas de hoja mojada se suman; el resto se promedia. La humedad relativa es el promedio de la
+            máxima y la mínima de cada día.</p>
+          <p>La línea gris punteada es la normal mensual de la estación, cuando la tiene; en formato diario, la
+            lluvia normal es la del mes repartida en partes iguales entre sus días. El resumen sobre el gráfico
+            da la máxima, la mínima, el total o el promedio y la comparación con la normal (en % para las
+            variables que se suman). En temperatura mínima se marcan 0 °C, −2 °C y 22 °C; en máxima, 35 °C.</p>
+          <p>Los días sin dato quedan como hueco con una franja gris. Una década o un mes con días faltantes se
+            calcula con los días que tienen dato y se ve más claro (barras) o con punto hueco (líneas): una suma
+            incompleta puede quedar por debajo del valor real.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">

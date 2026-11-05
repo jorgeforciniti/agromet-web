@@ -10,6 +10,26 @@
           Cargá el conteo de vainas y el peso de mil semillas para estimar el rendimiento
           corregido a 13,5 % de humedad.
         </p>
+        <!-- Preguntas para la Sección:
+             1. ¿Cuál es el origen del modelo (autor, año, publicación del Programa Granos)? Se podría citar.
+             2. El factor 19.200 (100 × 192) equivale a unos 19.230 m de surco por hectárea, es decir, surcos a
+                0,52 m. ¿Es así? ¿Debería poder elegirse el distanciamiento del lote?
+             3. La corrección por humedad (1,15 % por punto + 0,685 %, con un salto entre 13,4/13,6 y 13,5 %)
+                ¿sale de la tabla de mermas comercial de soja? ¿Es correcto SUMAR rinde con el mismo factor
+                cuando el grano está más seco que 13,5 %?
+             4. ¿El peso de mil semillas se carga a la humedad del grano o ya corregido? ¿El conteo es de un
+                solo metro o el promedio de varios? -->
+        <app-como-se-lee>
+          <p>Las vainas se cuentan en un metro lineal de surco, separadas según cuántas semillas tienen. Las
+            semillas por metro son <code>V1 + 2·V2 + 3·V3 + 4·V4</code>.</p>
+          <p><strong>Rinde base</strong> (kg/ha) = semillas por metro × 19.200 × peso de mil semillas (g) /
+            1.000.000. El factor 19.200 es fijo en el modelo.</p>
+          <p><strong>Corrección por humedad:</strong> con más de 13,5 % se descuenta del rinde base
+            <code>(humedad − 13,6) × 1,15 + 0,685</code> %; con menos, se suma
+            <code>(13,4 − humedad) × 1,15 + 0,685</code> %. Con 13,5 % no hay corrección.</p>
+          <p>El resultado vale para los metros contados: no considera pérdidas de cosecha ni variaciones dentro
+            del lote.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">

@@ -6,6 +6,24 @@
           <h2 class="titulo">Comparar períodos entre localidades</h2>
           <span class="dialog-eyebrow">COMPARATIVA OPERATIVA</span>
         </div>
+        <!-- Pregunta para la Sección: ¿de qué período (años) y de qué fuente son las normales de cada
+             estación (normales.php)? ¿Conviene advertir que dos estaciones pueden tener normales de
+             períodos distintos? -->
+        <app-como-se-lee>
+          <p>Se grafica la variable elegida para dos estaciones en las mismas fechas: la estación base y la de
+            comparación, cada una con su color.</p>
+          <p>En formato decádico (1–10, 11–20 y 21 a fin de mes) o mensual, la lluvia, la evapotranspiración y
+            las horas de hoja mojada se suman; el resto se promedia. La humedad relativa es el promedio de la
+            máxima y la mínima de cada día.</p>
+          <p>Las líneas punteadas son la normal mensual de cada estación, del color de su serie, cuando la
+            estación la tiene; en formato diario, la lluvia normal es la del mes repartida en partes iguales
+            entre sus días. El resumen sobre el gráfico da la máxima, la mínima, el total o el promedio y la
+            comparación con la normal de la propia estación (en % para las variables que se suman). En
+            temperatura mínima se marcan 0 °C, −2 °C y 22 °C; en máxima, 35 °C.</p>
+          <p>Los días sin dato quedan como hueco con una franja gris. Una década o un mes con días faltantes se
+            calcula con los días que tienen dato y se ve más claro (barras) o con punto hueco (líneas): una suma
+            incompleta puede quedar por debajo del valor real.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">

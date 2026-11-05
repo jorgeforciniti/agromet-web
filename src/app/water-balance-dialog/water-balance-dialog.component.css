@@ -75,6 +75,11 @@
   font-size: .94rem;
 }
 
+.bhs-cita {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
 .bhs-cerrar {
   flex: 0 0 auto;
   width: 40px;

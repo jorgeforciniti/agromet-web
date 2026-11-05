@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { WeatherService } from '../services/weather.service';
 import { forkJoin } from 'rxjs';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
 
 
@@ -49,6 +50,7 @@ interface StationRain {
   selector: 'app-rain-campaign-dialog',
   standalone: true,
   imports: [
+    ComoSeLeeComponent,
     CopiarEnlaceComponent,
     CommonModule,
     MatDialogModule,

@@ -17,6 +17,7 @@ import { fechaIso, fechasDelPeriodo, pluginFranjasSinDatos, porFecha } from '../
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
@@ -54,6 +55,7 @@ const COLOR_ALMACENAJE = '#5c940d';
   encapsulation: ViewEncapsulation.None,
   imports: [
     CopiarEnlaceComponent,
+    ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,
     CommonModule,

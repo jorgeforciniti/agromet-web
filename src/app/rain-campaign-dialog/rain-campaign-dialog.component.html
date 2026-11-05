@@ -5,6 +5,20 @@
         <h2 class="titulo">Lluvias por campaña</h2>
         <span class="dialog-eyebrow">ANÁLISIS DE CAMPAÑA</span>
       </div>
+      <!-- Pregunta para la Sección: los cortes del código (cellClass) no coinciden exactamente con la referencia: el código usa < 33 %, < 66 %, < 99 %, ≤ 150 %, ≤ 200 % y > 200 %, mientras la referencia dice ≤ 33, 34-66, 67-99, 100-149, 150-199 y ≥ 200 %. Un mes al 99,5 % o al 150 % cae en una clase distinta de la que indica la referencia. ¿Cuáles son los cortes correctos? -->
+      <!-- Pregunta para la Sección: ¿de qué estaciones sale la tabla (sólo automáticas o también pluviómetros de la red)? ¿El valor mensual cuenta como dato si faltan algunos días del mes? Con normal 0 mm, cualquier lluvia queda en «≥ 200 %»: ¿está bien así? -->
+      <app-como-se-lee>
+        <p>Cada fila es una estación y cada columna, un mes de la campaña de 12 meses que empieza en el mes y año
+          elegidos. Los valores son la lluvia mensual en milímetros.</p>
+        <p>El color compara la lluvia de cada mes con su normal, el promedio de la estación para ese mes en el período
+          de referencia (ambos aparecen al pasar el mouse sobre el valor). Las clases van desde un tercio o menos de
+          lo normal hasta el doble o más, como indica la referencia.</p>
+        <p>El mes en curso tiene un color propio porque su dato es parcial: es la lluvia acumulada hasta la fecha de la
+          columna «Último registro». Mientras la campaña no termina, no se muestra el total.</p>
+        <p>Un «—» indica que falta el dato de ese mes; en ese caso tampoco se calcula el total de la campaña. No se
+          listan las estaciones sin ningún dato en la campaña.</p>
+        <p>Al hacer clic en un valor mensual o en el total se abre la ficha de la estación, con su serie histórica.</p>
+      </app-como-se-lee>
     </div>
 
     <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">

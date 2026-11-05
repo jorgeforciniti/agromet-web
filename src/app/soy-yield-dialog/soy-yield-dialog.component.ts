@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
 
 /** Campo del formulario ↔ parámetro del enlace */
@@ -31,7 +32,8 @@ interface YieldBreakdown {
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    CopiarEnlaceComponent
+    CopiarEnlaceComponent,
+    ComoSeLeeComponent
   ],
   templateUrl: './soy-yield-dialog.component.html',
   styleUrls: ['./soy-yield-dialog.component.css']
