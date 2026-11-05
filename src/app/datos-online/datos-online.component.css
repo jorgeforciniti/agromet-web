@@ -208,9 +208,8 @@
   background: rgba(255, 255, 255, .92);
   color: var(--muted, #5b6470);
   font: inherit;
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 800;
-  letter-spacing: .03em;
   cursor: pointer;
 }
 
