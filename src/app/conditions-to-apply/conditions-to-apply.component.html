@@ -8,20 +8,27 @@
       <h2 class="titulo">Condiciones actuales para aplicación de agroquímicos</h2>
       <span class="app-dialog-eyebrow">MANEJO</span>
     </div>
-    <!-- Pregunta para la Sección: en el mapa se evalúa con la ráfaga (viento_max) como viento medio y sin lluvia ni ráfagas; en la tabla, con el viento medio, la ráfaga y la lluvia. ¿Es intencional? Por eso el semáforo del mapa puede no coincidir con la tabla. -->
-    <!-- Pregunta para la Sección: un dato faltante de temperatura, humedad o viento se toma como 0 en la evaluación de la tabla (Number(null ?? 0)); ¿debería mostrarse la fila sin evaluar? -->
-    <!-- Pregunta para la Sección: el Kp que se usa es el último publicado por NOAA, también al consultar fechas pasadas; y la noche para la inversión es fija (antes de las 7 o después de las 19 h) en todo el año. ¿Se aclara o se corrige? ¿Validan los umbrales de viento, ráfaga y ΔT por método (spray-advisor.service.ts)? La columna dice «AT (°C)»: ¿debería decir «ΔT (°C)»? -->
+    <!-- Umbrales aprobados por la Sección (nov. 2026); el detalle y su origen están en RULES de spray-advisor.service.ts. -->
     <app-como-se-lee>
       <p>Evalúa, para cada registro del día elegido, si las condiciones medidas en la estación permitían aplicar con
         el método, la prioridad y el cultivo indicados. Cada botón «i» explica un criterio en detalle.</p>
       <p>El semáforo combina dos puntajes de riesgo, deriva y eficacia (más alto es peor), ponderados según la
-        prioridad, y nunca es mejor que el peor criterio individual: viento medio, diferencia entre ráfaga y viento
-        medio, ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la
-        fila en rojo.</p>
-      <p>La inversión no se mide: se estima como probable de noche (antes de las 7 o después de las 19 h) con viento
-        menor a 5 km/h y humedad de 85 % o más. El producto y el tamaño de gota no cambian el semáforo: sólo agregan
-        razones y recomendaciones al seleccionar una fila.</p>
-      <p>El mapa muestra sólo las estaciones con datos de las últimas 2 horas, evaluadas con su último dato.</p>
+        prioridad, y nunca es mejor que el peor criterio individual: ráfaga, diferencia entre ráfaga y viento medio,
+        ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la fila en
+        rojo.</p>
+      <p>Viento: el techo se compara con la ráfaga y el piso con el viento medio. Con viento medio menor a 3 km/h hay
+        calma y riesgo de inversión (rojo). En aplicación terrestre la ráfaga es verde hasta 20 km/h, amarillo hasta
+        25 y rojo por encima; los demás métodos tienen sus propios límites. ΔT (guía GRDC de Australia): de 2 a 8 °C
+        es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; más de 10 o menos de 1 °C, no aplicar.</p>
+      <p>Si falta un dato del registro (temperatura, humedad, viento medio, ráfaga o lluvia) o es inválido, esa fila
+        o ese punto del mapa queda «Sin evaluar», en gris: nunca se evalúa con valores supuestos.</p>
+      <p>La inversión no se mide: se estima como probable de noche (entre la puesta y la salida del sol, calculadas
+        para la fecha y la ubicación de cada estación) con viento medio menor a 5 km/h y humedad de 85 % o más. El producto
+        y el tamaño de gota no cambian el semáforo: sólo agregan razones y recomendaciones al seleccionar una fila.</p>
+      <p>El Kp es el del intervalo de 3 h de cada registro, según NOAA, que publica la última semana. Para fechas
+        anteriores se usa el último Kp publicado y se aclara debajo de la tabla.</p>
+      <p>El mapa usa la misma evaluación que la tabla, con el último registro de cada estación y el último Kp, y
+        muestra sólo las estaciones con datos de las últimas 2 horas.</p>
     </app-como-se-lee>
 
     <div *ngIf="loadingEstaciones" class="loading-overlay">
@@ -165,9 +172,10 @@
           <button type="button" class="info-circle-btn" (click)="openInfo('KP', $event)"
             (keydown.enter)="openInfo('KP', $event)" (keydown.space)="openInfo('KP', $event)"
             [attr.aria-label]="'Info Kp'" [attr.title]="tooltip('KP')">i</button>
-          <span class="kp-pill" [class.kp-ok]="kpIndex < 4" [class.kp-warn]="kpIndex >= 4 && kpIndex < 5"
-            [class.kp-bad]="kpIndex >= 5">
-            {{ kpLoading ? '…' : (kpIndex | number:'1.1-1') }}
+          <span class="kp-pill" [class.kp-ok]="kpIndex !== null && kpIndex < 4"
+            [class.kp-warn]="kpIndex !== null && kpIndex >= 4 && kpIndex < 5"
+            [class.kp-bad]="kpIndex !== null && kpIndex >= 5">
+            {{ kpLoading ? '…' : (kpIndex !== null ? (kpIndex | number:'1.1-1') : '—') }}
           </span>
           <button class="btn-ghost" type="button" (click)="loadKp()" [disabled]="kpLoading"
             title="Actualizar Kp" aria-label="Actualizar Kp">↻</button>
@@ -220,7 +228,7 @@
             </th>
 
             <th>
-              AT (°C)
+              ΔT (°C)
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('DELTA_T', $event)"
                 (keydown.enter)="openInfo('DELTA_T', $event)"
@@ -281,11 +289,12 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let row of weatherData" [ngClass]="row.rowClass" (click)="selectRow(row)">
+          <tr *ngFor="let row of weatherData" [ngClass]="row.rowClass" (click)="selectRow(row)"
+            [attr.title]="row.eval ? null : textoSinEvaluar(row.faltantes)">
             <td>{{ row.hora }}</td>
-            <td><b>{{ row.eval?.semaforo || '—' }}</b></td>
+            <td><b>{{ row.eval?.semaforo || 'Sin evaluar' }}</b></td>
             <td>{{ row.eval ? (row.eval.deltaT | number:'1.1-1') : '—' }}</td>
-            <td>{{ row.eval?.inversionProbable ? 'Sí' : 'No' }}</td>
+            <td>{{ row.eval ? (row.eval.inversionProbable ? 'Sí' : 'No') : '—' }}</td>
             <td>{{ row.eval?.scoreDeriva ?? '—' }}</td>
             <td>{{ row.eval?.scoreEficacia ?? '—' }}</td>
 
@@ -301,9 +310,19 @@
     </div>
 
     <small class="leyenda-tabla" *ngIf="weatherData.length">
-      * Verde = aplicar · Amarillo = precaución · Rojo = no aplicar<br>
+      * Verde = aplicar · Amarillo = precaución · Rojo = no aplicar · Gris = sin evaluar (falta un dato)<br>
+      <span *ngIf="kpNota" [class.kp-aviso]="kpAviso">* {{ kpNota }}<br></span>
       * Información provisoria sujeta a modificación. La EEAOC no se responsabiliza por su utilización.
     </small>
+
+    <!-- Fila sin evaluar: qué dato falta -->
+    <div class="why-panel why-panel--sin-evaluar" *ngIf="selectedRow && !selectedRow.eval">
+      <div class="why-head">
+        <div class="why-title">{{ selectedRow.hora }}</div>
+        <div class="why-chip SIN_EVALUAR">Sin evaluar</div>
+      </div>
+      <p>{{ textoSinEvaluar(selectedRow.faltantes) }}. Sin ese dato no se puede calcular el semáforo.</p>
+    </div>
 
     <!-- Panel inline: razones/recomendaciones -->
     <div class="why-panel" *ngIf="selectedRow?.eval as ev">
@@ -323,7 +342,8 @@
           ΔT: <b>{{ ev.deltaT | number:'1.1-1' }}</b> ·
           Inversión: <b>{{ ev.inversionProbable ? 'Sí' : 'No' }}</b> ·
           Deriva: <b>{{ ev.scoreDeriva }}</b> ·
-          Eficacia: <b>{{ ev.scoreEficacia }}</b>
+          Eficacia: <b>{{ ev.scoreEficacia }}</b> ·
+          Kp: <b>{{ selectedRow?.kp != null ? (selectedRow?.kp | number:'1.1-1') : 'no considerado' }}</b>
         </div>
       </div>
 

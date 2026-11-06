@@ -1445,3 +1445,20 @@ mat-form-field.date-field{ width: 100%; }
     width: 100%;
   }
 }
+
+/* Fila o punto «Sin evaluar»: falta un dato; gris neutro, sin color de semáforo */
+.sin-evaluar-row {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.why-chip.SIN_EVALUAR {
+  background-color: #9e9e9e;
+  color: #000;
+}
+
+/* Aclaración del Kp cuando no corresponde al día consultado */
+.kp-aviso {
+  color: #8a4b00;
+  font-weight: 700;
+}
