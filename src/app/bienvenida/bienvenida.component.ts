@@ -23,7 +23,7 @@ const ZONA_LABELS: Record<string, string> = {
   '1': 'Llanura Tucumana',
   '2': 'Pedemonte Tucumano',
   '3': 'Valles Intermontanos',
-  '4': 'Valles Intermontanos',
+  '4': 'Valles de Altura',
   '5': 'Provincias Adyacentes'
 };
 

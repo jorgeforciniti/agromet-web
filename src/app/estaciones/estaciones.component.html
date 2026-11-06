@@ -6,12 +6,11 @@
       {{ totalCount }} estaciones activas · {{ reportingTodayCount }} reportando hoy
     </p>
     <p class="section-hint">Marcá con ☆ tus estaciones favoritas: aparecen primero en las herramientas y en «Mis estaciones».</p>
-    <!-- Pregunta para la Sección: ¿desde qué hora se acumula la «lluvia de hoy» (0 h, 9 h)? ¿Confirmar que todas
-         las estaciones transmiten cada 15 o 30 minutos? ¿Las zonas 3 y 4 son las dos «Valles Intermontanos»? -->
     <app-como-se-lee>
       <p>La lista y el mapa muestran las estaciones automáticas habilitadas de la red EEAOC con su último dato:
-        temperatura del aire (°C), humedad relativa (%), lluvia de hoy (mm) y hora de la última medición. Si el
-        último dato no es de hoy, en lugar de la hora figura la fecha (día/mes).</p>
+        temperatura del aire (°C), humedad relativa (%), lluvia de hoy desde las 0 h (mm) y hora de la última
+        medición. Si el último dato no es de hoy, en lugar de la hora figura la fecha (día/mes). Cada estación
+        envía datos con su propio intervalo (por ejemplo, cada 15 o 30 minutos, según la estación).</p>
       <p>Marcadores del mapa: rojo, estación al día (dato de la última hora); rojo atenuado, atrasada (más de 1 h
         sin datos); gris, sin datos hoy. En azul, la estación seleccionada, y en dorado, las favoritas. La
         referencia «Último dato» del mapa repite estos estados.</p>
