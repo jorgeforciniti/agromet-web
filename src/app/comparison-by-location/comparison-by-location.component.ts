@@ -2,7 +2,7 @@ import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/c
 import { SERIE_COLOR } from '../charts/chart-theme';
 import { referenciaCalor, referenciaNocheCalida, referenciasHelada } from '../charts/referencias';
 import { ResumenSerie, resumirSeries, unidadDe } from '../charts/resumen-series';
-import { NORMAL_DE_VARIABLE, Normales, datasetNormal, normalDeGrupo, normalDiaria, tieneValores } from '../charts/normales';
+import { NORMAL_DE_VARIABLE, Normales, datasetNormal, normalDeGrupo, normalDiaria, textoPeriodoNormales, tieneValores } from '../charts/normales';
 import {
   FormatoSerie, Periodo, SerieConFaltantes, VARIABLES_ACUMULADAS, datasetsConFaltantes, esIncompleto, fechasDelPeriodo,
   indicesSinDatos, periodosDe, pluginFranjasSinDatos, porFecha, serieConFaltantes, textoFaltantesSeries, tooltipConFaltantes
@@ -132,6 +132,8 @@ export class ComparisonByLocationComponent implements OnInit {
   indicesSinRegistro: number[] = [];
   textoFaltantes = '';
   hayIncompletos = false;
+  /** Período de referencia de las normales graficadas, si la API lo trae (vacío si no) */
+  periodoNormales = '';
   readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   isLoading = false;
 
@@ -272,6 +274,7 @@ export class ComparisonByLocationComponent implements OnInit {
     this.indicesSinRegistro = [];
     this.textoFaltantes = '';
     this.hayIncompletos = false;
+    this.periodoNormales = '';
   }
 
   onSubmit(): void {
@@ -356,14 +359,19 @@ export class ComparisonByLocationComponent implements OnInit {
     // Normal de cada estación (si la tiene), punteada y del color de su serie
     const clave = NORMAL_DE_VARIABLE[key];
     const normalesSeries: ChartDataset<'line', (number | null)[]>[] = [];
+    // Cada estación puede tener normales de un período distinto: se indica el de cada una
+    const periodosNormal: string[] = [];
     series.forEach((s, k) => {
       const serie = formato === 'diario'
         ? normalDiaria(normales[k], clave, fechas)
         : periodos.map((p, i) => normalDeGrupo(normales[k], clave, s.fechasConDato[i].length ? s.fechasConDato[i] : p.fechas));
       if (tieneValores(serie)) {
         normalesSeries.push(datasetNormal(`Normal ${nombres[k]}`, serie, SERIE_COLOR[k % SERIE_COLOR.length]));
+        const periodo = textoPeriodoNormales(normales[k]);
+        if (periodo) periodosNormal.push(`${nombres[k]}, ${periodo}`);
       }
     });
+    this.periodoNormales = periodosNormal.join('; ');
 
     this.variableGraficada = key;
     this.mostrarSeries(meta.label, isBar, periodos, series, nombres.map(n => `${meta.label} ${n}`), nombres, normalesSeries);

@@ -7,16 +7,24 @@
         <h2 class="titulo">Datos meteorológicos por localidad</h2>
         <span class="app-dialog-eyebrow">CONSULTA DETALLADA</span>
       </div>
-      <!-- Pregunta para la Sección: el resumen lo calcula el servidor. ¿Qué criterio usa para «Días con heladas» (mínima ≤ 0 °C?), «Días de lluvia» (umbral en mm?) y las horas (duración de cada registro)? -->
-      <!-- Pregunta para la Sección: ¿con qué método se calcula la evapotranspiración (Penman-Monteith FAO-56?) y qué umbral define las horas de humedad de hoja? ¿El día pluviométrico va de 9 a 9 h? -->
-      <!-- Pregunta para la Sección: ¿qué período de referencia tienen las normales que se grafican? -->
+      <!-- Pregunta para la Sección: las horas del resumen (heladas, umbrales de temperatura y de humedad), ¿se calculan con la duración de cada registro?
+           «Días de lluvia»: la consulta que pasaron (COUNT(CASE WHEN lluvia > 0.3 ...) AS registrosLluvia) cuenta registros;
+           ¿el resumen cuenta días con algún registro > 0,3 mm o días con lluvia diaria > 0,3 mm? -->
       <app-como-se-lee>
         <p>Resume los datos de la estación elegida entre las dos fechas indicadas: extremos y medias de temperatura
           y humedad, horas por encima o por debajo de distintos umbrales, lluvia y viento y, si la estación tiene
-          los sensores, radiación solar, evapotranspiración y humedad de hoja.</p>
+          los sensores, radiación solar, evapotranspiración y horas de hoja mojada (el sensor informa de 0, seca, a 15, mojada, y se toma
+          como mojada desde 10).</p>
+        <p>«Días con heladas» son los días con mínima de 0 °C o menos. La lluvia diaria corresponde al día
+          pluviométrico, de las 9 h a las 9 h del día siguiente, y «Días de lluvia» son los días en que la estación
+          registró lluvia; las mediciones de 0,3 mm o menos no cuentan, porque pueden ser rocío.</p>
+        <p>La evapotranspiración (ETo) la calcula la consola de la estación Davis con la ecuación de Penman
+          modificada que usa CIMIS (Universidad de California), cada hora, a partir de temperatura, humedad,
+          viento y radiación solar; el total del día es la suma de las horas.</p>
         <p>En Gráficos, cada punto es un valor diario. La línea punteada del mismo color es la normal de la
           estación, cuando la tiene; la lluvia normal se muestra como promedio diario (la normal del mes dividida
-          por sus días).</p>
+          por sus días). Cada estación tiene normales de un período distinto, que se indica debajo del gráfico
+          cuando está disponible.</p>
         <p>Los días sin registro quedan como huecos con una franja gris y se enumeran debajo del gráfico. Los totales
           y conteos se calculan con los registros disponibles, así que con datos faltantes pueden quedar por debajo
           del valor real. La tabla muestra como máximo los últimos 31 días del período.</p>
@@ -215,6 +223,7 @@
             <canvas baseChart [data]="chartConfig.data" [options]="chartConfig.options" [type]="chartConfig.type"
               [plugins]="pluginsGrafico"></canvas>
           </div>
+          <p class="nota-normales" *ngIf="periodoNormales">Normales de la estación: período {{ periodoNormales }}.</p>
           <p class="aviso-faltantes" *ngIf="textoFaltantes" role="status">
             <i class="muestra-sin-datos" aria-hidden="true"></i>
             Sin datos de la estación: {{ textoFaltantes }}.

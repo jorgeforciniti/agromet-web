@@ -15,7 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ChartDataset } from 'chart.js';
 import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
 import { referenciasHelada } from '../charts/referencias';
-import { ClaveNormal, Normales, datasetNormal, normalDiaria, tieneValores } from '../charts/normales';
+import { ClaveNormal, Normales, datasetNormal, normalDiaria, textoPeriodoNormales, tieneValores } from '../charts/normales';
 import { NormalesService } from '../services/normales.service';
 import { describirFaltantes, etiquetaDia, fechasDelPeriodo, pluginFranjasSinDatos, porFecha, valorDiario } from '../charts/dias-faltantes';
 import { ChartConfiguration } from 'chart.js';
@@ -199,6 +199,10 @@ export class WeatherDashboardComponent implements OnInit {
   diaryData: WeatherDiaryRecord[] = [];
   /** Normales de la estación consultada (null si no tiene: no se grafican) */
   private normales: Normales | null = null;
+  /** Período de referencia de esas normales («1991–2020»), si la API lo trae */
+  get periodoNormales(): string {
+    return textoPeriodoNormales(this.normales);
+  }
   private readonly normalesService = inject(NormalesService);
 
   truncatedDiaryData: WeatherDiaryRecord[] = [];

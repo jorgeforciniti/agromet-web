@@ -16,6 +16,7 @@ import { fechaIso, periodosDe, valorDiario } from '../charts/dias-faltantes';
  *  - en la estabilización, el balance vuelve a empezar con 100 mm después del hueco.
  */
 
+// Capacidad máxima de retención (mm en 1 m de suelo), igual para todos los sitios: a revisar con la Sección Suelos
 export const CMR = 300;
 export const ALMACENAJE_INICIAL = 100;
 export const DECADAS_ESTABILIZACION = 18;

@@ -210,15 +210,21 @@ export class RainCampaignDialogComponent implements OnInit {
 
 
   /* ─── MÉTODOS DE CELDA ───────────────────────────────── */
+  /**
+   * Clase de color según el porcentaje de la normal, en intervalos semiabiertos sin huecos (los
+   * mismos que la leyenda): < 33 %, 33 a < 66 %, 66 a < 100 %, 100 a < 150 %, 150 a < 200 % y
+   * ≥ 200 %. Sin normal (≤ 0 mm) no se calcula el porcentaje: la celda queda neutra.
+   */
   cellClass(value: number, normal: number, isCurrent = false): string {
     if (isCurrent) return 'current-month';
     if (value === -999.9) return 'no-data';
+    if (!(normal > 0)) return 'sin-normal';
     const ratio = value / normal;
     if (ratio < 0.33) return 'below-33';
     if (ratio < 0.66) return 'below-66';
-    if (ratio < 0.99) return 'below-99';
-    if (ratio <= 1.5) return 'above-100-50';
-    if (ratio <= 2) return 'above-150-100';
+    if (ratio < 1) return 'below-99';
+    if (ratio < 1.5) return 'above-100-50';
+    if (ratio < 2) return 'above-150-100';
     return 'above-200';
   }
 
@@ -270,6 +276,9 @@ export class RainCampaignDialogComponent implements OnInit {
 
   /** Texto para tooltip de celdas */
   public tooltipText(normal: number, period: string): string {
+    if (!(normal > 0)) {
+      return `Normal: ${normal} mm\nPeríodo referencia: ${period}\nSin color: con normal de 0 mm no se calcula el porcentaje`;
+    }
     return `Normal: ${normal} mm\nPeríodo referencia: ${period}`;
   }
 }

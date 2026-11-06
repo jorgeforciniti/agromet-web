@@ -2,7 +2,7 @@ import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/c
 import { SERIE_COLOR } from '../charts/chart-theme';
 import { referenciaCalor, referenciaNocheCalida, referenciasHelada } from '../charts/referencias';
 import { ResumenSerie, resumirSeries, unidadDe } from '../charts/resumen-series';
-import { NORMAL_DE_VARIABLE, Normales, datasetNormal, normalDeGrupo, normalDiaria, tieneValores } from '../charts/normales';
+import { NORMAL_DE_VARIABLE, Normales, datasetNormal, normalDeGrupo, normalDiaria, textoPeriodoNormales, tieneValores } from '../charts/normales';
 import {
   FormatoSerie, Periodo, SerieConFaltantes, VARIABLES_ACUMULADAS, datasetsConFaltantes, esIncompleto, fechasDelPeriodo,
   indicesSinDatos, periodosDe, pluginFranjasSinDatos, porFecha, serieConFaltantes, textoFaltantesSeries, tooltipConFaltantes
@@ -132,6 +132,8 @@ export class ComparisonByYearComponent implements OnInit {
   indicesSinRegistro: number[] = [];
   textoFaltantes = '';
   hayIncompletos = false;
+  /** Período de referencia de las normales graficadas, si la API lo trae (vacío si no) */
+  periodoNormales = '';
   readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   isLoading = false;
 
@@ -276,6 +278,7 @@ export class ComparisonByYearComponent implements OnInit {
     this.indicesSinRegistro = [];
     this.textoFaltantes = '';
     this.hayIncompletos = false;
+    this.periodoNormales = '';
   }
 
   onSubmit(): void {
@@ -357,6 +360,7 @@ export class ComparisonByYearComponent implements OnInit {
       ? normalDiaria(normales, clave, fechas)
       : periodos.map((p, i) => normalDeGrupo(normales, clave, series[0].fechasConDato[i].length ? series[0].fechasConDato[i] : p.fechas));
     const normal = tieneValores(serie) ? [datasetNormal('Normal', serie)] : [];
+    this.periodoNormales = normal.length ? textoPeriodoNormales(normales) : '';
 
     this.variableGraficada = key;
     this.mostrarSeries(meta.label, isBar, periodos, series, nombres.map(a => `${meta.label} (${a})`), nombres, normal);

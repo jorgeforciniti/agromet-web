@@ -8,7 +8,29 @@ import { VAR_COLOR } from './chart-theme';
  * diaria); et mm/día; hj horas/día.
  */
 export type ClaveNormalTabla = 'rr' | 'tl' | 'th' | 'hl' | 'hh' | 'pr' | 'vi' | 'vix' | 'rg' | 'rgx' | 'et' | 'hj';
-export type Normales = Partial<Record<ClaveNormalTabla, (number | null)[]>>;
+/**
+ * Período de referencia de las normales (cambia de una estación a otra). Viene de normales.php
+ * sólo si la tabla tiene esas columnas: años desde/hasta o un texto libre («1991-2020»).
+ */
+export interface PeriodoNormales {
+  desde?: number | string | null;
+  hasta?: number | string | null;
+  texto?: string | null;
+}
+
+export type Normales = Partial<Record<ClaveNormalTabla, (number | null)[]>> & { periodo?: PeriodoNormales };
+
+/** Período de las normales en texto («1991–2020»); vacío si la API no lo trae. */
+export function textoPeriodoNormales(n: Normales | null | undefined): string {
+  const p = n?.periodo;
+  if (!p) return '';
+  const desde = String(p.desde ?? '').trim();
+  const hasta = String(p.hasta ?? '').trim();
+  if (desde && hasta) return `${desde}–${hasta}`;
+  if (desde) return `desde ${desde}`;
+  if (hasta) return `hasta ${hasta}`;
+  return String(p.texto ?? '').trim();
+}
 
 /** Las de la tabla más 'hr': humedad relativa promedio, (máx + mín) / 2 como en las comparaciones */
 export type ClaveNormal = ClaveNormalTabla | 'hr';

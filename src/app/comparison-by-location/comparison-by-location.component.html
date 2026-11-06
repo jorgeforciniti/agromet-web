@@ -6,9 +6,6 @@
           <h2 class="titulo">Comparar períodos entre localidades</h2>
           <span class="dialog-eyebrow">COMPARATIVA OPERATIVA</span>
         </div>
-        <!-- Pregunta para la Sección: ¿de qué período (años) y de qué fuente son las normales de cada
-             estación (normales.php)? ¿Conviene advertir que dos estaciones pueden tener normales de
-             períodos distintos? -->
         <app-como-se-lee>
           <p>Se grafica la variable elegida para dos estaciones en las mismas fechas: la estación base y la de
             comparación, cada una con su color.</p>
@@ -20,6 +17,9 @@
             entre sus días. El resumen sobre el gráfico da la máxima, la mínima, el total o el promedio y la
             comparación con la normal de la propia estación (en % para las variables que se suman). En
             temperatura mínima se marcan 0 °C, −2 °C y 22 °C; en máxima, 35 °C.</p>
+          <p>Atención: las normales de las dos estaciones pueden corresponder a períodos de años distintos, así
+            que no siempre son comparables entre sí. El período de cada una se indica debajo del gráfico cuando
+            está disponible.</p>
           <p>Los días sin dato quedan como hueco con una franja gris. Una década o un mes con días faltantes se
             calcula con los días que tienen dato y se ve más claro (barras) o con punto hueco (líneas): una suma
             incompleta puede quedar por debajo del valor real.</p>
@@ -106,6 +106,7 @@
         <canvas baseChart [data]="barChartData" [options]="chartOptions" [plugins]="pluginsGrafico"
           type="bar"></canvas>
       </div>
+      <p class="nota-normales" *ngIf="periodoNormales">Período de las normales: {{ periodoNormales }}.</p>
       <p class="aviso-faltantes" *ngIf="textoFaltantes" role="status">
         <span><i class="muestra-sin-datos" aria-hidden="true"></i>Sin datos — {{ textoFaltantes }}</span>
         <span *ngIf="hayIncompletos"><i class="muestra-incompleto" aria-hidden="true"></i>Período incompleto: suma o promedio de los días con datos</span>

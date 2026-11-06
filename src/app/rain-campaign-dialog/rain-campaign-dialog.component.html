@@ -5,17 +5,18 @@
         <h2 class="titulo">Lluvias por campaña</h2>
         <span class="dialog-eyebrow">ANÁLISIS DE CAMPAÑA</span>
       </div>
-      <!-- Pregunta para la Sección: los cortes del código (cellClass) no coinciden exactamente con la referencia: el código usa < 33 %, < 66 %, < 99 %, ≤ 150 %, ≤ 200 % y > 200 %, mientras la referencia dice ≤ 33, 34-66, 67-99, 100-149, 150-199 y ≥ 200 %. Un mes al 99,5 % o al 150 % cae en una clase distinta de la que indica la referencia. ¿Cuáles son los cortes correctos? -->
-      <!-- Pregunta para la Sección: ¿de qué estaciones sale la tabla (sólo automáticas o también pluviómetros de la red)? ¿El valor mensual cuenta como dato si faltan algunos días del mes? Con normal 0 mm, cualquier lluvia queda en «≥ 200 %»: ¿está bien así? -->
       <app-como-se-lee>
-        <p>Cada fila es una estación y cada columna, un mes de la campaña de 12 meses que empieza en el mes y año
-          elegidos. Los valores son la lluvia mensual en milímetros.</p>
+        <p>Cada fila es una estación (pluviómetros y estaciones automáticas de la red, con datos validados) y cada
+          columna, un mes de la campaña de 12 meses que empieza en el mes y año elegidos. Los valores son la lluvia
+          mensual en milímetros.</p>
         <p>El color compara la lluvia de cada mes con su normal, el promedio de la estación para ese mes en el período
-          de referencia (ambos aparecen al pasar el mouse sobre el valor). Las clases van desde un tercio o menos de
-          lo normal hasta el doble o más, como indica la referencia.</p>
+          de referencia (ambos aparecen al pasar el mouse sobre el valor). Las clases son las de la referencia: menos
+          del 33 %, de 33 a menos de 66 %, de 66 a menos de 100 %, de 100 a menos de 150 %, de 150 a menos de 200 % y
+          200 % o más. Si la normal del mes es 0 mm no se calcula el porcentaje y la celda queda sin color.</p>
         <p>El mes en curso tiene un color propio porque su dato es parcial: es la lluvia acumulada hasta la fecha de la
           columna «Último registro». Mientras la campaña no termina, no se muestra el total.</p>
-        <p>Un «—» indica que falta el dato de ese mes; en ese caso tampoco se calcula el total de la campaña. No se
+        <p>Un «—» indica que falta el dato de ese mes o que el mes no pasó el control de validación (no se muestran
+          meses parciales); en ese caso tampoco se calcula el total de la campaña. No se
           listan las estaciones sin ningún dato en la campaña.</p>
         <p>Al hacer clic en un valor mensual o en el total se abre la ficha de la estación, con su serie histórica.</p>
       </app-como-se-lee>
@@ -52,11 +53,11 @@
 
   <div class="rain-legend">
     <strong>Referencias respecto a lo normal</strong>
-    <div><span class="sw below-33"></span> ≤ 33 %</div>
-    <div><span class="sw below-66"></span> 34 a 66 %</div>
-    <div><span class="sw below-99"></span> 67 a 99 %</div>
-    <div><span class="sw above-100-50"></span> 100 a 149 %</div>
-    <div><span class="sw above-150-100"></span> 150 a 199 %</div>
+    <div><span class="sw below-33"></span> &lt; 33 %</div>
+    <div><span class="sw below-66"></span> 33 a &lt; 66 %</div>
+    <div><span class="sw below-99"></span> 66 a &lt; 100 %</div>
+    <div><span class="sw above-100-50"></span> 100 a &lt; 150 %</div>
+    <div><span class="sw above-150-100"></span> 150 a &lt; 200 %</div>
     <div><span class="sw above-200"></span> ≥ 200 %</div>
     <div><span class="sw current-month"></span> Mes en curso</div>
   </div>
