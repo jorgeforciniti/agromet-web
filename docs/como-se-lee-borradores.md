@@ -411,9 +411,8 @@ Pregunta pendiente:
 - `normales.php` (sí está en el repo): la tabla `normales` no tiene columnas de período. Hay que agregar
   `periodo_desde` y `periodo_hasta` y cargarlas por estación (ver `server/servicios/LEEME.md`); después,
   comprobar que la versión instalada devuelve `periodo`.
-- Alertas de corto plazo del SMN: `smn-alerta-area.php` ignoraba `tipo` por un error (leía una variable
-  inexistente y comparaba con `=`). Corregido en el repo (`server/servicios/pronosticos/`); falta instalarlo,
-  ver la respuesta de `tipo=2` y sumar esos avisos a las tarjetas de Estado actual. Usa la API de prueba del SMN
-  (`api-test.smn.gob.ar`).
+- Avisos a corto plazo del SMN: `smn-alerta-area.php` ignoraba `tipo` y pedía una ruta que no existe. Corregido
+  en el repo (`/warning/shortterm?province=90`) y Estado actual ya muestra las tarjetas; falta instalar el PHP
+  y verlo con un aviso real. Usa la API de prueba del SMN (`api-test.smn.gob.ar`).
 - Kp histórico: `kp-gfz.php` (en el repo) es el proxy de GFZ, que no permite CORS. El sitio lo usa para fechas
   de más de una semana; si no está instalado, sigue con NOAA. Falta instalarlo y probarlo.

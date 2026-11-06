@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface WeatherStation {
   id?: string;
@@ -113,6 +114,24 @@ export interface SmnAlertByAreaResponse {
   updated?: string;
   reports: SmnAreaReport[];
   warnings: SmnAreaWarningEntry[];
+}
+
+/**
+ * Aviso a corto plazo del SMN (/warning/shortterm?province=90, ShortTermWarningDto de su Swagger).
+ * Se emite para las próximas horas sobre un polígono; zones describe cada provincia afectada.
+ */
+export interface SmnAvisoCortoPlazo {
+  id: number;
+  /** Emisión y fin de vigencia, ISO 8601 */
+  date: string;
+  end_date?: string;
+  title?: string;
+  /** R roja, N naranja, A amarilla, V verde */
+  severity?: 'R' | 'N' | 'A' | 'V';
+  instructions?: string;
+  /** «TUCUMÁN: Burruyacú - Cruz Alta - ...» (una por provincia) */
+  zones?: string[];
+  partial?: 'Y' | 'N';
 }
 
 export interface SmnWarningByAreaResponse {
@@ -312,9 +331,15 @@ export class WeatherService {
     return this.http.get<SmnAlertByAreaResponse>(url);
   }
 
-  getSmnShortTermAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.serviciosSinCorsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=2`;
-    return this.http.get<SmnAlertByAreaResponse>(url);
+  /**
+   * Avisos a corto plazo vigentes para Tucumán (smn-alerta-area.php con tipo=2; el PHP pide el área
+   * aunque estos avisos son por provincia). Si el PHP devuelve un error, la lista queda vacía.
+   */
+  getSmnAvisosCortoPlazo(): Observable<SmnAvisoCortoPlazo[]> {
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-alerta-area.php?area=3373&tipo=2`;
+    return this.http.get<SmnAvisoCortoPlazo[] | { error?: string }>(url).pipe(
+      map(r => (Array.isArray(r) ? r : []))
+    );
   }
 
   getSmnWarningByArea(): Observable<SmnWarningByAreaResponse> {

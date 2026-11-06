@@ -18,8 +18,9 @@
         <p>La grilla indica en qué día y en qué momento (madrugada, mañana, tarde o noche) rige la alerta en cada
           zona: las casillas coloreadas tienen alerta. «Qué hacer» abre las recomendaciones del SMN para ese nivel.
           La franja de temperaturas extremas también es del SMN y aparece desde el nivel amarillo.</p>
-        <p>Por ahora no se incluyen las alertas de corto plazo del SMN (las que se emiten para las próximas horas):
-          consultalas en smn.gob.ar.</p>
+        <p>Los avisos a corto plazo del SMN se emiten para las próximas horas (tormentas fuertes, granizo, ráfagas)
+          sobre una zona más chica. Aparecen arriba, con el color de su nivel, los departamentos de Tucumán afectados
+          y hasta qué hora rigen; desaparecen al vencer.</p>
         <p>Los avisos de la red de estaciones EEAOC no son alertas del SMN: surgen de lo que midieron las estaciones
           en el día de hoy, desde las 0 h. «Lluvia registrada» aparece cuando alguna estación registró más de 0,3 mm en
           una medición (menos puede ser rocío). «Helada registrada» aparece cuando la mínima más baja de la red es de
@@ -30,7 +31,41 @@
       </app-como-se-lee>
     </div>
 
-    <ng-container *ngIf="cargado && !eventos.length">
+    <!-- Avisos a corto plazo: próximas horas, por departamentos -->
+    <div class="eventos" *ngIf="avisosCorto.length">
+      <article *ngFor="let av of avisosCorto" class="evento nivel-{{ av.level }}">
+        <header class="evento__head">
+          <span class="evento__nivel">
+            <mat-icon aria-hidden="true">bolt</mat-icon>
+            Aviso a corto plazo · {{ levelName(av.level) }}
+          </span>
+          <h3 class="evento__nombre" *ngIf="av.titulo">{{ av.titulo }}</h3>
+        </header>
+
+        <div class="evento__cuerpo">
+          <p class="evento__cuando">
+            <ng-container *ngIf="av.hasta">Vigente hasta las {{ av.hasta | date:'HH:mm' }}</ng-container>
+            <ng-container *ngIf="av.emitido"> · emitido {{ av.emitido | date:'dd/MM HH:mm' }}</ng-container>
+          </p>
+          <p class="evento__descripcion" *ngIf="av.zona">
+            <strong>Tucumán{{ av.parcial ? ' (parcialmente)' : '' }}:</strong> {{ av.zona }}
+          </p>
+
+          <div class="evento__acciones">
+            <button mat-stroked-button *ngIf="av.instrucciones" (click)="openInstructionDialog(av.instrucciones, av.level)">
+              <mat-icon>fact_check</mat-icon>
+              Qué hacer
+            </button>
+            <a mat-button href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">
+              <mat-icon>open_in_new</mat-icon>
+              Ver en el SMN
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <ng-container *ngIf="cargado && !eventos.length && !avisosCorto.length">
       <div class="no-alerts-message">
         <mat-icon>check_circle</mat-icon>
         <span><strong>Sin alertas vigentes.</strong> No hay eventos activos para Tucumán ni Valles Calchaquíes.</span>

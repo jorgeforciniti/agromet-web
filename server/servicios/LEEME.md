@@ -148,12 +148,14 @@ actual como `datos-alerta.php.ant`, copiar el nuevo a `/services/` y comparar el
 ## `pronosticos/smn-alerta-area.php`
 
 Va en `/services/pronosticos/`, junto a `smn_token.php` y `token.json` (no están en el repositorio:
-tienen el token del SMN). `GET ...?area=<id>&tipo=1` devuelve las alertas del área y `tipo=2` los
-avisos de corto plazo (`/v1/warning/shortterm/area/<id>/`). La versión anterior ignoraba `tipo` (leía
+tienen el token del SMN). `GET ...?area=<id>&tipo=1` devuelve las alertas del área y `tipo=2` la
+lista de avisos de corto plazo vigentes de Tucumán (`/v1/warning/shortterm?province=90`; esos avisos van
+por provincia, no por área, y `area` se ignora). La ruta por área que usaba antes no existe (404); las
+rutas están en `https://api-test.smn.gob.ar/v1/swagger-ui.html`. La versión anterior ignoraba `tipo` (leía
 una variable inexistente y comparaba con `=`), así que siempre devolvía las alertas.
 
 Usa `api-test.smn.gob.ar`, el entorno de prueba del SMN; conviene confirmar con el SMN si hay que
 pasar a la API de producción.
 
-Para instalarlo: copiarlo a `/services/pronosticos/` y comparar `?area=<id>&tipo=1` con `tipo=2`
-(tienen que ser distintos, salvo que no haya alertas ni avisos).
+Para instalarlo: copiarlo a `/services/pronosticos/` y probar `?area=3373&tipo=2`: tiene que devolver
+una lista (`[]` si no hay avisos vigentes), no un objeto con `error`.

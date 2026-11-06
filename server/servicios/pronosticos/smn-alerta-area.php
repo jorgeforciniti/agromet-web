@@ -12,9 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 header('Content-Type: application/json; charset=utf-8');
 
 // Validar y sanitizar entrada
-// tipo=1 (o sin tipo): alertas por área; tipo=2: avisos de corto plazo.
+// tipo=1 (o sin tipo): alertas por área; tipo=2: avisos de corto plazo vigentes de la provincia.
 // Antes se leía filter_var($input, ...) ($input no existe) y se comparaba con «if ($tipo=1)», que asigna:
 // cualquier tipo devolvía las alertas.
+// Los avisos de corto plazo no van por área: la API (ver /v1/swagger-ui.html) los da por provincia
+// (/warning/shortterm?province=<código INDEC>), y devuelve una lista (vacía si no hay avisos vigentes).
+const PROVINCIA_TUCUMAN = 90;
 $area = isset($_GET['area']) ? filter_var($_GET['area'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION) : null;
 $tipo = isset($_GET['tipo']) ? (int) filter_var($_GET['tipo'], FILTER_SANITIZE_NUMBER_INT) : 1;
 
@@ -53,7 +56,8 @@ function obtenerDatosDelServidor($token, $area, $tipo) {
     if ($tipo === 1) {
         $url = "https://api-test.smn.gob.ar/v1/warning/alert/area/$area/";
     }else{
-        $url = "https://api-test.smn.gob.ar/v1/warning/shortterm/area/$area/";
+        // El área no se usa: los avisos son de toda la provincia (cada uno trae su polígono y sus zonas)
+        $url = "https://api-test.smn.gob.ar/v1/warning/shortterm?province=" . PROVINCIA_TUCUMAN;
     }
 
     $options = [

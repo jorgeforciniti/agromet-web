@@ -66,6 +66,23 @@ interface EventoAlerta {
   regiones: string;
 }
 
+/** Aviso a corto plazo listo para la tarjeta */
+interface AvisoCorto {
+  id: number;
+  /** Nivel en la escala de las alertas (3 amarilla, 4 naranja, 5 roja) */
+  level: number;
+  titulo: string;
+  emitido: Date | null;
+  hasta: Date | null;
+  /** Departamentos de Tucumán afectados, según el texto de la zona */
+  zona: string;
+  parcial: boolean;
+  instrucciones: string;
+}
+
+/** Severidad del aviso a corto plazo → nivel de las alertas (el verde no se muestra) */
+const NIVEL_SEVERIDAD: Record<string, number> = { A: 3, N: 4, R: 5 };
+
 const PERIODOS = ['early_morning', 'morning', 'afternoon', 'night'];
 
 const AREAS: Record<number, string> = {
@@ -108,14 +125,11 @@ export class AlertComponent implements OnInit {
   showFrostAlert = false;
   frostAlertLevel: number = 0; // 0 = none, 1 = leve, 2 = moderada, 3 = severa
   smnAlertsByArea: { [area: number]: SmnAlert[] } = {};
-  /*
-   * Alertas de corto plazo del SMN: pendientes del servidor. smn-alerta-area.php ignora el
-   * parámetro «tipo» (con tipo=1, 2, 3, 4 o sin tipo devuelve exactamente lo mismo: las alertas por
-   * área), y la API del SMN (ws1.smn.gob.ar) pide autenticación, así que no se puede consultar desde
-   * el navegador. Hace falta un PHP en el servidor que traiga las alertas de corto plazo del SMN
-   * para Tucumán y devuelva, como mínimo, nivel, fenómeno, descripción, zona afectada y vigencia
-   * (emitida / válida hasta). Cuando exista, se suma a las tarjetas de este componente.
+  /**
+   * Avisos a corto plazo del SMN vigentes para Tucumán (próximas horas), amarillos o más. La API los
+   * da por provincia y pide token, así que pasan por smn-alerta-area.php con tipo=2.
    */
+  avisosCorto: AvisoCorto[] = [];
 
   // NUEVO â€“ banner de temperaturas extremas
   tempExtremes: TempWarning[] = [];
@@ -152,6 +166,35 @@ export class AlertComponent implements OnInit {
 
       this.loadAlerts();
       this.loadTempExtremes();
+    });
+    this.loadAvisosCorto();
+  }
+
+  /** Avisos a corto plazo vigentes; si falla la consulta, simplemente no se muestran */
+  private loadAvisosCorto(): void {
+    this.weatherService.getSmnAvisosCortoPlazo().subscribe({
+      next: avisos => {
+        const ahora = Date.now();
+        this.avisosCorto = avisos
+          .map(a => {
+            const hasta = a.end_date ? new Date(a.end_date) : null;
+            const zonaTucuman = (a.zones ?? []).find(z => /^TUCUM[AÁ]N/i.test(z.trim()));
+            return {
+              id: a.id,
+              level: NIVEL_SEVERIDAD[a.severity ?? ''] ?? 0,
+              titulo: (a.title ?? '').trim(),
+              emitido: a.date ? new Date(a.date) : null,
+              hasta: hasta && !isNaN(hasta.getTime()) ? hasta : null,
+              zona: zonaTucuman ? zonaTucuman.replace(/^[^:]*:\s*/, '').replace(/\.\s*$/, '') : '',
+              parcial: a.partial === 'Y',
+              instrucciones: (a.instructions ?? '').trim()
+            };
+          })
+          // Amarillo o más y todavía vigente (sin fecha de fin, se muestra)
+          .filter(a => a.level >= 3 && (!a.hasta || a.hasta.getTime() > ahora))
+          .sort((a, b) => b.level - a.level);
+      },
+      error: err => console.warn('[SMN] Avisos a corto plazo no disponibles', err)
     });
   }
 
