@@ -9,6 +9,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `informes-v2.php` | Listado de informes | — |
 | `lluvias-estacion.php` | Diálogo de una estación en «Lluvias por campaña»: ubicación, normales y serie histórica de lluvias mensuales | `estaciones_rr`, `datos_rr_mes` |
 | `lluvia-periodo.php` | Mapa de lluvias diarias: lluvia de 0 a 24 h o de 9 a 9 h y cantidad de registros por estación | `estaciones`, `datos_estaciones` |
+| `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 
 ## `normales.php`
 
@@ -84,3 +85,22 @@ está disponible.
 Para instalarlo: copiar el archivo a `/services/` (usa `conecta_mysql.php` con la base
 `estaciones`) y probar
 `https://agromet.eeaoc.gob.ar/services/lluvia-periodo.php?desde=<hoy>&hasta=<hoy>&dia=pluviometrico`.
+
+## `datos-temperatura.php`
+
+`GET /services/datos-temperatura.php?desde=AAAA-MM-DD&hasta=AAAA-MM-DD` devuelve, por estación
+habilitada, las medias de máxima, mínima y media del período, las extremas absolutas con su fecha y
+los días con registro. No modifica datos.
+
+Los días con `temp_max` o `temp_min` fuera de −25 a 50 °C (valores erróneos o de relleno) no entran
+en los promedios ni en los extremos de esa variable; la media del día sólo se calcula si las dos son
+válidas. Además de `count_records` (todas las filas), devuelve `dias_max`, `dias_min` y `dias_media`
+(días válidos de cada variable), que el mapa usa para marcar las estaciones incompletas. Si el
+servidor tiene la versión anterior, el mapa sigue funcionando con `count_records`.
+
+El filtro va dentro de los agregados: el `WHERE` es el mismo que antes, así que lee las mismas filas.
+Igual, antes de instalarlo, revisar el `EXPLAIN` de la consulta (está en el archivo) con un mes.
+
+Para instalarlo: copiar el archivo a `/services/` (reemplaza al anterior; guardar una copia como
+`datos-temperatura.php.ant`) y probar
+`https://agromet.eeaoc.gob.ar/services/datos-temperatura.php?desde=<día 1>&hasta=<hoy>`.

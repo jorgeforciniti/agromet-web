@@ -412,4 +412,5 @@ Pregunta pendiente:
   falta un PHP que pida al SMN, con su token, las alertas de corto plazo de Tucumán.
 - Kp histórico: GFZ (`kp.gfz.de/app/json/`) no permite CORS; un proxy PHP lo habilitaría para fechas de más de
   una semana (el sitio ya tiene el lector, `URL_GFZ_PROXY` en `kp-historico.service.ts`).
-- `datos-temperatura.php`: podría excluir los valores diarios fuera de rango antes de promediar.
+- `datos-temperatura.php` (ahora en el repo): excluye los valores diarios fuera de −25 a 50 °C antes de
+  promediar y devuelve los días válidos de cada variable. Falta revisar el `EXPLAIN` e instalarlo.

@@ -56,6 +56,15 @@ export class DmyDateAdapter extends NativeDateAdapter {
 const TEMP_MIN_VALIDA = -25;
 const TEMP_MAX_VALIDA = 50;
 
+/** Campo de datos-temperatura.php con los días válidos de cada variable. */
+const DIAS_POR_VARIABLE: Record<string, string> = {
+  abs_min_temp: 'dias_min',
+  avg_temp_min: 'dias_min',
+  avg_temp_period: 'dias_media',
+  avg_temp_max: 'dias_max',
+  abs_max_temp: 'dias_max'
+};
+
 interface TemperatureData {
   lat: number;
   lon: number;
@@ -251,9 +260,10 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
             const color = this.getColor(value);
             const varLabel = this.variables.find(v => v.key === variable)?.label ?? variable;
 
-            // Días con dato de la estación (datos_diarios); no hay un mínimo: si faltan días, el
-            // punto se marca con borde punteado y el popup dice cuántos tiene
-            const countRecords = Number(d['count_records']) || 0;
+            // Días con dato válido de la variable (datos_diarios, sin los fuera de rango); no hay un
+            // mínimo: si faltan días, el punto se marca con borde punteado y el popup dice cuántos
+            // tiene. Si la API todavía no manda los días por variable, se usan todos los registros.
+            const countRecords = Number(d[DIAS_POR_VARIABLE[variable]] ?? d['count_records']) || 0;
             const incompleta = totalDias > 0 && countRecords < totalDias;
 
             L.circleMarker([d.lat, d.lon], {
