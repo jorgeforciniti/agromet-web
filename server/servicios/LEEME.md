@@ -26,8 +26,19 @@ muestra junto a los gráficos cuando la API lo trae. `normales.php` lo busca en 
   → `"periodo": "1991-2020"`.
 
 Si no encuentra ninguna, no envía `periodo` y el sitio no lo muestra (no se rompe nada).
-**Pendiente:** si la tabla `normales` no tiene el período de referencia, conviene agregarlo
-(recomendado: `periodo_desde` y `periodo_hasta`, enteros con el año) y cargarlo por estación.
+**Pendiente:** la tabla `normales` no tiene columnas de período (revisado en noviembre de 2026).
+Hay que agregarlas y cargar el período de cada estación (lo da la Sección):
+
+```sql
+ALTER TABLE normales
+  ADD COLUMN periodo_desde SMALLINT NULL AFTER identificacion,
+  ADD COLUMN periodo_hasta SMALLINT NULL AFTER periodo_desde;
+UPDATE normales SET periodo_desde = 1991, periodo_hasta = 2020 WHERE identificacion = <estación>;
+```
+
+Hasta entonces no se puede saber desde afuera si en el servidor está la versión nueva de
+`normales.php`: las dos responden igual sin período. Con el primer período cargado, si la respuesta
+no trae `periodo`, hay que volver a subir el archivo.
 
 Para instalarlo: copiar el archivo a `/services/` y probar
 `https://agromet.eeaoc.gob.ar/services/normales.php?estacion=<una identificación>`.
@@ -48,14 +59,14 @@ tablas bloqueadas, que hubo que matar con `KILL` (el JOIN con un OR entre fecha 
 entera). La versión actual filtra por un rango de `fecha` y usa el índice `Fecha` (EXPLAIN de noviembre
 de 2026: `range` sobre `Fecha`, ~7.300 filas para dos días). Además acepta hasta 31 días y lleva la
 pista `MAX_EXECUTION_TIME(15000)` (MySQL 5.7.8 o posterior la corta a los 15 s; MariaDB y versiones
-anteriores la ignoran). El sitio no lo usa (`LLUVIA_PERIODO_HABILITADA = false` en
-`map-rain.component.ts`) hasta probarlo en el servidor:
+anteriores la ignoran). Está instalado y probado en el servidor (noviembre de 2026), y el sitio lo usa
+(`LLUVIA_PERIODO_HABILITADA = true` en `map-rain.component.ts`). Si hay que reinstalarlo o cambia la
+consulta, volver a probarlo antes de habilitarlo:
 
 1. Subirlo y abrir, de a uno, `?desde=<hoy>&hasta=<hoy>&dia=pluviometrico` y después un mes
    (`desde=<día 1>&hasta=<día 31>`). Cada uno tiene que responder en pocos segundos.
-2. Si alguno tarda, renombrarlo a `lluvia-periodo.php.off` y revisar `SHOW PROCESSLIST` por si quedó
-   una consulta colgada (`KILL <Id>`).
-3. Si responde bien, poner `LLUVIA_PERIODO_HABILITADA = true` y compilar el sitio.
+2. Si alguno tarda, renombrarlo a `lluvia-periodo.php.off`, poner `LLUVIA_PERIODO_HABILITADA = false`
+   y revisar `SHOW PROCESSLIST` por si quedó una consulta colgada (`KILL <Id>`).
 
 `GET /services/lluvia-periodo.php?desde=AAAA-MM-DD&hasta=AAAA-MM-DD&dia=calendario|pluviometrico`
 devuelve, por estación, la lluvia del período (`mm`, `null` si no tiene registros), la máxima de un

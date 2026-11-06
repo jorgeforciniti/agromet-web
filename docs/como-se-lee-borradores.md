@@ -338,7 +338,9 @@ Pregunta pendiente:
 
 ### Hecho en el sitio
 
-- **Lluvias diarias:** «Hoy» es desde las 0 h y se dice en pantalla. Menos de 0,3 mm es una clase fija,
+- **Lluvias diarias:** botón «De 9 a 9 h» y estaciones con registros incompletos marcadas, con
+  `lluvia-periodo.php` (instalado y probado: usa el índice `Fecha`, hasta 31 días, corta a los 15 s).
+  «Hoy» es desde las 0 h y se dice en pantalla. Menos de 0,3 mm es una clase fija,
   «lluvia < 0,3 mm o rocío». Estación sin datos: punto hueco, distinto de 0 mm. En «Hoy», estación que no
   transmite hace más de 1 h: punto pálido (total posiblemente incompleto).
 - **Lluvias mensuales:** sólo meses completos (hasta el mes pasado). Pluviómetros y automáticas validados.
@@ -402,14 +404,10 @@ Pregunta pendiente:
 
 ### Pendiente en el servidor (PHP que no están en el repositorio)
 
-- **`lluvia-periodo.php`** (en el repo, apagado): botón «De 9 a 9 h» y cantidad de registros por estación en el
-  mapa de lluvias diarias. La primera versión trabó la base (consultas de más de 10 minutos con las tablas
-  bloqueadas). La versión nueva usa el índice `Fecha` (EXPLAIN: ~7.300 filas para dos días), acepta hasta
-  31 días y corta a los 15 s. Queda apagado (`LLUVIA_PERIODO_HABILITADA = false`) hasta probarla en el
-  servidor.
 - `datos-alerta.php`: la lluvia máxima diaria, si se la quiere (hoy es la de un registro).
-- `normales.php` (sí está en el repo): subirlo y agregar a la tabla `normales` las columnas `periodo_desde` y
-  `periodo_hasta` si no las tiene.
+- `normales.php` (sí está en el repo): la tabla `normales` no tiene columnas de período. Hay que agregar
+  `periodo_desde` y `periodo_hasta` y cargarlas por estación (ver `server/servicios/LEEME.md`); después,
+  comprobar que la versión instalada devuelve `periodo`.
 - Alertas de corto plazo del SMN: `smn-alerta-area.php` ignora `tipo` (con 1, 2, 3 o 4 devuelve lo mismo). Hace
   falta un PHP que pida al SMN, con su token, las alertas de corto plazo de Tucumán.
 - Kp histórico: GFZ (`kp.gfz.de/app/json/`) no permite CORS; un proxy PHP lo habilitaría para fechas de más de
