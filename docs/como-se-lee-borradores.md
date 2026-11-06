@@ -348,7 +348,8 @@ Pregunta pendiente:
   (se quitó la nota al pie).
 - **Cortes de % de la normal unificados** en Lluvias por campaña, Lluvias mensuales y Lluvia acumulada:
   < 33, 33 a < 66, 66 a < 100, 100 a < 150, 150 a < 200 y ≥ 200 %. Con normal 0 la celda queda sin color.
-- **Temperaturas:** filtro de −25 a 50 °C también en las medias; estaciones con días faltantes con borde
+- **Temperaturas:** `datos-temperatura.php` (instalado) descarta los valores diarios fuera de −25 a 50 °C antes de
+  promediar y el mapa marca incompletas según los días válidos de cada variable; filtro de −25 a 50 °C también en las medias; estaciones con días faltantes con borde
   punteado; se muestran todas las que tienen datos.
 - **Heladas:** 1,5 m en abrigo (OMM), 0,25 h por registro, FPH y FUH explicadas.
 - **Ficha de lluvia:** se explica que la normal usa el período de referencia y las estadísticas, la serie.
@@ -410,7 +411,5 @@ Pregunta pendiente:
   comprobar que la versión instalada devuelve `periodo`.
 - Alertas de corto plazo del SMN: `smn-alerta-area.php` ignora `tipo` (con 1, 2, 3 o 4 devuelve lo mismo). Hace
   falta un PHP que pida al SMN, con su token, las alertas de corto plazo de Tucumán.
-- Kp histórico: GFZ (`kp.gfz.de/app/json/`) no permite CORS; un proxy PHP lo habilitaría para fechas de más de
-  una semana (el sitio ya tiene el lector, `URL_GFZ_PROXY` en `kp-historico.service.ts`).
-- `datos-temperatura.php` (ahora en el repo): excluye los valores diarios fuera de −25 a 50 °C antes de
-  promediar y devuelve los días válidos de cada variable. Falta revisar el `EXPLAIN` e instalarlo.
+- Kp histórico: `kp-gfz.php` (en el repo) es el proxy de GFZ, que no permite CORS. El sitio lo usa para fechas
+  de más de una semana; si no está instalado, sigue con NOAA. Falta instalarlo y probarlo.

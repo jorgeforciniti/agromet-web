@@ -10,6 +10,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `lluvias-estacion.php` | Diálogo de una estación en «Lluvias por campaña»: ubicación, normales y serie histórica de lluvias mensuales | `estaciones_rr`, `datos_rr_mes` |
 | `lluvia-periodo.php` | Mapa de lluvias diarias: lluvia de 0 a 24 h o de 9 a 9 h y cantidad de registros por estación | `estaciones`, `datos_estaciones` |
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
+| `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 
 ## `normales.php`
 
@@ -104,3 +105,19 @@ Igual, antes de instalarlo, revisar el `EXPLAIN` de la consulta (está en el arc
 Para instalarlo: copiar el archivo a `/services/` (reemplaza al anterior; guardar una copia como
 `datos-temperatura.php.ant`) y probar
 `https://agromet.eeaoc.gob.ar/services/datos-temperatura.php?desde=<día 1>&hasta=<hoy>`.
+
+## `kp-gfz.php`
+
+Proxy del índice Kp de GFZ Potsdam (`https://kp.gfz.de/app/json/`), que no permite CORS.
+«Condiciones para aplicar» lo usa para el Kp de cada intervalo de 3 h en fechas de más de una
+semana (para la última semana usa el feed de NOAA). No usa la base de datos.
+
+`GET /services/kp-gfz.php?start=AAAA-MM-DDThh:mm:ssZ&end=AAAA-MM-DDThh:mm:ssZ&index=Kp` devuelve la
+respuesta de GFZ tal cual. Acepta hasta 31 días; si GFZ no responde en 10 s o responde otra cosa,
+devuelve un error 502 y el sitio sigue con NOAA (usa el último Kp publicado y lo aclara).
+
+El servidor tiene que poder hacer pedidos HTTPS hacia afuera (cURL de PHP o `allow_url_fopen`).
+
+Para instalarlo: copiar el archivo a `/services/` y probar
+`https://agromet.eeaoc.gob.ar/services/kp-gfz.php?start=2026-10-01T03:00:00Z&end=2026-10-02T03:00:00Z&index=Kp`
+(tiene que devolver `"Kp":[...]` y `"datetime":[...]`).

@@ -842,7 +842,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       body: [
         'Mide actividad geomagnética; puede afectar GNSS/compás.',
         'Guía: <4 normal; 4–5 precaución; ≥5 puede degradar precisión (dron/aéreo).',
-        'En la tabla se usa el Kp del intervalo de 3 h de cada registro (NOAA SWPC, última semana). Para fechas anteriores se usa el último publicado y se aclara debajo de la tabla. El mapa usa el último publicado.'
+        'En la tabla se usa el Kp del intervalo de 3 h de cada registro (NOAA SWPC para la última semana, GFZ Potsdam para fechas anteriores). Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla. El mapa usa el último publicado.'
       ]
     },
     GNSS: {

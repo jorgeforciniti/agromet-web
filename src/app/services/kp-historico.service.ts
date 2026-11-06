@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
 /** Un intervalo de 3 h del índice Kp: empieza en inicioMs (UTC) y dura 3 h. */
 export interface IntervaloKp {
@@ -19,11 +19,14 @@ const TRES_HORAS_MS = 3 * 3600 * 1000;
 /**
  * Kp histórico de GFZ Potsdam (https://kp.gfz.de/app/json/?start=…&end=…&index=Kp, antes
  * kp.gfz-potsdam.de). Responde { datetime: [...], Kp: [...] } con el inicio de cada intervalo
- * de 3 h en ISO 8601. PENDIENTE: no manda Access-Control-Allow-Origin (verificado en nov. 2026),
- * así que el navegador no lo puede leer directo. Cuando haya un proxy PHP en el servidor, poner
- * acá su URL (recibe start, end e index y devuelve la respuesta de GFZ tal cual).
+ * de 3 h en ISO 8601. No manda Access-Control-Allow-Origin (verificado en nov. 2026), así que se
+ * lee a través de kp-gfz.php (server/servicios), que recibe start, end e index y devuelve la
+ * respuesta de GFZ tal cual. null para no usarlo.
  */
-const URL_GFZ_PROXY: string | null = null;
+const URL_GFZ_PROXY: string | null = 'https://agromet.eeaoc.gob.ar/services/kp-gfz.php';
+
+/** Hasta cuántos días atrás alcanza el feed de NOAA (cubre unos 7; se deja margen). */
+const DIAS_NOAA = 6;
 
 /** Feed de NOAA SWPC: Kp observado de los últimos 7 días aprox., con CORS. */
 const URL_NOAA = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
@@ -44,17 +47,26 @@ export class KpHistoricoService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Kp entre desde y hasta. Con el proxy de GFZ configurado se usa GFZ (cubre cualquier fecha);
-   * si no, el feed de NOAA, que sólo cubre la última semana: quien llama verifica la cobertura
-   * con kpEnInstante().
+   * Kp entre desde y hasta. Para la última semana se usa el feed de NOAA, que está más al día;
+   * para fechas anteriores, GFZ a través del proxy (cubre cualquier fecha). Si el proxy no está
+   * o falla, se vuelve a NOAA: quien llama verifica la cobertura con kpEnInstante().
    */
   serie(desde: Date, hasta: Date): Observable<SerieKp> {
-    if (URL_GFZ_PROXY) {
+    const reciente = desde.getTime() >= Date.now() - DIAS_NOAA * 24 * 3600 * 1000;
+    if (URL_GFZ_PROXY && !reciente) {
       const params = { start: isoSinMs(desde), end: isoSinMs(hasta), index: 'Kp' };
       return this.http.get<RespuestaGfz>(URL_GFZ_PROXY, { params }).pipe(
-        map(r => ({ fuente: 'GFZ Potsdam' as const, intervalos: leerGfz(r) }))
+        map(r => ({ fuente: 'GFZ Potsdam' as const, intervalos: leerGfz(r) })),
+        catchError(err => {
+          console.warn('[KP] Proxy de GFZ no disponible; se usa NOAA', err);
+          return this.serieNoaa();
+        })
       );
     }
+    return this.serieNoaa();
+  }
+
+  private serieNoaa(): Observable<SerieKp> {
     return this.http.get<FilaNoaa[]>(URL_NOAA).pipe(
       map(filas => ({ fuente: 'NOAA SWPC' as const, intervalos: leerNoaa(filas) }))
     );
