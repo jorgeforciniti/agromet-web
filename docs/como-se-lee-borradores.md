@@ -8,6 +8,10 @@ título o la descripción. Las dudas están al final de cada vista y también co
 Ya lo tenían de antes: Horas de frío y Sumas térmicas. Los de Condiciones para enfermedades y Meteorología
 por estadíos fenológicos se ampliaron (ver el final).
 
+**Actualización:** la Sección respondió las preguntas de las partes 1 a 4 y 6. Lo que se cambió y lo que
+queda abierto está en la parte 7; las preguntas de las partes 1 a 4 y 6 quedan como registro. El Colmenar
+(parte 5) se revisa más adelante.
+
 ---
 
 ## 1. Mapas (`/mapas`)
@@ -316,14 +320,98 @@ Preguntas:
 
 ### Condiciones para enfermedades — `disease-conditions-dialog`
 - *(primer párrafo: el resumen de la enfermedad elegida, que ya existía en el código)*
-- Cada fila es un día calendario (de 0 a 24 h) de la estación elegida. Las horas se cuentan con los registros de ese día: cada registro que cumple la condición suma 15 minutos. «Hs mojado» son las horas con la hoja mojada: el sensor de humedad foliar informa de 0 (seca) a 15 (mojada) y se toma como mojada por encima de 10, criterio del proveedor de las estaciones. «Temp. mojado» es la temperatura media durante esas horas.
+- Cada fila es un día calendario (de 0 a 24 h) de la estación elegida. Las horas se cuentan con los registros de ese día: cada registro que cumple la condición suma 15 minutos. «Hs mojado» son las horas con la hoja mojada: el sensor de humedad foliar informa de 0 (seca) a 15 (mojada) y se toma como mojada desde 10, criterio del proveedor de las estaciones. «Temp. mojado» es la temperatura media durante esas horas.
 - La calificación aplica a esos valores los criterios de la enfermedad, aportados por la **Sección Fitopatología de la EEAOC**, que se ven al tocar la «i» junto a su nombre. El color de cada fila va del verde (bajo o no apto) al amarillo, el naranja, el rojo y el bordó (muy alto o condición positiva), y las tarjetas de arriba cuentan los días del período en cada clase.
 - Indica si el tiempo fue favorable para la enfermedad, no si hubo infección: no tiene en cuenta la presencia del patógeno, la variedad ni el estado del cultivo. Las enfermedades que dependen del mojado de hoja sólo se habilitan en estaciones con ese sensor. Los días sin registros no aparecen en la tabla y, si faltan registros, las horas pueden quedar por debajo de las reales.
 
 Respondido por la Sección:
 - Los criterios de cada enfermedad los aporta la Sección Fitopatología de la EEAOC.
-- La hoja se toma como mojada con `hum_hoja > 10` (criterio de Mercobras, proveedor de las estaciones). El código mezclaba `> 10`, `>= 10` y `> 9` según la regla; ahora todas usan `> 10`.
+- La hoja se toma como mojada con `hum_hoja >= 10` (criterio de Mercobras, proveedor de las estaciones; confirmado por la Sección). El código mezclaba `> 10`, `>= 10` y `> 9` según la regla; ahora todas usan `>= 10`.
 - Sobre bibliografía del umbral: el sensor es el Davis 6420 (escala 0 = seca a 15 = mojada). Davis indica que el umbral lo elige el usuario y no recomienda un valor; no se encontró un trabajo que valide un corte sobre esa escala. El Climate Office de Carolina del Norte (NC State) reportó que fijar el umbral fue difícil y trabajó con lecturas crudas, no con la escala 0–15.
 
 Pregunta pendiente:
 - Un día sin registros no aparece en la tabla y un dato faltante dentro del día se toma como 0. ¿Conviene marcar los días incompletos?
+
+---
+
+## 7. Respuestas de la Sección: qué se hizo y qué queda
+
+### Hecho en el sitio
+
+- **Lluvias diarias:** «Hoy» es desde las 0 h y se dice en pantalla. Menos de 0,3 mm es una clase fija,
+  «lluvia < 0,3 mm o rocío». Estación sin datos: punto hueco, distinto de 0 mm. En «Hoy», estación que no
+  transmite hace más de 1 h: punto pálido (total posiblemente incompleto).
+- **Lluvias mensuales:** sólo meses completos (hasta el mes pasado). Pluviómetros y automáticas validados.
+- **Lluvia acumulada:** normal mensual repartida por días y mes en curso provisorio, dentro del «¿Cómo se lee?»
+  (se quitó la nota al pie).
+- **Cortes de % de la normal unificados** en Lluvias por campaña, Lluvias mensuales y Lluvia acumulada:
+  < 33, 33 a < 66, 66 a < 100, 100 a < 150, 150 a < 200 y ≥ 200 %. Con normal 0 la celda queda sin color.
+- **Temperaturas:** filtro de −25 a 50 °C también en las medias; estaciones con días faltantes con borde
+  punteado; se muestran todas las que tienen datos.
+- **Heladas:** 1,5 m en abrigo (OMM), 0,25 h por registro, FPH y FUH explicadas.
+- **Ficha de lluvia:** se explica que la normal usa el período de referencia y las estadísticas, la serie.
+- **Datos en tiempo real:** lluvia desde las 0 h; el aviso de faltantes usa el intervalo real de la estación.
+- **Datos por localidad:** heladas (mínima ≤ 0 °C), día pluviométrico de 9 a 9 h, ETo de Davis.
+- **ETo** (en todas las vistas que la usan): la calcula la consola Davis Vantage Pro2 con la ecuación de
+  Penman modificada que implementa CIMIS (Pruitt y Doorenbos, 1977), cada hora; el diario es la suma.
+- **Normales:** `normales.php` devuelve el período de referencia si la tabla lo tiene, y el sitio lo muestra
+  debajo de los gráficos (Datos por localidad y las dos comparaciones). Comparar localidades advierte que los
+  períodos pueden ser distintos.
+- **Condiciones para aplicar:** mapa y tabla con la misma evaluación, con la **ráfaga** como referencia de
+  viento; dato faltante o fuera de rango → «Sin evaluar»; Kp del intervalo de 3 h de cada fila (NOAA, última
+  semana; para fechas anteriores se usa el último y se avisa); noche según salida y puesta del sol de cada
+  estación; columna «ΔT (°C)». Se corrigió además un error por el que la inversión nunca se calculaba en la tabla.
+- **Umbrales de aplicación (aprobados por la Sección):** ΔT 2–8 verde, 8–10 y 1–2 amarillo, más de 10 o
+  menos de 1 rojo (guía GRDC «Delta T»). Viento: piso de calma con el viento medio (< 3 km/h rojo) y techo
+  con la ráfaga. Techos de ráfaga (verde / amarillo, rojo por encima): terrestre 20 / 25 km/h, avión 20 / 25,
+  dron 16 / 20, manual y airblast 15 / 20. Amarillo por calma: viento medio 3–5 km/h en terrestre y dron,
+  3–4 en avión. La inversión probable se estima con viento medio < 5 km/h, de noche y HR ≥ 85 %. Los techos
+  de ráfaga son propuestas propias derivadas de las guías (que hablan de viento medio, y la ráfaga suele
+  ser 1,5 a 2 veces mayor); se ajustan con la experiencia. Queda documentar a qué altura mide el viento cada
+  estación (2 o 10 m).
+- **Estimador de soja:** «Metodología aportada por la Sección Granos de la EEAOC».
+- **Estado actual:** avisos de 0 a 24 h; «Lluvia registrada» sólo con algún registro > 0,3 mm. Se dio de baja
+  `alert-dialog`. Visor renombrado «Visor de capas meteorológicas», viento en km/h, aclaración sobre focos de
+  calor.
+- **Red de estaciones:** lluvia de hoy desde las 0 h; zona 4 = «Valles de Altura» (también en Inicio y en la
+  ficha de estación).
+- **Fenología:** se agregó **Cítricos** (brotación → cuaje 60 d → crecimiento del fruto 120 d → maduración
+  195 d → cosecha 240 d; Kc 0,70 / 0,68 / 0,65 / 0,68 / 0,70 de FAO-56, cuadro 12, cítricos sin cobertura,
+  70 % de copa).
+- **Kc de soja, maíz y caña:** ahora son los de FAO-56 (cuadro 12), y el texto lo dice. Cada etapa toma el
+  valor inicial, medio o final; las de transición, el promedio entre los dos. Soja 0,40 / 0,78 / 1,15 / 1,15 /
+  0,83; maíz 0,30 / 0,75 / 1,20 / 0,35; caña 0,40 / 0,40 / 0,83 / 1,25 / 1,00.
+- **Hoja mojada:** confirmado `hum_hoja >= 10` en todas las reglas de Enfermedades.
+- **Enfermedades:** días incompletos marcados (menos del 90 % de los registros esperados) y días sin registros
+  como fila «Sin datos».
+
+### Abierto con la Sección
+
+- **«Lluvia máxima» del mapa de lluvias diarias:** se respondió «de un día», pero `datos-alerta.php` devuelve
+  la máxima de un registro (ej.: Santa Ana, 1/10 al 4/11: total 133,6 mm, máxima 2,03 mm). Hoy el popup dice
+  «Lluvia máxima en un registro».
+- **Horas de lluvia:** `registrosLluvia` cuenta sólo los registros > 0,3 mm, así que las horas quedan por
+  debajo de las reales (los registros de 0,25 mm no suman).
+- **«Días de lluvia» de Datos por localidad:** la consulta citada cuenta registros; ¿el resumen cuenta días con
+  algún registro > 0,3 mm o días con lluvia diaria > 0,3 mm?
+- **Heladas:** se supuso helada = 0 °C o menos; confirmar.
+- **Duraciones de los hitos sugeridos** de soja, maíz y caña: sin fuente; ¿valores locales u otra referencia?
+- **Cítricos:** validar etapas, fechas y Kc con la Sección Fruticultura/Citrus; ¿separar limón de naranja?
+- **Estimador de soja:** factor 19.200, corrección por humedad, peso de mil semillas y conteo → Sección Granos.
+- **CMR de 300 mm** del balance → Sección Suelos.
+
+### Pendiente en el servidor (PHP que no están en el repositorio)
+
+- **`lluvia-periodo.php`** (en el repo, apagado): botón «De 9 a 9 h» y cantidad de registros por estación en el
+  mapa de lluvias diarias. La primera versión trabó la base (consultas de más de 10 minutos con las tablas
+  bloqueadas). La versión nueva usa el índice `Fecha` (EXPLAIN: ~7.300 filas para dos días), acepta hasta
+  31 días y corta a los 15 s. Queda apagado (`LLUVIA_PERIODO_HABILITADA = false`) hasta probarla en el
+  servidor.
+- `datos-alerta.php`: la lluvia máxima diaria, si se la quiere (hoy es la de un registro).
+- `normales.php` (sí está en el repo): subirlo y agregar a la tabla `normales` las columnas `periodo_desde` y
+  `periodo_hasta` si no las tiene.
+- Alertas de corto plazo del SMN: `smn-alerta-area.php` ignora `tipo` (con 1, 2, 3 o 4 devuelve lo mismo). Hace
+  falta un PHP que pida al SMN, con su token, las alertas de corto plazo de Tucumán.
+- Kp histórico: GFZ (`kp.gfz.de/app/json/`) no permite CORS; un proxy PHP lo habilitaría para fechas de más de
+  una semana (el sitio ya tiene el lector, `URL_GFZ_PROXY` en `kp-historico.service.ts`).
+- `datos-temperatura.php`: podría excluir los valores diarios fuera de rango antes de promediar.
