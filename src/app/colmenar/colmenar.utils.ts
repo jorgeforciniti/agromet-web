@@ -1,7 +1,6 @@
-import { Chart, ChartOptions, registerables } from 'chart.js';
+import { ChartOptions } from 'chart.js';
 import { IndicadorExtremo, Mensual, NormalMensual } from './colmenar.models';
-
-Chart.register(...registerables);
+import { SERIE_COLOR, VAR_COLOR } from '../charts/chart-theme';
 
 export const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 export const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -109,6 +108,14 @@ export function fmtEje(v: number): string {
   return Number.isInteger(v) ? fmt(v, 0) : fmt(v, 1);
 }
 
+/**
+ * Amplitud térmica = Tmax − Tmin. Con medias mensuales validadas (mismos días) es igual a la media de
+ * las amplitudes diarias del mes. Devuelve null si falta alguno de los dos valores.
+ */
+export function amplitud(tmax: number | null | undefined, tmin: number | null | undefined): number | null {
+  return tmax === null || tmax === undefined || tmin === null || tmin === undefined ? null : redondear(tmax - tmin, 2);
+}
+
 /** Igual que fmt, con signo explícito (+/−) para anomalías. */
 export function fmtSigno(v: number | null | undefined, decimales = 1): string {
   if (v === null || v === undefined || Number.isNaN(v)) {
@@ -165,16 +172,20 @@ export function mensualPorMes(filas: Mensual[] | null | undefined): (Mensual | n
    Gráficos (Chart.js)
    ========================= */
 export const COLOR = {
-  tmax: '#eb6834',
-  tmin: '#2a78d6',
-  lluvia: '#2a78d6',
-  normal: '#52514e',
-  anioA: '#2a78d6',
-  anioB: '#eb6834',
+  tmax: VAR_COLOR.tmax,
+  tmin: VAR_COLOR.tmin,
+  lluvia: VAR_COLOR.lluvia,   // antes igual a tmin
+  normal: VAR_COLOR.normal,
+  anioA: SERIE_COLOR[0],
+  anioB: SERIE_COLOR[1],
   positivoTermico: '#dc2626',
   negativoTermico: '#2563eb',
   humedo: '#2563eb',
   seco: '#c2410c',
+  /** Amplitud térmica: violeta (mayor que lo normal) y verde (menor), distintos del rojo/azul de cálido/frío. */
+  amplitud: '#862e9c',
+  positivoAmplitud: '#862e9c',
+  negativoAmplitud: '#2b8a3e',
   grilla: 'rgba(17, 24, 39, .08)',
   texto: '#52514e'
 };

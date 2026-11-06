@@ -33,6 +33,12 @@
   line-height: 1.2;
 }
 
+/* «¿Cómo se lee?» bajo la descripción de la sección: ancho de lectura cómodo, sin desbordar en móviles. */
+app-como-se-lee {
+  max-width: 75ch;
+  margin-top: 6px;
+}
+
 .panel__titulo--sm {
   font-size: .9rem;
 }
@@ -237,6 +243,8 @@
 .neg { color: #1d4ed8; }
 .pos-pp { color: #1d4ed8; }
 .neg-pp { color: #c2410c; }
+.pos-amp { color: #862e9c; }
+.neg-amp { color: #2b8a3e; }
 
 /* Columnas de diferencias en las tablas: positivos en azul, negativos en rojo. */
 .dif-pos { color: #1d4ed8; }
@@ -320,6 +328,14 @@
   font-size: .76rem;
   color: var(--muted);
   line-height: 1.35;
+}
+
+/* En una tarjeta angosta la etiqueta pasa a dos líneas en vez de salirse del borde. */
+.kpi__det .tag {
+  max-width: 100%;
+  white-space: normal;
+  border-radius: 10px;
+  line-height: 1.3;
 }
 
 .nota {

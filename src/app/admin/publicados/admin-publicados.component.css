@@ -1,0 +1,245 @@
+:host {
+  display: block;
+}
+
+.pub-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.pub-buscar {
+  flex: 1 1 280px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.95);
+}
+
+.pub-buscar mat-icon {
+  color: var(--muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.pub-buscar input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: .92rem;
+}
+
+.pub-filtros select,
+.pub-campo input,
+.pub-campo select {
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.95);
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pub-buscar:focus-within,
+.pub-filtros select:focus-visible,
+.pub-campo input:focus-visible,
+.pub-campo select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 18%, white);
+  border-color: color-mix(in srgb, var(--brand) 50%, var(--border));
+}
+
+.pub-total {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: .84rem;
+}
+
+.pub-aviso {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: .88rem;
+}
+
+.pub-aviso--ok {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.pub-aviso--error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.pub-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pub-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.92);
+}
+
+.pub-item--editando {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+  background: color-mix(in srgb, var(--brand) 4%, white);
+}
+
+.pub-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pub-titulo {
+  color: var(--text);
+  font-weight: 800;
+  font-size: .92rem;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-titulo:hover {
+  text-decoration: underline;
+}
+
+.pub-meta {
+  color: var(--muted);
+  font-size: .78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-acciones {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+}
+
+.pub-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pub-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.pub-btn:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.pub-btn:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.pub-btn--primario {
+  border-color: transparent;
+  background: var(--brand);
+  color: #fff;
+}
+
+.pub-btn--primario:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--brand) 88%, black);
+}
+
+.pub-btn--peligro {
+  color: #b91c1c;
+}
+
+.pub-btn--peligro:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+/* Edición en el lugar */
+.pub-edicion {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.pub-campo {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.pub-campo--titulo {
+  flex-basis: 100%;
+}
+
+.pub-campo--fecha {
+  flex: 0 1 170px;
+}
+
+.pub-edicion .pub-aviso {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.pub-mas {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .pub-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pub-titulo,
+  .pub-meta {
+    white-space: normal;
+  }
+}

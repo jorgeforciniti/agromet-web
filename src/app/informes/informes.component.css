@@ -87,6 +87,124 @@
   outline-offset: 2px;
 }
 
+/* ===== Buscador y año ===== */
+.buscador {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 0 0 12px;
+}
+
+.buscador__campo {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.92);
+}
+
+.buscador__campo:focus-within,
+.buscador__anio select:focus-visible {
+  border-color: color-mix(in srgb, var(--mod-reports) 50%, var(--border));
+  outline: 3px solid color-mix(in srgb, var(--mod-reports) 16%, white);
+}
+
+.buscador__campo mat-icon {
+  color: var(--muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.buscador__campo input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: .92rem;
+  color: var(--text);
+}
+
+.buscador__anio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .86rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.buscador__anio select {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.92);
+  font: inherit;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.buscador__limpiar {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.buscador__limpiar:hover {
+  background: rgba(255,255,255,.96);
+  color: var(--text);
+}
+
+.informes-resultados {
+  margin: 0 0 8px;
+  font-size: .82rem;
+  color: var(--muted);
+}
+
+.informes-mas {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.informes-mas__boton {
+  min-height: 40px;
+  padding: 0 22px;
+  border: 1px solid color-mix(in srgb, var(--mod-reports) 35%, var(--border));
+  border-radius: 999px;
+  background: rgba(255,255,255,.95);
+  font: inherit;
+  font-weight: 800;
+  font-size: .88rem;
+  color: color-mix(in srgb, var(--mod-reports) 75%, #1f2937);
+  cursor: pointer;
+}
+
+.informes-mas__boton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--mod-reports) 8%, white);
+}
+
+.informes-mas__boton:disabled {
+  cursor: progress;
+  opacity: .7;
+}
+
 /* ===== Lista de informes ===== */
 .informes-list {
   list-style: none;

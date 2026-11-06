@@ -44,7 +44,10 @@ interface ThresholdRule {
 }
 
 interface MetodoRule {
-  windKmh: ThresholdRule;
+  /** Piso de calma: se compara con el VIENTO MEDIO (por debajo, riesgo de inversión y deriva) */
+  calmaKmh: { rojo: number; amarillo: number };
+  /** Techo de viento: se compara con la RÁFAGA (verde hasta `verde`, amarillo hasta `amarillo`, después rojo) */
+  rafagaKmh: { verde: number; amarillo: number };
   deltaT: ThresholdRule;
   gustDeltaYellow: number;
   gustDeltaRed: number;
@@ -56,11 +59,29 @@ interface MetodoRule {
   popYellow: number;
 }
 
-// Reglas por método. Los rangos se pueden ajustar más adelante.
+/*
+ * Reglas por método. Criterio aprobado por la Sección (noviembre de 2026), a partir de la guía GRDC
+ * (Australia) «Delta T» y de las de viento para pulverización terrestre:
+ * - Viento: el PISO de calma se compara con el viento medio y el TECHO con la ráfaga. Las guías dan los
+ *   límites para viento medio a la altura del botalón (GRDC: aprox. 3–15 km/h para terrestre); con
+ *   menos de 3 km/h de viento medio hay riesgo de inversión y dirección impredecible (rojo). La ráfaga
+ *   suele ser 1,5 a 2 veces el viento medio, por eso los techos de ráfaga son más altos que los rangos
+ *   de viento medio de las guías: terrestre (MOSQUITO) verde hasta 20 km/h, rojo con más de 25.
+ *   DRON (buenas prácticas UAS, 5–16 km/h de viento medio), AVION, MANUAL y AIRBLAST: mismos criterios,
+ *   adaptados por método; son propuestas propias, a validar con la experiencia de la Sección.
+ * - deltaT: GRDC: 2–8 °C adecuado, 8–10 °C marginal (amarillo), más de 10 °C no aplicar (rojo),
+ *   menos de 2 °C riesgo de inversión y deriva (amarillo; menos de 1 °C, rojo).
+ * - gustDeltaYellow/gustDeltaRed (ráfaga − viento medio, turbulencia): criterio propio, sin fuente.
+ * - popRed/popYellow: pensados para probabilidad de lluvia de un pronóstico; con datos medidos
+ *   cualquier lluvia registrada cuenta como probabilidad 1 (rojo).
+ * - Inversión (inversionProbable): proxy propio (noche, viento medio < 5 km/h y HR ≥ 85 %), sin fuente;
+ *   agrava el semáforo junto con ΔT < 2.
+ */
 const RULES: Record<MetodoAplicacion, MetodoRule> = {
   MOSQUITO: {
-    windKmh: { green: [5, 15], yellow: [[3, 5], [15, 18]], red: [[0, 3], [18, 999]] },
-    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10], [10, 12]], red: [[0, 1], [12, 999]] },
+    calmaKmh: { rojo: 3, amarillo: 5 },
+    rafagaKmh: { verde: 20, amarillo: 25 },
+    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 8,
     gustDeltaRed: 15,
     inversion: { min: 'AMARILLO', forceRed: false },
@@ -68,8 +89,9 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.3,
   },
   MANUAL: {
-    windKmh: { green: [3, 10], yellow: [[10, 15]], red: [[0, 3], [15, 999]] },
-    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10], [10, 12]], red: [[0, 1], [12, 999]] },
+    calmaKmh: { rojo: 3, amarillo: 3 },
+    rafagaKmh: { verde: 15, amarillo: 20 },
+    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 6,
     gustDeltaRed: 12,
     inversion: { min: 'AMARILLO', forceRed: false },
@@ -77,9 +99,10 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.3,
   },
   DRON: {
-    // BMP UAS (5–16 km/h) + inversión = evitar
-    windKmh: { green: [5, 12], yellow: [[12, 16]], red: [[0, 5], [16, 999]] },
-    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10], [10, 12]], red: [[0, 1], [12, 999]] },
+    // Buenas prácticas UAS (5–16 km/h de viento medio) + inversión = evitar
+    calmaKmh: { rojo: 3, amarillo: 5 },
+    rafagaKmh: { verde: 16, amarillo: 20 },
+    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 6,
     gustDeltaRed: 10,
     inversion: { min: 'ROJO', forceRed: true },
@@ -87,8 +110,9 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.25,
   },
   AVION: {
-    windKmh: { green: [4, 15], yellow: [[3, 4], [15, 18]], red: [[0, 3], [18, 999]] },
-    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10], [10, 12]], red: [[0, 1], [12, 999]] },
+    calmaKmh: { rojo: 3, amarillo: 4 },
+    rafagaKmh: { verde: 20, amarillo: 25 },
+    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 8,
     gustDeltaRed: 14,
     inversion: { min: 'ROJO', forceRed: true },
@@ -96,8 +120,9 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.25,
   },
   AIRBLAST: {
-    windKmh: { green: [3, 10], yellow: [[10, 15]], red: [[0, 3], [15, 999]] },
-    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10], [10, 12]], red: [[0, 1], [12, 999]] },
+    calmaKmh: { rojo: 3, amarillo: 3 },
+    rafagaKmh: { verde: 15, amarillo: 20 },
+    deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 6,
     gustDeltaRed: 12,
     inversion: { min: 'ROJO', forceRed: true },
@@ -105,6 +130,89 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.3,
   },
 };
+
+/** Argentina: UTC−3 todo el año. */
+const HUSO_ARGENTINA_MS = -3 * 3600 * 1000;
+
+/** Fuera de estos rangos el dato se toma como inválido (sensor fuera de servicio) y no se evalúa. */
+const RANGOS_VALIDOS: Record<'temperatura' | 'humedad' | 'viento' | 'lluvia', [number, number]> = {
+  temperatura: [-30, 55],
+  humedad: [1, 100],
+  viento: [0, 200],
+  lluvia: [0, 300],
+};
+
+/** Registro medido en una estación (unidades de la API: °C, %, km/h, mm). null = sin dato. */
+export interface RegistroMeteo {
+  instante: Date | null;
+  lat: number | null;
+  lon: number | null;
+  temperatura: number | null;
+  humedad: number | null;
+  vientoMedio: number | null;
+  rafaga: number | null;
+  lluvia: number | null;
+}
+
+export interface ContextoEvaluacion {
+  metodo: MetodoAplicacion;
+  cultivo: Cultivo;
+  prioridad: Prioridad;
+  /** Kp del momento del registro; null o undefined = no se considera */
+  kpIndex?: number | null;
+  sats?: number;
+}
+
+/** evaluacion = null: «Sin evaluar» por los datos faltantes o inválidos que lista faltantes. */
+export interface ResultadoEvaluacion {
+  evaluacion: EvaluacionAplicacion | null;
+  faltantes: string[];
+}
+
+/**
+ * Salida y puesta del sol (ms UTC) para una fecha y una ubicación, con el algoritmo de NOAA
+ * (General Solar Position Calculations / planilla de NOAA), con refracción estándar (90,833°).
+ * Se calcula al mediodía local de Argentina (15 h UTC). null si ese día no hay salida o puesta
+ * (latitudes polares).
+ */
+export function salidaPuestaSol(anio: number, mes: number, dia: number, lat: number, lon: number): { salidaMs: number; puestaMs: number } | null {
+  const rad = Math.PI / 180;
+  const jd = Date.UTC(anio, mes - 1, dia, 15) / 86400000 + 2440587.5;
+  const t = (jd - 2451545) / 36525;
+
+  const l0 = (280.46646 + t * (36000.76983 + t * 0.0003032)) % 360;
+  const m = 357.52911 + t * (35999.05029 - 0.0001537 * t);
+  const e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
+  const c = Math.sin(m * rad) * (1.914602 - t * (0.004817 + 0.000014 * t))
+    + Math.sin(2 * m * rad) * (0.019993 - 0.000101 * t)
+    + Math.sin(3 * m * rad) * 0.000289;
+  const omega = 125.04 - 1934.136 * t;
+  const longAparente = l0 + c - 0.00569 - 0.00478 * Math.sin(omega * rad);
+  const oblicuidadMedia = 23 + (26 + (21.448 - t * (46.815 + t * (0.00059 - t * 0.001813))) / 60) / 60;
+  const oblicuidad = oblicuidadMedia + 0.00256 * Math.cos(omega * rad);
+  const declinacion = Math.asin(Math.sin(oblicuidad * rad) * Math.sin(longAparente * rad));
+
+  const y = Math.tan((oblicuidad / 2) * rad) ** 2;
+  const ecuacionTiempo = 4 / rad * (
+    y * Math.sin(2 * l0 * rad)
+    - 2 * e * Math.sin(m * rad)
+    + 4 * e * y * Math.sin(m * rad) * Math.cos(2 * l0 * rad)
+    - 0.5 * y * y * Math.sin(4 * l0 * rad)
+    - 1.25 * e * e * Math.sin(2 * m * rad)
+  ); // minutos
+
+  const cosH = Math.cos(90.833 * rad) / (Math.cos(lat * rad) * Math.cos(declinacion))
+    - Math.tan(lat * rad) * Math.tan(declinacion);
+  if (cosH < -1 || cosH > 1) return null;
+  const anguloHorario = Math.acos(cosH) / rad; // grados
+
+  const mediodiaMin = 720 - 4 * lon - ecuacionTiempo; // minutos UTC desde las 0 h
+  const ceroUtc = Date.UTC(anio, mes - 1, dia);
+  return {
+    salidaMs: ceroUtc + (mediodiaMin - 4 * anguloHorario) * 60000,
+    puestaMs: ceroUtc + (mediodiaMin + 4 * anguloHorario) * 60000,
+  };
+}
 
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
@@ -239,14 +347,64 @@ export class SprayAdvisorService {
     return params.isNight && params.windKmh < 5 && params.rh >= 85;
   }
 
-  isNightFromUnix(dtUtc: number, tzSeconds: number | undefined, sunriseUtc?: number, sunsetUtc?: number): boolean {
-    if (!sunriseUtc || !sunsetUtc) {
-      // fallback por hora local
-      const local = (dtUtc + (tzSeconds ?? 0)) * 1000;
-      const h = new Date(local).getUTCHours();
-      return h < 7 || h > 19;
-    }
+  /**
+   * Noche: antes de la salida o después de la puesta del sol (segundos Unix UTC). Sin salida y
+   * puesta no se puede saber: se devuelve false (ya no hay horario fijo). evaluarRegistro() las
+   * calcula siempre con salidaPuestaSol().
+   */
+  isNightFromUnix(dtUtc: number, sunriseUtc?: number, sunsetUtc?: number): boolean {
+    if (sunriseUtc == null || sunsetUtc == null) return false;
     return dtUtc < sunriseUtc || dtUtc > sunsetUtc;
+  }
+
+  /**
+   * Evaluación única de un registro de estación, la que usan el mapa y la tabla. Si falta un
+   * dato (o es inválido) devuelve evaluacion = null («Sin evaluar»): nunca se evalúa con 0.
+   * El viento de referencia es la ráfaga; la noche (para la inversión) sale de la salida y la
+   * puesta del sol en la fecha y la ubicación de la estación.
+   */
+  evaluarRegistro(reg: RegistroMeteo, ctx: ContextoEvaluacion): ResultadoEvaluacion {
+    const faltantes: string[] = [];
+    const leer = (v: number | null | undefined, rango: [number, number], nombre: string): number => {
+      if (v == null || !Number.isFinite(v) || v < rango[0] || v > rango[1]) {
+        faltantes.push(nombre);
+        return NaN;
+      }
+      return v;
+    };
+
+    const tC = leer(reg.temperatura, RANGOS_VALIDOS.temperatura, 'temperatura');
+    const rh = leer(reg.humedad, RANGOS_VALIDOS.humedad, 'humedad');
+    const medio = leer(reg.vientoMedio, RANGOS_VALIDOS.viento, 'viento medio');
+    const rafaga = leer(reg.rafaga, RANGOS_VALIDOS.viento, 'ráfaga');
+    const lluvia = leer(reg.lluvia, RANGOS_VALIDOS.lluvia, 'lluvia');
+    const instanteMs = reg.instante?.getTime();
+    if (instanteMs == null || !Number.isFinite(instanteMs)) faltantes.push('hora');
+    if (reg.lat == null || reg.lon == null || !Number.isFinite(reg.lat) || !Number.isFinite(reg.lon)
+      || (reg.lat === 0 && reg.lon === 0)) faltantes.push('ubicación');
+    if (faltantes.length) return { evaluacion: null, faltantes };
+
+    // Fecha local (UTC−3) del registro, para la salida y la puesta del sol de ese día
+    const local = new Date((instanteMs as number) + HUSO_ARGENTINA_MS);
+    const sol = salidaPuestaSol(local.getUTCFullYear(), local.getUTCMonth() + 1, local.getUTCDate(), reg.lat as number, reg.lon as number);
+
+    const evaluacion = this.evaluar(
+      {
+        tC,
+        rh,
+        windMs: medio / 3.6,
+        gustMs: rafaga / 3.6,
+        pop: lluvia > 0 ? 1 : 0,
+        dtUtc: Math.floor((instanteMs as number) / 1000),
+        sunriseUtc: sol ? Math.floor(sol.salidaMs / 1000) : undefined,
+        sunsetUtc: sol ? Math.floor(sol.puestaMs / 1000) : undefined,
+      },
+      ctx.metodo,
+      ctx.cultivo,
+      ctx.prioridad,
+      { kpIndex: ctx.kpIndex ?? undefined, sats: ctx.sats }
+    );
+    return { evaluacion, faltantes };
   }
 
   // Ponderaciones por prioridad/cultivo
@@ -269,7 +427,6 @@ export class SprayAdvisorService {
       gustMs?: number;
       pop?: number;
       dtUtc?: number;
-      tzSeconds?: number;
       sunriseUtc?: number;
       sunsetUtc?: number;
       weatherId?: number;
@@ -283,14 +440,19 @@ export class SprayAdvisorService {
     const rules = RULES[metodo];
     const windKmh = meteo.windMs * 3.6;
     const gustKmh = meteo.gustMs != null ? meteo.gustMs * 3.6 : undefined;
+    // Techo de viento con la ráfaga (criterio de la Sección); el medio sólo si no hay ráfaga.
+    const refKmh = gustKmh ?? windKmh;
     const dT = this.deltaT(meteo.tC, meteo.rh);
 
     const isNight = meteo.dtUtc != null
-      ? this.isNightFromUnix(meteo.dtUtc, meteo.tzSeconds, meteo.sunriseUtc, meteo.sunsetUtc)
+      ? this.isNightFromUnix(meteo.dtUtc, meteo.sunriseUtc, meteo.sunsetUtc)
       : false;
     const inv = this.inversionProbable({ windKmh, rh: meteo.rh, isNight });
 
-    const lWind = evalThreshold(windKmh, rules.windKmh);
+    // Piso de calma con el viento medio; techo con la ráfaga
+    const lCalma: Semaforo = windKmh < rules.calmaKmh.rojo ? 'ROJO' : windKmh < rules.calmaKmh.amarillo ? 'AMARILLO' : 'VERDE';
+    const lTecho: Semaforo = refKmh > rules.rafagaKmh.amarillo ? 'ROJO' : refKmh > rules.rafagaKmh.verde ? 'AMARILLO' : 'VERDE';
+    const lWind = worst(lCalma, lTecho);
     const lDT = evalThreshold(dT, rules.deltaT);
 
     let lGust: Semaforo = 'VERDE';
@@ -385,8 +547,9 @@ export class SprayAdvisorService {
     const push = (arr: string[], s: string) => { if (arr.length < 3) arr.push(s); };
 
     if (lInv !== 'VERDE') push(razones, 'Riesgo de inversión/atmósfera estable.');
-    if (lWind !== 'VERDE') push(razones, `Viento ${windKmh.toFixed(0)} km/h (${lWind}).`);
-    if (lGust !== 'VERDE' && gustKmh != null) push(razones, `Ráfagas ${gustKmh.toFixed(0)} km/h (${lGust}).`);
+    if (lCalma !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(0)} km/h: calma (${lCalma}).`);
+    if (lTecho !== 'VERDE') push(razones, `${gustKmh != null ? 'Ráfaga' : 'Viento'} ${refKmh.toFixed(0)} km/h (${lTecho}).`);
+    if (lGust !== 'VERDE' && gustKmh != null) push(razones, `Ráfaga ${(gustKmh - windKmh).toFixed(0)} km/h sobre el viento medio (${lGust}).`);
     if (lDT !== 'VERDE') push(razones, `ΔT ${dT.toFixed(1)} °C (${lDT}) → evaporación/deriva.`);
     if (lRain !== 'VERDE') push(razones, `Prob. precipitación ${(pop * 100).toFixed(0)}% (${lRain}).`);
     if (lKp !== 'VERDE') push(razones, `Kp ${kp} (${lKp}) → posible degradación GNSS/compás.`);
@@ -398,7 +561,7 @@ export class SprayAdvisorService {
 
     // Recomendaciones por método (conservadoras)
     if (sem === 'ROJO') push(recs, 'Evitar la aplicación en estas condiciones.');
-    if (lInv !== 'VERDE') push(recs, 'Esperar ruptura de inversión: más mezcla (viento >5 km/h) y/o mayor radiación.');
+    if (lInv !== 'VERDE') push(recs, 'Esperar ruptura de inversión: más mezcla (viento medio > 5 km/h) y/o mayor radiación.');
     if (lDT === 'ROJO') push(recs, 'Reprogramar a ΔT 2–8 °C o usar gota muy gruesa + antievaporante.');
     if (lWind === 'ROJO' || lGust === 'ROJO') push(recs, 'Si es imprescindible: bajar altura, aumentar tamaño de gota y alejarse de bordes sensibles.');
     if (lWx === 'ROJO') push(recs, 'Hay precipitación/tormenta ahora: evitar la aplicación por lavado y seguridad.');

@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,6 +11,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { WeatherService } from '../services/weather.service';
 import { forkJoin } from 'rxjs';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
 
 
 export interface RainCampaignData { }
@@ -47,6 +50,8 @@ interface StationRain {
   selector: 'app-rain-campaign-dialog',
   standalone: true,
   imports: [
+    ComoSeLeeComponent,
+    CopiarEnlaceComponent,
     CommonModule,
     MatDialogModule,
     MatTableModule,
@@ -80,9 +85,14 @@ export class RainCampaignDialogComponent implements OnInit {
   public selectedMonth!: number;
   public selectedYear!: number;
 
+  /** Enlace con el mes y el año de inicio de la campaña (A5 del informe de mejoras) */
+  readonly enlaceConsulta = (): string =>
+    armarEnlace('campania-lluvias', { mes: this.selectedMonth, anio: this.selectedYear });
+
   constructor(
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<RainCampaignDialogComponent>,
+    private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: RainCampaignData
   ) { }
 
@@ -97,6 +107,13 @@ export class RainCampaignDialogComponent implements OnInit {
     this.selectedMonth = startMonth;              // 8  (Ago)
     this.selectedYear = startYear;               // 2024
     this.currentMonthName = this.monthsList[today.getMonth()].label; // Jul
+
+    // Consulta recibida por enlace o consulta guardada: mes y año de inicio
+    const consulta = consultaDe(this.data);
+    const mes = leerNumero(consulta['mes']);
+    const anio = leerNumero(consulta['anio']);
+    if (mes !== null && mes >= 1 && mes <= 12) this.selectedMonth = mes;
+    if (anio !== null && anio >= 1900 && anio <= today.getFullYear()) this.selectedYear = anio;
 
     this.loadCampaign();
   }
@@ -193,16 +210,47 @@ export class RainCampaignDialogComponent implements OnInit {
 
 
   /* ─── MÉTODOS DE CELDA ───────────────────────────────── */
+  /**
+   * Clase de color según el porcentaje de la normal, en intervalos semiabiertos sin huecos (los
+   * mismos que la leyenda): < 33 %, 33 a < 66 %, 66 a < 100 %, 100 a < 150 %, 150 a < 200 % y
+   * ≥ 200 %. Sin normal (≤ 0 mm) no se calcula el porcentaje: la celda queda neutra.
+   */
   cellClass(value: number, normal: number, isCurrent = false): string {
     if (isCurrent) return 'current-month';
     if (value === -999.9) return 'no-data';
+    if (!(normal > 0)) return 'sin-normal';
     const ratio = value / normal;
     if (ratio < 0.33) return 'below-33';
     if (ratio < 0.66) return 'below-66';
-    if (ratio < 0.99) return 'below-99';
-    if (ratio <= 1.5) return 'above-100-50';
-    if (ratio <= 2) return 'above-150-100';
+    if (ratio < 1) return 'below-99';
+    if (ratio < 1.5) return 'above-100-50';
+    if (ratio < 2) return 'above-150-100';
     return 'above-200';
+  }
+
+  /**
+   * Abre el diálogo de la estación (mapa y estadísticas de su serie). `idx` es el mes de la
+   * campaña en el que se hizo clic, o null si fue en el total.
+   */
+  public async abrirEstacion(row: StationRain, idx: number | null): Promise<void> {
+    const { EstacionLluviaDialogComponent } = await import('../estacion-lluvia-dialog/estacion-lluvia-dialog.component');
+    this.dialog.open(EstacionLluviaDialogComponent, {
+      data: {
+        id: row.id,
+        name: row.name,
+        lat: row.lat,
+        lon: row.lon,
+        referencePeriod: row.reference_period,
+        inicioMes: this.selectedMonth,
+        inicioAnio: this.selectedYear,
+        campania: row.dataset,
+        mesIdx: idx
+      },
+      width: 'min(900px, 96vw)',
+      maxWidth: '96vw',
+      panelClass: 'do-dialog',
+      autoFocus: false
+    });
   }
 
   public close(): void {
@@ -228,6 +276,9 @@ export class RainCampaignDialogComponent implements OnInit {
 
   /** Texto para tooltip de celdas */
   public tooltipText(normal: number, period: string): string {
+    if (!(normal > 0)) {
+      return `Normal: ${normal} mm\nPeríodo referencia: ${period}\nSin color: con normal de 0 mm no se calcula el porcentaje`;
+    }
     return `Normal: ${normal} mm\nPeríodo referencia: ${period}`;
   }
 }

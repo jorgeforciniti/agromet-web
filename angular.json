@@ -23,11 +23,16 @@
             "assets": [
               "src/favicon.ico",
               "src/.htaccess",
-              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets",
+                "ignore": ["videos/**", "**/*.xcf"]
+              },
               {
                 "glob": "**/*",
                 "input": "node_modules/ngx-extended-pdf-viewer/assets/",
-                "output": "assets/"
+                "output": "assets/pdf-viewer/"
               }
             ],
             "styles": [

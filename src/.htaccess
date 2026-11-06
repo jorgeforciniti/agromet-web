@@ -1,3 +1,28 @@
+# MultiViews (activado en el VirtualHost) resuelve /mapas buscando archivos mapas.* antes
+# que el rewrite y responde 404 en vez de pasar la ruta a Angular. Indexes mostraba el
+# listado de carpetas sin index (por ejemplo /services/).
+Options -MultiViews -Indexes
+
+# Archivos de configuración y respaldo que no deben descargarse (services/config.ini tiene
+# los datos de conexión a la base).
+<FilesMatch "^\.ht|\.(ini|log|sh|bak|old|swp|sql)$|~$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# El visor de PDF (ngx-extended-pdf-viewer) carga sus scripts como módulos .mjs y el
+# navegador los rechaza si llegan sin Content-Type. Apache no trae estos tipos por defecto.
+<IfModule mod_mime.c>
+  AddType text/javascript .mjs
+  AddType application/wasm .wasm
+  AddType text/plain .ftl
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /

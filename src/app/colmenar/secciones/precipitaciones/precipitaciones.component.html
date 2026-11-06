@@ -9,6 +9,20 @@
         <h2 class="panel__titulo">Precipitación mensual {{ anio }} <app-ayuda-termino termino="percentil"></app-ayuda-termino></h2>
         <p class="panel__sub">Barras coloreadas según la clasificación percentilar 1991–2020; barras rayadas: acumulado parcial de un
           mes incompleto (no se clasifica). Línea punteada: normal mensual.</p>
+        <!-- Pregunta para la Sección: ¿qué criterio usa clasificacion_lluvias.php para dar un mes por completo y con cuántos
+          años de 1991–2020 se calculan los percentiles de cada mes? Un valor que cae justo en un corte (p. ej. P40), ¿en qué
+          clase queda? -->
+        <app-como-se-lee>
+          <p>Cada barra es la lluvia de un mes. Los meses completos se colorean según su clasificación percentilar, de naranja
+            (más seco) a azul (más lluvioso); la franja de debajo repite la clase con los símbolos ▼/●/▲. La barra rayada es el
+            acumulado de los días informados de un mes incompleto: no se clasifica ni se suma al total. La línea punteada es la
+            normal mensual 1991–2020.</p>
+          <p>La tabla agrega, para cada mes, la diferencia con la normal, el acumulado del año y los cortes de percentiles del
+            mismo mes en 1991–2020. El acumulado se interrumpe en el primer mes incompleto. Un mes «A verificar» tiene días
+            pendientes de control, que no se toman como secos.</p>
+          <p>La tabla de récords compara cada mes completo con el mayor valor de ese mes en los años anteriores de la serie.
+            Cada «?» explica el término.</p>
+        </app-como-se-lee>
       </div>
       <div class="totales">
         <span class="tag" [class.tag--ok]="mesesCompletos === 12" [class.tag--parcial]="mesesCompletos < 12">
@@ -21,6 +35,7 @@
       </div>
     </div>
 
+    <app-exportar-grafico nombre="colmenar-precipitaciones"></app-exportar-grafico>
     <div class="grafico" role="img" [attr.aria-label]="'Precipitación mensual ' + anio + ' y normal 1991–2020. Valores exactos en la tabla.'">
       <canvas baseChart [type]="'bar'" [data]="$any(datos)" [options]="opciones"></canvas>
     </div>

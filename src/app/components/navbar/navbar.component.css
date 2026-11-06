@@ -16,3 +16,54 @@
   color: var(--muted);
   font-weight: 600;
 }
+/* Aviso de email sin confirmar (cuentas con correo y contraseña) */
+.email-aviso {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #9a3412;
+}
+
+.email-aviso .link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.user-info {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Menú de la cuenta: Mis estaciones, consultas, alertas, solicitudes y cerrar sesión */
+.user-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.user-menu-btn:hover {
+  background: color-mix(in srgb, var(--brand) 6%, white);
+}
+
+.user-menu-btn mat-icon {
+  color: var(--brand);
+}
+
+.user-menu-btn .user-email {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

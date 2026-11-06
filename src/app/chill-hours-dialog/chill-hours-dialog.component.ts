@@ -1,4 +1,4 @@
-import { Component, Inject, Injectable, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
@@ -19,15 +19,39 @@ import {
 } from '@angular/material/core';
 import { MatTableModule } from '@angular/material/table';
 import { WeatherService, WeatherStation, WeatherDataApiResponse } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { evaluarDia } from '../shared/registros-diarios';
+import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
 
 interface HourlyColdRecord {
   hora: string;
   temp_af?: number | string | null;
 }
 
+/**
+ * Unidades de frío por hora del modelo Utah (Richardson et al., 1974), para la temperatura del
+ * aire en °C: suman entre 1,5 y 12,4 °C y restan por encima de 16 °C.
+ */
+function unidadesUtah(t: number): number {
+  if (t < 1.5) return 0;
+  if (t < 2.5) return 0.5;
+  if (t < 9.2) return 1;
+  if (t < 12.5) return 0.5;
+  if (t < 16) return 0;
+  if (t <= 18) return -0.5;
+  return -1;
+}
+
 interface ChillHourRow {
   date: string;
   hours: number | null;
+  /** Unidades de frío del modelo Utah (pueden ser negativas en días cálidos) */
+  utah: number | null;
   records: number;
   insufficient: boolean;
 }
@@ -68,6 +92,9 @@ class ChillDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ComoSeLeeComponent, AvisoCalidadComponent,
+    CopiarEnlaceComponent,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -92,35 +119,61 @@ export class ChillHoursDialogComponent implements OnInit {
   form!: FormGroup;
   stations: WeatherStation[] = [];
   rows: ChillHourRow[] = [];
-  displayedColumns = ['date', 'hours', 'records'];
+  displayedColumns = ['date', 'hours', 'utah', 'records'];
   isLoading = false;
   loadError = '';
   totalHours = 0;
+  totalUtah = 0;
   validDays = 0;
 
   readonly bases = [7, 10];
   readonly data: Record<string, unknown>;
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    return armarEnlace('horas-frio', { estacion: v.station, desde: v.from, hasta: v.to, base: v.base });
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<ChillHoursDialogComponent>,
     @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
   ) {
     this.data = dialogData ?? {};
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
     const today = new Date();
     const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     const monthStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
+    this.periodoPorDefecto = { desde: monthStart, hasta: yesterday };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('horas-frio', consultaDe(this.data));
 
     this.form = this.fb.group({
-      station: ['2049', Validators.required],
+      station: [this.stationService.activa, Validators.required],
       base: [7, Validators.required],
-      from: [monthStart, Validators.required],
-      to: [yesterday, Validators.required]
+      from: [recordado?.desde ?? monthStart, Validators.required],
+      to: [recordado?.hasta ?? yesterday, Validators.required]
     }, { validators: this.dateRangeValidator });
+
+    // Consulta recibida por enlace (la estación ya llega como activa)
+    const consulta = consultaDe(this.data);
+    const desde = leerFecha(consulta['desde']);
+    const hasta = leerFecha(consulta['hasta']);
+    const base = leerNumero(consulta['base']);
+    if (desde) this.form.controls['from'].setValue(desde);
+    if (hasta) this.form.controls['to'].setValue(hasta);
+    if (base !== null) this.form.controls['base'].setValue(base);
 
     this.weatherService.getStationsAll().subscribe({
       next: (stations) => {
@@ -133,6 +186,9 @@ export class ChillHoursDialogComponent implements OnInit {
         this.loadError = 'No se pudieron cargar las estaciones disponibles.';
       }
     });
+
+    // La estación elegida acá pasa a ser la activa del sitio (ver StationService)
+    this.form.controls['station'].valueChanges.subscribe(id => this.stationService.setActiva(id));
   }
 
   calculate(): void {
@@ -140,6 +196,7 @@ export class ChillHoursDialogComponent implements OnInit {
     this.loadError = '';
     this.rows = [];
     this.totalHours = 0;
+    this.totalUtah = 0;
     this.validDays = 0;
 
     if (this.form.invalid) {
@@ -154,9 +211,8 @@ export class ChillHoursDialogComponent implements OnInit {
       this.loadError = 'Revisa el rango de fechas para continuar.';
       return;
     }
+    recordarPeriodo('horas-frio', fromDate, toDate, this.periodoPorDefecto);
 
-    const stationInfo = this.stations.find(st => st.Identificacion === station);
-    const minRecords = Number(stationInfo?.habilitada ?? 0) > 2 ? 20 : 80;
     const dates = this.buildDateRange(fromDate, toDate);
 
     this.isLoading = true;
@@ -171,19 +227,24 @@ export class ChillHoursDialogComponent implements OnInit {
       next: (responses) => {
         this.rows = responses.map((response, index) => {
           const records = response.data ?? [];
-          const validRecords = records.filter(item => this.toNumber(item.temp_af) !== null);
-          const belowBaseCount = validRecords.filter(item => (this.toNumber(item.temp_af) ?? Number.POSITIVE_INFINITY) <= Number(base)).length;
-          const insufficient = validRecords.length < minRecords;
+          const temps = records.map(item => this.toNumber(item.temp_af)).filter((t): t is number => t !== null);
+          // Cada registro vale lo que dura su intervalo: 15 min, 30 min o 1 h según la estación
+          const { horasPorRegistro, suficiente } = evaluarDia(records.map(r => r.hora), temps.length);
+          const insufficient = !suficiente;
+          const belowBaseCount = temps.filter(t => t <= Number(base)).length;
+          const utah = temps.reduce((suma, t) => suma + unidadesUtah(t), 0) * horasPorRegistro;
 
           return {
             date: dates[index],
-            hours: insufficient ? null : belowBaseCount * 0.25,
-            records: validRecords.length,
+            hours: insufficient ? null : belowBaseCount * horasPorRegistro,
+            utah: insufficient ? null : utah,
+            records: temps.length,
             insufficient
           };
         });
 
         this.totalHours = this.rows.reduce((sum, row) => sum + (row.hours ?? 0), 0);
+        this.totalUtah = this.rows.reduce((sum, row) => sum + (row.utah ?? 0), 0);
         this.validDays = this.rows.filter(row => !row.insufficient).length;
         this.isLoading = false;
       },

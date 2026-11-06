@@ -2,14 +2,25 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartData, ChartOptions } from 'chart.js';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
 import { COLMENAR_ANIO_INICIO, COLMENAR_MAX_ANIOS_RANGO, ColmenarService } from '../../../services/colmenar.service';
-import { AnomaliaMensual, AnomaliasResponse, EstadoCarga, NormalesResponse, NormalMensual, Recurso } from '../../colmenar.models';
-import { COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from '../../colmenar.utils';
+import { AnomaliaMensual, AnomaliasResponse, EstadoCarga, MensualesResponse, NormalesResponse, NormalMensual, Recurso } from '../../colmenar.models';
+import { amplitud, COLOR, fmt, fmtSigno, MESES, media, opcionesBase, suma } from '../../colmenar.utils';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
-type Variable = 'max' | 'min' | 'pp';
+type Variable = 'max' | 'min' | 'amp' | 'pp' | 'dias';
+
+/** Fila mensual de anomalias.php con los días con lluvia de mensuales.php (null si el mes de lluvia no está completo). */
+interface FilaEvolucion extends AnomaliaMensual {
+  dias_lluvia: number | null;
+}
+
+/** Período de las normales: la de días con lluvia se calcula en el navegador con mensuales.php. */
+const NORMAL_DESDE = 1991;
+const NORMAL_HASTA = 2020;
 
 interface DefVariable {
   id: Variable;
@@ -22,9 +33,41 @@ interface DefVariable {
   color: string;
   colorPositivo: string;
   colorNegativo: string;
-  valor: (d: AnomaliaMensual) => number | null;
-  normalFila: (d: AnomaliaMensual) => number | null;
+  valor: (d: FilaEvolucion) => number | null;
+  normalFila: (d: FilaEvolucion) => number | null;
   normal: (n: NormalMensual) => number | null;
+  /** Textos y colores que dependen del significado de la variable. */
+  mayor: string;
+  menor: string;
+  leyendaAnomalia: string;
+  franjas: string;
+  leyendaFranjas: string;
+  /** Clases CSS para anomalías positivas y negativas. */
+  clasePos: string;
+  claseNeg: string;
+  paleta: string[];
+  /** Decimales de los valores observados (los conteos de días van sin decimales). */
+  decValor?: number;
+}
+
+/**
+ * Franjas de calentamiento / de precipitación (C5 del informe de mejoras, al estilo de las
+ * «warming stripes» de Ed Hawkins): una franja por año coloreada por su anomalía. Paletas de
+ * ColorBrewer aptas para daltonismo, de la anomalía más negativa a la más positiva.
+ */
+const PALETA_TEMPERATURA = ['#053061', '#2166ac', '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7',
+  '#fddbc7', '#f4a582', '#d6604d', '#b2182b', '#67001f'];   // RdBu: frío → cálido
+const PALETA_LLUVIA = ['#543005', '#8c510a', '#bf812d', '#dfc27d', '#f6e8c3', '#f5f5f5',
+  '#c7eae5', '#80cdc1', '#35978f', '#01665e', '#003c30'];   // BrBG: seco → lluvioso
+const PALETA_AMPLITUD = ['#00441b', '#1b7837', '#5aae61', '#a6dba0', '#d9f0d3', '#f7f7f7',
+  '#e7d4e8', '#c2a5cf', '#9970ab', '#762a83', '#40004b'];   // PRGn invertida: menor → mayor amplitud
+/** El color llega al extremo de la paleta en ±2,5 desvíos estándar de las anomalías */
+const DESVIOS_EXTREMO = 2.5;
+
+function colorFranja(anomalia: number | null, escala: number, paleta: string[]): string {
+  if (anomalia === null || !escala) return 'rgba(0,0,0,0)';
+  const t = Math.max(-1, Math.min(1, anomalia / escala));
+  return paleta[Math.round(((t + 1) / 2) * (paleta.length - 1))];
 }
 
 interface PuntoAnual {
@@ -49,24 +92,56 @@ const VARIABLES: DefVariable[] = [
   {
     id: 'max', boton: 'Máximas', nombre: 'Temperatura máxima media', corta: 'Tmax media', unidad: '°C', agregado: 'media',
     color: COLOR.tmax, colorPositivo: COLOR.positivoTermico, colorNegativo: COLOR.negativoTermico,
-    valor: (d) => d.tmax_media_valida, normalFila: (d) => d.tmax_normal, normal: (n) => n.tmax_normal
+    valor: (d) => d.tmax_media_valida, normalFila: (d) => d.tmax_normal, normal: (n) => n.tmax_normal,
+    mayor: 'Año más cálido', menor: 'Año más frío', leyendaAnomalia: 'Rojo: más cálido que lo normal · Azul: más frío.',
+    franjas: 'de temperatura', leyendaFranjas: 'azul, más frío; rojo, más cálido.', clasePos: 'pos', claseNeg: 'neg',
+    paleta: PALETA_TEMPERATURA
   },
   {
     id: 'min', boton: 'Mínimas', nombre: 'Temperatura mínima media', corta: 'Tmin media', unidad: '°C', agregado: 'media',
     color: COLOR.tmin, colorPositivo: COLOR.positivoTermico, colorNegativo: COLOR.negativoTermico,
-    valor: (d) => d.tmin_media_valida, normalFila: (d) => d.tmin_normal, normal: (n) => n.tmin_normal
+    valor: (d) => d.tmin_media_valida, normalFila: (d) => d.tmin_normal, normal: (n) => n.tmin_normal,
+    mayor: 'Año más cálido', menor: 'Año más frío', leyendaAnomalia: 'Rojo: más cálido que lo normal · Azul: más frío.',
+    franjas: 'de temperatura', leyendaFranjas: 'azul, más frío; rojo, más cálido.', clasePos: 'pos', claseNeg: 'neg',
+    paleta: PALETA_TEMPERATURA
+  },
+  {
+    id: 'amp', boton: 'Amplitud', nombre: 'Amplitud térmica media', corta: 'Amplitud', unidad: '°C', agregado: 'media',
+    color: COLOR.amplitud, colorPositivo: COLOR.positivoAmplitud, colorNegativo: COLOR.negativoAmplitud,
+    valor: (d) => amplitud(d.tmax_media_valida, d.tmin_media_valida),
+    normalFila: (d) => amplitud(d.tmax_normal, d.tmin_normal),
+    normal: (n) => amplitud(n.tmax_normal, n.tmin_normal),
+    mayor: 'Año de mayor amplitud', menor: 'Año de menor amplitud',
+    leyendaAnomalia: 'Violeta: mayor amplitud que lo normal · Verde: menor.',
+    franjas: 'de amplitud térmica', leyendaFranjas: 'verde, menor amplitud; violeta, mayor amplitud.', clasePos: 'pos-amp', claseNeg: 'neg-amp',
+    paleta: PALETA_AMPLITUD
   },
   {
     id: 'pp', boton: 'Precipitación', nombre: 'Precipitación', corta: 'Precipitación', unidad: 'mm', agregado: 'suma',
     color: COLOR.lluvia, colorPositivo: COLOR.humedo, colorNegativo: COLOR.seco,
-    valor: (d) => d.lluvia_mensual_valida, normalFila: (d) => d.pp_normal, normal: (n) => n.pp_normal
+    valor: (d) => d.lluvia_mensual_valida, normalFila: (d) => d.pp_normal, normal: (n) => n.pp_normal,
+    mayor: 'Año más lluvioso', menor: 'Año más seco', leyendaAnomalia: 'Azul: más lluvioso que lo normal · Naranja: más seco.',
+    franjas: 'de precipitación', leyendaFranjas: 'marrón, más seco; verde azulado, más lluvioso.', clasePos: 'pos-pp', claseNeg: 'neg-pp',
+    paleta: PALETA_LLUVIA
+  },
+  {
+    // Días con 0,1 mm o más (dias_lluvia_medible de mensuales.php). La normal 1991–2020 no está en
+    // normales.php: la calcula el componente (normalDias), por eso normal y normalFila devuelven null.
+    id: 'dias', boton: 'Días con lluvia', nombre: 'Días con lluvia (0,1 mm o más)', corta: 'Días con lluvia', unidad: 'días',
+    agregado: 'suma', color: COLOR.lluvia, colorPositivo: COLOR.humedo, colorNegativo: COLOR.seco,
+    valor: (d) => d.dias_lluvia, normalFila: () => null, normal: () => null,
+    mayor: 'Año con más días de lluvia', menor: 'Año con menos días de lluvia',
+    leyendaAnomalia: 'Azul: más días con lluvia que lo normal · Naranja: menos.',
+    franjas: 'de días con lluvia', leyendaFranjas: 'marrón, menos días con lluvia; verde azulado, más días.', clasePos: 'pos-pp', claseNeg: 'neg-pp',
+    paleta: PALETA_LLUVIA,
+    decValor: 0
   }
 ];
 
 @Component({
   selector: 'app-colmenar-evolucion',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './evolucion.component.html',
   styleUrls: ['../../shared/seccion.css']
 })
@@ -78,7 +153,10 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
   readonly fmtSigno = fmtSigno;
   readonly MESES = MESES;
   readonly VARIABLES = VARIABLES;
-  readonly longitudes = [10, 20, 30, 50];
+  /** TODA_LA_SERIE: desde 1910 (lo acota el getter desde); sirve sobre todo para las franjas */
+  readonly TODA_LA_SERIE = 999;
+  readonly longitudes = [10, 20, 30, 50, this.TODA_LA_SERIE];
+  readonly ANIO_INICIO = COLMENAR_ANIO_INICIO;
 
   variable: DefVariable = VARIABLES[0];
   /** 0 = anual; 1–12 = mes. */
@@ -87,7 +165,10 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
 
   estado: EstadoCarga = 'cargando';
   mensaje?: string;
-  private datos: AnomaliaMensual[] = [];
+  private datos: FilaEvolucion[] = [];
+  /** Normal 1991–2020 de días con lluvia por mes (null si no pudo calcularse). */
+  private normalDias: (number | null)[] = [];
+  private normalDiasCargada = false;
   private claveCargada = '';
 
   puntos: PuntoAnual[] = [];
@@ -103,6 +184,8 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
   datosAnomalia: ChartData<'bar'> = { labels: [], datasets: [] };
   opcionesSerie: ChartOptions<'bar'> = opcionesBase('°C') as ChartOptions<'bar'>;
   opcionesAnomalia: ChartOptions<'bar'> = opcionesBase('°C') as ChartOptions<'bar'>;
+  datosFranjas: ChartData<'bar'> = { labels: [], datasets: [] };
+  opcionesFranjas: ChartOptions<'bar'> = {};
 
   private sub?: Subscription;
 
@@ -110,6 +193,11 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
 
   get esLluvia(): boolean {
     return this.variable.id === 'pp';
+  }
+
+  /** Precipitación y días con lluvia se grafican en barras; las temperaturas, en líneas. */
+  get enBarras(): boolean {
+    return this.variable.id === 'pp' || this.variable.id === 'dias';
   }
 
   get desde(): number {
@@ -125,7 +213,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     if (this.esLluvia) {
       return this.mes ? `Precipitación de ${MESES[this.mes - 1].toLowerCase()}` : 'Precipitación anual (enero–diciembre)';
     }
-    return `${this.variable.nombre} de ${this.mes ? MESES[this.mes - 1].toLowerCase() : 'cada año'}`;
+    return this.mes ? `${this.variable.nombre} de ${MESES[this.mes - 1].toLowerCase()}` : `${this.variable.nombre} anual`;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -171,11 +259,26 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     this.estado = 'cargando';
     this.mensaje = undefined;
     this.sub?.unsubscribe();
-    this.sub = forkJoin(
-      tramos.map(([d, h]) => this.api.recurso(this.api.getAnomalias(d, h), (r: AnomaliasResponse) => !r.datos?.length))
-    ).subscribe((res) => {
+    // La normal de días con lluvia se calcula una sola vez, con los meses completos de 1991–2020.
+    const normalTramos: [number, number][] = this.normalDiasCargada ? [] : [[NORMAL_DESDE, 2010], [2011, NORMAL_HASTA]];
+    this.sub = forkJoin({
+      anomalias: forkJoin(tramos.map(([d, h]) => this.api.recurso(this.api.getAnomalias(d, h), (r: AnomaliasResponse) => !r.datos?.length))),
+      mensuales: forkJoin(tramos.map(([d, h]) => this.api.recurso(this.api.getMensuales(d, h), (r: MensualesResponse) => !r.datos?.length))),
+      normal: normalTramos.length
+        ? forkJoin(normalTramos.map(([d, h]) => this.api.recurso(this.api.getMensuales(d, h), (r: MensualesResponse) => !r.datos?.length)))
+        : of([] as Recurso<MensualesResponse>[])
+    }).subscribe(({ anomalias: res, mensuales, normal }) => {
       const error = res.find((r) => r.estado === 'error');
-      this.datos = res.flatMap((r) => r.datos?.datos ?? []);
+      if (normalTramos.length) {
+        this.normalDias = this.calcularNormalDias(normal);
+        this.normalDiasCargada = normal.every((r) => r.estado === 'ok');
+      }
+      // Días con lluvia sólo en meses de lluvia completa; si mensuales.php falla, la variable queda sin datos.
+      const dias = new Map<string, number>();
+      for (const m of mensuales.flatMap((r) => r.datos?.datos ?? [])) {
+        if (m.lluvia_completa) dias.set(`${m.anio}-${m.mes}`, m.dias_lluvia_medible);
+      }
+      this.datos = res.flatMap((r) => r.datos?.datos ?? []).map((d) => ({ ...d, dias_lluvia: dias.get(`${d.anio}-${d.mes}`) ?? null }));
       this.claveCargada = clave;
       if (error) {
         // Un tramo con error invalida la serie: no se muestra una evolución con huecos no explicados.
@@ -188,6 +291,18 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     });
   }
 
+  /** Promedio de días con lluvia de cada mes en 1991–2020, sobre los meses de lluvia completa. */
+  private calcularNormalDias(res: Recurso<MensualesResponse>[]): (number | null)[] {
+    const suma = new Array(12).fill(0);
+    const n = new Array(12).fill(0);
+    for (const m of res.flatMap((r) => r.datos?.datos ?? [])) {
+      if (!m.lluvia_completa || m.anio < NORMAL_DESDE || m.anio > NORMAL_HASTA) continue;
+      suma[m.mes - 1] += m.dias_lluvia_medible;
+      n[m.mes - 1]++;
+    }
+    return suma.map((s, i) => (n[i] ? s / n[i] : null));
+  }
+
   private calcular(): void {
     if (this.estado !== 'ok') {
       this.puntos = [];
@@ -197,7 +312,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     }
     const v = this.variable;
     const agregar = (vals: number[]) => (v.agregado === 'suma' ? suma(vals) : (media(vals) as number));
-    const porAnio = new Map<number, AnomaliaMensual[]>();
+    const porAnio = new Map<number, FilaEvolucion[]>();
     for (const d of this.datos) {
       porAnio.set(d.anio, [...(porAnio.get(d.anio) ?? []), d]);
     }
@@ -205,6 +320,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     // Normal del período elegido: la del mes, o el promedio (temperatura) / suma (lluvia) de las 12 normales mensuales.
     const normalesMes = this.normales.datos?.datos ?? [];
     const normalMensual = (m: number) => {
+      if (v.id === 'dias') return this.normalDias[m - 1] ?? null;
       const n = normalesMes.find((x) => x.mes === m);
       return n ? v.normal(n) : null;
     };
@@ -284,7 +400,7 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
 
   private armarGraficos(anios: number[]): void {
     const v = this.variable;
-    const lluvia = this.esLluvia;
+    const lluvia = this.enBarras;
     const decTendencia = lluvia ? 1 : 2;
     this.datosSerie = {
       labels: anios.map(String),
@@ -349,6 +465,47 @@ export class EvolucionComponent implements OnChanges, OnDestroy {
     const o = opcionesBase(v.unidad) as ChartOptions<'bar'>;
     o.plugins = { ...o.plugins, legend: { display: false } };
     this.opcionesAnomalia = o;
+
+    // Franjas: barras de altura completa, una por año, sin ejes verticales ni separación
+    const validas = anomalias.filter((x): x is number => x !== null);
+    const promedio = validas.reduce((a, b) => a + b, 0) / (validas.length || 1);
+    const desvio = Math.sqrt(validas.reduce((a, b) => a + (b - promedio) ** 2, 0) / (validas.length || 1));
+    const escala = desvio * DESVIOS_EXTREMO;
+    const paleta = v.paleta;
+    this.datosFranjas = {
+      labels: anios.map(String),
+      datasets: [{
+        label: 'Anomalía',
+        data: anomalias.map((x) => (x === null ? null : 1)) as number[],
+        backgroundColor: anomalias.map((x) => colorFranja(x, escala, paleta)),
+        barPercentage: 1,
+        categoryPercentage: 1,
+        borderWidth: 0
+      }]
+    };
+    this.opcionesFranjas = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 12, maxRotation: 0 } },
+        y: { display: false, min: 0, max: 1 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Anomalía ${fmtSigno(anomalias[ctx.dataIndex])} ${v.unidad}`
+          }
+        }
+      }
+    };
+  }
+
+  /** Clase de color de una anomalía según su signo y la variable. */
+  claseSigno(x: number | null | undefined): string {
+    if (x === null || x === undefined || x === 0) return '';
+    return x > 0 ? this.variable.clasePos : this.variable.claseNeg;
   }
 
   get excluidos(): PuntoAnual[] {

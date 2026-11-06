@@ -1,5 +1,5 @@
 import { CdkTableModule } from '@angular/cdk/table';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,14 +12,25 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, BarController, BarElement, Tooltip, Legend, ChartEvent, ActiveElement, ChartDataset } from 'chart.js';
+import { ChartDataset } from 'chart.js';
+import { VAR_COLOR, GRID_COLOR, conAlfa } from '../charts/chart-theme';
+import { referenciasHelada } from '../charts/referencias';
+import { ClaveNormal, Normales, datasetNormal, normalDiaria, textoPeriodoNormales, tieneValores } from '../charts/normales';
+import { NormalesService } from '../services/normales.service';
+import { describirFaltantes, etiquetaDia, fechasDelPeriodo, pluginFranjasSinDatos, porFecha, valorDiario } from '../charts/dias-faltantes';
 import { ChartConfiguration } from 'chart.js';
 import { lastValueFrom } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { BaseChartDirective } from 'ng2-charts';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { FUENTE_NOMBRE, FUENTE_URL, MAX_DIAS_DESCARGA } from '../shared/fuente';
+import { armarEnlace, consultaDe, leerFecha } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MAT_DATE_LOCALE, MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DATE_FORMATS } from '@angular/material/core';
@@ -139,13 +150,22 @@ type VariableSelection = {
 
 type DashboardScales = NonNullable<ChartConfiguration<'line' | 'bar', number[], string>['options']>['scales'];
 
+import { ValorPipe } from '../pipes/valor.pipe';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+
 @Component({
   selector: 'app-weather-dashboard',
   templateUrl: './weather-dashboard.component.html',
   styleUrls: ['./weather-dashboard.component.css'],
   standalone: true,
   imports: [
+    ComoSeLeeComponent,
+    ExportarGraficoComponent,
+    CopiarEnlaceComponent,
+    SelectorEstacionComponent,
     CommonModule,
+    ValorPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -177,8 +197,22 @@ export class WeatherDashboardComponent implements OnInit {
   stations: WeatherStation[] = [];
   summaryData: WeatherSummaryRecord | null = null;
   diaryData: WeatherDiaryRecord[] = [];
+  /** Normales de la estación consultada (null si no tiene: no se grafican) */
+  private normales: Normales | null = null;
+  /** Período de referencia de esas normales («1991–2020»), si la API lo trae */
+  get periodoNormales(): string {
+    return textoPeriodoNormales(this.normales);
+  }
+  private readonly normalesService = inject(NormalesService);
 
   truncatedDiaryData: WeatherDiaryRecord[] = [];
+
+  /** Calendario completo del período consultado (la API omite los días sin registro) */
+  private fechasPeriodo: string[] = [];
+  /** Posición en el eje de los días sin registro (franjas grises) y su descripción */
+  indicesSinRegistro: number[] = [];
+  textoFaltantes = '';
+  readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   showLimitMessage = false;
 
   chartConfig: ChartConfiguration<'line' | 'bar', number[], string> = {
@@ -235,22 +269,24 @@ export class WeatherDashboardComponent implements OnInit {
     return columns;
   }
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
+  /** Consulta recibida por enlace (ver shared/enlace-consulta.ts) */
+  private readonly consulta = consultaDe(inject(MAT_DIALOG_DATA, { optional: true }));
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.weatherForm.getRawValue();
+    return armarEnlace('datos-localidad', { estacion: v.station, desde: v.desde, hasta: v.hasta });
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<WeatherDashboardComponent>
   ) {
-    Chart.register(
-      CategoryScale,
-      LinearScale,
-      LineController,
-      PointElement,
-      LineElement,
-      BarController,
-      BarElement,
-      Tooltip,
-      Legend
-    );
     this.weatherForm = this.fb.group({
       station: [''],
       desde: [''],
@@ -258,13 +294,22 @@ export class WeatherDashboardComponent implements OnInit {
     });
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
-    const defaultDates = this.getDefaultDates();
+    this.periodoPorDefecto = this.getDefaultDates();
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const defaultDates = periodoRecordado('datos-localidad', this.consulta) ?? this.periodoPorDefecto;
     this.weatherForm = this.fb.group({
       station: ['', Validators.required],
       desde: [defaultDates.desde, [Validators.required, dmyDateValidator()]],
       hasta: [defaultDates.hasta, [Validators.required, dmyDateValidator()]]
     });
+    const desde = leerFecha(this.consulta['desde']);
+    const hasta = leerFecha(this.consulta['hasta']);
+    if (desde) this.weatherForm.controls['desde'].setValue(desde);
+    if (hasta) this.weatherForm.controls['hasta'].setValue(hasta);
     this.loadStations();
   }
 
@@ -288,13 +333,15 @@ export class WeatherDashboardComponent implements OnInit {
     try {
       const stations$ = this.weatherService.getStationsAll();
       this.stations = await lastValueFrom(stations$);
-      const defaultStation = this.stations.find(s => s.Identificacion === '2049');
+      const defaultStation = this.stations.find(s => s.Identificacion === this.stationService.activa);
       const initialStation = defaultStation || this.stations[0];
       if (initialStation) {
         this.weatherForm.patchValue({
           station: initialStation.Identificacion
         });
         this.syncVariableAvailability();
+        // Desde un enlace, la consulta se ejecuta sola
+        if (Object.keys(this.consulta).length) void this.loadData();
       }
     } catch (error) {
       console.error('Error loading stations:', error);
@@ -316,6 +363,7 @@ export class WeatherDashboardComponent implements OnInit {
     const hastaDate = new Date(rawHasta);
     const desde = this.formatDate(desdeDate);
     const hasta = this.formatDate(hastaDate);
+    recordarPeriodo('datos-localidad', desdeDate, hastaDate, this.periodoPorDefecto);
 
     try {
       // 3) Ahora paso strings '2025-04-01' y no objetos Date
@@ -324,12 +372,22 @@ export class WeatherDashboardComponent implements OnInit {
       this.summaryData = resumen.data?.[0] || null;
 
       const diario$ = this.weatherService.getWeatherDataDiary<WeatherDiaryRecord>(desde, hasta, station);
-      const diario = await lastValueFrom(diario$);
+      const [diario, normales] = await Promise.all([
+        lastValueFrom(diario$),
+        lastValueFrom(this.normalesService.deEstacion(station))
+      ]);
       this.diaryData = diario.data || [];
+      this.normales = normales;
 
-      // Configurar la tabla: limitar a 31 días y mostrar mensaje si excede
-      if (this.diaryData.length > 31) {
-        this.truncatedDiaryData = this.diaryData.slice(0, 31);
+      // Días del período sin registro: huecos y franjas grises en el gráfico, y aviso
+      const registros = porFecha(this.diaryData);
+      this.fechasPeriodo = fechasDelPeriodo(desdeDate, hastaDate, f => registros.has(f));
+      this.indicesSinRegistro = this.fechasPeriodo.map((f, i) => (registros.has(f) ? -1 : i)).filter(i => i >= 0);
+      this.textoFaltantes = describirFaltantes(this.indicesSinRegistro.map(i => this.fechasPeriodo[i]));
+
+      // Tabla y descarga: como máximo los últimos 31 días del período
+      if (this.diaryData.length > MAX_DIAS_DESCARGA) {
+        this.truncatedDiaryData = this.diaryData.slice(-MAX_DIAS_DESCARGA);
         this.showLimitMessage = true;
       } else {
         this.truncatedDiaryData = this.diaryData;
@@ -350,28 +408,43 @@ export class WeatherDashboardComponent implements OnInit {
   public setupCharts(): void {
     this.syncVariableAvailability();
 
-    const labels = this.diaryData.map(d => d.fecha);
+    // Eje con todos los días del período en dd/MM: un día sin registro queda como hueco.
+    const fechas = this.fechasPeriodo;
+    const labels = fechas.map(etiquetaDia);
+    const registros = porFecha(this.diaryData);
+    const serie = (campo: WeatherDiaryField) => fechas.map(f => valorDiario(registros.get(f), campo)) as number[];
     const datasets: ChartDataset<'line' | 'bar', number[]>[] = [];
+
+    // Normal de cada variable (línea punteada del mismo color), sólo si la estación la tiene.
+    // La lluvia normal mensual se muestra como promedio diario (normal del mes ÷ días del mes).
+    const agregarNormal = (clave: ClaveNormal, label: string, eje: string, color: string) => {
+      const serie = normalDiaria(this.normales, clave, fechas);
+      if (tieneValores(serie)) {
+        datasets.push({ ...datasetNormal(`Normal ${label}`, serie, color), yAxisID: eje } as unknown as ChartDataset<'line', number[]>);
+      }
+    };
 
     if (this.selectedVariables.temperatura) {
       datasets.push(
         {
           label: 'Temp. Máxima (°C)',
           type: 'line',
-          data: this.diaryData.map(d => d.temp_max),
+          data: serie('temp_max'),
           yAxisID: 'yTemp',
-          borderColor: '#FF6384',
-          backgroundColor: 'rgba(255,99,132,0.2)'
+          borderColor: VAR_COLOR.tmax,
+          backgroundColor: conAlfa(VAR_COLOR.tmax, .2)
         } as ChartDataset<'line', number[]>,
         {
           label: 'Temp. Mínima (°C)',
           type: 'line',
-          data: this.diaryData.map(d => d.temp_min),
+          data: serie('temp_min'),
           yAxisID: 'yTemp',
-          borderColor: '#36A2EB',
-          backgroundColor: 'rgba(54,162,235,0.2)'
+          borderColor: VAR_COLOR.tmin,
+          backgroundColor: conAlfa(VAR_COLOR.tmin, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('th', 'temp. máx. (°C)', 'yTemp', VAR_COLOR.tmax);
+      agregarNormal('tl', 'temp. mín. (°C)', 'yTemp', VAR_COLOR.tmin);
     }
 
     if (this.selectedVariables.humedad) {
@@ -379,20 +452,22 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Humedad Máx (%)',
           type: 'line',
-          data: this.diaryData.map(d => d.HR_max),
+          data: serie('HR_max'),
           yAxisID: 'yHumedad',
-          borderColor: '#4BC0C0',
-          backgroundColor: 'rgba(75,192,192,0.2)'
+          borderColor: VAR_COLOR.hrMax,
+          backgroundColor: conAlfa(VAR_COLOR.hrMax, .2)
         } as ChartDataset<'line', number[]>,
         {
           label: 'Humedad Mín (%)',
           type: 'line',
-          data: this.diaryData.map(d => d.HR_min),
+          data: serie('HR_min'),
           yAxisID: 'yHumedad',
-          borderColor: '#FF8080',
-          backgroundColor: 'rgba(255,128,128,0.2)'
+          borderColor: VAR_COLOR.hrMin,
+          backgroundColor: conAlfa(VAR_COLOR.hrMin, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('hh', 'humedad máx. (%)', 'yHumedad', VAR_COLOR.hrMax);
+      agregarNormal('hl', 'humedad mín. (%)', 'yHumedad', VAR_COLOR.hrMin);
     }
 
     if (this.selectedVariables.lluvia) {
@@ -400,11 +475,12 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Precipitaciones (mm)',
           type: 'bar',
-          data: this.diaryData.map(d => d.rr_24),
+          data: serie('rr_24'),
           yAxisID: 'yLluvia',
-          backgroundColor: 'blue'
+          backgroundColor: conAlfa(VAR_COLOR.lluvia, .75)
         } as ChartDataset<'bar', number[]>
       );
+      agregarNormal('rr', 'lluvia, promedio diario (mm)', 'yLluvia', VAR_COLOR.lluvia);
     }
 
     if (this.selectedVariables.et) {
@@ -412,11 +488,12 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Evapotranspiración (mm)',
           type: 'bar',
-          data: this.diaryData.map(d => d.et),
+          data: serie('et'),
           yAxisID: 'yEt',
-          backgroundColor: 'red'
+          backgroundColor: conAlfa(VAR_COLOR.et, .75)
         } as ChartDataset<'bar', number[]>
       );
+      agregarNormal('et', 'evapotranspiración (mm)', 'yEt', VAR_COLOR.et);
     }
 
     if (this.selectedVariables.humHoja) {
@@ -424,11 +501,12 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Humedad de hoja (hs)',
           type: 'bar',
-          data: this.diaryData.map(d => d.hum_hoja_hs),
+          data: serie('hum_hoja_hs'),
           yAxisID: 'yHumHoja',
-          backgroundColor: 'orange'
+          backgroundColor: conAlfa(VAR_COLOR.mojado, .75)
         } as ChartDataset<'bar', number[]>
       );
+      agregarNormal('hj', 'humedad de hoja (hs)', 'yHumHoja', VAR_COLOR.mojado);
     }
 
     if (this.selectedVariables.viento) {
@@ -436,32 +514,35 @@ export class WeatherDashboardComponent implements OnInit {
         {
           label: 'Viento Medio (km/h)',
           type: 'line',
-          data: this.diaryData.map(d => d.viento_medio),
+          data: serie('viento_medio'),
           yAxisID: 'yViento',
-          borderColor: '#009F40',
-          backgroundColor: 'rgba(0,159,64,0.2)'
+          borderColor: VAR_COLOR.viento,
+          backgroundColor: conAlfa(VAR_COLOR.viento, .2)
         } as ChartDataset<'line', number[]>,
         {
           label: 'Viento Máx (km/h)',
           type: 'line',
-          data: this.diaryData.map(d => d.viento_max),
+          data: serie('viento_max'),
           yAxisID: 'yViento',
-          borderColor: '#FF9F40',
-          backgroundColor: 'rgba(255,159,64,0.2)'
+          borderColor: VAR_COLOR.rafaga,
+          backgroundColor: conAlfa(VAR_COLOR.rafaga, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('vi', 'viento medio (km/h)', 'yViento', VAR_COLOR.viento);
+      agregarNormal('vix', 'viento máx. (km/h)', 'yViento', VAR_COLOR.rafaga);
     }
     if (this.selectedVariables.radSolar) {
       datasets.push(
         {
           label: 'Rad. Solar (W/m²)',
           type: 'line',
-          data: this.diaryData.map(d => d.rad_solar_media),
+          data: serie('rad_solar_media'),
           yAxisID: 'yRad',
-          borderColor: '#9f9c00ff',
-          backgroundColor: 'rgba(255, 240, 29, 0.2)'
+          borderColor: VAR_COLOR.radiacion,
+          backgroundColor: conAlfa(VAR_COLOR.radiacion, .2)
         } as ChartDataset<'line', number[]>
       );
+      agregarNormal('rg', 'rad. solar (W/m²)', 'yRad', VAR_COLOR.radiacion);
     }
 
     const scales: DashboardScales = {};
@@ -510,7 +591,7 @@ export class WeatherDashboardComponent implements OnInit {
         type: 'linear',
         display: true,
         position: 'left',
-        title: { display: true, text: 'et (mm)', color: '#111827' },
+        title: { display: true, text: 'ET (mm)', color: '#111827' },
         ticks: { color: '#111827' },
         grid: { color: 'rgba(17,24,39,.10)' }
       };
@@ -520,7 +601,7 @@ export class WeatherDashboardComponent implements OnInit {
         type: 'linear',
         display: true,
         position: 'left',
-        title: { display: true, text: 'Lluvia (mm)', color: '#111827' },
+        title: { display: true, text: 'Hoja mojada (h)', color: '#111827' },
         ticks: { color: '#111827' },
         grid: { color: 'rgba(17,24,39,.10)' }
       };
@@ -532,7 +613,7 @@ export class WeatherDashboardComponent implements OnInit {
         position: 'right',
         title: { display: true, text: 'Viento (km/h)', color: '#111827' },
         ticks: { color: '#111827' },
-        grid: { color: 'rgba(217,24,39,.10)' }
+        grid: { color: GRID_COLOR }
       };
     }
     scales['x'] = {
@@ -550,24 +631,19 @@ export class WeatherDashboardComponent implements OnInit {
         maintainAspectRatio: false,
         scales,
         plugins: {
+          referencias: { lineas: this.selectedVariables.temperatura ? referenciasHelada('yTemp') : [] },
           legend: {
             labels: {
               color: '#111827',   // texto leyenda
               font: { weight: 700 }
             }
           },
+          // Texto claro sobre el fondo oscuro del tooltip (antes era #111827 sobre negro, ilegible).
+          // El tooltip ya muestra serie y valor, por eso no hay onClick con alert().
           tooltip: {
-            titleColor: '#111827',
-            bodyColor: '#111827',
-            backgroundColor: 'rgba(0,0,0,0.7)'
-          }
-        },
-        onClick: (_evt: ChartEvent, elements: ActiveElement[], chart) => {
-          if (elements.length > 0) {
-            const { datasetIndex, index } = elements[0];
-            const ds = chart.data.datasets?.[datasetIndex] as ChartDataset<'line' | 'bar', number[]>;
-            const value = ds.data[index];
-            alert(`${ds.label}: ${value}`);
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            backgroundColor: 'rgba(17,24,39,0.9)'
           }
         }
       }
@@ -582,6 +658,7 @@ export class WeatherDashboardComponent implements OnInit {
   }
 
   onStationChange(): void {
+    this.stationService.setActiva(this.weatherForm.value.station);
     this.syncVariableAvailability();
   }
 
@@ -657,6 +734,7 @@ export class WeatherDashboardComponent implements OnInit {
     csvRows.push(`"Nota: La información corresponde a la estación ${stationName} en el período comprendido entre el ${desdeLegible} y el ${hastaLegible}."`);
     csvRows.push('"Los datos son de carácter provisional y puede estar sujeta a modificaciones."');
     csvRows.push('"La EEAOC no asume responsabilidad por las decisiones que se tomen con base a esta información."');
+    csvRows.push(`"Fuente: ${FUENTE_NOMBRE} - ${FUENTE_URL}"`);
 
     const csvContent = csvRows.join('\n');
     const bom = new Uint8Array([0xEF, 0xBB, 0xBF]); // UTF-8 BOM

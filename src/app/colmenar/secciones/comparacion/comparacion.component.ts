@@ -12,10 +12,12 @@ import {
   NormalesResponse,
   Recurso
 } from '../../colmenar.models';
-import { COLOR, fmt, fmtSigno, INDICADORES, MESES, MESES_CORTOS, normalDeMes, opcionesBase, porMes } from '../../colmenar.utils';
+import { amplitud, COLOR, fmt, fmtSigno, INDICADORES, MESES, MESES_CORTOS, normalDeMes, opcionesBase, porMes } from '../../colmenar.utils';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
-type VariableComp = 'pp' | 'tmax' | 'tmin' | IndicadorExtremo;
+type VariableComp = 'pp' | 'tmax' | 'tmin' | 'amp' | IndicadorExtremo;
 
 interface DatosAnio {
   mensuales: Recurso<MensualesResponse>;
@@ -42,7 +44,7 @@ interface FilaComp {
 @Component({
   selector: 'app-colmenar-comparacion',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './comparacion.component.html',
   styleUrls: ['../../shared/seccion.css']
 })
@@ -62,6 +64,7 @@ export class ComparacionComponent implements OnChanges, OnDestroy {
     { id: 'pp', etiqueta: 'Precipitación mensual', unidad: 'mm', tipo: 'suma', dec: 1 },
     { id: 'tmax', etiqueta: 'Tmax media', unidad: '°C', tipo: 'media', dec: 1 },
     { id: 'tmin', etiqueta: 'Tmin media', unidad: '°C', tipo: 'media', dec: 1 },
+    { id: 'amp', etiqueta: 'Amplitud térmica media', unidad: '°C', tipo: 'media', dec: 1 },
     ...INDICADORES.map((i) => ({ id: i.clave as VariableComp, etiqueta: i.etiqueta, unidad: 'días', tipo: 'suma' as const, dec: 0 }))
   ];
 
@@ -160,6 +163,15 @@ export class ComparacionComponent implements OnChanges, OnDestroy {
         ? { valor: m.lluvia_completa ? m.lluvia_mm : null, completo: m.lluvia_completa && m.lluvia_mm !== null, parcial: m.lluvia_completa ? null : m.lluvia_parcial_mm }
         : vacio);
     }
+    if (id === 'amp') {
+      return porMes(d.mensuales.datos?.datos).map((m) => {
+        if (!m) {
+          return vacio;
+        }
+        const v = amplitud(m.tmax_media_valida, m.tmin_media_valida);
+        return { valor: v, completo: v !== null, parcial: v === null ? amplitud(m.tmax_media_observada, m.tmin_media_observada) : null };
+      });
+    }
     if (id === 'tmax' || id === 'tmin') {
       return porMes(d.mensuales.datos?.datos).map((m) => {
         if (!m) {
@@ -183,6 +195,12 @@ export class ComparacionComponent implements OnChanges, OnDestroy {
   private normalesVariable(): (number | null)[] {
     const id = this.variable.id;
     const n = this.normales.datos?.datos;
+    if (id === 'amp') {
+      return Array.from({ length: 12 }, (_, i) => {
+        const nm = normalDeMes(n, i + 1);
+        return amplitud(nm?.tmax_normal, nm?.tmin_normal);
+      });
+    }
     if (id === 'pp' || id === 'tmax' || id === 'tmin') {
       const campo = id === 'pp' ? 'pp_normal' : id === 'tmax' ? 'tmax_normal' : 'tmin_normal';
       return Array.from({ length: 12 }, (_, i) => normalDeMes(n, i + 1)?.[campo] ?? null);

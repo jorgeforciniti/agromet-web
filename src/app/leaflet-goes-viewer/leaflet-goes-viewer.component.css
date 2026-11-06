@@ -18,19 +18,12 @@
 }
 .panel-title mat-icon{ color: var(--mod-data); }
 
+/* Capa y base van arriba del mapa, fuera de él, para no taparlo */
 .map-toolbar {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, .92);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(3px);
+  margin-bottom: 10px;
 }
 
 .map-toolbar__field {
@@ -149,8 +142,8 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  height: clamp(420px, 62vh, 680px);
-  min-height: 420px;
+  height: clamp(480px, 62vh, 680px);
+  min-height: 480px;
 }
 #map{ width: 100%; height: 100% !important; }
 
@@ -186,16 +179,17 @@
 
 /* Responsive */
 @media (max-width: 620px){
-  .map-toolbar {
-    flex-direction: column;
-    top: 8px;
-    left: 8px;
-    right: 8px;
-  }
-
+  /* Los dos selectores comparten el ancho, en una fila */
+  .map-toolbar{ gap: 8px; flex-wrap: nowrap; }
+  .map-toolbar__field{ flex: 1; min-width: 0; }
   .map-toolbar .select-wrapper{ width: 100%; }
-  .map-wrapper{ height: 55vh; min-height: 360px; }
+  .map-wrapper{ height: 480px; min-height: 480px; }
   .radar-toolbar{
     align-items: flex-start;
   }
+}
+
+/* «¿Cómo se lee?» entre el título y la barra de capas */
+app-como-se-lee {
+  margin: -6px 0 10px;
 }

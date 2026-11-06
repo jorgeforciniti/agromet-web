@@ -1,11 +1,39 @@
 <mat-dialog-content>
   <div class="scroll-container" [formGroup]="form">
     <div class="dialog-body-wrapper">
+      <div class="app-dialog-eyebrow">LLUVIAS DIARIAS</div>
       <h2 class="titulo">Mapa de Precipitaciones</h2>
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es una estación automática habilitada de la red EEAOC, con la lluvia total registrada
+          en el período elegido. Cada día se cuenta de 0 a 24 h o, con el botón «De 9 a 9 h», como día
+          pluviométrico: de las 9 h del día anterior a las 9 h del día (hasta 31 días). En la vista «Hoy», de
+          0 a 24 h va desde las 0 h de hoy hasta el último registro, y de 9 a 9 h, desde las últimas 9 h
+          (las de hoy o, antes de esa hora, las de ayer). Al tocar un punto se ven la lluvia total, la lluvia máxima en un registro y las horas
+          con lluvia (los registros con lluvia por la duración de cada registro).</p>
+        <p>Los colores no tienen cortes fijos: en cada consulta se reparten las estaciones con lluvia en
+          clases según sus valores, del verde claro (menos lluvia) al azul oscuro (más lluvia). Por eso un
+          mismo color puede indicar cantidades distintas en dos consultas; los límites de cada clase están
+          en la leyenda. En gris, las estaciones con 0 mm.</p>
+        <p>En amarillo claro, menos de 0,3 mm: un registro así (unos 0,25 mm) puede ser una lluvia muy
+          débil o rocío, es decir, condensación que se fue juntando en el pluviómetro durante varios días.
+          Por eso se muestra como «lluvia &lt; 0,3 mm o rocío».</p>
+        <p>Un punto hueco con borde gris punteado es una estación sin datos: no significa que no haya
+          llovido. Un punto pálido con borde punteado es una estación cuyo total puede estar incompleto:
+          sus registros cubren menos del 90 % del período o, en «Hoy», dejó de transmitir hace más de una
+          hora. Al tocarlo se ven las horas que cubren sus registros.</p>
+        <p>La última clase no tiene tope, para que un valor anómalo de una estación no estire la escala. El
+          mapa muestra sólo los puntos de las estaciones: no estima la lluvia entre ellas.</p>
+      </app-como-se-lee>
 
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>
       </button>
+
+      <mat-button-toggle-group *ngIf="lluviaPeriodoHabilitada" class="dia-lluvia" [value]="dia" (change)="cambiarDia($event.value)"
+                               aria-label="Día de la lluvia" hideSingleSelectionIndicator>
+        <mat-button-toggle value="calendario">De 0 a 24 h</mat-button-toggle>
+        <mat-button-toggle value="pluviometrico">De 9 a 9 h</mat-button-toggle>
+      </mat-button-toggle-group>
 
       <!-- Controles solo si hoy=false -->
       <div class="form-grid" *ngIf="!hoy">
@@ -23,14 +51,6 @@
           <mat-datepicker #hastaPicker></mat-datepicker>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange($event)">
-            <mat-option value="osm">OpenStreetMap</mat-option>
-            <mat-option value="esri">ESRI Satelital</mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <div class="actions">
           <button mat-raised-button color="primary"
                   (click)="loadData()"
@@ -44,11 +64,9 @@
       </div>
 
       <div class="map-title">
-        <span *ngIf="hoy">Precipitaciones - Hoy</span>
-        <span *ngIf="!hoy">
-          Precipitaciones - Período: {{ form.value.desde | date:'dd/MM/yyyy' }} a {{ form.value.hasta | date:'dd/MM/yyyy' }}
-        </span>
+        <span *ngIf="tituloPeriodo">Precipitaciones - {{ tituloPeriodo }}</span>
       </div>
+      <p class="aviso-lluvia" *ngIf="aviso" role="status">{{ aviso }}</p>
 
       <div class="map-layout">
         <div class="zone-checklist" aria-label="Zonas productivas">

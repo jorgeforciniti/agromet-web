@@ -2,9 +2,17 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman, LIMITES_TUCUMAN } from '../maps/encuadre';
+import { estadoComunicacion, leerFechaEstacion } from '../shared/estado-estacion';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { GeoJsonObject } from 'geojson';
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { FeatureCollection, Feature, Point } from 'geojson';
@@ -12,6 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 interface LayerOption {
   name: string;
@@ -20,13 +29,6 @@ interface LayerOption {
   isGeoJSON?: boolean;
   isTileLayer?: boolean;
   isCSV?: boolean;
-}
-
-interface BaseMapOption {
-  name: string;
-  url: string;
-  attribution: string;
-  maxZoom: number;
 }
 
 interface StationFeatureProperties {
@@ -38,6 +40,8 @@ interface StationFeatureProperties {
   altitud: string;
   humedad: string;
   lluvia: string;
+  /** fecha_I: hora del último dato */
+  actualizado: string;
 }
 
 interface FirmsCsvRow {
@@ -90,7 +94,7 @@ class LegendControl extends L.Control {
     }
 
     div.innerHTML = labels.join('');
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
@@ -123,8 +127,8 @@ class TemperatureLegendControl extends L.Control {
     ];
 
     for (let i = 0; i < stops.length - 1; i++) {
-      const from = stops[i].limit;
-      const to = stops[i + 1].limit;
+      const from = Math.round(stops[i].limit * 3.6);
+      const to = Math.round(stops[i + 1].limit * 3.6);
       const color = stops[i].color;
 
       const label = i === stops.length - 2 ? `${from}+` : `${from}–${to}`;
@@ -135,14 +139,14 @@ class TemperatureLegendControl extends L.Control {
       `;
     }
 
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
 class PrecipitationLegendControl extends L.Control {
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML = '<h4>Precipitación (mm)</h4>';
+    div.innerHTML = '<strong>Precipitación (mm)</strong><br>';
 
     // Usar los stops exactos de OpenWeatherMap
     const stops = [
@@ -155,16 +159,17 @@ class PrecipitationLegendControl extends L.Control {
       { limit: 140, color: 'rgba(20, 20, 255, 0.9)' }
     ];
 
-    for (let i = 0; i < stops.length; i++) {
+    // Desde el segundo stop: cada fila es el rango entre el stop anterior y el actual
+    // (empezando en 0 salía «0–0,1» dos veces).
+    for (let i = 1; i < stops.length; i++) {
       const { limit, color } = stops[i];
       let label: string;
 
-      if (i === 0) {
-        label = `0–${stops[1].limit}`;
-      } else if (i === stops.length - 1) {
-        label = `${stops[i - 1].limit}+`;
+      const coma = (n: number) => String(n).replace('.', ',');   // coma decimal, como el resto del sitio
+      if (i === stops.length - 1) {
+        label = `${coma(stops[i - 1].limit)}+`;
       } else {
-        label = `${stops[i - 1].limit}–${limit}`;
+        label = `${coma(stops[i - 1].limit)}–${coma(limit)}`;
       }
 
       div.innerHTML += `
@@ -174,7 +179,7 @@ class PrecipitationLegendControl extends L.Control {
       `;
     }
 
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
@@ -188,9 +193,9 @@ class WindLegendControl extends L.Control {
 
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML = '<strong>Viento (m/s)</strong>';
+    div.innerHTML = '<strong>Viento (km/h)</strong>';
 
-    // Usar los stops exactos de OpenWeatherMap
+    // Stops exactos de OpenWeatherMap, en m/s; la referencia se muestra en km/h (× 3,6) como el resto del sitio
     const stops = [
       { limit: 1, color: 'rgba(255, 255, 255, 0)' },
       { limit: 5, color: 'rgba(238, 206, 206, 0.4)' },
@@ -202,8 +207,8 @@ class WindLegendControl extends L.Control {
     ];
 
     for (let i = 0; i < stops.length - 1; i++) {
-      const from = stops[i].limit;
-      const to = stops[i + 1].limit;
+      const from = Math.round(stops[i].limit * 3.6);
+      const to = Math.round(stops[i + 1].limit * 3.6);
       const color = stops[i].color;
 
       const label = i === stops.length - 2 ? `${from}+` : `${from}–${to}`;
@@ -214,7 +219,7 @@ class WindLegendControl extends L.Control {
       `;
     }
 
-    return div;
+    return leyendaPlegable(div);
   }
 }
 
@@ -227,19 +232,19 @@ class WindLegendControl extends L.Control {
     MatSelectModule,
     MatFormFieldModule,
     MatIconModule,
-    MatOptionModule
+    MatOptionModule,
+    ComoSeLeeComponent
   ],
   templateUrl: './leaflet-goes-viewer.component.html',
   styleUrls: ['./leaflet-goes-viewer.component.css']
 })
 export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   private map: L.Map | undefined;
   private baseLayer: L.ImageOverlay | L.GeoJSON | L.TileLayer | undefined;
-  private baseMapLayer: L.TileLayer | undefined; // Mapa base
   private legend: L.Control | undefined;
-  private provincesLayer: L.GeoJSON | undefined;
   public selectedLayer: string = 'precipitacion';
-  public selectedBaseMap: string = 'osm'; // Mapa osm por defecto
   public currentDateTime: string = '';
   public isLoading: boolean = false;
   public errorMessage: string | null = null;
@@ -251,31 +256,45 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   public selectedStationId: string | null = null;
   private stations: WeatherStation[] = [];
   private stationServiceSub?: Subscription;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
   private rainViewerHost: string = '';
   private rainViewerPath: string = '';
   private rainViewerFrames: Array<{ time: number; path: string }> = [];
   private rainViewerAnimationIndex: number = 0;
   private rainViewerAnimationTimer?: ReturnType<typeof setInterval>;
 
+  // Ancla en el centro inferior, como en Red de estaciones (antes era la esquina y, al resaltar
+  // una estación, los demás marcadores se corrían de su lugar)
   private redIcon = L.icon({
     iconUrl: 'assets/icons/red-marker.png',
     iconSize: [25, 25],
-    iconAnchor: [25, 25],
-    popupAnchor: [0, -40]
+    iconAnchor: [12, 25],
+    popupAnchor: [0, -20]
   });
 
   private blueIcon = L.icon({
     iconUrl: 'assets/icons/blue-marker.png',
     iconSize: [30, 30],
-    iconAnchor: [30, 30],
-    popupAnchor: [0, -40]
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -24]
   });
 
-  private focusBounds: L.LatLngBounds = L.latLngBounds(
-    L.latLng(-25.994679, -66.390178),
-    L.latLng(-28.092109, -63.895287)
-  );
+  /** Variantes de los íconos por estado de comunicación (.marcador--* en styles.css) */
+  private readonly iconosEstado = new Map<string, L.Icon>();
+
+  private iconoConEstado(base: L.Icon, actualizado: string): L.Icon {
+    const estado = estadoComunicacion(leerFechaEstacion(actualizado));
+    if (estado === 'al-dia') return base;
+    const clave = `${base.options.iconUrl}|${estado}`;
+    let icono = this.iconosEstado.get(clave);
+    if (!icono) {
+      icono = L.icon({ ...base.options, className: `marcador--${estado}` });
+      this.iconosEstado.set(clave, icono);
+    }
+    return icono;
+  }
+
+  /** Zona donde se buscan ecos de radar: la provincia de Tucumán. */
+  private focusBounds: L.LatLngBounds = LIMITES_TUCUMAN;
 
   private filterBbox = {
     west: -180,
@@ -287,20 +306,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
   private nasaFirmsMapKey = '05a7411727303e238b4b425a1b7fef16';
 
-  public baseMaps: Record<string, BaseMapOption> = {
-    osm: {
-      name: 'OSM Estándar',
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '© OpenStreetMap',
-      maxZoom: 19
-    },
-    satellite: {
-      name: 'Satelital',
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Tiles © Esri',
-      maxZoom: 18
-    }
-  };
 
   public layers: Record<string, LayerOption> = {
     precipitacion: {
@@ -348,14 +353,16 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
 
   constructor(private http: HttpClient,
     private weatherService: WeatherService, // Inyectar servicio
-    private stationService: StationService
+    private stationService: StationService,
+    private fichaEstacion: FichaEstacionService
   ) {
 
   }
 
   async ngOnInit(): Promise<void> {
-    this.initMap();
-    await this.loadProvinces();
+    const control = this.initMap();
+    // 450: el límite queda sobre las capas de lluvia, nubes, etc. (owmPane, 401) y bajo las estaciones
+    if (this.map) await cargarProvincias(this.map, this.http, { control, zIndex: 450 });
     await this.loadStations();
     this.loadLatestData();
 
@@ -375,6 +382,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopRainViewerAnimation();
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
     this.stationServiceSub?.unsubscribe();
   }
 
@@ -384,30 +393,21 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       this.stations = stations;
 
       this.stationsLayer = L.geoJSON(this.createStationsGeoJSON(stations), {
-        pointToLayer: (feature, latlng) => {
-          const customIcon = L.icon({
-            iconUrl: 'assets/icons/red-marker.png',
-            iconSize: [25, 25],      // ajustá el tamaño según necesidad
-            iconAnchor: [25, 25],    // el punto que “apunta” al lugar exacto
-            popupAnchor: [0, -40]    // posición relativa del popup
-          });
-
-          return L.marker(latlng, { icon: customIcon });
-        },
+        pointToLayer: (feature, latlng) =>
+          L.marker(latlng, { icon: this.iconoConEstado(this.redIcon, feature.properties.actualizado) }),
         onEachFeature: (feature, layer) => {
-          layer.bindPopup(`
-            <div class="station-popup">
-              <h4>${feature.properties.nombre}</h4>
-              <div class="popup-grid">
-                <div>Latitud: ${feature.properties.lat.toFixed(2)}°</div>
-                <div>Longitud: ${feature.properties.lon.toFixed(2)}°</div>
-                <div>Altitud: ${feature.properties.altitud} msnm</div>
-                <div>Temperatura: ${feature.properties.temperatura} °C</div>
-                <div>Humedad: ${feature.properties.humedad}%</div>
-                <div>Lluvia: ${feature.properties.lluvia} mm</div>
-              </div>
-            </div>
-          `);
+          const p = feature.properties;
+          layer.bindPopup(popupEstacion({
+            titulo: p.nombre,
+            subtitulos: [`Lat: ${formatDecimal(p.lat, 2)}° · Lon: ${formatDecimal(p.lon, 2)}° · ${p.altitud} msnm`],
+            filas: [
+              { etiqueta: 'Temperatura', valor: `${p.temperatura} °C` },
+              { etiqueta: 'Humedad', valor: `${p.humedad} %` },
+              { etiqueta: 'Lluvia', valor: `${p.lluvia} mm` }
+            ],
+            actualizado: leerFechaEstacion(p.actualizado),
+            ficha: { id: p.id, lat: Number(p.lat), lon: Number(p.lon) }
+          }));
 
           layer.on('click', () => {
             this.selectedStationId = feature.properties.id;
@@ -447,12 +447,14 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         properties: {
           id: station.Identificacion,
           nombre: station.nombre,
-          temperatura: station.temp_af ? Number(station.temp_af).toFixed(1) : 'N/D',
+          // != null (no un simple truthy): 0 °C o 0 mm son datos válidos, no faltantes
+          temperatura: station.temp_af != null && station.temp_af !== '' ? formatDecimal(Number(station.temp_af), 1) : '—',
           lat: parseFloat(station.lat),  // Guardar como número
           lon: parseFloat(station.lon),  // Guardar como número
-          altitud: station.alt ? Number(station.alt).toFixed(0) : 'N/D',
-          humedad: station.hum_af ? Number(station.hum_af).toFixed(0) : 'N/D',
-          lluvia: station.RR_dia ? Number(station.RR_dia).toFixed(1) : 'N/D'
+          altitud: station.alt != null ? formatDecimal(Number(station.alt), 0) : '—',
+          humedad: station.hum_af != null && station.hum_af !== '' ? formatDecimal(Number(station.hum_af), 0) : '—',
+          lluvia: station.RR_dia != null && station.RR_dia !== '' ? formatDecimal(Number(station.RR_dia), 1) : '—',
+          actualizado: station.fecha_I ?? ''
         }
       })) as Feature<Point, StationFeatureProperties>[]
     };
@@ -467,11 +469,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         const marker = layer as L.Marker;
         const props = marker.feature?.properties as StationFeatureProperties | undefined;
         if (!props) return;
-        if (props.id === this.selectedStationId) {
-          marker.setIcon(this.blueIcon);
-        } else {
-          marker.setIcon(this.redIcon);
-        }
+        const base = props.id === this.selectedStationId ? this.blueIcon : this.redIcon;
+        marker.setIcon(this.iconoConEstado(base, props.actualizado));
       });
     }
   }
@@ -480,7 +479,8 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
    * Si ya había un popup abierto (de un click manual anterior en el mapa), lo mueve a la
    * estación recién seleccionada en vez de dejarlo "pegado" en la anterior. Si no había
    * ninguno abierto (ej. selección por defecto al cargar la página), no fuerza uno nuevo.
-   * De cualquier forma, centra el mapa en la estación elegida.
+   * Mueve el mapa sólo si la estación elegida quedó fuera de la vista: centrarla siempre
+   * desplazaba el encuadre inicial y pisaba lo que el usuario había movido.
    */
   private syncPopupToSelectedStation(): void {
     if (!this.stationsLayer) return;
@@ -499,7 +499,9 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         if (anyPopupWasOpen) {
           marker.openPopup();
         }
-        this.map?.panTo(marker.getLatLng());
+        if (this.map && !this.map.getBounds().contains(marker.getLatLng())) {
+          this.map.panTo(marker.getLatLng());
+        }
       } else if (marker.isPopupOpen()) {
         marker.closePopup();
       }
@@ -521,71 +523,25 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   }
 
 
-  private initMap(): void {
+  /** Devuelve el control de capas del mapa base, para sumarle las provincias. */
+  private initMap(): L.Control.Layers | undefined {
     const center: L.LatLng = this.focusBounds.getCenter();
     this.map = L.map('map', {
       center: center,
       zoom: 6,
-      maxBounds: this.focusBounds,
-      maxBoundsViscosity: 0.0,
-      scrollWheelZoom: false  // Desactivar zoom por rueda
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
 
     // Pane propio para las capas climáticas de OWM: así el filtro CSS de contraste/saturación
     // de cada capa no afecta a las provincias ni a las estaciones (que comparten 'overlayPane').
     this.map.createPane('owmPane');
 
-    this.setBaseMap(this.selectedBaseMap);
-    this.map.fitBounds(this.focusBounds);
-
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.map?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.map?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
-  }
-  private async loadProvinces(): Promise<void> {
-    try {
-      const provincesUrl = '../../assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(
-        this.http.get<GeoJsonObject>(provincesUrl)
-      );
-
-      this.provincesLayer = L.geoJSON(provincesData, {
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
-        },
-        onEachFeature: (feature, layer) => {
-          if (feature.properties && feature.properties.nam) {
-            layer.bindPopup(feature.properties.nam);
-          }
-        }
-      });
-
-      if (this.map) {
-        this.provincesLayer.addTo(this.map);
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    } catch {
-      this.errorMessage = 'No se pudieron cargar los límites provinciales';
-    }
+    // El mapa base tiene zIndex 0: las capas de mosaicos de datos (zIndex 1) quedan encima
+    const control = agregarMapaBase(this.map);
+    conectarBotonesFicha(this.map, this.fichaEstacion);
+    encuadrarTucuman(this.map);
+    return control;
   }
 
   public setLayer(layerKey: string): void {
@@ -599,32 +555,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     // 👉 Ocultar estaciones solo para “incendios”
     const hideStations = layerKey === 'incendios';
     this.toggleStations(!hideStations);
-  }
-
-  public setBaseMap(baseMapKey: string): void {
-    this.selectedBaseMap = baseMapKey;
-
-    if (this.baseMapLayer && this.map) {
-      this.map.removeLayer(this.baseMapLayer);
-    }
-
-    const baseMap = this.baseMaps[baseMapKey];
-    this.baseMapLayer = L.tileLayer(baseMap.url, {
-      attribution: baseMap.attribution,
-      maxZoom: baseMap.maxZoom,
-      pane: 'tilePane' // Renderizar en el panel de mapas base (por defecto)
-    });
-
-    if (this.map) {
-      this.baseMapLayer.addTo(this.map);
-      this.baseMapLayer.setZIndex(0); // Mapa base en el fondo
-      if (this.baseLayer) {
-        this.baseLayer.setZIndex(1); // Capa de datos en medio
-      }
-      if (this.provincesLayer) {
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    }
   }
 
   private async loadLatestData(): Promise<void> {
@@ -747,7 +677,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.rainViewerAnimationIndex = this.rainViewerFrames.length - 1;
     this.radarIsPlaying = true;
     this.renderRainViewerFrame(attribution);
-    this.map?.fitBounds(this.focusBounds);
     this.evaluateRainViewerEchoes();
 
     if (this.rainViewerFrames.length === 1) {
@@ -975,7 +904,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     this.updateGeoJSONLayer(geojson, attribution);
     this.addLegend();
     this.isLoading = false;
-    this.map?.fitBounds(this.focusBounds);
   }
 
   private displayTileLayer(url: string, attribution: string, date: string): void {
@@ -998,7 +926,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       this.map.removeControl(this.legend);
       this.legend = undefined;
     }
-    this.map?.fitBounds(this.focusBounds);
   }
 
   private addTemperatureLegend(): void {
@@ -1100,7 +1027,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       },
       onEachFeature: (feature, layer) => {
         layer.bindPopup(
-          `Brillo: ${feature.properties.brightness.toFixed(2)} °C<br>` +
+          `Brillo: ${formatDecimal(feature.properties.brightness, 2)} °C<br>` +
           `Confianza: ${feature.properties.confidence}%<br>` +
           `Fecha: ${feature.properties.acq_date} ${feature.properties.acq_time}`
         );
@@ -1109,13 +1036,6 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     });
 
     this.baseLayer.addTo(this.map!);
-    if (this.map && this.baseMapLayer) {
-      this.baseMapLayer.setZIndex(0); // Mapa base en el fondo
-      this.baseLayer.setZIndex(1); // Capa de datos en medio
-      if (this.provincesLayer) {
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    }
   }
 
   /**
@@ -1178,21 +1098,9 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
         pane.style.filter = estilo.filter;
       }
     }
-
-    if (this.map && this.baseMapLayer) {
-      this.baseMapLayer.setZIndex(0);
-      this.baseLayer.setZIndex(1);
-      if (this.provincesLayer) {
-        this.provincesLayer.setZIndex(2);
-      }
-    }
   }
 
   get layerKeys(): string[] {
     return Object.keys(this.layers);
-  }
-
-  get baseMapKeys(): string[] {
-    return Object.keys(this.baseMaps);
   }
 }

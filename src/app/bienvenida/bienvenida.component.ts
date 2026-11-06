@@ -9,6 +9,7 @@ import {
   WeatherStation
 } from '../services/weather.service';
 import { StationService } from '../services/station.service';
+import { MisEstacionesComponent } from '../mis-estaciones/mis-estaciones.component';
 import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 import { CountUpDirective } from '../directives/count-up.directive';
 
@@ -22,17 +23,17 @@ const ZONA_LABELS: Record<string, string> = {
   '1': 'Llanura Tucumana',
   '2': 'Pedemonte Tucumano',
   '3': 'Valles Intermontanos',
-  '4': 'Valles Intermontanos',
+  '4': 'Valles de Altura',
   '5': 'Provincias Adyacentes'
 };
 
-const DEFAULT_STATION_ID = '2049'; // El Colmenar
 
 @Component({
   selector: 'app-bienvenida',
   standalone: true,
   imports: [
     CommonModule,
+    MisEstacionesComponent,
     MatDialogModule,
     MatIconModule,
     RouterModule,
@@ -95,7 +96,8 @@ export class BienvenidaComponent implements OnInit {
           return;
         }
 
-        const defaultIndex = this.stations.findIndex(s => s.Identificacion === DEFAULT_STATION_ID);
+        // El carrusel arranca en la estación activa (predeterminada o última usada)
+        const defaultIndex = this.stations.findIndex(s => s.Identificacion === this.stationService.activa);
         this.currentStationIndex = defaultIndex >= 0 ? defaultIndex : 0;
         this.selectCurrentStation();
       },
@@ -255,8 +257,10 @@ export class BienvenidaComponent implements OnInit {
     const { MapFrostComponent } = await import('../map-frost/map-frost.component');
 
     this.dialog.open(MapFrostComponent, {
-      width: '95vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false,
       restoreFocus: false,

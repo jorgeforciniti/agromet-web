@@ -64,15 +64,16 @@
 .titulo{
   margin: 0 0 12px 0;
   padding-right: 56px;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--text);
 }
 
 .close-btn{
   position: absolute;
-  right: calc(14px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
+  /* Arriba a la derecha, a la altura de la etiqueta, como en el resto de los dialogs */
+  right: env(safe-area-inset-right);
+  top: env(safe-area-inset-top);
   width: 40px;
   height: 40px;
   border-radius: 999px;
@@ -227,7 +228,7 @@
 .map-wrap{
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 420px;          /* fallback seguro */
+  min-height: 480px;          /* fallback seguro */
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
@@ -238,7 +239,7 @@
 .map-container{
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  min-height: 480px;
   position: relative;
 }
 
@@ -259,34 +260,6 @@
   align-items: center;
   z-index: 1000;
   color: rgba(17,24,39,.85);
-}
-
-/* Mensaje ctrl+zoom */
-.ctrl-zoom-message::after{
-  content: "MantÃ©n pulsada la tecla Ctrl y gira la rueda para hacer zoom";
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  width: 100%;
-  background: rgba(0,0,0,.7);
-  color: #fff;
-  padding: 10px 0;
-  text-align: center;
-  font-size: .9rem;
-  border-radius: 0 0 6px 6px;
-  pointer-events: none;
-  z-index: 10000;
-}
-
-/* Leyenda Leaflet */
-.legend{
-  background: #fff;
-  padding: 10px 12px;
-  line-height: 1.4em;
-  color: #333;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,.18);
-  font-size: .9rem;
 }
 
 /* =============================
@@ -314,11 +287,17 @@
     align-items: center;
   }
 
-  .map-wrap{ min-height: 360px; }
-  .map-container{ min-height: 360px; }
+  .map-wrap{ min-height: 480px; }
+  .map-container{ min-height: 480px; }
 }
 
 .close-btn:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
+}
+
+/* «¿Cómo se lee?» bajo el título: se acerca al título y deja aire antes de los controles.
+   Selector con el elemento para ganarle al :host del componente compartido. */
+app-como-se-lee.mapa-como-se-lee {
+  margin: -6px 0 12px;
 }

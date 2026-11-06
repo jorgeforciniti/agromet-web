@@ -1,0 +1,137 @@
+<div class="panel">
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__titulo">Días con lluvia {{ anio }} <app-ayuda-termino termino="clasesLluvia"></app-ayuda-termino></h2>
+      <p class="panel__sub">Cantidad de días según la lluvia diaria registrada, frente a la normal {{ NORMAL_DESDE }}–{{ NORMAL_HASTA }}.
+        Sólo se comparan meses con dato todos los días.</p>
+      <!-- Pregunta para la Sección: esta normal se calcula con los registros diarios (días con estado_pp 0, 1 o 2) y la
+        de «Evolución» (días con lluvia) con dias_lluvia_medible de mensuales.php en meses de lluvia completa; ¿deben
+        coincidir? Pueden diferir si los criterios de mes completo no son iguales. -->
+      <app-como-se-lee>
+        <p>Cada día se asigna a una clase según la lluvia registrada. Las barras apiladas muestran cuántos días de cada clase
+          tuvo cada mes, y la línea punteada, el promedio de días con lluvia (0,1 mm o más) del mismo mes en 1991–2020. Un mes
+          incompleto se ve con colores atenuados y cuenta sólo los días con dato.</p>
+        <p>La normal de cada clase se calcula con los registros diarios de El Colmenar: es el promedio de días de esa clase en
+          los meses de 1991–2020 con dato todos los días. Las tarjetas y el gráfico por clase suman sólo los meses completos del
+          año y los comparan con la normal de esos mismos meses. La «?» explica las clases y la traza.</p>
+      </app-como-se-lee>
+    </div>
+  </div>
+  <div class="leyenda" aria-label="Clases de lluvia diaria">
+    <span *ngFor="let c of CLASES" class="leyenda__item">
+      <span class="leyenda__muestra" [style.background]="c.color" aria-hidden="true"></span>{{ c.etiqueta }}
+    </span>
+  </div>
+</div>
+
+<div class="panel" *ngIf="estado === 'cargando'" aria-live="polite">
+  <p class="panel__sub">Procesando los registros diarios de lluvia: {{ descargados }} de {{ aDescargar }} años.</p>
+  <div class="progreso" role="progressbar" [attr.aria-valuenow]="descargados" aria-valuemin="0" [attr.aria-valuemax]="aDescargar">
+    <span [style.width.%]="aDescargar ? 100 * descargados / aDescargar : 0"></span>
+  </div>
+</div>
+
+<app-estado-carga *ngIf="estado === 'error' || estado === 'vacio'" [estado]="estado" [mensaje]="mensaje" fuente="diarios.php"
+  (reintentar)="cargar()" mensajeVacio="No hay registros de lluvia para el año seleccionado."></app-estado-carga>
+
+<ng-container *ngIf="estado === 'ok'">
+  <div class="kpis">
+    <article class="kpi kpi--lluvia">
+      <span class="kpi__label">Días con precipitación (0,1 mm o más)</span>
+      <span class="kpi__valor">{{ conLluvia(totalAnio) }} <small>días</small></span>
+      <span class="kpi__det"><span class="tag" [class.tag--ok]="anual" [class.tag--parcial]="!anual">
+        {{ anual ? 'Total anual' : mesesCompletos + ' meses completos' }}</span></span>
+      <span class="kpi__det">Normal mismo período: {{ fmt(conLluvia(normalMismosMeses)) }} días ·
+        <strong [class.dif-pos]="conLluvia(totalAnio) > conLluvia(normalMismosMeses)" [class.dif-neg]="conLluvia(totalAnio) < conLluvia(normalMismosMeses)">
+          {{ fmtSigno(conLluvia(totalAnio) - conLluvia(normalMismosMeses)) }} días</strong></span>
+    </article>
+    <article class="kpi">
+      <span class="kpi__label">Sin lluvia o con traza (menos de 0,1 mm)</span>
+      <span class="kpi__valor">{{ totalAnio[0] }} <small>días</small></span>
+      <span class="kpi__det">Normal mismo período: {{ fmt(normalMismosMeses[0]) }} días</span>
+    </article>
+    <article class="kpi kpi--intensa">
+      <span class="kpi__label">Días con más de 20 mm</span>
+      <span class="kpi__valor">{{ sumaClases(totalAnio, 4) }} <small>días</small></span>
+      <span class="kpi__det">Normal mismo período: {{ fmt(sumaClases(normalMismosMeses, 4)) }} días</span>
+    </article>
+    <article class="kpi kpi--intensa">
+      <span class="kpi__label">Días con más de 50 mm</span>
+      <span class="kpi__valor">{{ totalAnio[5] }} <small>días</small></span>
+      <span class="kpi__det">Normal mismo período: {{ fmt(normalMismosMeses[5]) }} días</span>
+    </article>
+  </div>
+
+  <div class="panel">
+    <div class="grid-2">
+      <div>
+        <h3 class="panel__titulo panel__titulo--sm">Días con lluvia por mes y clase</h3>
+        <p class="panel__sub">Barras apiladas por clase; línea: normal de días con lluvia. Colores atenuados: mes incompleto.</p>
+        <app-exportar-grafico nombre="colmenar-dias-lluvia-mensual"></app-exportar-grafico>
+        <div class="grafico" role="img" [attr.aria-label]="'Días con lluvia por mes y clase en ' + anio + ' y normal. Valores en la tabla.'">
+          <canvas baseChart [type]="'bar'" [data]="$any(datosMensual)" [options]="opcionesMensual"></canvas>
+        </div>
+      </div>
+      <div>
+        <h3 class="panel__titulo panel__titulo--sm">Días por clase en el año frente a la normal</h3>
+        <p class="panel__sub">{{ anual ? 'Año completo.' : 'Suma de los ' + mesesCompletos + ' meses completos y normal de esos mismos meses.' }}</p>
+        <app-exportar-grafico nombre="colmenar-dias-lluvia-clases"></app-exportar-grafico>
+        <div class="grafico" role="img" [attr.aria-label]="'Días por clase de lluvia en ' + anio + ' frente a la normal'">
+          <canvas baseChart [type]="'bar'" [data]="datosClases" [options]="opcionesClases"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel__titulo panel__titulo--sm">Días por mes y clase de lluvia diaria</h3>
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col" class="num">Con lluvia</th>
+            <th scope="col" class="num" *ngFor="let c of CLASES">{{ c.corta }} mm</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas" [class.fila--parcial]="!f.completo">
+            <th scope="row">{{ MESES[f.mes - 1] }}</th>
+            <td class="num"><strong>{{ f.completo ? f.conLluvia : '(' + f.conLluvia + ')' }}</strong></td>
+            <td class="num" *ngFor="let v of f.conteos">{{ f.completo ? v : '(' + v + ')' }}</td>
+            <td>
+              <span class="tag tag--ok" *ngIf="f.completo; else parcial">Completo</span>
+              <ng-template #parcial><span class="tag tag--parcial">{{ f.diasValidos }}/{{ f.diasMes }} días</span></ng-template>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row">{{ anual ? 'Total anual' : 'Meses completos (' + mesesCompletos + ')' }}</th>
+            <td class="num">{{ conLluvia(totalAnio) }}</td>
+            <td class="num" *ngFor="let v of totalAnio">{{ v }}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <th scope="row">Normal {{ NORMAL_DESDE }}–{{ NORMAL_HASTA }}</th>
+            <td class="num">{{ fmt(conLluvia(normalMismosMeses)) }}</td>
+            <td class="num" *ngFor="let v of normalMismosMeses">{{ fmt(v) }}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <th scope="row">Diferencia</th>
+            <td class="num" [class.dif-pos]="conLluvia(totalAnio) > conLluvia(normalMismosMeses)"
+              [class.dif-neg]="conLluvia(totalAnio) < conLluvia(normalMismosMeses)">{{ fmtSigno(conLluvia(totalAnio) - conLluvia(normalMismosMeses)) }}</td>
+            <td class="num" *ngFor="let v of totalAnio; let k = index" [class.dif-pos]="v > normalMismosMeses[k]"
+              [class.dif-neg]="v < normalMismosMeses[k]">{{ fmtSigno(v - normalMismosMeses[k]) }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="nota">Entre paréntesis: días de un mes incompleto (sólo los días con dato); no entran en el total. La normal de cada clase es
+      el promedio de días de {{ NORMAL_DESDE }} a {{ NORMAL_HASTA }} para los mismos meses. «Menos de 0,1 mm» incluye los días sin lluvia y
+      los de traza.</p>
+  </div>
+</ng-container>

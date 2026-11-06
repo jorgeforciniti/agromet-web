@@ -1,9 +1,24 @@
 <mat-dialog-content>
   <div class="scroll-container">
     <div class="dialog-body-wrapper">
+      <div class="app-dialog-eyebrow">COBERTURA MENSUAL</div>
       <h2 class="titulo">Mapa de Lluvias Mensuales Acumuladas por campaña</h2>
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es un pluviómetro o una estación automática de la red EEAOC, con la lluvia acumulada
+          entre el mes de inicio y el mes de fin elegidos (si el mes de fin es anterior al de inicio,
+          corresponde al año siguiente). Los datos son totales mensuales y todos fueron revisados y
+          validados por personal de la Sección.</p>
+        <p>Sólo se pueden elegir meses completos: el período llega, como mucho, hasta el mes pasado. El mes
+          en curso todavía no está cerrado ni validado.</p>
+        <p>El color compara esa lluvia con la normal de los mismos meses (la suma de las normales mensuales
+          del punto): los tonos rojo, naranja y amarillo indican menos lluvia que la normal, y los celestes y
+          azul, igual o más; los cortes están en la leyenda. El número junto a cada punto es la lluvia del
+          período en mm; al tocarlo se ven la normal y el desvío, y «Ver ficha» abre la serie histórica.</p>
+        <p>Un punto con algún mes sin dato en el período, o sin normal, no se muestra, para no comparar un
+          acumulado incompleto con la normal completa.</p>
+      </app-como-se-lee>
 
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>
       </button>
 
@@ -11,7 +26,8 @@
         <mat-form-field appearance="fill" class="form-field">
           <mat-label>Mes Inicio</mat-label>
           <mat-select [(ngModel)]="selectedStartMonth" name="startMonth" required>
-            <mat-option *ngFor="let month of monthsList" [value]="month.value">
+            <mat-option *ngFor="let month of monthsList" [value]="month.value"
+                        [disabled]="mesPosteriorAlUltimoCompleto(month.value, selectedStartYear)">
               {{ month.label }}
             </mat-option>
           </mat-select>
@@ -20,7 +36,8 @@
         <mat-form-field appearance="fill" class="form-field">
           <mat-label>Mes Fin</mat-label>
           <mat-select [(ngModel)]="selectedEndMonth" name="endMonth" required>
-            <mat-option *ngFor="let month of monthsList" [value]="month.value">
+            <mat-option *ngFor="let month of monthsList" [value]="month.value"
+                        [disabled]="mesPosteriorAlUltimoCompleto(month.value, anioFin(month.value))">
               {{ month.label }}
             </mat-option>
           </mat-select>
@@ -28,29 +45,27 @@
 
         <mat-form-field appearance="fill" class="form-field">
           <mat-label>Año Inicio</mat-label>
-          <mat-select [(ngModel)]="selectedStartYear" name="startYear" required>
+          <mat-select [(ngModel)]="selectedStartYear" name="startYear" required
+                      (selectionChange)="ajustarAlUltimoMesCompleto()">
             <mat-option *ngFor="let year of yearsList" [value]="year">
               {{ year }}
             </mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="form-field">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select [(ngModel)]="selectedBaseMap" (selectionChange)="onBaseMapChange()">
-            <mat-option *ngFor="let bm of baseMapsList" [value]="bm.value">
-              {{ bm.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <div class="actions">
-          <button mat-raised-button color="primary" (click)="loadRainData()" [disabled]="isLoading" class="search-button">
+          <button mat-raised-button color="primary" (click)="loadRainData()"
+                  [disabled]="isLoading || periodoIncluyeMesIncompleto" class="search-button">
             <mat-icon *ngIf="!isLoading">map</mat-icon>
             <mat-progress-spinner *ngIf="isLoading" mode="indeterminate" diameter="18"></mat-progress-spinner>
             {{ isLoading ? 'Cargando...' : 'Cargar Mapa' }}
           </button>
         </div>
+      </div>
+
+      <div *ngIf="periodoIncluyeMesIncompleto" class="no-data-message">
+        El período sólo puede llegar hasta {{ monthsList[ultimoMesCompleto.mes - 1].label }}-{{ ultimoMesCompleto.anio }},
+        el último mes completo.
       </div>
 
       <div *ngIf="noDataForSelection && !isLoading" class="no-data-message">
@@ -62,9 +77,7 @@
           Precipitaciones en el período
           {{ monthsList[selectedStartMonth - 1].label }}-{{ selectedStartYear }}
           /
-          {{ monthsList[selectedEndMonth - 1].label }}-{{
-            selectedEndMonth < selectedStartMonth ? (selectedStartYear + 1) : selectedStartYear
-          }}
+          {{ monthsList[selectedEndMonth - 1].label }}-{{ anioFin(selectedEndMonth) }}
         </span>
       </div>
 

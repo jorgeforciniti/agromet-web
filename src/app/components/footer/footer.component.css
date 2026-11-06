@@ -19,8 +19,8 @@
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 4px;
-  background: linear-gradient(90deg, #1f9a3a 0%, #8cc63f 22%, #e9c84b 44%, #f2a07b 62%, #a9c3d6 80%, #f5a800 100%);
+  height: var(--brand-stripe-h);
+  background: var(--brand-stripe);
 }
 
 .footer-main {
@@ -28,7 +28,7 @@
   grid-template-columns: 1.3fr auto 1fr auto auto;
   gap: 24px 48px;
   align-items: start;
-  max-width: 1600px;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 26px 32px 18px;
 }
@@ -202,7 +202,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px 16px;
-  max-width: 1600px;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: 10px 32px 12px;
   border-top: 1px solid var(--f-line);

@@ -1,0 +1,50 @@
+.progreso {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.progreso span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width .2s ease;
+}
+
+.leyenda__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .76rem;
+  color: #374151;
+}
+
+.leyenda__muestra {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, .15);
+}
+
+.kpi {
+  border-top: 3px solid var(--border);
+}
+
+.kpi--lluvia {
+  border-top-color: #2a78d6;
+}
+
+.kpi--intensa {
+  border-top-color: #0d366b;
+}
+
+@media (max-width: 560px) {
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kpis .kpi__valor {
+    font-size: 1.2rem;
+  }
+}

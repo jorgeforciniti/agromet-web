@@ -1,118 +1,96 @@
 <div class="page-estaciones">
   <header class="section-header">
     <div class="section-kicker">RED PROVINCIAL</div>
-    <h2 class="section-title">Red de estaciones meteorológicas</h2>
+    <h1 class="section-title">Red de estaciones meteorológicas</h1>
     <p class="section-summary" *ngIf="!loading">
-      {{ totalCount }} estaciones activas en la red
+      {{ totalCount }} estaciones activas · {{ reportingTodayCount }} reportando hoy
     </p>
+    <p class="section-hint">Marcá con ☆ tus estaciones favoritas: aparecen primero en las herramientas y en «Mis estaciones».</p>
+    <app-como-se-lee>
+      <p>La lista y el mapa muestran las estaciones automáticas habilitadas de la red EEAOC con su último dato:
+        temperatura del aire (°C), humedad relativa (%), lluvia de hoy desde las 0 h (mm) y hora de la última
+        medición. Si el último dato no es de hoy, en lugar de la hora figura la fecha (día/mes). Cada estación
+        envía datos con su propio intervalo (por ejemplo, cada 15 o 30 minutos, según la estación).</p>
+      <p>Marcadores del mapa: rojo, estación al día (dato de la última hora); rojo atenuado, atrasada (más de 1 h
+        sin datos); gris, sin datos hoy. En azul, la estación seleccionada, y en dorado, las favoritas. La
+        referencia «Último dato» del mapa repite estos estados.</p>
+      <p>Al ordenar por temperatura, humedad o lluvia, las estaciones que no reportaron hoy quedan al final: su
+        último valor es viejo y no se compara con los actuales. Las lecturas fuera de rango físico (errores del
+        sensor) se muestran como «—».</p>
+      <p>«Reportando hoy» cuenta las estaciones con al menos un dato del día. Los datos se cargan al abrir la
+        página; para actualizarlos hay que recargarla.</p>
+    </app-como-se-lee>
+    <p class="fav-aviso" role="status" aria-live="polite">{{ avisoFavoritas }}</p>
   </header>
 
-  <div class="estaciones-map-row">
-    <div class="estaciones-map-wrapper">
-      <div id="estaciones-map"></div>
-    </div>
+  <!-- Lista compacta a la izquierda y mapa a la derecha; en pantallas angostas, mapa arriba -->
+  <div class="estaciones-layout">
+    <section class="estaciones-list" aria-label="Listado de estaciones">
+      <div class="estaciones-empty" *ngIf="error">{{ error }}</div>
 
-    <aside class="estaciones-summary">
-      <div class="estaciones-summary__eyebrow">RESUMEN</div>
-
-      <div class="estaciones-summary__item">
-        <span class="estaciones-summary__label">Reportando hoy</span>
-        <span class="estaciones-summary__value">{{ reportingTodayCount }} / {{ totalCount }}</span>
-      </div>
-
-      <ng-container *ngIf="selectedStation as s; else sinSeleccion">
-        <div class="estaciones-summary__station">
-          <strong>{{ s.nombre }}</strong>
-          <span>{{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container></span>
-        </div>
-
-        <div class="estaciones-summary__item">
-          <span class="estaciones-summary__label">Temperatura</span>
-          <span class="estaciones-summary__value">{{ s.temp !== null ? (s.temp.toFixed(1) + ' °C') : '—' }}</span>
-        </div>
-
-        <div class="estaciones-summary__item">
-          <span class="estaciones-summary__label">Humedad</span>
-          <span class="estaciones-summary__value">{{ s.hum !== null ? (s.hum.toFixed(0) + ' %') : '—' }}</span>
-        </div>
-
-        <div class="estaciones-summary__item">
-          <span class="estaciones-summary__label">Lluvia hoy</span>
-          <span class="estaciones-summary__value">{{ s.rain !== null ? (s.rain.toFixed(1) + ' mm') : '—' }}</span>
-        </div>
-
-        <div class="estaciones-summary__item">
-          <span class="estaciones-summary__label">Última medición</span>
-          <span class="estaciones-summary__value">{{ s.updated ? (s.updated | date:'dd/MM HH:mm') : '—' }}</span>
-        </div>
-      </ng-container>
-
-      <ng-template #sinSeleccion>
-        <p class="estaciones-summary__hint">Elegí una estación en el mapa o en la tabla para ver sus datos acá.</p>
-      </ng-template>
-    </aside>
-  </div>
-
-  <div class="estaciones-list" *ngIf="!loading; else cargando">
-    <div class="estaciones-empty" *ngIf="error">{{ error }}</div>
-
-    <div class="table-scroll-x" *ngIf="!error">
-      <table class="estaciones-table">
-        <thead>
-          <tr>
-            <th>Estación</th>
-            <th>Temperatura</th>
-            <th>Humedad</th>
-            <th>Lluvia hoy</th>
-            <th>Actualizado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let s of stations" [class.selected]="s.Identificacion === selectedStationId"
-            (click)="selectStation(s.Identificacion)" (keydown.enter)="selectStation(s.Identificacion)" tabindex="0">
-            <td class="station-name">
-              <mat-icon>location_on</mat-icon>
-              <span class="station-name__text">
+      <div class="table-scroll-x tabla-fija" *ngIf="!error">
+        <table class="estaciones-table">
+          <thead>
+            <tr>
+              <!-- Un clic ordena por la columna; otro invierte el orden -->
+              <th scope="col" [attr.aria-sort]="ariaSort('nombre')">
+                <button type="button" class="orden" (click)="ordenarPor('nombre')">Estación</button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('temp')">
+                <button type="button" class="orden" (click)="ordenarPor('temp')"><abbr title="Temperatura del aire">°C</abbr></button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('hum')">
+                <button type="button" class="orden" (click)="ordenarPor('hum')"><abbr title="Humedad relativa">HR %</abbr></button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('rain')">
+                <button type="button" class="orden" (click)="ordenarPor('rain')"><abbr title="Lluvia de hoy">mm</abbr></button></th>
+              <th scope="col" [attr.aria-sort]="ariaSort('updated')">
+                <button type="button" class="orden" (click)="ordenarPor('updated')"><abbr title="Última medición">Hora</abbr></button></th>
+            </tr>
+          </thead>
+          <tbody *ngIf="!loading; else cargando">
+            <tr *ngFor="let s of stations" [id]="'estacion-' + s.Identificacion"
+              [class.selected]="s.Identificacion === selectedStationId"
+              (click)="selectStation(s.Identificacion, true)" (keydown.enter)="selectStation(s.Identificacion, true)"
+              tabindex="0">
+              <td class="station-name">
+                <button type="button" class="fav-btn" [class.is-fav]="stationService.esFavorita(s.Identificacion)"
+                  [attr.aria-pressed]="stationService.esFavorita(s.Identificacion)"
+                  [attr.aria-label]="(stationService.esFavorita(s.Identificacion) ? 'Quitar ' : 'Agregar ') + s.nombre + (stationService.esFavorita(s.Identificacion) ? ' de favoritas' : ' a favoritas')"
+                  [title]="stationService.esFavorita(s.Identificacion) ? 'Quitar de favoritas' : 'Agregar a favoritas'"
+                  (click)="alternarFavorita(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">
+                  {{ stationService.esFavorita(s.Identificacion) ? '★' : '☆' }}
+                </button>
+                <button type="button" class="ficha-btn" title="Ver ficha de la estación"
+                  [attr.aria-label]="'Ver ficha de ' + s.nombre"
+                  (click)="abrirFicha(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">ⓘ</button>
                 <strong>{{ s.nombre }}</strong>
                 <span class="station-name__meta">
                   {{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container>
                 </span>
-              </span>
-            </td>
-            <td>{{ s.temp !== null ? (s.temp.toFixed(1) + ' °C') : '—' }}</td>
-            <td>{{ s.hum !== null ? (s.hum.toFixed(0) + ' %') : '—' }}</td>
-            <td>{{ s.rain !== null ? (s.rain.toFixed(1) + ' mm') : '—' }}</td>
-            <td>{{ s.updated ? (s.updated | date:'dd/MM HH:mm') : '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <ng-template #cargando>
-    <div class="estaciones-list" aria-hidden="true" aria-busy="true">
-      <div class="table-scroll-x">
-        <table class="estaciones-table">
-          <thead>
-            <tr>
-              <th>Estación</th>
-              <th>Temperatura</th>
-              <th>Humedad</th>
-              <th>Lluvia hoy</th>
-              <th>Actualizado</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9]">
-              <td><span class="skeleton sk-cell" style="width:70%"></span></td>
-              <td><span class="skeleton sk-cell"></span></td>
-              <td><span class="skeleton sk-cell"></span></td>
-              <td><span class="skeleton sk-cell"></span></td>
-              <td><span class="skeleton sk-cell"></span></td>
+              </td>
+              <td>{{ s.temp !== null ? (s.temp | number:'1.1-1') : '—' }}</td>
+              <td>{{ s.hum !== null ? (s.hum | number:'1.0-0') : '—' }}</td>
+              <td>{{ s.rain !== null ? (s.rain | number:'1.1-1') : '—' }}</td>
+              <td class="station-time" [title]="s.updated ? (s.updated | date:'dd/MM/yyyy HH:mm') : ''">
+                {{ horaLabel(s.updated) }}
+              </td>
             </tr>
           </tbody>
+          <ng-template #cargando>
+            <tbody aria-hidden="true">
+              <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9]">
+                <td><span class="skeleton sk-cell" style="width:80%"></span></td>
+                <td><span class="skeleton sk-cell"></span></td>
+                <td><span class="skeleton sk-cell"></span></td>
+                <td><span class="skeleton sk-cell"></span></td>
+                <td><span class="skeleton sk-cell"></span></td>
+              </tr>
+            </tbody>
+          </ng-template>
         </table>
       </div>
+    </section>
+
+    <div class="estaciones-map-wrapper">
+      <div id="estaciones-map"></div>
     </div>
-  </ng-template>
+  </div>
 </div>

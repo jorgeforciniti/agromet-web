@@ -45,3 +45,7 @@ Thumbs.db
 /artifacts/
 *.zip
 src/assets/videos/inicio.mp4
+
+# Conexión con contraseña de la API de usuarios (sólo en el servidor)
+server/usuario/api/conecta_usuarios.php
+server/admin/api/conecta_admin.php

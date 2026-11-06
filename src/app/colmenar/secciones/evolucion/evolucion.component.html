@@ -4,6 +4,18 @@
       <h2 class="panel__titulo">Evolución térmica e hídrica <app-ayuda-termino termino="normal"></app-ayuda-termino></h2>
       <p class="panel__sub">{{ descripcionValor }} en cada año entre {{ desde }} y {{ anio }}, frente a la normal 1991–2020.
         El año final se cambia con el selector de la página.</p>
+      <!-- Pregunta para la Sección: el valor anual de temperatura es el promedio simple de las 12 medias mensuales; ¿es
+        correcto? ¿Conviene informar la significancia de la tendencia (hoy se aclara que no se calcula)? -->
+      <app-como-se-lee>
+        <p>Cada punto o barra es un año: el valor del mes elegido o, en «Anual», el promedio de los 12 meses (temperaturas) o
+          su suma (precipitación y días con lluvia). El valor anual sólo se calcula con los 12 meses validados; los años sin
+          valor válido quedan como hueco y se listan debajo de las franjas.</p>
+        <p>La línea punteada gris es la normal 1991–2020 y la negra, la tendencia lineal por mínimos cuadrados con los años
+          válidos (al menos 5), expresada por década. Es indicativa: no incluye prueba de significancia. La normal de días con
+          lluvia se calcula con los meses completos de 1991–2020 de la serie de El Colmenar.</p>
+        <p>Las franjas pintan cada año según su anomalía. El color llega al tono más intenso a partir de 2,5 desvíos estándar de
+          las anomalías del período mostrado, por lo que la escala cambia con el período y la variable.</p>
+      </app-como-se-lee>
     </div>
     <div class="chips" role="group" aria-label="Variable">
       <button *ngFor="let v of VARIABLES" type="button" class="chip" [class.chip--activo]="variable.id === v.id"
@@ -20,7 +32,8 @@
     </label>
     <label class="campo">Años
       <select [value]="longitud" (change)="setLongitud($any($event.target).value)">
-        <option *ngFor="let l of longitudes" [value]="l" [selected]="l === longitud">Últimos {{ l }} años</option>
+        <option *ngFor="let l of longitudes" [value]="l" [selected]="l === longitud">
+          {{ l === TODA_LA_SERIE ? 'Desde ' + ANIO_INICIO : 'Últimos ' + l + ' años' }}</option>
       </select>
     </label>
   </div>
@@ -36,8 +49,7 @@
       <span class="kpi__valor">{{ fmt(promedio) }} <small>{{ variable.unidad }}</small></span>
       <span class="kpi__det">{{ validos.length }} años válidos · normal {{ fmt(normalPeriodo) }} {{ variable.unidad }}
         <ng-container *ngIf="promedio !== null && normalPeriodo !== null">
-          (<strong [class.pos]="!esLluvia && promedio > normalPeriodo" [class.neg]="!esLluvia && promedio < normalPeriodo"
-            [class.pos-pp]="esLluvia && promedio > normalPeriodo" [class.neg-pp]="esLluvia && promedio < normalPeriodo">
+          (<strong [ngClass]="claseSigno(promedio - normalPeriodo)">
             {{ fmtSigno(promedio - normalPeriodo) }} {{ variable.unidad }}</strong>)
         </ng-container>
       </span>
@@ -45,22 +57,21 @@
     <article class="kpi">
       <span class="kpi__label">Tendencia lineal</span>
       <ng-container *ngIf="tendencia as t; else sinTendencia">
-        <span class="kpi__valor" [class.pos]="!esLluvia && t.pendienteDecada > 0" [class.neg]="!esLluvia && t.pendienteDecada < 0"
-          [class.pos-pp]="esLluvia && t.pendienteDecada > 0" [class.neg-pp]="esLluvia && t.pendienteDecada < 0">
-          {{ fmtSigno(t.pendienteDecada, esLluvia ? 1 : 2) }} <small>{{ variable.unidad }}/década</small></span>
+        <span class="kpi__valor" [ngClass]="claseSigno(t.pendienteDecada)">
+          {{ fmtSigno(t.pendienteDecada, enBarras ? 1 : 2) }} <small>{{ variable.unidad }}/década</small></span>
         <span class="kpi__det">Mínimos cuadrados sobre {{ t.n }} años. Indicativa, sin prueba de significancia estadística.</span>
       </ng-container>
       <ng-template #sinTendencia><span class="kpi__det">Se requieren al menos 5 años válidos.</span></ng-template>
     </article>
     <article class="kpi">
-      <span class="kpi__label">{{ esLluvia ? 'Año más lluvioso' : 'Año más cálido' }}</span>
-      <span class="kpi__valor" *ngIf="mayor">{{ mayor.anio }} <small>{{ fmt(mayor.valor) }} {{ variable.unidad }}</small></span>
+      <span class="kpi__label">{{ variable.mayor }}</span>
+      <span class="kpi__valor" *ngIf="mayor">{{ mayor.anio }} <small>{{ fmt(mayor.valor, variable.decValor ?? 1) }} {{ variable.unidad }}</small></span>
       <span class="kpi__det" *ngIf="mayor">Anomalía {{ fmtSigno(mayor.anomalia) }} {{ variable.unidad }}
         <ng-container *ngIf="esLluvia">({{ fmtSigno(mayor.anomaliaPct, 0) }} %)</ng-container></span>
     </article>
     <article class="kpi">
-      <span class="kpi__label">{{ esLluvia ? 'Año más seco' : 'Año más frío' }}</span>
-      <span class="kpi__valor" *ngIf="menor">{{ menor.anio }} <small>{{ fmt(menor.valor) }} {{ variable.unidad }}</small></span>
+      <span class="kpi__label">{{ variable.menor }}</span>
+      <span class="kpi__valor" *ngIf="menor">{{ menor.anio }} <small>{{ fmt(menor.valor, variable.decValor ?? 1) }} {{ variable.unidad }}</small></span>
       <span class="kpi__det" *ngIf="menor">Anomalía {{ fmtSigno(menor.anomalia) }} {{ variable.unidad }}
         <ng-container *ngIf="esLluvia">({{ fmtSigno(menor.anomaliaPct, 0) }} %)</ng-container></span>
     </article>
@@ -76,20 +87,36 @@
       <div>
         <h3 class="panel__titulo panel__titulo--sm">{{ variable.nombre }} · {{ etiquetaPeriodo }} ({{ variable.unidad }})</h3>
         <p class="panel__sub">Línea punteada gris: normal 1991–2020 · línea punteada negra: tendencia lineal.</p>
+        <app-exportar-grafico nombre="colmenar-evolucion"></app-exportar-grafico>
         <div class="grafico" role="img"
           [attr.aria-label]="descripcionValor + ' entre ' + desde + ' y ' + anio + ', normal y tendencia. Valores en la tabla.'">
-          <canvas baseChart [type]="esLluvia ? 'bar' : 'line'" [data]="$any(datosSerie)" [options]="$any(opcionesSerie)"></canvas>
+          <canvas baseChart [type]="enBarras ? 'bar' : 'line'" [data]="$any(datosSerie)" [options]="$any(opcionesSerie)"></canvas>
         </div>
       </div>
       <div>
         <h3 class="panel__titulo panel__titulo--sm">Anomalía por año ({{ variable.unidad }}) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
-        <p class="panel__sub" *ngIf="!esLluvia">Rojo: más cálido que lo normal · Azul: más frío. Sin barra: dato no válido.</p>
-        <p class="panel__sub" *ngIf="esLluvia">Azul: más lluvioso que lo normal · Naranja: más seco. Sin barra: dato no válido.</p>
+        <p class="panel__sub">{{ variable.leyendaAnomalia }} Sin barra: dato no válido.</p>
+        <app-exportar-grafico nombre="colmenar-evolucion-anomalias"></app-exportar-grafico>
         <div class="grafico" role="img" [attr.aria-label]="'Anomalías de ' + descripcionValor + ' por año'">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
         </div>
       </div>
     </div>
+    <!-- Franjas de calentamiento / de precipitación: un año por franja (sólo imagen, sin datos) -->
+    <h3 class="panel__titulo panel__titulo--sm">
+      Franjas {{ variable.franjas }} · {{ etiquetaPeriodo }}
+    </h3>
+    <p class="panel__sub">
+      Cada franja es un año entre {{ desde }} y {{ anio }}, coloreado por su anomalía frente a la normal 1991–2020:
+      {{ variable.leyendaFranjas }}
+      Cuanto más intenso el color, mayor la anomalía. En blanco, los años sin dato válido.
+    </p>
+    <app-exportar-grafico nombre="colmenar-franjas"></app-exportar-grafico>
+    <div class="grafico grafico--bajo" role="img"
+      [attr.aria-label]="'Franjas de anomalía de ' + descripcionValor + ' entre ' + desde + ' y ' + anio">
+      <canvas baseChart [type]="'bar'" [data]="datosFranjas" [options]="opcionesFranjas"></canvas>
+    </div>
+
     <p class="nota" *ngIf="excluidos.length">
       Sin valor válido ({{ excluidos.length }}):
       <ng-container *ngFor="let p of excluidos; let ultimo = last">{{ p.anio }} — {{ p.motivo | lowercase }}{{ ultimo ? '.' : '; ' }}</ng-container>
@@ -114,10 +141,9 @@
         <tbody>
           <tr *ngFor="let p of puntosDesc" [class.fila--parcial]="p.valor === null">
             <th scope="row">{{ p.anio }}</th>
-            <td class="num">{{ fmt(p.valor) }}</td>
+            <td class="num">{{ fmt(p.valor, variable.decValor ?? 1) }}</td>
             <td class="num">{{ fmt(p.normal) }}</td>
-            <td class="num" [class.pos]="!esLluvia && (p.anomalia ?? 0) > 0" [class.neg]="!esLluvia && (p.anomalia ?? 0) < 0"
-              [class.pos-pp]="esLluvia && (p.anomalia ?? 0) > 0" [class.neg-pp]="esLluvia && (p.anomalia ?? 0) < 0">{{ fmtSigno(p.anomalia) }}</td>
+            <td class="num" [ngClass]="claseSigno(p.anomalia)">{{ fmtSigno(p.anomalia) }}</td>
             <td class="num" *ngIf="esLluvia">{{ fmtSigno(p.anomaliaPct, 0) }}</td>
             <td>
               <span class="tag tag--parcial" *ngIf="p.motivo; else ok">{{ p.motivo }}</span>

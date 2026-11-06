@@ -1,10 +1,35 @@
 <div class="container">
   <!-- X fija estilo dialogs -->
-  <button class="do-close" type="button" (click)="closeWindow()" aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+  <button class="do-close" type="button" (click)="closeWindow()" aria-label="Cerrar diálogo"><mat-icon>close</mat-icon></button>
 
   <div class="viewer-container">
 
-    <div class="titulo">Condiciones actuales para aplicación de agroquímicos</div>
+    <div class="dialogo-titulo dialogo-titulo--con-cerrar">
+      <h2 class="titulo">Condiciones actuales para aplicación de agroquímicos</h2>
+      <span class="app-dialog-eyebrow">MANEJO</span>
+    </div>
+    <!-- Umbrales aprobados por la Sección (nov. 2026); el detalle y su origen están en RULES de spray-advisor.service.ts. -->
+    <app-como-se-lee>
+      <p>Evalúa, para cada registro del día elegido, si las condiciones medidas en la estación permitían aplicar con
+        el método, la prioridad y el cultivo indicados. Cada botón «i» explica un criterio en detalle.</p>
+      <p>El semáforo combina dos puntajes de riesgo, deriva y eficacia (más alto es peor), ponderados según la
+        prioridad, y nunca es mejor que el peor criterio individual: ráfaga, diferencia entre ráfaga y viento medio,
+        ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la fila en
+        rojo.</p>
+      <p>Viento: el techo se compara con la ráfaga y el piso con el viento medio. Con viento medio menor a 3 km/h hay
+        calma y riesgo de inversión (rojo). En aplicación terrestre la ráfaga es verde hasta 20 km/h, amarillo hasta
+        25 y rojo por encima; los demás métodos tienen sus propios límites. ΔT (guía GRDC de Australia): de 2 a 8 °C
+        es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; más de 10 o menos de 1 °C, no aplicar.</p>
+      <p>Si falta un dato del registro (temperatura, humedad, viento medio, ráfaga o lluvia) o es inválido, esa fila
+        o ese punto del mapa queda «Sin evaluar», en gris: nunca se evalúa con valores supuestos.</p>
+      <p>La inversión no se mide: se estima como probable de noche (entre la puesta y la salida del sol, calculadas
+        para la fecha y la ubicación de cada estación) con viento medio menor a 5 km/h y humedad de 85 % o más. El producto
+        y el tamaño de gota no cambian el semáforo: sólo agregan razones y recomendaciones al seleccionar una fila.</p>
+      <p>El Kp es el del intervalo de 3 h de cada registro: de NOAA para la última semana y de GFZ Potsdam para
+        fechas anteriores. Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla.</p>
+      <p>El mapa usa la misma evaluación que la tabla, con el último registro de cada estación y el último Kp, y
+        muestra sólo las estaciones con datos de las últimas 2 horas.</p>
+    </app-como-se-lee>
 
     <div *ngIf="loadingEstaciones" class="loading-overlay">
       <div class="spinner"></div>
@@ -19,207 +44,154 @@
       <div id="mapConditions"></div>
     </div>
 
-    <!-- CONTROLES -->
-    <div class="controls" *ngIf="!loadingEstaciones && !errorEstaciones">
+    <!-- Parámetros: dónde y cuándo, cómo se aplica, y la consulta -->
+    <div class="params" *ngIf="!loadingEstaciones && !errorEstaciones">
+      <fieldset class="params__grupo params__grupo--donde">
+        <legend>Dónde y cuándo</legend>
+        <div class="param">
+          <div class="param__label">
+            <label for="condStation">Estación</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('ESTACION', $event)"
+              (keydown.enter)="openInfo('ESTACION', $event)" (keydown.space)="openInfo('ESTACION', $event)"
+              [attr.aria-label]="'Info Estación'" [attr.title]="tooltip('ESTACION')">i</button>
+          </div>
+          <select id="condStation" [(ngModel)]="selectedStation" class="param__control" (change)="onStationChange()">
+            <option value="" disabled>-- Seleccione --</option>
+            <ng-container *ngIf="estaciones | gruposEstaciones:(favoritas$ | async):'identificacion' as g">
+              <optgroup *ngIf="g.favoritas.length" label="★ Favoritas">
+                <option *ngFor="let estacion of g.favoritas" [value]="estacion.identificacion">
+                  {{ estacion.nombre }}
+                </option>
+              </optgroup>
+              <optgroup *ngIf="g.favoritas.length" label="Todas las estaciones">
+                <option *ngFor="let estacion of g.resto" [value]="estacion.identificacion">
+                  {{ estacion.nombre }}
+                </option>
+              </optgroup>
+              <ng-container *ngIf="!g.favoritas.length">
+                <option *ngFor="let estacion of g.resto" [value]="estacion.identificacion">
+                  {{ estacion.nombre }}
+                </option>
+              </ng-container>
+            </ng-container>
+          </select>
+        </div>
+        <div class="param">
+          <div class="param__label">
+            <label for="condFecha">Fecha</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('FECHA', $event)"
+              (keydown.enter)="openInfo('FECHA', $event)" (keydown.space)="openInfo('FECHA', $event)"
+              [attr.aria-label]="'Info Fecha'" [attr.title]="tooltip('FECHA')">i</button>
+          </div>
+          <mat-form-field appearance="outline" class="param__fecha" subscriptSizing="dynamic">
+            <input id="condFecha" matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" name="date" (dateChange)="searchData()">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker panelClass="do-datepicker"></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </fieldset>
 
-      <!-- Estación -->
-      <div class="control-group">
-        <label class="control-label" for="condStation">
-          Estación:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('ESTACION', $event)"
-            (keydown.enter)="openInfo('ESTACION', $event)"
-            (keydown.space)="openInfo('ESTACION', $event)"
-            [attr.aria-label]="'Info Estación'"
-            [attr.title]="tooltip('ESTACION')">i</button>
-        </label>
+      <fieldset class="params__grupo params__grupo--aplicacion">
+        <legend>Aplicación</legend>
+        <div class="param">
+          <div class="param__label">
+            <label for="condMetodo">Método</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('METODO', $event)"
+              (keydown.enter)="openInfo('METODO', $event)" (keydown.space)="openInfo('METODO', $event)"
+              [attr.aria-label]="'Info Método'" [attr.title]="tooltip('METODO')">i</button>
+          </div>
+          <select id="condMetodo" [(ngModel)]="metodo" class="param__control" (change)="onParamsChanged()">
+            <option *ngFor="let m of metodos" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+        <div class="param">
+          <div class="param__label">
+            <label for="condPrioridad">Prioridad</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('PRIORIDAD', $event)"
+              (keydown.enter)="openInfo('PRIORIDAD', $event)" (keydown.space)="openInfo('PRIORIDAD', $event)"
+              [attr.aria-label]="'Info Prioridad'" [attr.title]="tooltip('PRIORIDAD')">i</button>
+          </div>
+          <select id="condPrioridad" [(ngModel)]="prioridad" class="param__control" (change)="onParamsChanged()">
+            <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
+          </select>
+        </div>
+        <div class="param">
+          <div class="param__label">
+            <label for="condCultivo">Cultivo</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('CULTIVO', $event)"
+              (keydown.enter)="openInfo('CULTIVO', $event)" (keydown.space)="openInfo('CULTIVO', $event)"
+              [attr.aria-label]="'Info Cultivo'" [attr.title]="tooltip('CULTIVO')">i</button>
+          </div>
+          <select id="condCultivo" [(ngModel)]="cultivo" class="param__control" (change)="onParamsChanged()">
+            <option *ngFor="let c of cultivos" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="param">
+          <div class="param__label">
+            <label for="condProducto">Producto</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('PRODUCTO', $event)"
+              (keydown.enter)="openInfo('PRODUCTO', $event)" (keydown.space)="openInfo('PRODUCTO', $event)"
+              [attr.aria-label]="'Info Producto'" [attr.title]="tooltip('PRODUCTO')">i</button>
+          </div>
+          <select id="condProducto" [(ngModel)]="tipoProducto" class="param__control" (change)="onParamsChanged()">
+            <option value="HERBICIDA">Herbicida</option>
+            <option value="FUNGICIDA">Fungicida</option>
+            <option value="INSECTICIDA">Insecticida</option>
+          </select>
+        </div>
+        <div class="param">
+          <div class="param__label">
+            <label for="condGota">Gota</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('GOTA', $event)"
+              (keydown.enter)="openInfo('GOTA', $event)" (keydown.space)="openInfo('GOTA', $event)"
+              [attr.aria-label]="'Info Gota'" [attr.title]="tooltip('GOTA')">i</button>
+          </div>
+          <select id="condGota" [(ngModel)]="tamGota" class="param__control" (change)="onParamsChanged()">
+            <option value="MUY_FINA">Muy fina</option>
+            <option value="FINA">Fina</option>
+            <option value="MEDIA">Media</option>
+            <option value="GRUESA">Gruesa</option>
+            <option value="MUY_GRUESA">Muy gruesa</option>
+          </select>
+        </div>
+        <div class="param" *ngIf="metodo === 'DRON' || metodo === 'AVION'">
+          <div class="param__label">
+            <label for="condSats">Satélites</label>
+            <button type="button" class="info-circle-btn" (click)="openInfo('GNSS', $event)"
+              (keydown.enter)="openInfo('GNSS', $event)" (keydown.space)="openInfo('GNSS', $event)"
+              [attr.aria-label]="'Info Satélites'" [attr.title]="tooltip('GNSS')">i</button>
+          </div>
+          <input id="condSats" class="param__control" type="number" min="0" [(ngModel)]="sats" (change)="onParamsChanged()">
+        </div>
+      </fieldset>
 
-        <select id="condStation" [(ngModel)]="selectedStation" class="select-wrapper" (change)="searchData()">
-          <option value="" disabled>-- Seleccione --</option>
-          <option *ngFor="let estacion of estaciones" [value]="estacion.identificacion">
-            {{ estacion.nombre }}
-          </option>
-        </select>
-      </div>
+      <div class="params__pie">
+        <!-- Kp: dato informativo (actividad geomagnética, afecta al GNSS), no es un parámetro -->
+        <div class="params__kp">
+          <span class="params__kp-label">Kp (NOAA)</span>
+          <button type="button" class="info-circle-btn" (click)="openInfo('KP', $event)"
+            (keydown.enter)="openInfo('KP', $event)" (keydown.space)="openInfo('KP', $event)"
+            [attr.aria-label]="'Info Kp'" [attr.title]="tooltip('KP')">i</button>
+          <span class="kp-pill" [class.kp-ok]="kpIndex !== null && kpIndex < 4"
+            [class.kp-warn]="kpIndex !== null && kpIndex >= 4 && kpIndex < 5"
+            [class.kp-bad]="kpIndex !== null && kpIndex >= 5">
+            {{ kpLoading ? '…' : (kpIndex !== null ? (kpIndex | number:'1.1-1') : '—') }}
+          </span>
+          <button class="btn-ghost" type="button" (click)="loadKp()" [disabled]="kpLoading"
+            title="Actualizar Kp" aria-label="Actualizar Kp">↻</button>
+          <span class="kp-time" *ngIf="kpTimeTag">Último: {{ kpTimeTag }} UTC</span>
+        </div>
 
-      <!-- Fecha -->
-      <div class="control-group">
-        <label class="control-label" for="condFecha">
-          Fecha:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('FECHA', $event)"
-            (keydown.enter)="openInfo('FECHA', $event)"
-            (keydown.space)="openInfo('FECHA', $event)"
-            [attr.aria-label]="'Info Fecha'"
-            [attr.title]="tooltip('FECHA')">i</button>
-        </label>
-
-        <mat-form-field appearance="outline" class="select-wrapper">
-          <input id="condFecha" matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" name="date" (dateChange)="searchData()">
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker panelClass="do-datepicker"></mat-datepicker>
-        </mat-form-field>
-      </div>
-
-      <!-- Método -->
-      <div class="control-group">
-        <label class="control-label" for="condMetodo">
-          Método:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('METODO', $event)"
-            (keydown.enter)="openInfo('METODO', $event)"
-            (keydown.space)="openInfo('METODO', $event)"
-            [attr.aria-label]="'Info Método'"
-            [attr.title]="tooltip('METODO')">i</button>
-        </label>
-
-        <select id="condMetodo" [(ngModel)]="metodo" class="select-wrapper" (change)="onParamsChanged()">
-          <option *ngFor="let m of metodos" [value]="m">{{ m }}</option>
-        </select>
-      </div>
-
-      <!-- Prioridad -->
-      <div class="control-group">
-        <label class="control-label" for="condPrioridad">
-          Prioridad:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('PRIORIDAD', $event)"
-            (keydown.enter)="openInfo('PRIORIDAD', $event)"
-            (keydown.space)="openInfo('PRIORIDAD', $event)"
-            [attr.aria-label]="'Info Prioridad'"
-            [attr.title]="tooltip('PRIORIDAD')">i</button>
-        </label>
-
-        <select id="condPrioridad" [(ngModel)]="prioridad" class="select-wrapper" (change)="onParamsChanged()">
-          <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
-        </select>
-      </div>
-
-      <!-- Cultivo -->
-      <div class="control-group">
-        <label class="control-label" for="condCultivo">
-          Cultivo:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('CULTIVO', $event)"
-            (keydown.enter)="openInfo('CULTIVO', $event)"
-            (keydown.space)="openInfo('CULTIVO', $event)"
-            [attr.aria-label]="'Info Cultivo'"
-            [attr.title]="tooltip('CULTIVO')">i</button>
-        </label>
-
-        <select id="condCultivo" [(ngModel)]="cultivo" class="select-wrapper" (change)="onParamsChanged()">
-          <option *ngFor="let c of cultivos" [value]="c">{{ c }}</option>
-        </select>
-      </div>
-
-      <!-- Producto -->
-      <div class="control-group">
-        <label class="control-label" for="condProducto">
-          Producto:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('PRODUCTO', $event)"
-            (keydown.enter)="openInfo('PRODUCTO', $event)"
-            (keydown.space)="openInfo('PRODUCTO', $event)"
-            [attr.aria-label]="'Info Producto'"
-            [attr.title]="tooltip('PRODUCTO')">i</button>
-        </label>
-
-        <select id="condProducto" [(ngModel)]="tipoProducto" class="select-wrapper" (change)="onParamsChanged()">
-          <option value="HERBICIDA">Herbicida</option>
-          <option value="FUNGICIDA">Fungicida</option>
-          <option value="INSECTICIDA">Insecticida</option>
-        </select>
-      </div>
-
-      <!-- Gota -->
-      <div class="control-group">
-        <label class="control-label" for="condGota">
-          Gota:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('GOTA', $event)"
-            (keydown.enter)="openInfo('GOTA', $event)"
-            (keydown.space)="openInfo('GOTA', $event)"
-            [attr.aria-label]="'Info Gota'"
-            [attr.title]="tooltip('GOTA')">i</button>
-        </label>
-
-        <select id="condGota" [(ngModel)]="tamGota" class="select-wrapper" (change)="onParamsChanged()">
-          <option value="MUY_FINA">Muy fina</option>
-          <option value="FINA">Fina</option>
-          <option value="MEDIA">Media</option>
-          <option value="GRUESA">Gruesa</option>
-          <option value="MUY_GRUESA">Muy gruesa</option>
-        </select>
-      </div>
-
-      <!-- KP -->
-      <div class="control-group kp-group">
-        <label class="control-label">
-          Kp (NOAA):
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('KP', $event)"
-            (keydown.enter)="openInfo('KP', $event)"
-            (keydown.space)="openInfo('KP', $event)"
-            [attr.aria-label]="'Info Kp'"
-            [attr.title]="tooltip('KP')">i</button>
-        </label>
-
-        <span class="kp-pill" [class.kp-ok]="kpIndex < 4" [class.kp-warn]="kpIndex >= 4 && kpIndex < 5"
-          [class.kp-bad]="kpIndex >= 5">
-          {{ kpLoading ? '…' : (kpIndex | number:'1.1-1') }}
-        </span>
-
-        <button class="btn-ghost" type="button" (click)="loadKp()" [disabled]="kpLoading" title="Actualizar Kp">↻</button>
-
-        <span class="kp-time" *ngIf="kpTimeTag">Último: {{ kpTimeTag }} UTC</span>
-      </div>
-
-      <!-- GNSS -->
-      <div class="control-group" *ngIf="metodo === 'DRON' || metodo === 'AVION'">
-        <label class="control-label" for="condSats">
-          Satélites:
-          <button
-            type="button"
-            class="info-circle-btn"
-            (click)="openInfo('GNSS', $event)"
-            (keydown.enter)="openInfo('GNSS', $event)"
-            (keydown.space)="openInfo('GNSS', $event)"
-            [attr.aria-label]="'Info GNSS'"
-            [attr.title]="tooltip('GNSS')">i</button>
-        </label>
-
-        <input id="condSats" class="select-wrapper sats-input" type="number" [(ngModel)]="sats" (change)="onParamsChanged()">
-      </div>
-
-      <!-- Buscar -->
-      <div class="control-group">
-        <button *ngIf="!loadingData" class="btn-search" type="button" (click)="searchData()">
+        <button *ngIf="!loadingData" class="btn-search params__buscar" type="button" (click)="searchData()">
           Buscar datos
         </button>
-
         <div *ngIf="loadingData" class="loading-indicator">
           <div class="spinner"></div>
           <div class="loading-text">Cargando datos horarios...</div>
         </div>
       </div>
-
     </div>
+    <app-copiar-enlace *ngIf="!loadingEstaciones && !errorEstaciones" [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <!-- Resumen -->
     <div *ngIf="weatherData.length" class="resumen-consulta">
@@ -240,7 +212,7 @@
     </div>
 
     <!-- TABLA -->
-    <div class="table-scroll" *ngIf="weatherData && weatherData.length">
+    <div class="table-scroll tabla-fija" *ngIf="weatherData && weatherData.length">
       <table class="tabla-datos">
         <thead>
           <tr>
@@ -256,7 +228,7 @@
             </th>
 
             <th>
-              AT (°C)
+              ΔT (°C)
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('DELTA_T', $event)"
                 (keydown.enter)="openInfo('DELTA_T', $event)"
@@ -317,29 +289,40 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let row of weatherData" [ngClass]="row.rowClass" (click)="selectRow(row)">
+          <tr *ngFor="let row of weatherData" [ngClass]="row.rowClass" (click)="selectRow(row)"
+            [attr.title]="row.eval ? null : textoSinEvaluar(row.faltantes)">
             <td>{{ row.hora }}</td>
-            <td><b>{{ row.eval?.semaforo || '—' }}</b></td>
+            <td><b>{{ row.eval?.semaforo || 'Sin evaluar' }}</b></td>
             <td>{{ row.eval ? (row.eval.deltaT | number:'1.1-1') : '—' }}</td>
-            <td>{{ row.eval?.inversionProbable ? 'Sí' : 'No' }}</td>
+            <td>{{ row.eval ? (row.eval.inversionProbable ? 'Sí' : 'No') : '—' }}</td>
             <td>{{ row.eval?.scoreDeriva ?? '—' }}</td>
             <td>{{ row.eval?.scoreEficacia ?? '—' }}</td>
 
-            <td>{{ row.temp_af ?? '---' }}</td>
-            <td>{{ row.hum_af ?? '---' }}</td>
-            <td>{{ row.viento_medio ?? '---' }}</td>
-            <td>{{ row.viento_max ?? '---' }}</td>
-            <td>{{ row.direccion || '---' }}</td>
-            <td>{{ row.lluvia ?? '---' }}</td>
+            <td>{{ row.temp_af | valor }}</td>
+            <td>{{ row.hum_af | valor }}</td>
+            <td>{{ row.viento_medio | valor }}</td>
+            <td>{{ row.viento_max | valor }}</td>
+            <td>{{ row.direccion || '—' }}</td>
+            <td>{{ row.lluvia | valor }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <small class="leyenda-tabla" *ngIf="weatherData.length">
-      * Verde = aplicar · Amarillo = precaución · Rojo = no aplicar<br>
+      * Verde = aplicar · Amarillo = precaución · Rojo = no aplicar · Gris = sin evaluar (falta un dato)<br>
+      <span *ngIf="kpNota" [class.kp-aviso]="kpAviso">* {{ kpNota }}<br></span>
       * Información provisoria sujeta a modificación. La EEAOC no se responsabiliza por su utilización.
     </small>
+
+    <!-- Fila sin evaluar: qué dato falta -->
+    <div class="why-panel why-panel--sin-evaluar" *ngIf="selectedRow && !selectedRow.eval">
+      <div class="why-head">
+        <div class="why-title">{{ selectedRow.hora }}</div>
+        <div class="why-chip SIN_EVALUAR">Sin evaluar</div>
+      </div>
+      <p>{{ textoSinEvaluar(selectedRow.faltantes) }}. Sin ese dato no se puede calcular el semáforo.</p>
+    </div>
 
     <!-- Panel inline: razones/recomendaciones -->
     <div class="why-panel" *ngIf="selectedRow?.eval as ev">
@@ -359,7 +342,8 @@
           ΔT: <b>{{ ev.deltaT | number:'1.1-1' }}</b> ·
           Inversión: <b>{{ ev.inversionProbable ? 'Sí' : 'No' }}</b> ·
           Deriva: <b>{{ ev.scoreDeriva }}</b> ·
-          Eficacia: <b>{{ ev.scoreEficacia }}</b>
+          Eficacia: <b>{{ ev.scoreEficacia }}</b> ·
+          Kp: <b>{{ selectedRow?.kp != null ? (selectedRow?.kp | number:'1.1-1') : 'no considerado' }}</b>
         </div>
       </div>
 

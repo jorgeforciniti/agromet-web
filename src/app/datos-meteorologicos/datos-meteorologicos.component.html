@@ -1,157 +1,33 @@
 <div class="dm">
-  <div class="dm__main">
-    <div class="dm__intro">
-      <div>
-        <div class="dm__eyebrow">CONSULTA PRINCIPAL</div>
-        <h3 class="dm__headline">Herramientas de análisis y consulta meteorológica</h3>
-      </div>
-      <p class="dm__lead">Accesos directos a monitoreo, series comparativas y tableros por localidad para lectura operativa e histórica.</p>
+  <div class="dm__intro">
+    <div>
+      <div class="dm__eyebrow">CONSULTA PRINCIPAL</div>
+      <h1 class="dm__headline">Herramientas de análisis y consulta meteorológica</h1>
     </div>
-
-    <div class="dm__grid">
-      <mat-card class="dm-card dm-card--primary tap-feedback" [appScrollReveal]="0">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/datostiemporeal.jpeg"
-               alt="Estación meteorológica operativa en tiempo real">
-          <div class="dm-card__badge">EN LÍNEA</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Monitoreo</div>
-          <h3 class="dm-card__title">Datos en tiempo real</h3>
-          <p class="dm-card__sub">Observación actualizada cada 15 minutos para seguimiento rápido de estaciones activas.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openDatosOnline()">Ver estaciones en línea</button>
-        </mat-card-actions>
-      </mat-card>
-
-      <mat-card class="dm-card tap-feedback" [appScrollReveal]="80">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/estacion_mr.jpg"
-               alt="Consulta de datos meteorológicos por localidad" loading="lazy">
-          <div class="dm-card__badge">LOCALIDADES</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Consulta detallada</div>
-          <h3 class="dm-card__title">Datos por localidad</h3>
-          <p class="dm-card__sub">Tablas, gráficos y variables clave para analizar el comportamiento local con más profundidad.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openDatosxLocalidad()">Consultar por localidad</button>
-        </mat-card-actions>
-      </mat-card>
-
-      <mat-card class="dm-card tap-feedback" [appScrollReveal]="160">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/tormenta.png"
-               alt="Evolución de lluvias por campaña agrícola" loading="lazy">
-          <div class="dm-card__badge">ACUMULADOS</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Comparativa</div>
-          <h3 class="dm-card__title">Precipitaciones por campaña</h3>
-          <p class="dm-card__sub">Comparación interanual de lluvias acumuladas para leer la campaña con contexto histórico.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openRainDialog()">Ver análisis de campañas</button>
-        </mat-card-actions>
-      </mat-card>
-
-      <mat-card class="dm-card tap-feedback" [appScrollReveal]="240">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/aplicacion.png"
-               alt="Condiciones para aplicación de agroquímicos" loading="lazy">
-          <div class="dm-card__badge">DECISIÓN</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Manejo</div>
-          <h3 class="dm-card__title">Condiciones para aplicar agroquímicos</h3>
-          <p class="dm-card__sub">Mapas y tablas por localidad para evaluar ventanas operativas con mejor criterio.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openConditionsDialog()">Ver condiciones actuales</button>
-        </mat-card-actions>
-      </mat-card>
-
-      <mat-card class="dm-card tap-feedback" [appScrollReveal]="320">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/condiciones-enfermedades-card.svg"
-               alt="Condiciones predisponentes para enfermedades en cultivos" loading="lazy">
-          <div class="dm-card__badge">SANIDAD</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Riesgo sanitario</div>
-          <h3 class="dm-card__title">Condiciones para enfermedades</h3>
-          <p class="dm-card__sub">Indicadores diarios por estación para evaluar escenarios predisponentes y acompañar el monitoreo fitosanitario.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openDiseaseConditionsDialog()">Ver condiciones predisponentes</button>
-        </mat-card-actions>
-      </mat-card>
-<!-- 
-      <mat-card class="dm-card">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/datosmeteorologicos/estacion_mr.jpg"
-               alt="Consulta meteorológica por fenología de cultivo">
-          <div class="dm-card__badge">FENOLOGÍA</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Campaña</div>
-          <h3 class="dm-card__title">Meteorología por estadíos</h3>
-          <p class="dm-card__sub">Reordena la campaña por hitos fenológicos y compara lluvia, ETo, demanda hídrica y estrés térmico por etapa.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openPhenologyWeatherDialog()">Analizar por fenología</button>
-        </mat-card-actions>
-      </mat-card>
-      -->
-    </div>
+    <p class="dm__lead">Elegí una herramienta según lo que necesitás: lo que pasa ahora, cómo viene la campaña o la
+      comparación con otros años y lugares.</p>
   </div>
 
-  <aside class="dm__side">
-    <div class="dm__header">
-      <div class="dm__eyebrow dm__eyebrow--side">EXPLORACIÓN</div>
-      <h2 class="dm__title">Más análisis disponibles</h2>
-      <p class="dm__side-copy">Comparativas rápidas y nuevas herramientas en preparación para ampliar la lectura histórica.</p>
-    </div>
+  <!-- Herramientas agrupadas por uso; cada tarjeta indica si el dato es en vivo, histórico o un cálculo -->
+  <section class="dm-grupo" *ngFor="let g of grupos; let gi = index" [attr.aria-labelledby]="'dm-grupo-' + gi">
+    <header class="dm-grupo__head">
+      <h2 class="dm-grupo__titulo" [id]="'dm-grupo-' + gi">{{ g.titulo }}</h2>
+      <p class="dm-grupo__desc">{{ g.descripcion }}</p>
+    </header>
 
-    <ul class="dm-links">
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openComparisonByYear()">
-          <mat-icon inline>insights</mat-icon>
-          <span>Comparación de datos entre años</span>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openComparisonByLocation()">
-          <mat-icon inline>compare</mat-icon>
-          <span>Comparación entre localidades</span>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openChillHoursDialog()">
-          <mat-icon inline>hourglass_empty</mat-icon>
-          <span>Horas de frío</span>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openThermalSumDialog()">
-          <mat-icon inline>functions</mat-icon>
-          <span>Sumas térmicas</span>
-        </button>
-      </li>
-      <li>
-        <span class="dm-link dm-link--disabled">
-          <mat-icon inline>water</mat-icon>
-          <span>Balance hidrológico seriado <span class="dm-soon">Próximamente</span></span>
+    <div class="dm-grupo__grid">
+      <button type="button" class="dm-tarjeta tap-feedback" *ngFor="let t of g.tarjetas" (click)="abrir(t)">
+        <span class="dm-tarjeta__miniatura" aria-hidden="true">
+          <img *ngIf="t.imagen; else icono" [src]="t.imagen" alt="" loading="lazy">
+          <ng-template #icono><mat-icon>{{ t.icono }}</mat-icon></ng-template>
         </span>
-      </li>
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openSoyYieldDialog()">
-          <mat-icon inline>agriculture</mat-icon>
-          <span>Estimador de rindes de soja</span>
-        </button>
-      </li>
-    </ul>
-  </aside>
+        <span class="dm-tarjeta__texto">
+          <span class="dm-tarjeta__tipo" [attr.data-tipo]="t.tipo">{{ t.tipo }}</span>
+          <span class="dm-tarjeta__titulo">{{ t.titulo }}</span>
+          <span class="dm-tarjeta__desc">{{ t.descripcion }}</span>
+        </span>
+        <mat-icon class="dm-tarjeta__flecha" aria-hidden="true">chevron_right</mat-icon>
+      </button>
+    </div>
+  </section>
 </div>

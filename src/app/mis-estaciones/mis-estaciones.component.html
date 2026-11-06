@@ -1,0 +1,93 @@
+<section class="mis-estaciones" aria-labelledby="mis-estaciones-titulo">
+  <header class="mis-estaciones__head">
+    <h2 id="mis-estaciones-titulo" class="mis-estaciones__titulo">
+      <span aria-hidden="true">★</span> Mis estaciones
+    </h2>
+    <a *ngIf="hayFavoritas" routerLink="/estaciones" class="mis-estaciones__admin">Administrar favoritas</a>
+  </header>
+
+  <!-- Alertas propias (Mi cuenta) que se cumplen con el último dato medido -->
+  <ul *ngIf="disparadas.length" class="mis-estaciones__alertas" role="status">
+    <li *ngFor="let d of disparadas">
+      <mat-icon aria-hidden="true">notifications_active</mat-icon>
+      <span>
+        <strong>{{ nombreEstacion(d.alerta.estacion_id) }}:</strong>
+        {{ tipos[d.alerta.variable].texto | lowercase }} {{ d.alerta.umbral | number:'1.0-1' }} {{ tipos[d.alerta.variable].unidad }}
+        — medido {{ d.valor | number:'1.1-1' }} {{ tipos[d.alerta.variable].unidad }}
+      </span>
+      <a routerLink="/mi-cuenta" fragment="alertas">Ver</a>
+    </li>
+  </ul>
+
+  <!-- Primera vez con sesión: la cuenta no tiene favoritas pero este navegador sí -->
+  <div *ngIf="(ofrecerImportar$ | async) as n" class="mis-estaciones__importar" role="status">
+    <span>¿Agregar a tu cuenta {{ n === 1 ? 'la favorita' : 'las ' + n + ' favoritas' }} de este navegador?</span>
+    <button type="button" class="tarjeta__btn tarjeta__btn--principal" (click)="importar(true)">Agregar</button>
+    <button type="button" class="tarjeta__btn" (click)="importar(false)">No, gracias</button>
+  </div>
+
+  <!-- Sin favoritas: una sola línea que explica cómo agregarlas -->
+  <p *ngIf="!hayFavoritas" class="mis-estaciones__vacio">
+    Marcá con ☆ tus estaciones en <a routerLink="/estaciones">Red de estaciones</a> para verlas acá y
+    tenerlas primero en todas las herramientas.
+  </p>
+
+  <p *ngIf="hayFavoritas && error" class="mis-estaciones__vacio">No se pudieron cargar los datos de las estaciones.</p>
+
+  <ul *ngIf="hayFavoritas && !error" class="mis-estaciones__lista">
+    <ng-container *ngIf="cargando">
+      <li class="tarjeta tarjeta--cargando" aria-hidden="true">
+        <span class="skeleton" style="width:60%;height:16px"></span>
+        <span class="skeleton" style="width:85%;height:28px"></span>
+      </li>
+    </ng-container>
+
+    <li *ngFor="let t of tarjetas" class="tarjeta" [class.tarjeta--activa]="t.activa">
+      <div class="tarjeta__head">
+        <div class="tarjeta__nombre">
+          <strong>{{ t.nombre }}</strong>
+          <span>{{ t.ubicacion }}</span>
+        </div>
+        <span *ngIf="t.activa" class="tarjeta__chip tarjeta__chip--activa">Activa</span>
+      </div>
+
+      <dl class="tarjeta__datos">
+        <div>
+          <dt>Temp.</dt>
+          <dd>{{ t.temp !== null ? (t.temp | number:'1.1-1') + ' °C' : '—' }}</dd>
+        </div>
+        <div>
+          <dt>HR</dt>
+          <dd>{{ t.hum !== null ? (t.hum | number:'1.0-0') + ' %' : '—' }}</dd>
+        </div>
+        <div>
+          <dt>Lluvia hoy</dt>
+          <dd>{{ t.lluvia !== null ? (t.lluvia | number:'1.1-1') + ' mm' : '—' }}</dd>
+        </div>
+      </dl>
+
+      <p class="tarjeta__hora" [class.tarjeta__hora--atrasada]="t.atrasada">
+        <ng-container *ngIf="t.actualizado; else sinDato">
+          {{ t.atrasada ? 'Último dato: ' + (t.actualizado | date:'dd/MM HH:mm') : 'Actualizado ' + (t.actualizado | date:'HH:mm') }}
+        </ng-container>
+        <ng-template #sinDato>Sin datos recientes</ng-template>
+      </p>
+
+      <div class="tarjeta__acciones">
+        <button *ngIf="!t.activa" type="button" class="tarjeta__btn tarjeta__btn--principal" (click)="usar(t.id)"
+          [attr.aria-label]="'Usar ' + t.nombre + ' en las herramientas'">
+          Usar esta estación
+        </button>
+        <button type="button" class="tarjeta__btn" [class.is-on]="t.predeterminada"
+          [attr.aria-pressed]="t.predeterminada" (click)="alternarPredeterminada(t)"
+          [title]="t.predeterminada ? 'Se carga al entrar al sitio' : 'Cargar esta estación al entrar al sitio'">
+          {{ t.predeterminada ? 'Predeterminada' : 'Hacer predeterminada' }}
+        </button>
+        <button type="button" class="tarjeta__btn tarjeta__btn--icono" (click)="quitar(t.id)"
+          [attr.aria-label]="'Quitar ' + t.nombre + ' de favoritas'" title="Quitar de favoritas">
+          <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+      </div>
+    </li>
+  </ul>
+</section>

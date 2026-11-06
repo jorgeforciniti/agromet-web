@@ -27,6 +27,8 @@ import {
 import { ClasificacionBadgeComponent } from '../../shared/clasificacion-badge.component';
 import { AyudaTerminoComponent } from '../../shared/ayuda-termino.component';
 import { EstadoCargaComponent } from '../../shared/estado-carga.component';
+import { ExportarGraficoComponent } from '../../../shared/exportar-grafico.component';
+import { ComoSeLeeComponent } from '../../../shared/como-se-lee.component';
 
 interface TarjetaAnual {
   ind: IndicadorInfo;
@@ -45,7 +47,7 @@ interface TarjetaAnual {
 @Component({
   selector: 'app-colmenar-extremos',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, ClasificacionBadgeComponent, AyudaTerminoComponent, EstadoCargaComponent],
+  imports: [ExportarGraficoComponent, CommonModule, BaseChartDirective, ClasificacionBadgeComponent, AyudaTerminoComponent, EstadoCargaComponent, ComoSeLeeComponent],
   templateUrl: './extremos.component.html',
   styleUrls: ['../../shared/seccion.css', './extremos.component.css']
 })

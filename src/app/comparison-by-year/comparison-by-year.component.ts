@@ -1,6 +1,13 @@
-import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
-import { Chart, registerables } from 'chart.js';
-Chart.register(...registerables);
+import { Component, Inject, OnInit, ViewEncapsulation, inject } from '@angular/core';
+import { SERIE_COLOR } from '../charts/chart-theme';
+import { referenciaCalor, referenciaNocheCalida, referenciasHelada } from '../charts/referencias';
+import { ResumenSerie, resumirSeries, unidadDe } from '../charts/resumen-series';
+import { NORMAL_DE_VARIABLE, Normales, datasetNormal, normalDeGrupo, normalDiaria, textoPeriodoNormales, tieneValores } from '../charts/normales';
+import {
+  FormatoSerie, Periodo, SerieConFaltantes, VARIABLES_ACUMULADAS, datasetsConFaltantes, esIncompleto, fechasDelPeriodo,
+  indicesSinDatos, periodosDe, pluginFranjasSinDatos, porFecha, serieConFaltantes, textoFaltantesSeries, tooltipConFaltantes
+} from '../charts/dias-faltantes';
+import { NormalesService } from '../services/normales.service';
 
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -23,11 +30,18 @@ import {
 import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { Injectable } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
 @Injectable()
 export class CustomDateAdapter extends NativeDateAdapter {
@@ -79,6 +93,10 @@ const MY_DATE_FORMATS = {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ExportarGraficoComponent,
+    ComoSeLeeComponent,
+    CopiarEnlaceComponent,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -110,29 +128,42 @@ export class ComparisonByYearComponent implements OnInit {
   lineChartData: ChartData<'line', number[]> = { labels: [], datasets: [] };
   barChartData: ChartData<'bar', number[]> = { labels: [], datasets: [] };
   chartLabels: string[] = [];
+  /** Días sin dato (franjas grises), aviso y si hay períodos agrupados incompletos */
+  indicesSinRegistro: number[] = [];
+  textoFaltantes = '';
+  hayIncompletos = false;
+  /** Período de referencia de las normales graficadas, si la API lo trae (vacío si no) */
+  periodoNormales = '';
+  readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   isLoading = false;
 
-  chartOptions = {
+  /** Variable del gráfico actual: decide las líneas de referencia (helada, 35 °C) */
+  private variableGraficada = '';
+
+  /** Máxima, mínima, total o promedio y comparación con la normal de cada serie */
+  resumenSeries: ResumenSerie[] = [];
+
+  chartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
       y: {
         position: 'left',
         display: true,
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { color: 'rgba(17,24,39,.10)' }
       },
       x: {
-        ticks: { color: '#111827', font: { weight: '700' } },
+        ticks: { color: '#111827', font: { weight: 700 } },
         grid: { color: 'rgba(17,24,39,.10)' }
       }
     },
     plugins: {
       legend: {
-        labels: { color: '#111827', font: { weight: '700' } }
+        labels: { color: '#111827', font: { weight: 700 } }
       }
     }
-  };
+  } as const;
   variables = [
     { key: 'temp_max', label: 'Temperatura máxima (°C)' },
     { key: 'temp_min', label: 'Temperatura mínima (°C)' },
@@ -142,19 +173,37 @@ export class ComparisonByYearComponent implements OnInit {
     { key: 'viento_medio', label: 'Velocidad de viento (km/h)' },
     { key: 'rad_solar_media', label: 'Radiación solar (W/m²)' },
     { key: 'et', label: 'Evapotranspiración (mm)' },
-    { key: 'hum_hoja_hs', label: 'Hoja mojada (mm)' }
+    { key: 'hum_hoja_hs', label: 'Hoja mojada (h)' }
   ];
 
   readonly data: Record<string, unknown>;
 
+  private readonly normalesService = inject(NormalesService);
+
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    return armarEnlace('comparar-anios', {
+      estacion: v.estacion, desde: this.coerceDate(v.fechaDesde), hasta: this.coerceDate(v.fechaHasta),
+      anio: v.compYear, variable: v.variable, formato: v.formato
+    });
+  };
+
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<ComparisonByYearComponent>,
     @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
   ) {
     this.data = dialogData ?? {};
   }
+
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
 
   ngOnInit() {
     this.weatherService.getStationsAll().subscribe(res => this.stations = res);
@@ -165,10 +214,13 @@ export class ComparisonByYearComponent implements OnInit {
     const today = new Date();
     const start = new Date();
     start.setDate(today.getDate() - 59);
+    this.periodoPorDefecto = { desde: start, hasta: today };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('comparar-anios', consultaDe(this.data));
     this.form = this.fb.group({
-      estacion: ['2049', Validators.required],
-      fechaDesde: [start, Validators.required],
-      fechaHasta: [today, Validators.required],
+      estacion: [this.stationService.activa, Validators.required],
+      fechaDesde: [recordado?.desde ?? start, Validators.required],
+      fechaHasta: [recordado?.hasta ?? today, Validators.required],
       compYear: [currentYear, [
         Validators.required,
         Validators.min(2006),
@@ -177,6 +229,21 @@ export class ComparisonByYearComponent implements OnInit {
       variable: ['temp_max', Validators.required],
       formato: ['diario', Validators.required]
     }, { validators: this.dateRangeValidator });
+
+    // Consulta recibida por enlace: se aplica y se ejecuta
+    const consulta = consultaDe(this.data);
+    if (Object.keys(consulta).length) {
+      const desde = leerFecha(consulta['desde']);
+      const hasta = leerFecha(consulta['hasta']);
+      const anio = leerNumero(consulta['anio']);
+      if (desde) this.form.controls['fechaDesde'].setValue(desde);
+      if (hasta) this.form.controls['fechaHasta'].setValue(hasta);
+      if (anio !== null) this.form.controls['compYear'].setValue(anio);
+      // Sólo valores que existen en el formulario (un enlace editado a mano no rompe el gráfico)
+      if (this.variables.some(v => v.key === consulta['variable'])) this.form.controls['variable'].setValue(consulta['variable']);
+      if (['diario', 'decadico', 'mensual'].includes(consulta['formato'])) this.form.controls['formato'].setValue(consulta['formato']);
+      this.onSubmit();
+    }
   }
 
   private dateRangeValidator(group: AbstractControl): ValidationErrors | null {
@@ -208,6 +275,10 @@ export class ComparisonByYearComponent implements OnInit {
     this.chartLabels = [];
     this.lineChartData = { labels: [], datasets: [] };
     this.barChartData = { labels: [], datasets: [] };
+    this.indicesSinRegistro = [];
+    this.textoFaltantes = '';
+    this.hayIncompletos = false;
+    this.periodoNormales = '';
   }
 
   onSubmit(): void {
@@ -220,6 +291,7 @@ export class ComparisonByYearComponent implements OnInit {
 
     const dFrom = this.coerceDate(fechaDesde);
     const dTo = this.coerceDate(fechaHasta);
+    recordarPeriodo('comparar-anios', dFrom, dTo, this.periodoPorDefecto);
 
     if (isNaN(dFrom.getTime()) || isNaN(dTo.getTime()) || Number.isNaN(compYear)) {
       this.isLoading = false;
@@ -241,18 +313,11 @@ export class ComparisonByYearComponent implements OnInit {
 
     forkJoin({
       base: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), estacion),
-      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(cFrom), formatDate(cTo), estacion)
+      comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(cFrom), formatDate(cTo), estacion),
+      normales: this.normalesService.deEstacion(estacion)
     }).subscribe({
-      next: ({ base, comp }) => {
-        const baseYears = Array.from(
-          new Set(base.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
-        ).join('-');
-
-        const compYears = Array.from(
-          new Set(comp.data.map((r: WeatherRecord) => r.fecha.split('-')[0]))
-        ).join('-');
-
-        this.applyBuildCharts(base.data, comp.data, baseYears, compYears, variable, formato);
+      next: ({ base, comp, normales }) => {
+        this.applyBuildCharts(base.data, comp.data, dFrom, dTo, compYear - dFrom.getFullYear(), variable, formato, normales);
         this.isLoading = false;
       },
       error: (error) => {
@@ -261,177 +326,82 @@ export class ComparisonByYearComponent implements OnInit {
         console.error('Error al calcular comparación por año', error);
       }
     });
+
+    // La estación elegida acá pasa a ser la activa del sitio (ver StationService)
+    this.form.controls['estacion'].valueChanges.subscribe(id => this.stationService.setActiva(id));
   }
 
   private applyBuildCharts(
     baseData: WeatherRecord[],
     compData: WeatherRecord[],
-    baseYear: string,
-    compYear: string,
+    desde: Date,
+    hasta: Date,
+    desfase: number,
     key: string,
-    formato: string
+    formato: string,
+    normales: Normales | null = null
   ): void {
     const meta = this.variables.find(v => v.key === key)!;
-    const isBar = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
+    const isBar = VARIABLES_ACUMULADAS.includes(key);
 
-    const baseYearLabel = baseYear.includes('-') ? `(${baseYear})` : `(${baseYear})`;
-    const compYearLabel = compYear.includes('-') ? `(${compYear})` : `(${compYear})`;
+    // Calendario del período base; cada día se compara con el mismo día del otro año
+    const regBase = porFecha(baseData);
+    const regComp = porFecha(compData);
+    const fechas = fechasDelPeriodo(desde, hasta, f => regBase.has(f));
+    const periodos = periodosDe(fechas, formato as FormatoSerie);
+    const otroAnio = (f: string) => `${Number(f.slice(0, 4)) + desfase}${f.slice(4)}`;
+    const series = [serieConFaltantes(regBase, periodos, key), serieConFaltantes(regComp, periodos, key, otroAnio)];
+    const anios = (fs: string[]) => [...new Set(fs.map(f => f.slice(0, 4)))].join('-');
+    const nombres = [anios(fechas), anios(fechas.map(otroAnio))];
 
-    if (formato === 'mensual') {
-      const baseMonths = this.groupByMonth(baseData);
-      const compMonths = this.groupByMonth(compData);
-      const baseValues = this.calculateMonthlyValues(baseMonths, key);
-      const compValues = this.calculateMonthlyValues(compMonths, key);
+    // Normal de la estación: por día, o del grupo sobre los mismos días con dato del período base
+    const clave = NORMAL_DE_VARIABLE[key];
+    const serie = formato === 'diario'
+      ? normalDiaria(normales, clave, fechas)
+      : periodos.map((p, i) => normalDeGrupo(normales, clave, series[0].fechasConDato[i].length ? series[0].fechasConDato[i] : p.fechas));
+    const normal = tieneValores(serie) ? [datasetNormal('Normal', serie)] : [];
+    this.periodoNormales = normal.length ? textoPeriodoNormales(normales) : '';
 
-      this.chartLabels = baseValues.map(v => v.label);
-      const valsBase = baseValues.map(v => v.value);
-      const valsComp = compValues.map(v => v.value);
+    this.variableGraficada = key;
+    this.mostrarSeries(meta.label, isBar, periodos, series, nombres.map(a => `${meta.label} (${a})`), nombres, normal);
+  }
 
-      if (isBar) {
-        const barDatasets: ChartDataset<'bar', number[]>[] = [
-          { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'bar', yAxisID: 'y' },
-          { label: `${meta.label} ${compYearLabel}`, data: valsComp, type: 'bar', yAxisID: 'y' }
-        ];
-        this.barChartData = { labels: this.chartLabels, datasets: barDatasets };
-        this.lineChartData = { labels: this.chartLabels, datasets: [] };
-      } else {
-        const lineDatasets: ChartDataset<'line', number[]>[] = [
-          { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'line', fill: false, tension: 0.2, yAxisID: 'y' },
-          { label: `${meta.label} ${compYearLabel}`, data: valsComp, type: 'line', fill: false, tension: 0.2, yAxisID: 'y' }
-        ];
-        this.lineChartData = { labels: this.chartLabels, datasets: lineDatasets };
-        this.barChartData = { labels: this.chartLabels, datasets: [] };
-      }
-    } else if (formato === 'decadico') {
-      const baseDecades = this.groupByDecade(baseData);
-      const compDecades = this.groupByDecade(compData);
-      const baseValues = this.calculateDecadeValues(baseDecades, key);
-      const compValues = this.calculateDecadeValues(compDecades, key);
-
-      this.chartLabels = baseValues.map(v => v.label);
-      const valsBase = baseValues.map(v => v.value);
-      const valsComp = compValues.map(v => v.value);
-
-      if (isBar) {
-        const barDatasets: ChartDataset<'bar', number[]>[] = [
-          { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'bar', yAxisID: 'y' },
-          { label: `${meta.label} ${compYearLabel}`, data: valsComp, type: 'bar', yAxisID: 'y' }
-        ];
-        this.barChartData = { labels: this.chartLabels, datasets: barDatasets };
-        this.lineChartData = { labels: this.chartLabels, datasets: [] };
-      } else {
-        const lineDatasets: ChartDataset<'line', number[]>[] = [
-          { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'line', fill: false, tension: 0.2, yAxisID: 'y' },
-          { label: `${meta.label} ${compYearLabel}`, data: valsComp, type: 'line', fill: false, tension: 0.2, yAxisID: 'y' }
-        ];
-        this.lineChartData = { labels: this.chartLabels, datasets: lineDatasets };
-        this.barChartData = { labels: this.chartLabels, datasets: [] };
-      }
+  /**
+   * Gráfico con las dos series ubicadas por fecha sobre el calendario del período: los días
+   * sin dato quedan como hueco con franja gris, y los períodos agrupados incompletos se
+   * marcan (barra clara o punto hueco, "≥" en las sumas).
+   */
+  private mostrarSeries(tituloEje: string, isBar: boolean, periodos: Periodo[], series: SerieConFaltantes[],
+    etiquetas: string[], nombres: string[], normales: ChartDataset<'line', (number | null)[]>[]): void {
+    this.chartLabels = periodos.map(p => p.etiqueta);
+    const datasets = [...datasetsConFaltantes(series, etiquetas, isBar, SERIE_COLOR), ...normales];
+    if (isBar) {
+      this.barChartData = { labels: this.chartLabels, datasets: datasets as unknown as ChartDataset<'bar', number[]>[] };
     } else {
-      this.chartLabels = baseData.map(r => r.fecha.split('-').slice(1).join('/'));
-      const valsBase = baseData.map(r => key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number));
-      const valsComp = compData.map(r => key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number));
-
-      if (isBar) {
-        const barDatasets: ChartDataset<'bar', number[]>[] = [
-          { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'bar', yAxisID: 'y' },
-          { label: `${meta.label} ${compYearLabel}`, data: valsComp, type: 'bar', yAxisID: 'y' }
-        ];
-        this.barChartData = { labels: this.chartLabels, datasets: barDatasets };
-        this.lineChartData = { labels: this.chartLabels, datasets: [] };
-      } else {
-        const lineDatasets: ChartDataset<'line', number[]>[] = [
-          { label: `${meta.label} ${baseYearLabel}`, data: valsBase, type: 'line', fill: false, tension: 0.2, yAxisID: 'y' },
-          { label: `${meta.label} ${compYearLabel}`, data: valsComp, type: 'line', fill: false, tension: 0.2, yAxisID: 'y' }
-        ];
-        this.lineChartData = { labels: this.chartLabels, datasets: lineDatasets };
-        this.barChartData = { labels: this.chartLabels, datasets: [] };
-      }
+      this.lineChartData = { labels: this.chartLabels, datasets: datasets as unknown as ChartDataset<'line', number[]>[] };
     }
-  }
 
-  private static readonly MONTH_ABBR = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    this.resumenSeries = resumirSeries(series, nombres, SERIE_COLOR, isBar, normales, unidadDe(tituloEje));
+    this.indicesSinRegistro = indicesSinDatos(series);
+    this.textoFaltantes = textoFaltantesSeries(series, nombres);
+    this.hayIncompletos = series.some(s => s.valores.some((_, i) => esIncompleto(s, i)));
 
-  private groupByDecade(data: WeatherRecord[]): { [key: string]: WeatherRecord[] } {
-    const decades: { [key: string]: WeatherRecord[] } = {};
-    data.forEach(record => {
-      const date = new Date(record.fecha);
-      const year = date.getFullYear();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate();
-      let decade: string;
-      if (day <= 10) {
-        decade = `${year}-${month}-1`;
-      } else if (day <= 20) {
-        decade = `${year}-${month}-2`;
-      } else {
-        decade = `${year}-${month}-3`;
+    // Objeto nuevo para que ng2-charts aplique el cambio de opciones.
+    this.chartOptions = {
+      ...this.chartOptions,
+      scales: {
+        ...this.chartOptions.scales,
+        y: { ...this.chartOptions.scales.y, title: { display: true, text: tituloEje, color: '#111827' } }
+      },
+      plugins: {
+        ...this.chartOptions.plugins,
+        tooltip: tooltipConFaltantes(series, isBar),
+        referencias: {
+          lineas: this.variableGraficada === 'temp_min' ? [...referenciasHelada(), referenciaNocheCalida()]
+            : this.variableGraficada === 'temp_max' ? [referenciaCalor()] : []
+        }
       }
-      if (!decades[decade]) {
-        decades[decade] = [];
-      }
-      decades[decade].push(record);
-    });
-    return decades;
-  }
-
-  // «2026-07-2» -> «11-20 jul 2026», legible para el eje del gráfico.
-  private formatDecadeLabel(decadeKey: string): string {
-    const [year, month, dec] = decadeKey.split('-');
-    const ranges: Record<string, string> = { '1': '01-10', '2': '11-20', '3': '21-fin' };
-    const monthAbbr = ComparisonByYearComponent.MONTH_ABBR[Number(month) - 1] ?? month;
-    return `${ranges[dec] ?? dec} ${monthAbbr} ${year}`;
-  }
-
-  private calculateDecadeValues(decades: { [key: string]: WeatherRecord[] }, key: string): { label: string, value: number }[] {
-    const result: { key: string, label: string, value: number }[] = [];
-    const isAccumulative = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
-    for (const decade in decades) {
-      const records = decades[decade];
-      let value: number;
-      if (isAccumulative) {
-        value = records.reduce((sum, r) => sum + (r[key as keyof WeatherRecord] as number), 0);
-      } else {
-        const sum = records.reduce((sum, r) => sum + (key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number)), 0);
-        value = sum / records.length;
-      }
-      result.push({ key: decade, label: this.formatDecadeLabel(decade), value });
-    }
-    return result
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ label, value }) => ({ label, value }));
-  }
-
-  private groupByMonth(data: WeatherRecord[]): { [key: string]: WeatherRecord[] } {
-    const months: { [key: string]: WeatherRecord[] } = {};
-    data.forEach(record => {
-      const date = new Date(record.fecha);
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      const key = `${year}-${month.toString().padStart(2, '0')}`;
-      if (!months[key]) {
-        months[key] = [];
-      }
-      months[key].push(record);
-    });
-    return months;
-  }
-
-  private calculateMonthlyValues(months: { [key: string]: WeatherRecord[] }, key: string): { label: string, value: number }[] {
-    const result: { label: string, value: number }[] = [];
-    const isAccumulative = ['rr_24', 'et', 'hum_hoja_hs'].includes(key);
-    for (const month in months) {
-      const records = months[month];
-      let value: number;
-      if (isAccumulative) {
-        value = records.reduce((sum, r) => sum + (r[key as keyof WeatherRecord] as number), 0);
-      } else {
-        const sum = records.reduce((sum, r) => sum + (key === 'HR' ? (r.HR_max + r.HR_min) / 2 : (r[key as keyof WeatherRecord] as number)), 0);
-        value = sum / records.length;
-      }
-      result.push({ label: month, value });
-    }
-    return result.sort((a, b) => a.label.localeCompare(b.label));
+    };
   }
 
   close(): void {

@@ -1,0 +1,139 @@
+.fe {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.fe__head {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fe__sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.fe__cerrar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, .92);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.fe__cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.fe__mapa {
+  min-height: 240px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.fe__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fe h3 {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.fe__actualizado {
+  margin: 0 0 6px;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.fe__actualizado--al-dia { color: #166534; }
+.fe__actualizado--atrasada { color: #b45309; }
+.fe__actualizado--sin-datos-hoy { color: #6b7280; }
+
+.fe__medidas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.fe__medidas dt {
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.fe__medidas dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.fe__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fe__acceso {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fe__acceso:hover,
+.fe__acceso:focus-visible {
+  border-color: var(--brand, #4a7a2c);
+  color: var(--brand, #4a7a2c);
+}
+
+.fe__acceso mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+@media (max-width: 620px) {
+  .fe {
+    padding: 12px;
+  }
+
+  .fe__cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fe__mapa {
+    min-height: 200px;
+  }
+}

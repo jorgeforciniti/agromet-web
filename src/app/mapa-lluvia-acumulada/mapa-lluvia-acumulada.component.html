@@ -1,0 +1,74 @@
+<mat-dialog-content>
+  <div class="scroll-container">
+    <div class="dialog-body-wrapper">
+      <div class="app-dialog-eyebrow">LLUVIA ACUMULADA</div>
+      <h2 class="titulo">Lluvia de los últimos 30, 60 y 90 días</h2>
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es un pluviómetro de la red EEAOC con la lluvia acumulada en el período elegido.
+          Estos datos se cargan por mes: cada período toma 1, 2 o 3 meses completos más lo que va del mes
+          en curso, por eso dura algo más que 30, 60 o 90 días.
+          @if (ultimoDato) {
+            Los pluviómetros que todavía no tienen datos de este mes llegan hasta el
+            {{ finMesAnterior | date:'dd/MM/yyyy' }}.
+          }
+        </p>
+        <p>El dato del mes en curso es provisorio: se va cargando durante el mes y puede corregirse.</p>
+        <p>El color indica qué porcentaje de la normal de esas mismas fechas llovió: rojo, naranja y
+          amarillo, menos que la normal; celeste y azul, igual o más. Como la normal es mensual, para
+          comparar se reparte en partes iguales entre los días del mes; así cubre exactamente las mismas
+          fechas que la lluvia medida.</p>
+        <p>Si a un pluviómetro le falta el dato de alguno de los meses completos del período, no se muestra
+          en ese período. Al tocar un punto se ven la normal, el desvío, los otros dos períodos y «Ver
+          ficha», con la serie histórica del pluviómetro.</p>
+        <p>Si hay una estación automática a menos de 2 km, el popup muestra lo que midió en las mismas
+          fechas. El borde punteado aparece cuando el pluviómetro suma al menos 10 mm y la automática midió
+          menos del 70 % de ese valor: puede tener el pluviómetro obstruido.</p>
+      </app-como-se-lee>
+
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
+        <mat-icon>close</mat-icon>
+      </button>
+
+      <div class="controles">
+        <mat-button-toggle-group [value]="periodo" (change)="elegirPeriodo($event.value)"
+                                 aria-label="Período" hideSingleSelectionIndicator>
+          @for (dias of periodos; track dias) {
+            <mat-button-toggle [value]="dias">{{ dias }} días</mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+      </div>
+
+      @if (error && !cargando) {
+        <div class="no-data-message">No se pudieron cargar los datos. Probá de nuevo más tarde.</div>
+      }
+
+      <div class="map-title">
+        Lluvia acumulada del {{ desde[periodo] | date:'dd/MM/yyyy' }} al {{ hasta | date:'dd/MM/yyyy' }} ({{ dias }} días)
+      </div>
+
+      <div class="map-layout">
+        <div class="zone-checklist" aria-label="Zonas productivas">
+          @for (zone of zoneLayers; track zone.label) {
+            <mat-checkbox [checked]="zone.selected" (change)="toggleZoneLayer(zone, $event.checked)">
+              {{ zone.label }}
+            </mat-checkbox>
+          }
+          <div class="zone-reference">
+            Zonas agrícolas procesadas por la Sección SRySIG de la EEAOC
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div id="mapaLluviaAcumulada" class="map-container">
+            @if (cargando) {
+              <div class="map-loader-overlay">
+                <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+                <span>Cargando datos...</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>

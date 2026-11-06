@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './admin/admin.guard';
 
 export const routes: Routes = [
   {
@@ -30,13 +31,24 @@ export const routes: Routes = [
     loadComponent: () => import('./estaciones/estaciones.component').then((m) => m.EstacionesComponent)
   },
   {
+    path: 'mi-cuenta',
+    loadComponent: () => import('./mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent)
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () => import('./privacidad/privacidad.component').then((m) => m.PrivacidadComponent)
+  },
+  {
+    // Sólo para las cuentas de shared/administradores.ts (la API también lo controla)
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin/admin.component').then((m) => m.AdminComponent)
+  },
+  {
     path: 'auth',
     loadComponent: () => import('./auth/auth.component').then((m) => m.AuthComponent)
   },
-  {
-    path: 'dashboard',
-    loadComponent: () => import('./weather-dashboard/weather-dashboard.component').then((m) => m.WeatherDashboardComponent)
-  },
+  { path: 'dashboard', redirectTo: 'datos', pathMatch: 'full' },
   {
     path: 'solicitudes',
     loadComponent: () => import('./solicitudes/solicitudes.component').then((m) => m.SolicitudesComponent)

@@ -1,4 +1,4 @@
-import { Component, Inject, Injectable, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -17,8 +17,20 @@ import {
 } from '@angular/material/core';
 import { MatTableModule } from '@angular/material/table';
 import { WeatherService, WeatherStation } from '../services/weather.service';
+import { StationService } from '../services/station.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { evaluarDia } from '../shared/registros-diarios';
+import { gradosDia, MetodoGradosDia } from '../shared/grados-dia';
+import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
+
+/** Tope de la máxima en los grados-día (corte horizontal) */
+const TOPE_GRADOS_DIA = 30;
 
 interface ThermalDayRecord {
   fecha: string;
@@ -74,6 +86,9 @@ class ThermalDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ComoSeLeeComponent, AvisoCalidadComponent,
+    CopiarEnlaceComponent,
+    SelectorEstacionComponent,
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
@@ -105,28 +120,59 @@ export class ThermalSumDialogComponent implements OnInit {
   validDays = 0;
 
   readonly baseOptions = [0, 5, 10, 12, 12.5, 15, 18];
+  readonly metodos: { valor: MetodoGradosDia; texto: string }[] = [
+    { valor: 'promedio', texto: 'Promedio' },
+    { valor: 'seno', texto: 'Seno simple' }
+  ];
   readonly data: Record<string, unknown>;
+
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => {
+    const v = this.form.getRawValue();
+    return armarEnlace('suma-termica', { estacion: v.station, desde: v.from, hasta: v.to, base: v.base, metodo: v.metodo });
+  };
 
   constructor(
     private fb: FormBuilder,
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<ThermalSumDialogComponent>,
     @Inject(MAT_DIALOG_DATA) dialogData: Record<string, unknown> | null
   ) {
     this.data = dialogData ?? {};
   }
 
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
+
   ngOnInit(): void {
     const today = new Date();
     const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     const monthStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
+    this.periodoPorDefecto = { desde: monthStart, hasta: yesterday };
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('suma-termica', consultaDe(this.data));
 
     this.form = this.fb.group({
-      station: ['2049', Validators.required],
+      station: [this.stationService.activa, Validators.required],
       base: [10, Validators.required],
-      from: [monthStart, Validators.required],
-      to: [yesterday, Validators.required]
+      metodo: ['promedio' as MetodoGradosDia, Validators.required],
+      from: [recordado?.desde ?? monthStart, Validators.required],
+      to: [recordado?.hasta ?? yesterday, Validators.required]
     }, { validators: this.dateRangeValidator });
+
+    // Consulta recibida por enlace (la estación ya llega como activa)
+    const consulta = consultaDe(this.data);
+    const desde = leerFecha(consulta['desde']);
+    const hasta = leerFecha(consulta['hasta']);
+    const base = leerNumero(consulta['base']);
+    if (desde) this.form.controls['from'].setValue(desde);
+    if (hasta) this.form.controls['to'].setValue(hasta);
+    if (base !== null) this.form.controls['base'].setValue(base);
+    if (consulta['metodo'] === 'promedio' || consulta['metodo'] === 'seno') this.form.controls['metodo'].setValue(consulta['metodo']);
 
     this.weatherService.getStationsAll().subscribe({
       next: (stations) => {
@@ -139,6 +185,9 @@ export class ThermalSumDialogComponent implements OnInit {
         this.loadError = 'No se pudieron cargar las estaciones disponibles.';
       }
     });
+
+    // La estación elegida acá pasa a ser la activa del sitio (ver StationService)
+    this.form.controls['station'].valueChanges.subscribe(id => this.stationService.setActiva(id));
   }
 
   calculate(): void {
@@ -152,7 +201,7 @@ export class ThermalSumDialogComponent implements OnInit {
       return;
     }
 
-    const { station, base, from, to } = this.form.getRawValue();
+    const { station, base, metodo, from, to } = this.form.getRawValue();
     const fromDate = this.coerceDate(from);
     const toDate = this.coerceDate(to);
 
@@ -160,9 +209,7 @@ export class ThermalSumDialogComponent implements OnInit {
       this.loadError = 'Revisa el rango de fechas para continuar.';
       return;
     }
-
-    const stationInfo = this.stations.find(st => st.Identificacion === station);
-    const minRecords = Number(stationInfo?.habilitada ?? 0) > 2 ? 20 : 80;
+    recordarPeriodo('suma-termica', fromDate, toDate, this.periodoPorDefecto);
 
     this.isLoading = true;
     const fromApi = this.formatApiDate(fromDate);
@@ -180,18 +227,18 @@ export class ThermalSumDialogComponent implements OnInit {
     }).subscribe({
       next: ({ daily, hourlyCounts }) => {
         let accumulated = 0;
-        const hourlyCountByDate = new Map<string, number>();
+        // Día con registros suficientes según el intervalo real de la estación (15, 30 o 60 min)
+        const suficientePorFecha = new Map<string, boolean>();
 
         this.buildDateRange(fromDate, toDate).forEach((date, index) => {
-          const response = hourlyCounts[index];
-          const validCount = (response.data ?? []).filter(item => this.toNumber(item.temp_af) !== null).length;
-          hourlyCountByDate.set(date, validCount);
+          const registros = hourlyCounts[index].data ?? [];
+          const validos = registros.filter(item => this.toNumber(item.temp_af) !== null).length;
+          suficientePorFecha.set(date, evaluarDia(registros.map(r => r.hora), validos).suficiente);
         });
 
         this.rows = (daily.data ?? []).map(record => {
-          const dailyValue = this.calculateDailyThermalSum(record, Number(base));
-          const recordsCount = hourlyCountByDate.get(record.fecha) ?? 0;
-          const insufficient = (dailyValue > 50 || recordsCount < minRecords);
+          const dailyValue = this.calculateDailyThermalSum(record, Number(base), metodo);
+          const insufficient = (dailyValue > 50 || !suficientePorFecha.get(record.fecha));
 
           if (!insufficient) {
             accumulated += dailyValue;
@@ -230,11 +277,9 @@ export class ThermalSumDialogComponent implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
-  private calculateDailyThermalSum(record: ThermalDayRecord, base: number): number {
-    const maxCapped = Math.min(Number(record.temp_max ?? 0), 30);
-    const min = Number(record.temp_min ?? 0);
-    const value = ((maxCapped + min) / 2) - base;
-    return value < 0 ? 0 : value;
+  /** Grados-día del día con el método elegido; la máxima se corta en 30 °C (shared/grados-dia.ts) */
+  private calculateDailyThermalSum(record: ThermalDayRecord, base: number, metodo: MetodoGradosDia): number {
+    return gradosDia(Number(record.temp_min ?? 0), Number(record.temp_max ?? 0), base, TOPE_GRADOS_DIA, metodo);
   }
 
   private dateRangeValidator(group: AbstractControl): ValidationErrors | null {

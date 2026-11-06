@@ -1,11 +1,18 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
-import { GeoJsonObject } from 'geojson';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -23,6 +30,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { KmzLayerService } from '../services/kmz-layer.service';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
@@ -44,19 +52,24 @@ export class DmyDateAdapter extends NativeDateAdapter {
   }
 }
 
+/** Rango físico aceptado (°C): fuera de él, el valor se descarta por erróneo. */
+const TEMP_MIN_VALIDA = -25;
+const TEMP_MAX_VALIDA = 50;
+
+/** Campo de datos-temperatura.php con los días válidos de cada variable. */
+const DIAS_POR_VARIABLE: Record<string, string> = {
+  abs_min_temp: 'dias_min',
+  avg_temp_min: 'dias_min',
+  avg_temp_period: 'dias_media',
+  avg_temp_max: 'dias_max',
+  abs_max_temp: 'dias_max'
+};
+
 interface TemperatureData {
   lat: number;
   lon: number;
   nombre: string;
   [key: string]: string | number;
-}
-
-interface TemperatureZoneLayer {
-  label: string;
-  file: string;
-  color: string;
-  selected: boolean;
-  layer?: L.GeoJSON;
 }
 
 export function dmyDateValidator(): ValidatorFn {
@@ -109,7 +122,8 @@ export const MY_DATE_FORMATS = {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    ComoSeLeeComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },
@@ -118,21 +132,14 @@ export const MY_DATE_FORMATS = {
   ]
 })
 
-export class MapTemperatureComponent implements OnInit, AfterViewInit {
+export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   public currentVariableLabel: string = '';
   form!: FormGroup;
-  map!: L.Map;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
+  map?: L.Map;
   layerGroup!: L.LayerGroup;
-  provincesLayer!: L.GeoJSON;
-  zoneLayers: TemperatureZoneLayer[] = [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
-  ];
-  baseMaps: { [key: string]: L.TileLayer } = {};
+  zoneLayers: ZonaProductiva[] = crearZonasProductivas();
   loading = false;
   errorMessage?: string;
 
@@ -144,17 +151,13 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     { key: 'abs_max_temp', label: 'Temp. Máxima Absoluta' }
   ];
 
-  baseMapsList = [
-    { value: 'osm', label: 'OSM Estándar' },
-    { value: 'sat', label: 'Satélite' }
-  ];
-
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     private weatherService: WeatherService,
     private dialogRef: MatDialogRef<MapTemperatureComponent>,
-    private kmzLayerService: KmzLayerService
+    private kmzLayerService: KmzLayerService,
+    private fichaEstacion: FichaEstacionService
   ) { }
 
   ngOnInit() {
@@ -162,125 +165,38 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     this.form = this.fb.group({
       desde: [defaultDates.desde, [Validators.required, dmyDateValidator()]],
       hasta: [defaultDates.hasta, [Validators.required, dmyDateValidator()]],
-      variable: [this.variables[0].key, Validators.required],
-      baseMap: ['osm', Validators.required]
+      variable: [this.variables[0].key, Validators.required]
     });
   }
   async ngAfterViewInit() {
     this.map = L.map('mapContainer', {
       center: [-27, -65],
       zoom: 8,
-      maxBoundsViscosity: 0.0,
-      scrollWheelZoom: false  // Desactivar zoom por rueda
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+    encuadrarTucuman(this.map);
 
-    // Capas base
-    this.baseMaps['osm'] = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { attribution: '&copy; OSM' }
-    );
-
-    this.baseMaps['sat'] = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      { attribution: '&copy; Satélite' }
-    );
-    this.baseMaps['osm'].addTo(this.map);
+    const control = agregarMapaBase(this.map);
+    conectarBotonesFicha(this.map, this.fichaEstacion);
     this.map.createPane('zonePane').style.zIndex = '450';
     this.map.createPane('temperatureMarkersPane').style.zIndex = '600';
 
-    // Cargar provincias
-    await this.loadProvinces();
+    await cargarProvincias(this.map, this.http, { control });
     await this.loadZoneLayers();
 
     // Grupo de marcadores
     this.layerGroup = L.layerGroup().addTo(this.map);
     this.addColorLegend();
     setTimeout(() => this.map?.invalidateSize(), 50);
-
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    if (!this.map) return;
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.map?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.map?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
   }
 
   private async loadZoneLayers(): Promise<void> {
-    await Promise.all(this.zoneLayers.map(async zone => {
-      try {
-        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
-        zone.layer = L.geoJSON(data, {
-          pane: 'zonePane',
-          style: {
-            color: zone.color,
-            weight: 2,
-            opacity: 0.9,
-            fillColor: zone.color,
-            fillOpacity: 0.35
-          }
-        });
-      } catch (error) {
-        console.error(`Error al cargar ${zone.file}:`, error);
-      }
-    }));
+    await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
-  toggleZoneLayer(zone: TemperatureZoneLayer, selected: boolean): void {
-    zone.selected = selected;
-    if (!this.map || !zone.layer) return;
-
-    if (selected) {
-      zone.layer.addTo(this.map);
-    } else {
-      this.map.removeLayer(zone.layer);
-    }
-  }
-
-  private async loadProvinces(): Promise<void> {
-    try {
-      const provincesUrl = '../../assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(
-        this.http.get<GeoJsonObject>(provincesUrl)
-      );
-
-      this.provincesLayer = L.geoJSON(provincesData, {
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0
-        },
-        onEachFeature: (feature, layer) => {
-          // @ts-ignore
-          const name = feature.properties?.nam;
-          if (name) {
-            layer.bindPopup(name);
-          }
-        }
-      });
-
-      if (this.map) {
-        this.provincesLayer.addTo(this.map);
-        this.provincesLayer.setZIndex(2);
-      }
-    } catch (error) {
-      console.error('Error al cargar provincias:', error);
-      this.errorMessage = 'No se pudieron cargar los límites provinciales';
-    }
+  toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
+    alternarZona(this.map, zone, selected);
   }
 
   private formatDate(date: Date): string {
@@ -289,30 +205,6 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     const month = ('0' + (d.getMonth() + 1)).slice(-2);
     const day = ('0' + d.getDate()).slice(-2);
     return `${year}-${month}-${day}`;
-  }
-
-  onBaseMapChange() {
-    const sel: string = this.form.value.baseMap;
-
-    // Remover solo las capas base, no las superpuestas
-    Object.values(this.baseMaps).forEach(layer => {
-      if (this.map.hasLayer(layer)) {
-        this.map.removeLayer(layer);
-      }
-    });
-
-    // Añadir la nueva capa base
-    this.baseMaps[sel].addTo(this.map);
-
-    // Asegurar que las provincias permanezcan en el mapa
-    if (this.provincesLayer && !this.map.hasLayer(this.provincesLayer)) {
-      this.provincesLayer.addTo(this.map).bringToBack(); // Opcional: enviar al fondo
-    }
-
-    // Reagregar el grupo de marcadores si es necesario
-    if (this.layerGroup && !this.map.hasLayer(this.layerGroup)) {
-      this.layerGroup.addTo(this.map);
-    }
   }
 
   loadData() {
@@ -353,12 +245,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
             // Si no es un número válido, descartamos
             if (!Number.isFinite(value)) return false;
 
-            // Solo filtrar rango en ABS (como ya hacías)
-            if (variable === 'abs_min_temp' || variable === 'abs_max_temp') {
-              return value >= -25 && value <= 50;
-            }
-
-            return true;
+            // Rango físico de −25 a 50 °C, en las absolutas y también en las medias
+            return value >= TEMP_MIN_VALIDA && value <= TEMP_MAX_VALIDA;
           });
 
           data.forEach((d: TemperatureData) => {
@@ -372,26 +260,27 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
             const color = this.getColor(value);
             const varLabel = this.variables.find(v => v.key === variable)?.label ?? variable;
 
-            const countRecords = Number(d['count_records']) || 0;
-            const recordsColor = this.getRecordsColor(countRecords, totalDias);
+            // Días con dato válido de la variable (datos_diarios, sin los fuera de rango); no hay un
+            // mínimo: si faltan días, el punto se marca con borde punteado y el popup dice cuántos
+            // tiene. Si la API todavía no manda los días por variable, se usan todos los registros.
+            const countRecords = Number(d[DIAS_POR_VARIABLE[variable]] ?? d['count_records']) || 0;
+            const incompleta = totalDias > 0 && countRecords < totalDias;
 
             L.circleMarker([d.lat, d.lon], {
               pane: 'temperatureMarkersPane',
               radius: 6,
               fillColor: color,
-              color: '#333',
-              weight: 1,
+              color: incompleta ? '#000' : '#333',
+              weight: incompleta ? 2 : 1,
+              dashArray: incompleta ? '3 3' : undefined,
               fillOpacity: 1
             })
-              .bindPopup(
-                `<b>${d.nombre}</b><br><br>
-             <span style="padding:2px 5px;border-radius:3px;">
-               ${varLabel}: ${value.toFixed(1)}°C
-             </span><br>
-             <span style="background:${recordsColor};padding:2px 5px;border-radius:3px;">
-               Registros: ${countRecords} de ${totalDias}
-             </span>`
-              )
+              .bindPopup(popupEstacion({
+                titulo: d.nombre,
+                filas: [{ etiqueta: varLabel, valor: `${formatDecimal(value, 1)} °C`, destacada: true }],
+                registros: totalDias ? { cantidad: countRecords, total: totalDias } : undefined,
+                ficha: { lat: d.lat, lon: d.lon }
+              }))
               .addTo(this.layerGroup);
           });
 
@@ -406,19 +295,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
       });
   }
 
-  private getRecordsColor(count: number, totalDays: number): string {
-    if (!totalDays || count === undefined) return 'transparent';
-
-    const missingDays = totalDays - count;
-    const missingPercentage = (missingDays / totalDays) * 100;
-
-    if (missingPercentage == 0) return '#92e95e';  // verde
-    if (missingPercentage < 10) return '#ffeb3b';  // Amarillo
-    if (missingPercentage <= 20) return '#ff9800'; // Naranja
-    return '#f44336';                              // Rojo
-  }
-
   private addColorLegend() {
+    if (!this.map) return;
     const existingLegend = document.getElementById('temperature-legend');
     if (existingLegend) existingLegend.remove();
 
@@ -426,26 +304,35 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
 
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'temperature-legend');
-      // ... estilos iguales
+      // Estilo de la caja: .temperature-legend en styles.css
 
       div.innerHTML = `
             <h4 style="margin: 0 0 8px 0; font-size:14px">Escala de Temperatura (°C)</h4>
-            <div style="background: linear-gradient(to right, 
-                rgb(0,0,255), 
-                rgb(0,255,255), 
-                rgb(0,255,0), 
-                rgb(255,255,0), 
-                rgb(255,0,0));
+            <div style="background: linear-gradient(to right,
+                rgb(49,54,149) 0%,
+                rgb(69,117,180) 17.5%,
+                rgb(116,173,209) 32.5%,
+                rgb(254,224,144) 50%,
+                rgb(253,174,97) 67.5%,
+                rgb(244,109,67) 82.5%,
+                rgb(165,0,38) 100%);
                 height: 20px;
                 margin-bottom: 5px;">
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span>-5</span>
-                <span>20</span>
-                <span>35</span>
+                <span>5</span>
+                <span>15</span>
+                <span>25</span>
+                <span>&ge;35</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+                  border: 2px dashed #000; box-sizing: border-box;"></span>
+                Faltan días con datos
             </div>
         `;
-      return div;
+      return leyendaPlegable(div);
     };
 
     legend.addTo(this.map);
@@ -453,16 +340,20 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
 
   private getColor(temperature: number): string {
     if (!Number.isFinite(temperature)) return 'rgb(128,128,128)'; // gris fallback
-    // Escala fija desde -5°C a 40°C
+    // Escala fija de -5 °C a 35 °C; fuera de ese rango se usa el color del extremo
     const clampedTemp = Math.max(-5, Math.min(35, temperature));
     const p = (clampedTemp + 5) / 40; // Normalizar a rango 0-1
 
+    // Paleta RdYlBu invertida (apta para daltonismo) sin su centro casi blanco, para que las
+    // temperaturas templadas no se confundan con el fondo. La leyenda usa los mismos colores.
     const colorStops = [
-      { pos: 0, color: [0, 0, 255] },    // -15°C - Azul
-      { pos: 0.25, color: [0, 255, 255] }, // 1.25°C - Cian
-      { pos: 0.5, color: [0, 255, 0] },    // 17.5°C - Verde
-      { pos: 0.75, color: [255, 255, 0] }, // 33.75°C - Amarillo
-      { pos: 1, color: [255, 0, 0] }       // 50°C - Rojo
+      { pos: 0, color: [49, 54, 149] },       // -5 °C - Azul
+      { pos: 0.175, color: [69, 117, 180] },  // 2 °C
+      { pos: 0.325, color: [116, 173, 209] }, // 8 °C - Celeste
+      { pos: 0.5, color: [254, 224, 144] },   // 15 °C - Amarillo
+      { pos: 0.675, color: [253, 174, 97] },  // 22 °C - Naranja
+      { pos: 0.825, color: [244, 109, 67] },  // 28 °C
+      { pos: 1, color: [165, 0, 38] }         // 35 °C o más - Rojo oscuro
     ];
 
 
@@ -513,7 +404,10 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit {
     this.dialogRef.close();
   }
 
-  ngOnDestroy() {
-    this.map.remove();
+  ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
+    // Sin mapa: los pasos que siguen a las cargas asíncronas no tocan un mapa ya destruido
+    this.map = undefined;
   }
 }

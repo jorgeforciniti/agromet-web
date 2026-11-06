@@ -13,6 +13,20 @@
         <h2 class="panel__titulo">Resumen climático {{ anio }}</h2>
         <p class="panel__sub">Valores observados y desvíos respecto de la normal 1991–2020. Sólo se usan meses validados por
           el control de completitud.</p>
+        <!-- Pregunta para la Sección: ¿qué criterio usa el servicio para validar un mes (días faltantes admitidos)? Las
+          medias anuales son el promedio simple de las medias mensuales validadas (sin ponderar por días): ¿es correcto? -->
+        <app-como-se-lee>
+          <p>Las tarjetas resumen el año elegido en El Colmenar. La precipitación es la suma de los meses completos; las
+            temperaturas máxima y mínima y la amplitud térmica son el promedio de las medias mensuales validadas. Si el año no
+            tiene los 12 meses, la etiqueta indica qué meses se usaron y la comparación con la normal 1991–2020 se hace con esos
+            mismos meses.</p>
+          <p>Las temperaturas absolutas son el valor más alto y el más bajo registrados en el año, incluidos los días de meses
+            incompletos; mientras el año esté en curso o incompleto son provisorias. La completitud indica los días con registro
+            y los meses completos de cada variable.</p>
+          <p>En «Días con temperaturas extremas», cada tarjeta cuenta los días que igualaron o superaron el umbral. El color y
+            los símbolos ▲/▼ ubican ese conteo frente a 1991–2020 y sólo aparecen con el año completo para la variable; si no,
+            se compara la suma de los meses completos con su normal. Cada «?» explica el término.</p>
+        </app-como-se-lee>
       </div>
     </div>
 
@@ -67,6 +81,22 @@
           </span>
           <span class="kpi__det" *ngIf="t.anomalia !== null">
             Anomalía vs. normal: <strong [class.pos]="t.anomalia > 0" [class.neg]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong>
+          </span>
+        </ng-container>
+      </article>
+
+      <!-- Amplitud térmica media -->
+      <article class="kpi kpi--amp">
+        <span class="kpi__label">Amplitud térmica media <app-ayuda-termino termino="amplitud"></app-ayuda-termino></span>
+        <ng-container *ngIf="amp as t; else sinDato">
+          <span class="kpi__valor">{{ fmt(t.media) }} <small>°C</small></span>
+          <span class="kpi__det">
+            <span class="tag" [class.tag--ok]="t.anual" [class.tag--parcial]="!t.anual">
+              {{ t.anual ? 'Media anual' : 'Promedio de ' + listaMeses(t.meses) }}
+            </span>
+          </span>
+          <span class="kpi__det" *ngIf="t.anomalia !== null">
+            Anomalía vs. normal: <strong [class.pos-amp]="t.anomalia > 0" [class.neg-amp]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong>
           </span>
         </ng-container>
       </article>

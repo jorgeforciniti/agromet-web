@@ -4,16 +4,24 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { esAdministrador } from '../../shared/administradores';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatDialogModule],
+  imports: [CommonModule, RouterModule, MatDialogModule, MatMenuModule, MatIconModule],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userEmail: string | null = null;
+  /** Cuenta con correo y contraseña cuyo email todavía no se confirmó */
+  emailSinConfirmar = false;
+  /** Cuenta con acceso a /admin */
+  administrador = false;
+  reenvio: 'listo' | 'enviando' | 'enviado' | 'error' = 'listo';
   private userSubscription!: Subscription;
 
   constructor(private authService: AuthService, private dialog: MatDialog) {}
@@ -21,7 +29,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.userSubscription = this.authService.getUserObservable().subscribe(user => {
       this.userEmail = user?.displayName || user?.email || null; // Guarda el email del usuario autenticado
+      this.administrador = esAdministrador(user);
+      // Las cuentas de Google ya llegan verificadas; sólo aplica a correo y contraseña
+      this.emailSinConfirmar = !!user && !user.emailVerified
+        && user.providerData.some(p => p.providerId === 'password');
     });
+  }
+
+  async reenviarVerificacion(): Promise<void> {
+    this.reenvio = 'enviando';
+    try {
+      // Si ya la confirmó en otra pestaña, alcanza con releer el usuario
+      const usuario = await this.authService.recargarUsuario();
+      if (usuario?.emailVerified) {
+        this.emailSinConfirmar = false;
+        return;
+      }
+      await this.authService.enviarVerificacion(usuario);
+      this.reenvio = 'enviado';
+    } catch {
+      this.reenvio = 'error';
+    }
   }
 
   logout() {
@@ -31,10 +59,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   async openAuthDialog(): Promise<void> {
     const { AuthComponent } = await import('../../auth/auth.component');
 
+    // Ancho fluido y alto automático: con 400×550 fijos el formulario se cortaba en teléfonos.
+    // Sin disableClose, para que Escape y el fondo cierren el diálogo como en el resto del sitio.
     this.dialog.open(AuthComponent, {
-      width: '400px',
-      height: '550px',
-      disableClose: true
+      width: 'min(460px, 94vw)',
+      maxWidth: '94vw',
+      maxHeight: 'calc(100dvh - 32px)',
+      panelClass: 'auth-dialog'
     });
   }
 

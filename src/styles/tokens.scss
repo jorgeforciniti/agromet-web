@@ -24,6 +24,10 @@
   --mod-reports: #64748b;
   --mod-maps: #16a34a;
 
+  /* Franja institucional (encabezado y pie) */
+  --brand-stripe: linear-gradient(90deg, #1f9a3a 0%, #8cc63f 22%, #e9c84b 44%, #f2a07b 62%, #a9c3d6 80%, #f5a800 100%);
+  --brand-stripe-h: 4px;
+
   /* Neutros */
   --bg: #f7f7f8;
   --surface: #ffffff;
@@ -33,6 +37,7 @@
   --border: #e5e7eb;
 
   /* Layout */
+  --page-max: 1600px;  /* ancho máximo común: encabezado, contenido y pie */
   --radius: 18px;
   --radius-sm: 14px;
   --shadow: 0 10px 30px rgba(0,0,0,.08);

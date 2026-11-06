@@ -8,7 +8,8 @@ import {
   User,
   user,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendEmailVerification
 } from '@angular/fire/auth';
 import { Observable, firstValueFrom } from 'rxjs';
 
@@ -27,10 +28,26 @@ export class AuthService {
     );
   }
 
+  /** Crea la cuenta y envía el correo para confirmar la dirección (en castellano). */
   async register(email: string, password: string) {
-    return await runInInjectionContext(this.injector, () =>
+    const credencial = await runInInjectionContext(this.injector, () =>
       createUserWithEmailAndPassword(this.auth, email, password)
     );
+    await this.enviarVerificacion(credencial.user);
+    return credencial;
+  }
+
+  /** (Re)envía el correo de confirmación al usuario actual o al indicado. */
+  async enviarVerificacion(usuario: User | null = this.auth.currentUser) {
+    if (!usuario || usuario.emailVerified) return;
+    this.auth.languageCode = 'es';
+    await runInInjectionContext(this.injector, () => sendEmailVerification(usuario));
+  }
+
+  /** Relee el usuario desde Firebase (por ejemplo, después de confirmar el email). */
+  async recargarUsuario(): Promise<User | null> {
+    await this.auth.currentUser?.reload();
+    return this.auth.currentUser;
   }
 
   async resetPassword(email: string) {

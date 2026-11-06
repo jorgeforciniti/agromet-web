@@ -9,7 +9,7 @@ export interface WeatherStation {
   Localidad?: string;
   departamento?: string;
   provincia?: string;
-  /** 1 = Llanura Tucumana, 2 = Pedemonte Tucumano, 3|4 = Valles Intermontanos, 5 = Provincias Adyacentes */
+  /** 1 = Llanura Tucumana, 2 = Pedemonte Tucumano, 3 = Valles Intermontanos, 4 = Valles de Altura, 5 = Provincias Adyacentes */
   zona?: string;
   lat: string;
   lon: string;
@@ -110,6 +110,7 @@ export interface SmnAreaWarningEntry {
 }
 
 export interface SmnAlertByAreaResponse {
+  updated?: string;
   reports: SmnAreaReport[];
   warnings: SmnAreaWarningEntry[];
 }
@@ -142,6 +143,25 @@ export interface RainCampaignStation {
   lon: number;
   reference_period: string;
   dataset: RainCampaignRecord[];
+}
+
+/** Respuesta de lluvias-estacion.php: datos de la estación y su serie de lluvias mensuales (mm). */
+export interface LluviasEstacionResponse {
+  status: 'success' | 'sin_datos' | 'error';
+  estacion?: {
+    id: number;
+    name: string;
+    lat: number;
+    lon: number;
+    alt: number;
+    zone: string;
+    reference_period: string;
+    /** Enero a diciembre; null si no hay normal. */
+    normales: (number | null)[];
+  };
+  /** Enero a diciembre por año; null en los meses sin dato. */
+  anios?: { anio: number; meses: (number | null)[] }[];
+  message?: string;
 }
 
 export interface TminMaxRecord {
@@ -187,11 +207,41 @@ export interface DiseaseApiRecord {
   ultregrecibido?: string | null;
 }
 
+/** Día de la lluvia: calendario (0 a 24 h) o pluviométrico (de 9 a 9 h, termina a las 9 de cada fecha) */
+export type DiaLluvia = 'calendario' | 'pluviometrico';
+
+export interface LluviaPeriodoEstacion {
+  id: string;
+  nombre: string;
+  habilitada: number;
+  /** null: sin registros en el período */
+  mm: number | null;
+  maxRegistro: number | null;
+  registros: number;
+  /** Registros con más de 0,3 mm */
+  registrosLluvia: number;
+  /** Horas cubiertas por los registros */
+  horas: number;
+}
+
+export interface LluviaPeriodoResponse {
+  status: string;
+  desde: string;
+  hasta: string;
+  dia: DiaLluvia;
+  /** Horas transcurridas del período (hasta ahora si todavía no terminó) */
+  horasPeriodo: number;
+  estaciones: LluviaPeriodoEstacion[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class WeatherService {
   private stationsUrl = 'https://agromet.eeaoc.gob.ar/services/';
+  // Relativa: smn-warning.php, forecast.php y now.php no mandan cabeceras CORS.
+  // En desarrollo pasan por proxy.conf.json.
+  private serviciosSinCorsUrl = '/services/';
 
   // No hay proxy PHP para el índice UV: se llama a OpenWeatherMap directo,
   // misma API key ya usada en leaflet-goes-viewer.component.ts.
@@ -200,11 +250,11 @@ export class WeatherService {
   constructor(private http: HttpClient) { }
 
   getOpenWeatherForecast(lat: number, lon: number): Observable<OpenWeatherForecastResponse> {
-    return this.http.get<OpenWeatherForecastResponse>(this.stationsUrl +`forecast.php`, { params: { lat, lon } });
+    return this.http.get<OpenWeatherForecastResponse>(this.serviciosSinCorsUrl + `forecast.php`, { params: { lat, lon } });
   }
 
   getOpenWeatherNow(lat: number, lon: number): Observable<OpenWeatherNowResponse> {
-    return this.http.get<OpenWeatherNowResponse>(this.stationsUrl +`now.php`, { params: { lat, lon } });
+    return this.http.get<OpenWeatherNowResponse>(this.serviciosSinCorsUrl + `now.php`, { params: { lat, lon } });
   }
 
   getUvIndex(lat: number, lon: number): Observable<OpenWeatherUvResponse> {
@@ -223,6 +273,14 @@ export class WeatherService {
 
   getRains<TRain = WeatherAlertStation>(desde: string, hasta: string): Observable<StationsApiResponse<TRain>> {
     return this.http.get<StationsApiResponse<TRain>>(this.stationsUrl + `datos-alerta.php?desde=${desde}&hasta=${hasta}`);
+  }
+
+  /**
+   * Lluvia por estación con la cantidad de registros (server/servicios/lluvia-periodo.php, la misma
+   * consulta que «Lluvias 9 a 9» de /admin). dia: de 0 a 24 h o día pluviométrico de 9 a 9 h.
+   */
+  getLluviaPeriodo(desde: string, hasta: string, dia: DiaLluvia): Observable<LluviaPeriodoResponse> {
+    return this.http.get<LluviaPeriodoResponse>(this.stationsUrl + `lluvia-periodo.php?desde=${desde}&hasta=${hasta}&dia=${dia}`);
   }
 
   getStationsAll(): Observable<WeatherStation[]> {
@@ -250,23 +308,27 @@ export class WeatherService {
   }
 
   getSmnAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=1`;
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=1`;
     return this.http.get<SmnAlertByAreaResponse>(url);
   }
 
   getSmnShortTermAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=2`;
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-alerta-area.php?area=${area}&tipo=2`;
     return this.http.get<SmnAlertByAreaResponse>(url);
   }
 
   getSmnWarningByArea(): Observable<SmnWarningByAreaResponse> {
-    const url = this.stationsUrl + `pronosticos/smn-warning.php`;
+    const url = this.serviciosSinCorsUrl + `pronosticos/smn-warning.php`;
     return this.http.get<SmnWarningByAreaResponse>(url);
   }
 
   getRainCampaign<TStation = RainCampaignStation>(month: number, year: number): Observable<StatusDataApiResponse<TStation>> {
     const url = this.stationsUrl + `datos-campania.php?mes=${month}&anio=${year}&tipo=2`;
     return this.http.get<StatusDataApiResponse<TStation>>(url);
+  }
+
+  getLluviasEstacion(estacion: number): Observable<LluviasEstacionResponse> {
+    return this.http.get<LluviasEstacionResponse>(this.stationsUrl + 'lluvias-estacion.php', { params: { estacion } });
   }
 
   getRainCurrentMonth<TCurrent = unknown>(): Observable<StatusDataApiResponse<TCurrent>> {

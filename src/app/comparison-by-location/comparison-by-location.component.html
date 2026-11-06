@@ -1,9 +1,29 @@
 <mat-dialog-content class="comparison-dialog">
   <div class="scroll-container">
     <div class="dialog-header">
-      <div>
-        <div class="dialog-eyebrow">COMPARATIVA OPERATIVA</div>
-        <h2 class="titulo">Comparar períodos entre localidades</h2>
+      <div class="dialogo-texto">
+        <div class="dialogo-titulo">
+          <h2 class="titulo">Comparar períodos entre localidades</h2>
+          <span class="dialog-eyebrow">COMPARATIVA OPERATIVA</span>
+        </div>
+        <app-como-se-lee>
+          <p>Se grafica la variable elegida para dos estaciones en las mismas fechas: la estación base y la de
+            comparación, cada una con su color.</p>
+          <p>En formato decádico (1–10, 11–20 y 21 a fin de mes) o mensual, la lluvia, la evapotranspiración y
+            las horas de hoja mojada se suman; el resto se promedia. La humedad relativa es el promedio de la
+            máxima y la mínima de cada día.</p>
+          <p>Las líneas punteadas son la normal mensual de cada estación, del color de su serie, cuando la
+            estación la tiene; en formato diario, la lluvia normal es la del mes repartida en partes iguales
+            entre sus días. El resumen sobre el gráfico da la máxima, la mínima, el total o el promedio y la
+            comparación con la normal de la propia estación (en % para las variables que se suman). En
+            temperatura mínima se marcan 0 °C, −2 °C y 22 °C; en máxima, 35 °C.</p>
+          <p>Atención: las normales de las dos estaciones pueden corresponder a períodos de años distintos, así
+            que no siempre son comparables entre sí. El período de cada una se indica debajo del gráfico cuando
+            está disponible.</p>
+          <p>Los días sin dato quedan como hueco con una franja gris. Una década o un mes con días faltantes se
+            calcula con los días que tienen dato y se ve más claro (barras) o con punto hueco (líneas): una suma
+            incompleta puede quedar por debajo del valor real.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -13,14 +33,8 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-grid-compact">
-        <mat-form-field appearance="fill">
-          <mat-label>Estación base</mat-label>
-          <select matNativeControl formControlName="estacion">
-            <option *ngFor="let st of stations" [value]="st.Identificacion">
-              {{ st.Identificacion }} - {{ st.nombre }}
-            </option>
-          </select>
-        </mat-form-field>
+        <app-selector-estacion formControlName="estacion" etiqueta="Estación base"
+          [estaciones]="stations"></app-selector-estacion>
 
         <mat-form-field appearance="fill">
           <mat-label>Desde</mat-label>
@@ -40,15 +54,8 @@
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Estación de comparación</mat-label>
-          <select matNativeControl formControlName="compStation">
-            <option value="" disabled>Selecciona una estación</option>
-            <option *ngFor="let st of stations" [value]="st.Identificacion">
-              {{ st.Identificacion }} - {{ st.nombre }}
-            </option>
-          </select>
-        </mat-form-field>
+        <app-selector-estacion formControlName="compStation" etiqueta="Estación de comparación"
+          [estaciones]="stations"></app-selector-estacion>
 
         <mat-form-field appearance="fill">
           <mat-label>Formato</mat-label>
@@ -73,15 +80,37 @@
         </button>
       </div>
     </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <div class="chart-section">
+      <!-- Resumen de cuatro cifras por serie (charts/resumen-series.ts) -->
+      <dl class="resumen-grafico" *ngIf="resumenSeries.length && (lineChartData.datasets.length || barChartData.datasets.length)">
+        <div class="resumen-grafico__serie" *ngFor="let r of resumenSeries">
+          <dt><i [style.background]="r.color" aria-hidden="true"></i>{{ r.nombre }}</dt>
+          <dd><span>Máx.</span> {{ r.maxima }}</dd>
+          <dd><span>Mín.</span> {{ r.minima }}</dd>
+          <dd><span>{{ r.etiquetaValor }}</span> {{ r.valor }}</dd>
+          <dd *ngIf="r.frenteNormal" class="resumen-grafico__normal" [class.is-mas]="r.signo === 'mas'"
+            [class.is-menos]="r.signo === 'menos'">{{ r.frenteNormal }}</dd>
+        </div>
+      </dl>
+
       <div class="chart-container" *ngIf="lineChartData.datasets.length">
-        <canvas baseChart [data]="lineChartData" [options]="chartOptions" chartType="line"></canvas>
+        <app-exportar-grafico nombre="comparacion-localidades" [maxFilas]="31"></app-exportar-grafico>
+        <canvas baseChart [data]="lineChartData" [options]="chartOptions" [plugins]="pluginsGrafico"
+          type="line"></canvas>
       </div>
 
       <div class="chart-container" *ngIf="barChartData.datasets.length">
-        <canvas baseChart [data]="barChartData" [options]="chartOptions" chartType="bar"></canvas>
+        <app-exportar-grafico nombre="comparacion-localidades" [maxFilas]="31"></app-exportar-grafico>
+        <canvas baseChart [data]="barChartData" [options]="chartOptions" [plugins]="pluginsGrafico"
+          type="bar"></canvas>
       </div>
+      <p class="nota-normales" *ngIf="periodoNormales">Período de las normales: {{ periodoNormales }}.</p>
+      <p class="aviso-faltantes" *ngIf="textoFaltantes" role="status">
+        <span><i class="muestra-sin-datos" aria-hidden="true"></i>Sin datos — {{ textoFaltantes }}</span>
+        <span *ngIf="hayIncompletos"><i class="muestra-incompleto" aria-hidden="true"></i>Período incompleto: suma o promedio de los días con datos</span>
+      </p>
     </div>
 
     <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>

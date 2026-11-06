@@ -61,6 +61,10 @@
     <app-colmenar-extremos *ngSwitchCase="'extremos'" [anio]="anio" [extremos]="extremos"
       (reintentar)="cargar()"></app-colmenar-extremos>
 
+    <app-colmenar-extremos-hidricos *ngSwitchCase="'extremos-hidricos'" [anio]="anio"></app-colmenar-extremos-hidricos>
+
+    <app-colmenar-dias-lluvia *ngSwitchCase="'dias-lluvia'" [anio]="anio"></app-colmenar-dias-lluvia>
+
     <app-colmenar-episodios *ngSwitchCase="'episodios'" [anio]="anio"></app-colmenar-episodios>
 
     <app-colmenar-comparacion *ngSwitchCase="'comparar'" [anio]="anio" [anios]="anios" [mensuales]="mensuales"

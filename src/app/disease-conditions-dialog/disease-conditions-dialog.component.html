@@ -1,30 +1,46 @@
 ﻿<mat-dialog-content class="disease-dialog">
   <div class="disease-shell">
     <div class="dialog-header">
-      <div>
-        <div class="dialog-eyebrow">SANIDAD VEGETAL</div>
-        <h2 class="titulo">Condiciones para enfermedades</h2>
+      <div class="dialog-header__texto">
+        <div class="dialog-header__titulo">
+          <h2 class="titulo">Condiciones para enfermedades</h2>
+          <span class="dialog-eyebrow">SANIDAD VEGETAL</span>
+        </div>
         <p class="dialog-lead">
-          Evalua condiciones meteorologicas predisponentes para distintas enfermedades a partir
-          de registros horarios de estacion.
+          Evalúa condiciones meteorológicas predisponentes para distintas enfermedades a partir
+          de registros horarios de estación.
         </p>
+        <app-como-se-lee>
+          <p>{{ diseaseHelp() }}</p>
+          <p>Cada fila es un día calendario (de 0 a 24 h) de la estación elegida. Las horas se cuentan con los
+            registros de ese día: cada registro que cumple la condición suma 15 minutos. «Hs mojado» son las horas
+            con la hoja mojada: el sensor de humedad foliar informa de 0 (seca) a 15 (mojada) y se toma como
+            mojada desde 10, criterio del proveedor de las estaciones. «Temp. mojado» es la temperatura
+            media durante esas horas.</p>
+          <p>La calificación aplica a esos valores los criterios de la enfermedad, aportados por la <strong>Sección
+            Fitopatología de la EEAOC</strong>, que se ven al tocar la «i» junto a su nombre. El color de cada fila va del verde
+            (bajo o no apto) al amarillo, el naranja, el rojo y el bordó (muy alto o condición positiva), y las
+            tarjetas de arriba cuentan los días del período en cada clase.</p>
+          <p>Indica si el tiempo fue favorable para la enfermedad, no si hubo infección: no tiene en cuenta la
+            presencia del patógeno, la variedad ni el estado del cultivo. Las enfermedades que dependen del mojado
+            de hoja sólo se habilitan en estaciones con ese sensor.</p>
+          <p>Si a un día le faltan registros, las horas pueden quedar por debajo de las reales y la calificación
+            puede ser menor que la que correspondería. Por eso, un día con menos del 90 % de los registros
+            esperados (según el intervalo de la estación, en general uno cada 15 minutos; para hoy, hasta la hora
+            actual) lleva la marca «incompleto»: al pasar el mouse se ve cuántos registros tiene. Un día sin
+            ningún registro figura como «Sin datos» y no se cuenta en las tarjetas.</p>
+        </app-como-se-lee>
       </div>
 
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar dialogo">
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>
       </button>
     </div>
 
     <form (ngSubmit)="loadReport()" class="disease-form">
       <div class="native-grid">
-        <div class="native-field">
-          <label for="disease-station">Estacion</label>
-          <select id="disease-station" name="station" [(ngModel)]="selectedStation" (ngModelChange)="onStationChange()" style="display:block;width:100%;min-height:52px;padding:12px 14px;border-radius:12px;border:1px solid #cbd5c0;background:#fff;color:#111827;font-size:16px;font-weight:700;box-sizing:border-box;appearance:auto;-webkit-appearance:menulist;pointer-events:auto;">
-            <option *ngFor="let station of stations" [ngValue]="station.Identificacion">
-              {{ station.Identificacion }} - {{ station.nombre }}
-            </option>
-          </select>
-        </div>
+        <app-selector-estacion class="native-field" name="station" [(ngModel)]="selectedStation"
+          (cambio)="onStationChange()" appearance="outline" [estaciones]="stations"></app-selector-estacion>
 
         <div class="native-field">
           <label for="disease-code">Enfermedad</label>
@@ -53,46 +69,54 @@
         </button>
       </div>
     </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <p class="disease-note" *ngIf="!hasLeafWetnessSensor">
       <mat-icon>info</mat-icon>
       La estación seleccionada no tiene sensor de humedad foliar. Solo se habilitan enfermedades que no dependen de ese sensor.
     </p>
 
-    <div class="disease-summary" *ngIf="rows.length">
-      <div class="disease-summary__card">
-        <span>Estacion</span>
-        <strong>{{ stationLabel(appliedStation) }}</strong>
+    <!-- Resumen en una franja: antes eran cuatro tarjetas que ocupaban mucho alto -->
+    <dl class="disease-summary" *ngIf="rows.length">
+      <div class="disease-summary__item">
+        <dt>Estación</dt>
+        <dd>{{ stationLabel(appliedStation) }}</dd>
       </div>
-      <div class="disease-summary__card">
-        <span class="label-with-info">
-          <span>Enfermedad</span>
+      <div class="disease-summary__item disease-summary__item--ancho">
+        <dt>Enfermedad</dt>
+        <dd>
+          {{ selectedDiseaseLabel(appliedDisease) }}
+          <!-- El title sólo se ve con mouse: al tocarla se despliegan los criterios debajo (celulares) -->
           <button
             type="button"
             class="info-dot"
+            [class.info-dot--activo]="criteriosVisibles"
             [attr.aria-label]="'Condiciones de ' + selectedDiseaseLabel(appliedDisease)"
-            [attr.title]="diseaseCriteria(appliedDisease)">
+            [attr.aria-expanded]="criteriosVisibles"
+            aria-controls="criterios-enfermedad"
+            [attr.title]="diseaseCriteria(appliedDisease)"
+            (click)="criteriosVisibles = !criteriosVisibles">
             i
           </button>
-        </span>
-        <strong>{{ selectedDiseaseLabel(appliedDisease) }}</strong>
+        </dd>
       </div>
-      <div class="disease-summary__card">
-        <span>Periodo</span>
-        <strong>
-          {{ appliedFromDate | date:'dd/MM/yyyy' }} - {{ appliedToDate | date:'dd/MM/yyyy' }}
-        </strong>
+      <div class="disease-summary__item">
+        <dt>Período</dt>
+        <!-- formatDisplayDate y no el pipe date: "AAAA-MM-DD" se toma como UTC y mostraba el día anterior -->
+        <dd>{{ formatDisplayDate(appliedFromDate) }} – {{ formatDisplayDate(appliedToDate) }}</dd>
       </div>
-      <div class="disease-summary__card">
-        <span>Dias evaluados</span>
-        <strong>{{ rows.length }}</strong>
+      <div class="disease-summary__item">
+        <dt>Días</dt>
+        <dd>
+          {{ diasConDatos }}<ng-container *ngIf="diasConDatos < rows.length"> de {{ rows.length }}</ng-container>
+          <small *ngIf="diasIncompletos" class="dias-incompletos">({{ diasIncompletos }} {{ diasIncompletos === 1 ? 'incompleto' : 'incompletos' }})</small>
+        </dd>
       </div>
+    </dl>
+    <div class="criterios" id="criterios-enfermedad" *ngIf="rows.length && criteriosVisibles">
+      <p *ngFor="let linea of criteriosLineas(appliedDisease)">{{ linea }}</p>
     </div>
 
-    <p class="disease-note">
-      <mat-icon>verified_user</mat-icon>
-      {{ diseaseHelp() }}
-    </p>
 
     <div class="disease-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>
@@ -105,18 +129,22 @@
       </div>
     </div>
 
-    <div class="table-wrapper" *ngIf="rows.length">
+    <div class="table-wrapper tabla-fija" *ngIf="rows.length">
       <table class="disease-table">
         <thead>
           <tr>
             <th>Fecha</th>
             <th *ngFor="let column of columns" [class.align-right]="column.align === 'right'">{{ column.label }}</th>
-            <th class="classification-col">Calificacion</th>
+            <th class="classification-col">Calificación</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let row of rows; trackBy: rowTrackBy" [attr.data-tone]="row.tone">
-            <td>{{ formatDisplayDate(row.date) }}</td>
+            <td>
+              {{ formatDisplayDate(row.date) }}
+              <span *ngIf="row.incompleto" class="dia-incompleto" tabindex="0"
+                [attr.title]="detalleIncompleto(row)" [attr.aria-label]="detalleIncompleto(row)">incompleto</span>
+            </td>
             <td *ngFor="let column of columns" [class.align-right]="column.align === 'right'">{{ row.values[column.key] }}</td>
             <td class="classification classification-col">
               <span class="classification-badge" [attr.data-tone]="row.tone">{{ row.classification }}</span>

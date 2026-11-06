@@ -18,10 +18,12 @@ import { TemperaturasComponent } from './secciones/temperaturas/temperaturas.com
 import { EvolucionComponent } from './secciones/evolucion/evolucion.component';
 import { PrecipitacionesComponent } from './secciones/precipitaciones/precipitaciones.component';
 import { ExtremosComponent } from './secciones/extremos/extremos.component';
+import { DiasLluviaComponent } from './secciones/dias-lluvia/dias-lluvia.component';
+import { ExtremosHidricosComponent } from './secciones/extremos-hidricos/extremos-hidricos.component';
 import { EpisodiosComponent } from './secciones/episodios/episodios.component';
 import { ComparacionComponent } from './secciones/comparacion/comparacion.component';
 
-type SeccionId = 'resumen' | 'temperaturas' | 'evolucion' | 'precipitaciones' | 'extremos' | 'episodios' | 'comparar';
+type SeccionId = 'resumen' | 'temperaturas' | 'evolucion' | 'precipitaciones' | 'extremos' | 'extremos-hidricos' | 'dias-lluvia' | 'episodios' | 'comparar';
 
 interface Seccion {
   id: SeccionId;
@@ -42,6 +44,8 @@ const CARGANDO = { estado: 'cargando', datos: null } as const;
     EvolucionComponent,
     PrecipitacionesComponent,
     ExtremosComponent,
+    ExtremosHidricosComponent,
+    DiasLluviaComponent,
     EpisodiosComponent,
     ComparacionComponent
   ],
@@ -59,6 +63,8 @@ export class ColmenarComponent implements OnInit, OnDestroy {
     { id: 'evolucion', etiqueta: 'Evolución térmica e hídrica', icono: 'show_chart' },
     { id: 'precipitaciones', etiqueta: 'Precipitaciones', icono: 'water_drop' },
     { id: 'extremos', etiqueta: 'Extremos térmicos', icono: 'local_fire_department' },
+    { id: 'extremos-hidricos', etiqueta: 'Extremos hídricos', icono: 'thunderstorm' },
+    { id: 'dias-lluvia', etiqueta: 'Días con lluvia', icono: 'grain' },
     { id: 'episodios', etiqueta: 'Episodios cálidos', icono: 'wb_sunny' },
     { id: 'comparar', etiqueta: 'Comparar años', icono: 'compare_arrows' }
   ];

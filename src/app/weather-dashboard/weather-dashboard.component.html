@@ -2,9 +2,36 @@
 
   <!-- Header -->
   <div class="dialog-header">
-    <h2 class="titulo">Datos meteorológicos por localidad</h2>
+    <div class="dialogo-texto">
+      <div class="dialogo-titulo">
+        <h2 class="titulo">Datos meteorológicos por localidad</h2>
+        <span class="app-dialog-eyebrow">CONSULTA DETALLADA</span>
+      </div>
+      <!-- Pregunta para la Sección: las horas del resumen (heladas, umbrales de temperatura y de humedad), ¿se calculan con la duración de cada registro?
+           «Días de lluvia»: la consulta que pasaron (COUNT(CASE WHEN lluvia > 0.3 ...) AS registrosLluvia) cuenta registros;
+           ¿el resumen cuenta días con algún registro > 0,3 mm o días con lluvia diaria > 0,3 mm? -->
+      <app-como-se-lee>
+        <p>Resume los datos de la estación elegida entre las dos fechas indicadas: extremos y medias de temperatura
+          y humedad, horas por encima o por debajo de distintos umbrales, lluvia y viento y, si la estación tiene
+          los sensores, radiación solar, evapotranspiración y horas de hoja mojada (el sensor informa de 0, seca, a 15, mojada, y se toma
+          como mojada desde 10).</p>
+        <p>«Días con heladas» son los días con mínima de 0 °C o menos. La lluvia diaria corresponde al día
+          pluviométrico, de las 9 h a las 9 h del día siguiente, y «Días de lluvia» son los días en que la estación
+          registró lluvia; las mediciones de 0,3 mm o menos no cuentan, porque pueden ser rocío.</p>
+        <p>La evapotranspiración (ETo) la calcula la consola de la estación Davis con la ecuación de Penman
+          modificada que usa CIMIS (Universidad de California), cada hora, a partir de temperatura, humedad,
+          viento y radiación solar; el total del día es la suma de las horas.</p>
+        <p>En Gráficos, cada punto es un valor diario. La línea punteada del mismo color es la normal de la
+          estación, cuando la tiene; la lluvia normal se muestra como promedio diario (la normal del mes dividida
+          por sus días). Cada estación tiene normales de un período distinto, que se indica debajo del gráfico
+          cuando está disponible.</p>
+        <p>Los días sin registro quedan como huecos con una franja gris y se enumeran debajo del gráfico. Los totales
+          y conteos se calculan con los registros disponibles, así que con datos faltantes pueden quedar por debajo
+          del valor real. La tabla muestra como máximo los últimos 31 días del período.</p>
+      </app-como-se-lee>
+    </div>
 
-    <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+    <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -13,17 +40,9 @@
   <form [formGroup]="weatherForm" (ngSubmit)="loadData()" class="search-form">
     <div class="form-grid">
 
-      <mat-form-field appearance="outline">
-        <mat-label>Estación meteorológica</mat-label>
-        <mat-select formControlName="station" required (selectionChange)="onStationChange()">
-          <mat-option *ngFor="let station of stations" [value]="station.Identificacion">
-            {{ station.nombre }} ({{ station.provincia }})
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="weatherForm.get('station')?.hasError('required')">
-          Seleccione una estación
-        </mat-error>
-      </mat-form-field>
+      <app-selector-estacion formControlName="station" etiqueta="Estación meteorológica" appearance="outline" required
+        (cambio)="onStationChange()"
+        [estaciones]="stations"></app-selector-estacion>
 
       <mat-form-field appearance="outline">
         <mat-label>Fecha inicial</mat-label>
@@ -47,6 +66,7 @@
       </button>
     </div>
   </form>
+  <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
   <!-- Error -->
   <div *ngIf="errorMessage" class="error-message mat-elevation-z2">
@@ -199,8 +219,15 @@
           </div>
 
           <div class="chart-wrapper">
-            <canvas baseChart [data]="chartConfig.data" [options]="chartConfig.options" [type]="chartConfig.type"></canvas>
+            <app-exportar-grafico nombre="datos-por-localidad" [maxFilas]="31"></app-exportar-grafico>
+            <canvas baseChart [data]="chartConfig.data" [options]="chartConfig.options" [type]="chartConfig.type"
+              [plugins]="pluginsGrafico"></canvas>
           </div>
+          <p class="nota-normales" *ngIf="periodoNormales">Normales de la estación: período {{ periodoNormales }}.</p>
+          <p class="aviso-faltantes" *ngIf="textoFaltantes" role="status">
+            <i class="muestra-sin-datos" aria-hidden="true"></i>
+            Sin datos de la estación: {{ textoFaltantes }}.
+          </p>
         </ng-container>
 
         <!-- Tablas -->
@@ -210,7 +237,7 @@
           </div>
 
           <!-- OJO: sin custom-dark-table (ya no existe) -->
-          <div class="table-wrapper">
+          <div class="table-wrapper tabla-fija">
             <table mat-table [dataSource]="truncatedDiaryData" class="tabla-datos">
 
               <ng-container matColumnDef="fecha">
@@ -220,52 +247,52 @@
 
               <ng-container matColumnDef="temp_max">
                 <th mat-header-cell *matHeaderCellDef>Temp. Máx (°C)</th>
-                <td mat-cell *matCellDef="let item">{{ item.temp_max | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.temp_max | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="temp_min">
                 <th mat-header-cell *matHeaderCellDef>Temp. Mín (°C)</th>
-                <td mat-cell *matCellDef="let item">{{ item.temp_min | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.temp_min | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="HR_max">
                 <th mat-header-cell *matHeaderCellDef>Humedad Máx (%)</th>
-                <td mat-cell *matCellDef="let item">{{ item.HR_max }}</td>
+                <td mat-cell *matCellDef="let item">{{ item.HR_max | valor }}</td>
               </ng-container>
 
               <ng-container matColumnDef="HR_min">
                 <th mat-header-cell *matHeaderCellDef>Humedad Mín (%)</th>
-                <td mat-cell *matCellDef="let item">{{ item.HR_min }}</td>
+                <td mat-cell *matCellDef="let item">{{ item.HR_min | valor }}</td>
               </ng-container>
 
               <ng-container matColumnDef="rr_24">
                 <th mat-header-cell *matHeaderCellDef>Lluvia (mm)</th>
-                <td mat-cell *matCellDef="let item">{{ item.rr_24 | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.rr_24 | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="viento_medio">
                 <th mat-header-cell *matHeaderCellDef>Viento Medio (km/h)</th>
-                <td mat-cell *matCellDef="let item">{{ item.viento_medio | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.viento_medio | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="viento_max">
                 <th mat-header-cell *matHeaderCellDef>Viento Máx (km/h)</th>
-                <td mat-cell *matCellDef="let item">{{ item.viento_max | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.viento_max | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="rad_solar_media">
                 <th mat-header-cell *matHeaderCellDef>Rad.Solar (W/m²)</th>
-                <td mat-cell *matCellDef="let item">{{ item.rad_solar_media | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.rad_solar_media | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="et">
                 <th mat-header-cell *matHeaderCellDef>ET (mm)</th>
-                <td mat-cell *matCellDef="let item">{{ item.et | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.et | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="hum_hoja_hs">
                 <th mat-header-cell *matHeaderCellDef>Humedad de hoja (h)</th>
-                <td mat-cell *matCellDef="let item">{{ item.hum_hoja_hs | number:'1.1-1' }}</td>
+                <td mat-cell *matCellDef="let item">{{ (item.hum_hoja_hs | number:'1.1-1') ?? '—' }}</td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="visibleDisplayedColumns"></tr>
@@ -273,7 +300,7 @@
             </table>
 
             <div *ngIf="showLimitMessage" class="limit-message">
-              No se pueden mostrar más de 31 días. Mostrando solo los primeros 31.
+              No se pueden mostrar ni descargar más de 31 días: se muestran los últimos 31 del período.
             </div>
 
             <div class="table-actions">

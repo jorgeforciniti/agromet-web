@@ -1,0 +1,268 @@
+.mi-cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Encabezado con el mismo estilo que Red de estaciones */
+.section-header {
+  position: relative;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  background: var(--brand);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  background: rgba(255, 255, 255, .84);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: color-mix(in srgb, var(--brand) 60%, #3f4750);
+}
+
+.section-title {
+  margin: 8px 0 0;
+  font-size: 1.24rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.08;
+}
+
+.section-summary {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: .92rem;
+  font-weight: 700;
+}
+
+/* Bloques de consultas y alertas */
+.bloque {
+  padding: 14px 16px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  scroll-margin-top: 140px;
+}
+
+.bloque__titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.bloque__titulo mat-icon {
+  color: var(--brand);
+}
+
+.bloque__ayuda,
+.bloque__vacio {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.45;
+}
+
+.bloque__vacio a,
+.mi-cuenta__otros a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.bloque__error {
+  margin: 0 0 10px;
+  color: #9a3412;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.lista__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.lista__item + .lista__item {
+  border-top: 1px solid var(--border);
+}
+
+.lista__item--inactiva .lista__texto {
+  opacity: .6;
+}
+
+.lista__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lista__texto strong {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.lista__texto span {
+  font-size: .82rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.lista__acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.btn-chico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-chico:hover {
+  background: color-mix(in srgb, var(--brand) 6%, white);
+}
+
+.btn-chico:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.btn-chico--principal {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+  color: color-mix(in srgb, var(--brand) 85%, black);
+}
+
+.btn-chico--icono {
+  width: 34px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.btn-chico--icono mat-icon {
+  font-size: 19px;
+  width: 19px;
+  height: 19px;
+}
+
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Formulario de nueva alerta */
+.nueva-alerta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.campo--corto {
+  flex: 0 1 120px;
+}
+
+.campo label {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.campo select,
+.campo input {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: .9rem;
+  color: var(--text);
+}
+
+.mi-cuenta__otros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+@media (max-width: 600px) {
+  .bloque {
+    padding: 12px;
+  }
+
+  .nueva-alerta .btn-chico {
+    width: 100%;
+  }
+}

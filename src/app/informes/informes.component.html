@@ -2,18 +2,42 @@
   <div class="informes-wrapper">
     <div class="informes-head">
       <div class="informes-eyebrow">BIBLIOTECA TÉCNICA</div>
-      <h3 class="informes-title">Informes y publicaciones recientes</h3>
-      <p class="informes-copy">Explorá boletines, reportes y documentos técnicos con filtros por temática y acceso
-        rápido al PDF.</p>
+      <h1 class="informes-title">{{ titulo }}</h1>
+      <p class="informes-copy">Explorá boletines, reportes y documentos técnicos de cualquier fecha: filtrá por tema y
+        año, o buscá por título.</p>
     </div>
 
     <div class="filters" role="group" aria-label="Filtrar por tipo de informe">
       <button *ngFor="let tipo of tiposInformes" type="button" class="filter-chip"
         [class.filter-chip--active]="selectedCategoria === tipo.value" [style.--chipColor]="chipColor(tipo.value)"
-        (click)="selectCategoria(tipo.value)">
+        [attr.aria-pressed]="selectedCategoria === tipo.value" (click)="selectCategoria(tipo.value)">
         {{ tipo.viewValue }}
       </button>
     </div>
+
+    <div class="buscador">
+      <label class="buscador__campo">
+        <mat-icon aria-hidden="true">search</mat-icon>
+        <input type="search" placeholder="Buscar por título" aria-label="Buscar informes por título"
+          [value]="textoBusqueda" (input)="buscar($any($event.target).value)" maxlength="100" />
+      </label>
+
+      <label class="buscador__anio">
+        <span>Año</span>
+        <select aria-label="Filtrar por año" [value]="anio" (change)="selectAnio($any($event.target).value)">
+          <option value="">Todos</option>
+          <option *ngFor="let a of anios" [value]="a" [selected]="anio === '' + a">{{ a }}</option>
+        </select>
+      </label>
+
+      <button *ngIf="hayFiltros" type="button" class="buscador__limpiar" (click)="limpiarFiltros()">
+        Quitar filtros
+      </button>
+    </div>
+
+    <p class="informes-resultados" *ngIf="!loading && !error && informes.length" aria-live="polite">
+      {{ resumenResultados }}
+    </p>
 
     <ul class="informes-list" *ngIf="loading" aria-hidden="true" aria-busy="true">
       <li class="informe-row" *ngFor="let i of [0,1,2,3,4,5]">
@@ -26,8 +50,8 @@
       </li>
     </ul>
 
-    <ul class="informes-list" *ngIf="!loading && filteredDatos.length; else sinInformes">
-      <li class="informe-row tap-feedback" [appScrollReveal]="0" *ngFor="let informe of filteredDatos">
+    <ul class="informes-list" *ngIf="!loading && informes.length; else sinInformes">
+      <li class="informe-row tap-feedback" [appScrollReveal]="0" *ngFor="let informe of informes">
         <span class="informe-badge" [style.--chipColor]="chipColor(informe.categoria)">
           {{ categoriaLabel(informe.categoria) }}
         </span>
@@ -44,8 +68,16 @@
       </li>
     </ul>
 
+    <div class="informes-mas" *ngIf="!loading && hayMas">
+      <button type="button" class="informes-mas__boton" (click)="cargarMas()" [disabled]="cargandoMas">
+        {{ cargandoMas ? 'Cargando…' : 'Cargar más' }}
+      </button>
+    </div>
+
     <ng-template #sinInformes>
-      <p class="informes-empty" *ngIf="!loading">No hay informes disponibles para este filtro.</p>
+      <p class="informes-empty" *ngIf="!loading && error">No se pudieron cargar los informes. Probá de nuevo en
+        unos minutos.</p>
+      <p class="informes-empty" *ngIf="!loading && !error">No hay informes para estos filtros.</p>
     </ng-template>
   </div>
 </section>

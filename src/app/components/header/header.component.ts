@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { SmnWarningByAreaResponse, WeatherService } from '../../services/weather.service';
+import { AuthService } from '../../services/auth.service';
+import { esAdministrador } from '../../shared/administradores';
 
 interface NavItem {
   label: string;
@@ -22,7 +25,7 @@ export class HeaderComponent implements OnInit {
   menuOpen = false;
   alertText: string | null = null;
 
-  readonly navItems: NavItem[] = [
+  private readonly baseItems: NavItem[] = [
     { label: 'Inicio', path: '/', exact: true },
     { label: 'Estado actual', path: '/estado-actual' },
     { label: 'Mapas', path: '/mapas' },
@@ -31,10 +34,23 @@ export class HeaderComponent implements OnInit {
     { label: 'Informes', path: '/informes' },
     { label: 'Red de estaciones', path: '/estaciones' }
   ];
+  /** Sólo las cuentas de shared/administradores.ts ven "Administración". */
+  navItems: NavItem[] = this.baseItems;
+
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly authService = inject(AuthService);
 
   constructor(private weatherService: WeatherService) { }
 
   ngOnInit(): void {
+    this.authService.getUserObservable()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(usuario => {
+        this.navItems = esAdministrador(usuario)
+          ? [...this.baseItems, { label: 'Administración', path: '/admin' }]
+          : this.baseItems;
+      });
+
     this.weatherService.getSmnWarningByArea().subscribe({
       next: (data: SmnWarningByAreaResponse) => {
         this.alertText = this.composeAlertText(data);

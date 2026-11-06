@@ -1,7 +1,10 @@
-﻿import { Component, Injectable, OnInit, ViewEncapsulation } from '@angular/core';
+﻿import { Component, Injectable, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +19,9 @@ import {
   NativeDateAdapter
 } from '@angular/material/core';
 import { DiseaseApiRecord, WeatherService, WeatherStation } from '../services/weather.service';
+import { ESTACION_INICIAL, StationService } from '../services/station.service';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 interface DiseaseOption {
   code: number;
@@ -40,6 +46,13 @@ interface DiseaseResultRow {
   classification: string;
   tone: string;
   values: Record<string, string>;
+  /** Registros del día y registros esperados según el intervalo de la estación */
+  registros?: number;
+  esperados?: number;
+  /** El día tiene menos de COBERTURA_MINIMA de los registros esperados */
+  incompleto?: boolean;
+  /** Día del período sin ningún registro */
+  sinDatos?: boolean;
 }
 
 interface SummaryItem {
@@ -49,6 +62,21 @@ interface SummaryItem {
 }
 
 const DISEASES_REQUIRING_LEAF_WETNESS = new Set([1, 2, 3, 4, 5, 9, 10, 11, 14, 15, 16]);
+
+/**
+ * El sensor de hoja (Davis) informa de 0 (seca) a 15 (mojada). La hoja se toma como mojada desde 10
+ * (>= 10) en todas las reglas, criterio de Mercobras, el proveedor de las estaciones.
+ */
+const UMBRAL_HOJA_MOJADA = 10;
+
+/**
+ * Un día con menos del 90 % de los registros esperados se marca como incompleto: las horas
+ * contadas pueden quedar por debajo de las reales (un registro faltante no suma).
+ */
+const COBERTURA_MINIMA = 0.9;
+
+/** Intervalo entre registros (minutos) si no se puede inferir de los datos */
+const INTERVALO_POR_DEFECTO = 15;
 
 const DISEASE_DATE_FORMATS = {
   parse: {
@@ -67,19 +95,19 @@ const DISEASE_GROUPS: DiseaseGroup[] = [
     label: 'Soja',
     options: [
       { code: 1, label: 'Roya de la soja', crop: 'Soja', scientificName: 'Phakopsora pachyrhizi' },
-      { code: 3, label: 'Mancha marron', crop: 'Soja', scientificName: 'Septoria glycines' },
-      { code: 4, label: 'Tizon de la hoja y mancha purpura', crop: 'Soja', scientificName: 'Cercospora kikuchii' },
+      { code: 3, label: 'Mancha marrón', crop: 'Soja', scientificName: 'Septoria glycines' },
+      { code: 4, label: 'Tizón de la hoja y mancha púrpura', crop: 'Soja', scientificName: 'Cercospora kikuchii' },
       { code: 5, label: 'Mancha anillada', crop: 'Soja', scientificName: 'Corynespora cassiicola' },
-      { code: 6, label: 'Tizon bacteriano', crop: 'Soja', scientificName: 'Pseudomonas syringae pv. glycinea' }
+      { code: 6, label: 'Tizón bacteriano', crop: 'Soja', scientificName: 'Pseudomonas syringae pv. glycinea' }
     ]
   },
   {
-    label: 'Maiz',
+    label: 'Maíz',
     options: [
-      { code: 10, label: 'Tizon foliar', crop: 'Maiz', scientificName: 'Exserohilum turcicum' },
-      { code: 11, label: 'Roya polisora', crop: 'Maiz', scientificName: 'Puccinia polysora' },
-      { code: 15, label: 'Mancha gris', crop: 'Maiz', scientificName: 'Cercospora zeae-maydis' },
-      { code: 16, label: 'Fusarium', crop: 'Maiz', scientificName: 'Fusarium graminearum' }
+      { code: 10, label: 'Tizón foliar', crop: 'Maíz', scientificName: 'Exserohilum turcicum' },
+      { code: 11, label: 'Roya polisora', crop: 'Maíz', scientificName: 'Puccinia polysora' },
+      { code: 15, label: 'Mancha gris', crop: 'Maíz', scientificName: 'Cercospora zeae-maydis' },
+      { code: 16, label: 'Fusarium', crop: 'Maíz', scientificName: 'Fusarium graminearum' }
     ]
   },
   {
@@ -89,15 +117,15 @@ const DISEASE_GROUPS: DiseaseGroup[] = [
     ]
   },
   {
-    label: 'Cana de azucar',
+    label: 'Caña de azúcar',
     options: [
-      { code: 2, label: 'Roya de la cana', crop: 'Cana de azucar', scientificName: 'Puccinia melanocephala' }
+      { code: 2, label: 'Roya de la caña', crop: 'Caña de azúcar', scientificName: 'Puccinia melanocephala' }
     ]
   },
   {
-    label: 'Limon',
+    label: 'Limón',
     options: [
-      { code: 9, label: 'Melanosis', crop: 'Limon', scientificName: 'Diaporthe citri' }
+      { code: 9, label: 'Melanosis', crop: 'Limón', scientificName: 'Diaporthe citri' }
     ]
   }
 ];
@@ -126,6 +154,9 @@ class DiseaseDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
+    ComoSeLeeComponent,
+    CopiarEnlaceComponent,
+    SelectorEstacionComponent,
     CommonModule,
     FormsModule,
     MatDialogModule,
@@ -160,6 +191,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   summaryItems: SummaryItem[] = [];
   loadError = '';
   isLoading = false;
+  /** Panel con los criterios de la enfermedad (lo abre la «i»; el title no se ve en celulares) */
+  criteriosVisibles = false;
   readonly diseaseGroups = DISEASE_GROUPS;
 
   get selectedStationData(): WeatherStation | undefined {
@@ -170,19 +203,49 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     return this.flagEnabled(this.selectedStationData?.isSoil);
   }
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
+  private readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true });
+
+  /** Enlace a la consulta actual (botón "Copiar enlace") */
+  readonly enlaceConsulta = (): string => armarEnlace('enfermedades', {
+    estacion: this.selectedStation, enfermedad: this.selectedDisease, desde: this.fromDate, hasta: this.toDate
+  });
+
   constructor(
     private weatherService: WeatherService,
+    private stationService: StationService,
     private dialogRef: MatDialogRef<DiseaseConditionsDialogComponent>
   ) { }
+
+  /** Período que se usa si no hay uno recordado (shared/periodo-recordado.ts) */
+  private periodoPorDefecto!: RangoFechas;
 
   ngOnInit(): void {
     const today = new Date();
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.periodoPorDefecto = { desde: monthStart, hasta: today };
 
-    this.selectedStation = '2049';
+    this.selectedStation = this.stationService.activa;
     this.selectedDisease = 1;
     this.fromDate = this.formatApiDate(monthStart);
     this.toDate = this.formatApiDate(today);
+
+    // Consulta recibida por enlace (la estación ya llega como activa)
+    const consulta = consultaDe(this.dialogData);
+    // Último período elegido (24 h), salvo que el enlace traiga fechas
+    const recordado = periodoRecordado('enfermedades', consulta);
+    if (recordado) {
+      this.fromDate = this.formatApiDate(recordado.desde);
+      this.toDate = this.formatApiDate(recordado.hasta);
+    }
+    const desde = leerFecha(consulta['desde']);
+    const hasta = leerFecha(consulta['hasta']);
+    const enfermedad = leerNumero(consulta['enfermedad']);
+    if (desde) this.fromDate = this.formatApiDate(desde);
+    if (hasta) this.toDate = this.formatApiDate(hasta);
+    if (enfermedad !== null) this.selectedDisease = enfermedad;
     this.appliedStation = this.selectedStation;
     this.appliedDisease = this.selectedDisease;
     this.appliedFromDate = this.fromDate;
@@ -193,11 +256,15 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         this.stations = [...stations]
           .filter(st => st.Identificacion !== '20')
           .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        // La estación activa puede no estar en esta lista (se excluye la 20)
+        if (!this.stations.some(st => st.Identificacion === this.selectedStation)) {
+          this.selectedStation = this.appliedStation = ESTACION_INICIAL;
+        }
         this.ensureDiseaseSelectionIsValid();
         this.loadReport();
       },
       error: () => {
-        this.loadError = 'No se pudieron cargar las estaciones para el modulo fitosanitario.';
+        this.loadError = 'No se pudieron cargar las estaciones para el módulo fitosanitario.';
       }
     });
   }
@@ -225,6 +292,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       this.loadError = 'Revisa el rango de fechas antes de consultar las condiciones sanitarias.';
       return;
     }
+    recordarPeriodo('enfermedades', fromDate, toDate, this.periodoPorDefecto);
 
     this.isLoading = true;
     this.weatherService.getDiseaseData<DiseaseApiRecord>(
@@ -236,11 +304,22 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         const diseaseCode = Number(disease);
         const records = Array.isArray(response.data) ? response.data : [];
         const grouped = this.groupRecordsByDate(records);
-        const dates = Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b));
+        const intervalo = this.inferirIntervalo(grouped);
 
         this.columns = this.getColumns(diseaseCode);
-        this.rows = dates.map((date) => this.buildRow(diseaseCode, date, grouped.get(date) ?? []));
-        this.summaryItems = this.buildSummaryItems(diseaseCode, this.rows);
+        // Todos los días del período (hasta hoy): un día sin registros queda como fila «Sin datos»
+        this.rows = this.diasDelPeriodo(fromDate, toDate).map((date) => {
+          const delDia = grouped.get(date) ?? [];
+          if (!delDia.length) {
+            return this.filaSinDatos(date, this.columns);
+          }
+          const row = this.buildRow(diseaseCode, date, delDia);
+          row.registros = delDia.length;
+          row.esperados = this.registrosEsperados(date, intervalo);
+          row.incompleto = row.registros < row.esperados * COBERTURA_MINIMA;
+          return row;
+        });
+        this.summaryItems = this.buildSummaryItems(diseaseCode, this.rows.filter(row => !row.sinDatos));
         this.appliedStation = station;
         this.appliedDisease = diseaseCode;
         this.appliedFromDate = this.formatApiDate(fromDate);
@@ -269,32 +348,37 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   diseaseHelp(diseaseCode = Number(this.appliedDisease || this.selectedDisease)): string {
     switch (Number(diseaseCode)) {
       case 1:
-        return 'Roya de la soja: evalua horas de mojado, temperatura media durante el mojado y horas con humedad alta para calificar riesgo diario.';
+        return 'Roya de la soja: evalúa horas de mojado, temperatura media durante el mojado y horas con humedad alta para calificar riesgo diario.';
       case 2:
-        return 'Roya de la cana: suma lapsos de 15 minutos con 17-23 °C, humedad relativa alta y hoja mojada. Con 8 horas o mas, el dia queda apto.';
+        return 'Roya de la caña: suma lapsos de 15 minutos con 17-23 °C, humedad relativa alta y hoja mojada. Con 8 horas o más, el día queda apto.';
       case 3:
-        return 'Mancha marron: distingue progreso de enfermedad por mojado y temperatura, y dispersion por lluvia o viento fuerte.';
+        return 'Mancha marrón: distingue progreso de enfermedad por mojado y temperatura, y dispersión por lluvia o viento fuerte.';
       case 4:
-        return 'Cercospora kikuchii: separa infeccion, germinacion y dispersion segun horas favorables, mojado foliar y eventos de viento o lluvia.';
+        return 'Cercospora kikuchii: separa infección, germinación y dispersión según horas favorables, mojado foliar y eventos de viento o lluvia.';
       case 5:
-        return 'Mancha anillada: considera infeccion solo con 24 horas o mas en el rango termico y de humedad requerido.';
+        return 'Mancha anillada: considera infección solo con 24 horas o más en el rango térmico y de humedad requerido.';
       case 6:
-        return 'Tizon bacteriano: necesita temperatura favorable, lluvia y viento maximo fuerte para marcar infeccion.';
+        return 'Tizón bacteriano: necesita temperatura favorable, lluvia y viento máximo fuerte para marcar infección.';
       case 9:
-        return 'Melanosis: clasifica el dia en bajo, ligero, moderado, alto o muy alto segun horas de mojado en rangos termicos amplios y optimos.';
+        return 'Melanosis: clasifica el día en bajo, ligero, moderado, alto o muy alto según horas de mojado en rangos térmicos amplios y óptimos.';
       case 10:
-        return 'Tizon foliar: usa horas de mojado dentro de rangos amplios y optimos para escalar el riesgo diario.';
+        return 'Tizón foliar: usa horas de mojado dentro de rangos amplios y óptimos para escalar el riesgo diario.';
       case 11:
-        return 'Roya polisora: pondera mojado foliar en bandas termicas amplia, intermedia y optima para definir la categoria diaria.';
+        return 'Roya polisora: pondera mojado foliar en bandas térmicas amplia, intermedia y óptima para definir la categoría diaria.';
       case 14:
-        return 'Roya estriada: informa horas aptas por dia cuando hay mojado foliar y temperatura entre 10 y 20 °C.';
+        return 'Roya estriada: informa horas aptas por día cuando hay mojado foliar y temperatura entre 10 y 20 °C.';
       case 15:
-        return 'Mancha gris: marca condicion positiva cuando se acumulan 12 horas o mas de mojado con 22-30 °C.';
+        return 'Mancha gris: marca condición positiva cuando se acumulan 12 horas o más de mojado con 22-30 °C.';
       case 16:
-        return 'Fusarium: marca condicion positiva con 20 horas o mas de mojado y temperatura entre 25 y 28 °C.';
+        return 'Fusarium: marca condición positiva con 20 horas o más de mojado y temperatura entre 25 y 28 °C.';
       default:
         return 'Las condiciones predisponentes se calculan en forma nativa a partir de la API horaria de enfermedades.';
     }
+  }
+
+  /** Criterios de la enfermedad, uno por renglón, para el panel que abre la «i». */
+  criteriosLineas(diseaseCode = Number(this.appliedDisease || this.selectedDisease)): string[] {
+    return this.diseaseCriteria(diseaseCode).split('\n');
   }
 
   diseaseCriteria(diseaseCode = Number(this.appliedDisease || this.selectedDisease)): string {
@@ -401,7 +485,24 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     return row.date;
   }
 
+  /** Días del período con al menos un registro */
+  get diasConDatos(): number {
+    return this.rows.filter(row => !row.sinDatos).length;
+  }
+
+  /** Días con registros pero incompletos */
+  get diasIncompletos(): number {
+    return this.rows.filter(row => row.incompleto).length;
+  }
+
+  /** Texto del title de un día incompleto */
+  detalleIncompleto(row: DiseaseResultRow): string {
+    return `Día incompleto: ${row.registros} de ${row.esperados} registros esperados. ` +
+      'Las horas pueden quedar por debajo de las reales.';
+  }
+
   onStationChange(): void {
+    this.stationService.setActiva(this.selectedStation);
     this.ensureDiseaseSelectionIsValid();
   }
 
@@ -466,33 +567,33 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         return [
           { key: 'wetHours', label: 'Hs mojado', align: 'right' },
           { key: 'wetTemp', label: 'Temp. mojado', align: 'right' },
-          { key: 'windMax', label: 'Viento max.', align: 'right' },
+          { key: 'windMax', label: 'Viento máx.', align: 'right' },
           { key: 'rain', label: 'Lluvia (mm)', align: 'right' }
         ];
       case 4:
         return [
-          { key: 'infHours', label: 'Hs infeccion', align: 'right' },
-          { key: 'gerHours', label: 'Hs germinacion', align: 'right' },
-          { key: 'windMax', label: 'Viento max.', align: 'right' },
+          { key: 'infHours', label: 'Hs infección', align: 'right' },
+          { key: 'gerHours', label: 'Hs germinación', align: 'right' },
+          { key: 'windMax', label: 'Viento máx.', align: 'right' },
           { key: 'rain', label: 'Lluvia (mm)', align: 'right' }
         ];
       case 6:
         return [
-          { key: 'infHours', label: 'Hs termicas', align: 'right' },
-          { key: 'windMax', label: 'Viento max.', align: 'right' },
+          { key: 'infHours', label: 'Hs térmicas', align: 'right' },
+          { key: 'windMax', label: 'Viento máx.', align: 'right' },
           { key: 'rain', label: 'Lluvia (mm)', align: 'right' }
         ];
       case 9:
       case 10:
         return [
           { key: 'wetWide', label: 'Hs rango amplio', align: 'right' },
-          { key: 'wetNarrow', label: 'Hs rango optimo', align: 'right' }
+          { key: 'wetNarrow', label: 'Hs rango óptimo', align: 'right' }
         ];
       case 11:
         return [
           { key: 'wetWide', label: 'Hs rango amplio', align: 'right' },
           { key: 'wetMid', label: 'Hs rango medio', align: 'right' },
-          { key: 'wetNarrow', label: 'Hs rango optimo', align: 'right' }
+          { key: 'wetNarrow', label: 'Hs rango óptimo', align: 'right' }
         ];
       case 14:
         return [
@@ -513,8 +614,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       const notApt = rows.length - apt;
       const totalHours = rows.reduce((acc, row) => acc + this.num(row.values['aptHours']), 0);
       return [
-        { label: 'Dias aptos', value: String(apt), tone: 'high' },
-        { label: 'Dias no aptos', value: String(notApt), tone: 'low' },
+        { label: 'Días aptos', value: String(apt), tone: 'high' },
+        { label: 'Días no aptos', value: String(notApt), tone: 'low' },
         { label: 'Horas aptas', value: `${this.f1(totalHours)} h`, tone: 'moderate' }
       ];
     }
@@ -571,8 +672,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private buildSoyRustRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
-    const wetHours = this.hours(records, (record) => this.num(record.hum_hoja) > 10);
-    const wetTempSum = this.sum(records, (record) => this.num(record.hum_hoja) >= 10 ? this.num(record.temp_af) : 0);
+    const wetHours = this.hours(records, (record) => this.hojaMojada(record));
+    const wetTempSum = this.sum(records, (record) => this.hojaMojada(record) ? this.num(record.temp_af) : 0);
     const wetTemp = wetHours > 0 ? wetTempSum / (wetHours * 4) : 0;
     const humHighHours = this.hours(records, (record) => this.num(record.hum_af) >= 90);
     const rain = this.sum(records, (record) => this.num(record.lluvia));
@@ -606,7 +707,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       tone,
       values: {
         wetHours: this.f1(wetHours),
-        wetTemp: this.f1(wetTemp),
+        wetTemp: wetHours > 0 ? this.f1(wetTemp) : '—',
         humHighHours: this.f1(humHighHours),
         rain: this.f1(rain)
       }
@@ -617,7 +718,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const favHours = this.hours(records, (record) =>
       this.inRange(this.num(record.temp_af), 17, 23) &&
       this.num(record.hum_af) >= 90 &&
-      this.num(record.hum_hoja) > 9
+      this.hojaMojada(record)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 8;
@@ -634,8 +735,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private buildBrownSpotRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
-    const wetHours = this.hours(records, (record) => this.num(record.hum_hoja) > 10);
-    const wetTempSum = this.sum(records, (record) => this.num(record.hum_hoja) >= 10 ? this.num(record.temp_af) : 0);
+    const wetHours = this.hours(records, (record) => this.hojaMojada(record));
+    const wetTempSum = this.sum(records, (record) => this.hojaMojada(record) ? this.num(record.temp_af) : 0);
     const wetTemp = wetHours > 0 ? wetTempSum / (wetHours * 4) : 0;
     const windMax = this.max(records, (record) => this.num(record.viento_max));
     const rain = this.sum(records, (record) => this.num(record.lluvia));
@@ -661,7 +762,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       tone,
       values: {
         wetHours: this.f1(wetHours),
-        wetTemp: this.f1(wetTemp),
+        wetTemp: wetHours > 0 ? this.f1(wetTemp) : '—',
         windMax: this.f1(windMax),
         rain: this.f1(rain)
       }
@@ -673,7 +774,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       this.inRange(this.num(record.temp_af), 24, 32) &&
       this.num(record.hum_af) >= 70
     );
-    const gerHours = this.hours(records, (record) => this.num(record.hum_hoja) > 9);
+    const gerHours = this.hours(records, (record) => this.hojaMojada(record));
     const windMax = this.max(records, (record) => this.num(record.viento_max));
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const dispersion = windMax >= 15 || rain >= 5;
@@ -710,7 +811,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const favHours = this.hours(records, (record) =>
       this.inRange(this.num(record.temp_af), 18, 21) &&
       this.num(record.hum_af) >= 80 &&
-      this.num(record.hum_hoja) > 9
+      this.hojaMojada(record)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 24;
@@ -746,10 +847,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildMelanosisRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const wetWide = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 10, 35)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 10, 35)
     );
     const wetNarrow = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 20, 28)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 20, 28)
     );
     const { classification, tone } = this.scaleRisk(wetWide, wetNarrow);
 
@@ -766,10 +867,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildLeafBlightRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const wetWide = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 20, 32)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 20, 32)
     );
     const wetNarrow = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 24, 28)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 24, 28)
     );
     const { classification, tone } = this.scaleRisk(wetWide, wetNarrow, 2, 6, 2, 12, 6, 12);
 
@@ -786,13 +887,13 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildPolysoraRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const wetWide = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 16, 33)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 16, 33)
     );
     const wetMid = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 21, 27)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 21, 27)
     );
     const wetNarrow = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 22, 24)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 22, 24)
     );
     const { classification, tone } = this.scalePolisora(wetWide, wetMid, wetNarrow);
 
@@ -810,7 +911,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildStripeRustRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const aptHours = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 10, 20)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 10, 20)
     );
     const apt = aptHours >= 3;
 
@@ -826,7 +927,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildGrayLeafSpotRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const favHours = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 22, 30)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 22, 30)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 12;
@@ -844,7 +945,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   private buildFusariumRow(date: string, records: DiseaseApiRecord[]): DiseaseResultRow {
     const favHours = this.hours(records, (record) =>
-      this.num(record.hum_hoja) >= 10 && this.inRange(this.num(record.temp_af), 25, 28)
+      this.hojaMojada(record) && this.inRange(this.num(record.temp_af), 25, 28)
     );
     const rain = this.sum(records, (record) => this.num(record.lluvia));
     const positive = favHours >= 20;
@@ -933,6 +1034,65 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     }, new Map<string, DiseaseApiRecord[]>());
   }
 
+  /**
+   * Intervalo de registro de la estación (minutos): la diferencia más frecuente entre registros
+   * consecutivos del mismo día (típicamente 15 min).
+   */
+  private inferirIntervalo(grouped: Map<string, DiseaseApiRecord[]>): number {
+    const frecuencia = new Map<number, number>();
+    grouped.forEach((records) => {
+      const minutos = records
+        .map(record => this.minutosDelDia(record.hora))
+        .filter((m): m is number => m !== null)
+        .sort((a, b) => a - b);
+      for (let i = 1; i < minutos.length; i += 1) {
+        const diferencia = minutos[i] - minutos[i - 1];
+        if (diferencia > 0) {
+          frecuencia.set(diferencia, (frecuencia.get(diferencia) ?? 0) + 1);
+        }
+      }
+    });
+    let intervalo = INTERVALO_POR_DEFECTO;
+    let maximo = 0;
+    frecuencia.forEach((cantidad, diferencia) => {
+      if (cantidad > maximo) {
+        maximo = cantidad;
+        intervalo = diferencia;
+      }
+    });
+    return intervalo;
+  }
+
+  /** "HH:MM" o "HH:MM:SS" → minutos desde las 0 h (null si no se puede leer) */
+  private minutosDelDia(hora: string | null | undefined): number | null {
+    const [h, m] = String(hora ?? '').split(':').map(Number);
+    return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+  }
+
+  /** Registros esperados en el día; hoy, sólo hasta la hora actual. */
+  private registrosEsperados(date: string, intervalo: number): number {
+    const ahora = new Date();
+    const minutos = date === this.formatApiDate(ahora) ? ahora.getHours() * 60 + ahora.getMinutes() : 24 * 60;
+    return Math.max(1, Math.floor(minutos / intervalo));
+  }
+
+  /** Fechas AAAA-MM-DD del período, sin pasar de hoy */
+  private diasDelPeriodo(desde: Date, hasta: Date): string[] {
+    const hoy = this.coerceDate(new Date());
+    const fin = hasta > hoy ? hoy : hasta;
+    const dias: string[] = [];
+    for (let d = new Date(desde); d <= fin; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+      dias.push(this.formatApiDate(d));
+    }
+    return dias;
+  }
+
+  private filaSinDatos(date: string, columns: DiseaseColumn[]): DiseaseResultRow {
+    const values: Record<string, string> = {};
+    columns.forEach(column => values[column.key] = '—');
+    return { date, classification: 'Sin datos', tone: 'none', values, registros: 0, sinDatos: true };
+  }
+
   private coerceDate(value: Date | string): Date {
     if (value instanceof Date) {
       return new Date(value.getFullYear(), value.getMonth(), value.getDate());
@@ -940,6 +1100,13 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
     if (typeof value === 'string' && value.includes('/')) {
       const [day, month, year] = value.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    // Como en los otros diálogos: new Date("AAAA-MM-DD") es medianoche UTC, el día anterior en
+    // Argentina, y la consulta salía corrida un día.
+    if (typeof value === 'string' && value.includes('-')) {
+      const [year, month, day] = value.split('-').map(Number);
       return new Date(year, month - 1, day);
     }
 
@@ -951,6 +1118,10 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private hojaMojada(record: DiseaseApiRecord): boolean {
+    return this.num(record.hum_hoja) >= UMBRAL_HOJA_MOJADA;
   }
 
   private num(value: unknown): number {
@@ -975,7 +1146,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private f1(value: number): string {
-    return value.toFixed(1);
+    return value.toFixed(1).replace('.', ',');   // coma decimal, como el resto de las tablas
   }
 }
 

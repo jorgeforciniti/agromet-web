@@ -7,15 +7,29 @@
   <div class="panel">
     <div class="panel__head">
       <div>
-        <h2 class="panel__titulo">Evolución mensual {{ anio }} <app-ayuda-termino termino="normal"></app-ayuda-termino></h2>
+        <h2 class="panel__titulo">Evolución mensual {{ anio }} <app-ayuda-termino termino="normal"></app-ayuda-termino>
+          <app-ayuda-termino *ngIf="variable === 'amp'" termino="amplitud"></app-ayuda-termino></h2>
         <p class="panel__sub">{{ etiquetaVariable }} observada frente a la normal 1991–2020. Los meses incompletos se marcan
           con un rombo hueco y no se comparan con la normal.</p>
+        <!-- Pregunta para la Sección: ¿cuántos días faltantes admite mensuales.php para considerar validada la media mensual
+          de Tmax o de Tmin? -->
+        <app-como-se-lee>
+          <p>La línea muestra, mes a mes, la media de la temperatura máxima, de la mínima o de la amplitud térmica (según el
+            botón elegido) frente a la normal 1991–2020, en línea punteada gris. Sólo se unen los meses validados; un mes
+            incompleto aparece como rombo hueco con la media de los días registrados, como referencia.</p>
+          <p>Las barras de anomalía muestran la diferencia de cada mes completo con su normal: rojo, más cálido, y azul, más
+            frío. En la amplitud, violeta indica más diferencia entre máxima y mínima que lo normal, y verde, menos.</p>
+          <p>La tabla reúne los tres indicadores, los extremos absolutos de cada mes y los días con dato válido de máxima y de
+            mínima. Entre paréntesis, la media parcial de un mes incompleto, sin anomalía.</p>
+        </app-como-se-lee>
       </div>
       <div class="chips" role="group" aria-label="Variable">
         <button type="button" class="chip" [class.chip--activo]="variable === 'max'" [attr.aria-pressed]="variable === 'max'"
           (click)="setVariable('max')">Máximas</button>
         <button type="button" class="chip" [class.chip--activo]="variable === 'min'" [attr.aria-pressed]="variable === 'min'"
           (click)="setVariable('min')">Mínimas</button>
+        <button type="button" class="chip" [class.chip--activo]="variable === 'amp'" [attr.aria-pressed]="variable === 'amp'"
+          (click)="setVariable('amp')">Amplitud</button>
       </div>
     </div>
 
@@ -24,13 +38,16 @@
 
     <div class="grid-2" *ngIf="anomalias.estado === 'ok'">
       <div>
+        <app-exportar-grafico nombre="colmenar-temperaturas"></app-exportar-grafico>
         <div class="grafico" role="img" [attr.aria-label]="etiquetaVariable + ' mensual ' + anio + ' y normal 1991–2020. Valores exactos en la tabla.'">
           <canvas baseChart [type]="'line'" [data]="datosSerie" [options]="opcionesSerie"></canvas>
         </div>
       </div>
       <div>
         <h3 class="panel__titulo panel__titulo--sm">Anomalía mensual (°C) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
-        <p class="panel__sub">Rojo: más cálido que lo normal · Azul: más frío. Sólo meses completos.</p>
+        <p class="panel__sub" *ngIf="variable !== 'amp'">Rojo: más cálido que lo normal · Azul: más frío. Sólo meses completos.</p>
+        <p class="panel__sub" *ngIf="variable === 'amp'">Violeta: mayor amplitud que lo normal · Verde: menor. Sólo meses completos.</p>
+        <app-exportar-grafico nombre="colmenar-temperaturas-anomalias"></app-exportar-grafico>
         <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Anomalías mensuales de ' + etiquetaVariable">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
         </div>
@@ -42,7 +59,7 @@
     <div class="panel__head">
       <div>
         <h2 class="panel__titulo">Valores mensuales y referencias</h2>
-        <p class="panel__sub">Medias validadas, normales 1991–2020, anomalías y extremos absolutos (°C). Los extremos absolutos de
+        <p class="panel__sub">Medias validadas, normales 1991–2020, anomalías, amplitud térmica (Tmax − Tmin) y extremos absolutos (°C). Los extremos absolutos de
           meses incompletos corresponden sólo a los días con registro.</p>
       </div>
     </div>
@@ -55,6 +72,9 @@
             <th scope="col" class="num">Normal</th>
             <th scope="col" class="num">Anomalía</th>
             <th scope="col" class="num">Tmin media</th>
+            <th scope="col" class="num">Normal</th>
+            <th scope="col" class="num">Anomalía</th>
+            <th scope="col" class="num">Amplitud</th>
             <th scope="col" class="num">Normal</th>
             <th scope="col" class="num">Anomalía</th>
             <th scope="col" class="num">Tmax absoluta</th>
@@ -78,6 +98,9 @@
             </td>
             <td class="num">{{ fmt(f.a?.tmin_normal) }}</td>
             <td class="num" [class.pos]="(f.a?.anomalia_tmin ?? 0) > 0" [class.neg]="(f.a?.anomalia_tmin ?? 0) < 0">{{ fmtSigno(f.a?.anomalia_tmin) }}</td>
+            <td class="num">{{ fmt(f.amp) }}</td>
+            <td class="num">{{ fmt(f.ampNormal) }}</td>
+            <td class="num" [class.pos-amp]="(f.ampAnomalia ?? 0) > 0" [class.neg-amp]="(f.ampAnomalia ?? 0) < 0">{{ fmtSigno(f.ampAnomalia) }}</td>
             <td class="num">{{ fmt(f.m?.tmax_absoluta) }}</td>
             <td class="num">{{ fmt(f.m?.tmin_absoluta) }}</td>
             <td class="num">{{ f.m ? f.m.validos_max + '/' + f.m.validos_min + ' de ' + f.m.dias_mes : '—' }}</td>

@@ -43,7 +43,8 @@
 
   background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
   color: var(--text);
-  padding: 16px;
+  /* !important: la regla global .do-dialog .mat-mdc-dialog-content pone padding 0 */
+  padding: 16px !important;
   box-sizing: border-box;
 }
 
@@ -60,7 +61,7 @@
 /* Título */
 .titulo{
   margin: 0 0 10px 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--text);
   padding-right: 56px;
@@ -69,8 +70,9 @@
 /* Botón cerrar */
 .close-btn{
   position: absolute;
-  right: calc(22px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
+  /* Arriba a la derecha, a la altura de la etiqueta, como en el resto de los dialogs */
+  right: env(safe-area-inset-right);
+  top: env(safe-area-inset-top);
   width: 40px;
   height: 40px;
   border-radius: 999px;
@@ -421,4 +423,19 @@ mat-tab-nav-panel{
 .close-btn:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
   outline-offset: 2px;
+}
+
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
+.tabla-datos .mat-mdc-header-cell:not(.mat-column-fecha),
+.tabla-datos .mat-mdc-cell:not(.mat-column-fecha) {
+  text-align: right;
+}
+
+/* Período de referencia de las normales graficadas (si normales.php lo trae) */
+.nota-normales {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted, #475467);
 }

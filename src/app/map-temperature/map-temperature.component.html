@@ -1,9 +1,26 @@
 <mat-dialog-content>
   <div class="scroll-container" [formGroup]="form">
     <div class="dialog-body-wrapper">
+      <div class="app-dialog-eyebrow">EXTREMOS Y MEDIAS</div>
       <h2 class="titulo">Mapa de Temperaturas</h2>
+      <app-como-se-lee class="mapa-como-se-lee">
+        <p>Cada punto es una estación automática de la red EEAOC con el valor de la variable elegida en el
+          período: la temperatura mínima o máxima absoluta (el valor extremo del período) o una de las
+          medias. Se muestran todas las estaciones que tienen datos en el período, estén hoy en
+          funcionamiento o no.</p>
+        <p>Las medias se calculan con los datos diarios: la mínima media es el promedio de las mínimas de
+          cada día; la máxima media, el promedio de las máximas, y la media, el promedio de ambas.</p>
+        <p>El color sigue una escala fija, igual en todas las consultas, de −5 °C (azul) a 35 °C (rojo
+          oscuro); los valores fuera de ese rango toman el color del extremo. Al tocar un punto se ven el
+          valor y cuántos días del período tienen datos («Registros: X de N días»).</p>
+        <p>Atención: no hay un mínimo de días con datos para mostrar una estación. Las que tienen días sin
+          datos se marcan con borde punteado; si les faltan muchos, el valor puede no representar todo el
+          período.</p>
+        <p>Las estaciones sin dato de la variable no se muestran, y se descartan los valores fuera del rango
+          de −25 a 50 °C. El mapa no estima valores entre estaciones.</p>
+      </app-como-se-lee>
 
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
         <mat-icon>close</mat-icon>
       </button>
 
@@ -26,13 +43,6 @@
           <mat-label>Variable</mat-label>
           <mat-select formControlName="variable">
             <mat-option *ngFor="let v of variables" [value]="v.key">{{ v.label }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Mapa Base</mat-label>
-          <mat-select formControlName="baseMap" (selectionChange)="onBaseMapChange()">
-            <mat-option *ngFor="let bm of baseMapsList" [value]="bm.value">{{ bm.label }}</mat-option>
           </mat-select>
         </mat-form-field>
 

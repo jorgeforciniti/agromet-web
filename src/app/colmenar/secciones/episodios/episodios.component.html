@@ -10,6 +10,18 @@
       <ng-template #criterioGenerico>
         <p class="panel__sub">Episodios detectados por el servicio a partir del percentil 90 diario 1991–2020.</p>
       </ng-template>
+      <!-- Pregunta para la Sección: (1) un año sin datos de temperatura se grafica igual que un año sin episodios (0); ¿cómo
+        trata episodios.php los días sin dato (cortan el episodio, lo invalidan)? (2) «Intensidad Tmax/Tmin acum.» de la tabla
+        anual, ¿es la suma de los excedentes de los episodios del año? (3) «Mayor excedente», ¿es el excedente del día más
+        extremo del episodio? Hasta confirmarlo, el texto visible no los define. -->
+      <app-como-se-lee>
+        <p>Los episodios los detecta el servicio de El Colmenar con el criterio indicado arriba, y cada uno se asigna al año
+          en que empieza. El gráfico cuenta los episodios de cada año del rango consultado (hasta 20 años por consulta); un
+          año sin barra no tiene episodios registrados.</p>
+        <p>La tabla anual resume, para los años con al menos un episodio, la cantidad, los días en episodios y la duración
+          máxima y media. En el detalle, cada fila es un episodio, con sus excedentes de Tmax y de Tmin. La «?» explica el
+          criterio de episodio cálido y el excedente.</p>
+      </app-como-se-lee>
     </div>
   </div>
 
@@ -35,6 +47,7 @@
     [mensaje]="anual.mensaje" fuente="episodios.php (anual)" [alto]="180" (reintentar)="consultar()"></app-estado-carga>
   <ng-container *ngIf="anual.estado === 'ok' || anual.estado === 'vacio'">
     <p class="panel__sub" *ngIf="anual.estado === 'vacio'">No se registraron episodios cálidos en el período.</p>
+    <app-exportar-grafico nombre="colmenar-episodios"></app-exportar-grafico>
     <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Cantidad de episodios cálidos por año entre ' + desde + ' y ' + hasta">
       <canvas baseChart [type]="'bar'" [data]="datosAnual" [options]="opcionesAnual"></canvas>
     </div>

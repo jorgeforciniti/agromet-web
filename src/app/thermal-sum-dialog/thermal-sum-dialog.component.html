@@ -1,13 +1,23 @@
 <mat-dialog-content class="thermal-dialog">
   <div class="thermal-shell">
     <div class="dialog-header">
-      <div>
-        <div class="dialog-eyebrow">ANÁLISIS TÉRMICO</div>
-        <h2 class="titulo">Calculador de sumas térmicas</h2>
+      <div class="dialogo-texto">
+        <div class="dialogo-titulo">
+          <h2 class="titulo">Calculador de sumas térmicas</h2>
+          <span class="dialog-eyebrow">ANÁLISIS TÉRMICO</span>
+        </div>
         <p class="dialog-lead">
           Estima la suma térmica diaria a partir de temperaturas máximas y mínimas,
           aplicando temperatura base y acumulado del período.
         </p>
+        <app-como-se-lee>
+          <p><strong>Promedio:</strong> cada día suma <code>((Tmáx + Tmín) / 2) − base</code>, con la máxima
+            limitada a 30 °C y sin valores negativos.</p>
+          <p><strong>Seno simple</strong> (Baskerville y Emin, 1969): la temperatura del día se aproxima con una
+            onda entre la mínima y la máxima, y se suma el tiempo que pasa entre la base y 30 °C. Cuenta el calor
+            de los días con la mínima por debajo de la base, que el promedio subestima.</p>
+          <p>Un día con datos insuficientes no se computa en el acumulado.</p>
+        </app-como-se-lee>
       </div>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -17,19 +27,20 @@
 
     <form [formGroup]="form" (ngSubmit)="calculate()" class="thermal-form">
       <div class="thermal-grid">
-        <mat-form-field appearance="fill">
-          <mat-label>Estación</mat-label>
-          <select matNativeControl formControlName="station">
-            <option *ngFor="let station of stations" [value]="station.Identificacion">
-              {{ station.Identificacion }} - {{ station.nombre }}
-            </option>
-          </select>
-        </mat-form-field>
+        <app-selector-estacion formControlName="station" etiqueta="Estación"
+          [estaciones]="stations"></app-selector-estacion>
 
         <mat-form-field appearance="fill">
           <mat-label>Base térmica</mat-label>
           <select matNativeControl formControlName="base">
             <option *ngFor="let base of baseOptions" [value]="base">{{ base }} °C</option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Método</mat-label>
+          <select matNativeControl formControlName="metodo">
+            <option *ngFor="let m of metodos" [value]="m.valor">{{ m.texto }}</option>
           </select>
         </mat-form-field>
 
@@ -53,6 +64,7 @@
         </button>
       </div>
     </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <div class="thermal-summary" *ngIf="rows.length">
       <div class="thermal-summary__card">
@@ -61,7 +73,7 @@
       </div>
       <div class="thermal-summary__card">
         <span>Base térmica</span>
-        <strong>{{ form.get('base')?.value }} °C</strong>
+        <strong>{{ form.get('base')?.value }} °C · {{ form.get('metodo')?.value === 'seno' ? 'seno simple' : 'promedio' }}</strong>
       </div>
       <div class="thermal-summary__card">
         <span>Total acumulado</span>
@@ -73,18 +85,14 @@
       </div>
     </div>
 
-    <p class="thermal-note">
-      <mat-icon>info</mat-icon>
-      Se usa la fórmula `((Tmax + Tmin) / 2) - base`, con Tmax limitada a 30 °C y sin valores negativos.
-      Los días con datos insuficientes no se computan en el acumulado.
-    </p>
+    <app-aviso-calidad *ngIf="rows.length" [validos]="validDays" [total]="rows.length"></app-aviso-calidad>
 
     <div class="thermal-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>
       <span>{{ loadError }}</span>
     </div>
 
-    <div class="table-wrapper" *ngIf="rows.length">
+    <div class="table-wrapper tabla-fija" *ngIf="rows.length">
       <table mat-table [dataSource]="rows" class="thermal-table">
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
@@ -92,16 +100,16 @@
         </ng-container>
 
         <ng-container matColumnDef="dailyValue">
-          <th mat-header-cell *matHeaderCellDef>Suma térmica</th>
+          <th mat-header-cell *matHeaderCellDef>Suma térmica (°C·día)</th>
           <td mat-cell *matCellDef="let row" [class.is-missing]="row.insufficient">
-            {{ row.insufficient ? '---' : (row.dailyValue | number:'1.1-1') }}
+            {{ row.insufficient ? '—' : (row.dailyValue | number:'1.1-1') }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="accumulated">
-          <th mat-header-cell *matHeaderCellDef>Acumulada</th>
+          <th mat-header-cell *matHeaderCellDef>Acumulada (°C·día)</th>
           <td mat-cell *matCellDef="let row" [class.is-missing]="row.insufficient">
-            {{ row.insufficient ? '---' : (row.accumulated | number:'1.1-1') }}
+            {{ row.insufficient ? '—' : (row.accumulated | number:'1.1-1') }}
           </td>
         </ng-container>
 

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="Dos años comparados: curvas azul y naranja sobre un calendario">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fdf8ec"/>
+      <stop offset="1" stop-color="#eef5e4"/>
+    </linearGradient>
+    <radialGradient id="sol" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffd166"/>
+      <stop offset="0.55" stop-color="#ffc94a"/>
+      <stop offset="1" stop-color="#ffc94a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="areaAzul" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a78d6" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#2a78d6" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="sombra" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#334155" flood-opacity=".14"/>
+    </filter>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#cielo)"/>
+  <circle cx="62" cy="62" r="46" fill="url(#sol)"/>
+  <circle cx="62" cy="62" r="20" fill="#ffc83d"/>
+
+  <!-- Colinas -->
+  <path d="M0 214 C60 190 110 196 160 210 S260 222 300 204 V300 H0 Z" fill="#d7e8c4"/>
+  <path d="M0 238 C70 222 130 230 190 242 S270 250 300 240 V300 H0 Z" fill="#bfd9a6"/>
+  <path d="M0 262 C80 252 160 258 300 254 V300 H0 Z" fill="#8a6a45"/>
+
+  <!-- Calendario con los dos años -->
+  <g filter="url(#sombra)">
+    <rect x="176" y="34" width="96" height="84" rx="14" fill="#ffffff"/>
+    <rect x="176" y="34" width="96" height="26" rx="14" fill="#2a78d6"/>
+    <rect x="176" y="48" width="96" height="12" fill="#2a78d6"/>
+    <rect x="196" y="26" width="8" height="18" rx="4" fill="#475467"/>
+    <rect x="244" y="26" width="8" height="18" rx="4" fill="#475467"/>
+    <text x="224" y="54" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="800" fill="#ffffff">2025</text>
+    <text x="224" y="100" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="900" fill="#eb6834">2026</text>
+  </g>
+
+  <!-- Dos series: año de referencia (azul) y año en curso (naranja) -->
+  <path d="M22 186 C60 172 84 150 118 154 S170 126 204 132 S256 110 282 100 V230 H22 Z" fill="url(#areaAzul)"/>
+  <path d="M22 186 C60 172 84 150 118 154 S170 126 204 132 S256 110 282 100" fill="none" stroke="#2a78d6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M22 198 C58 194 86 178 118 182 S168 162 204 150 S252 146 282 126" fill="none" stroke="#eb6834" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 0"/>
+  <g fill="#ffffff" stroke-width="4">
+    <circle cx="118" cy="154" r="6" stroke="#2a78d6"/>
+    <circle cx="204" cy="132" r="6" stroke="#2a78d6"/>
+    <circle cx="282" cy="100" r="6" stroke="#2a78d6"/>
+    <circle cx="118" cy="182" r="6" stroke="#eb6834"/>
+    <circle cx="204" cy="150" r="6" stroke="#eb6834"/>
+    <circle cx="282" cy="126" r="6" stroke="#eb6834"/>
+  </g>
+
+  <!-- Brotes -->
+  <g fill="#5fa83a">
+    <path d="M70 258 C66 246 56 242 48 244 C52 252 60 256 70 258 Z"/>
+    <path d="M70 258 C74 244 86 240 94 243 C88 252 80 256 70 258 Z"/>
+    <rect x="68.5" y="248" width="3" height="12" rx="1.5"/>
+    <path d="M236 256 C232 244 222 240 214 242 C218 250 226 254 236 256 Z"/>
+    <path d="M236 256 C240 242 252 238 260 241 C254 250 246 254 236 256 Z"/>
+    <rect x="234.5" y="246" width="3" height="12" rx="1.5"/>
+  </g>
+</svg>

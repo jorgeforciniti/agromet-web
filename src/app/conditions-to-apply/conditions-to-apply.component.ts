@@ -1,9 +1,14 @@
-import { Component, OnInit, AfterViewInit, Injectable, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Injectable, TemplateRef, ViewChild, inject } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import { Feature, FeatureCollection, Point } from 'geojson';
 import { FormsModule } from '@angular/forms';
-import { MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { HttpClient } from '@angular/common/http';
 
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,19 +20,28 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, NativeDateAdapter } from '@angular/material/core';
 
 import localeEs from '@angular/common/locales/es';
+import { ValorPipe } from '../pipes/valor.pipe';
 registerLocaleData(localeEs);
 
 // ✅ Ajustá estos imports a tu estructura real
 import { StationsApiResponse, WeatherService, WeatherStation } from '../services/weather.service';
+import { ESTACION_INICIAL, StationService } from '../services/station.service';
+import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { KpLatest, KpService } from '../services/kp.service';
+import { KpHistoricoService, SerieKp, kpEnInstante } from '../services/kp-historico.service';
 import {
   SprayAdvisorService,
   MetodoAplicacion,
   Prioridad,
   Cultivo,
   EvaluacionAplicacion,
+  RegistroMeteo,
+  ResultadoEvaluacion,
   Semaforo
 } from '../services/spray-advisor.service';
+import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { armarEnlace, consultaDe, fechaIso, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
 // ===== Formato fechas dd/MM/yyyy =====
 export const MY_DATE_FORMATS = {
@@ -57,13 +71,18 @@ export class DmyDateAdapter extends NativeDateAdapter {
 interface Estacion {
   identificacion: string;
   nombre: string;
-  lat: number;
-  lon: number;
-  temp_af: number;
-  hum_af: number;
-  viento_max: number;
+  lat: number | null;
+  lon: number | null;
+  temp_af: number | null;
+  hum_af: number | null;
+  viento_medio: number | null;
+  viento_max: number | null;
+  /** Lluvia del último registro (rr_15) */
+  lluvia: number | null;
   fecha_I: string;
 }
+
+type ClaseFila = 'apto-row' | 'precaucion-row' | 'no-apto-row' | 'sin-evaluar-row';
 
 interface WeatherData {
   hora: string;
@@ -74,8 +93,12 @@ interface WeatherData {
   direccion: string | null;
   lluvia: number | null;
 
-  eval?: EvaluacionAplicacion;
-  rowClass?: 'apto-row' | 'precaucion-row' | 'no-apto-row';
+  /** null = «Sin evaluar» (falta un dato) */
+  eval?: EvaluacionAplicacion | null;
+  faltantes?: string[];
+  /** Kp usado para el registro (null = no se consideró) */
+  kp?: number | null;
+  rowClass?: ClaseFila;
 }
 
 interface HourlyWeatherRow {
@@ -88,8 +111,13 @@ interface HourlyWeatherRow {
   lluvia?: number | string | null;
 }
 
-type TipoProducto = 'HERBICIDA' | 'FUNGICIDA' | 'INSECTICIDA';
-type TamGota = 'MUY_FINA' | 'FINA' | 'MEDIA' | 'GRUESA' | 'MUY_GRUESA';
+/** Punto del mapa sin evaluar (falta un dato): gris neutro, como la fila de la tabla */
+const COLOR_SIN_EVALUAR = '#9e9e9e';
+
+const TIPOS_PRODUCTO =['HERBICIDA', 'FUNGICIDA', 'INSECTICIDA'] as const;
+const TAMANIOS_GOTA = ['MUY_FINA', 'FINA', 'MEDIA', 'GRUESA', 'MUY_GRUESA'] as const;
+type TipoProducto = typeof TIPOS_PRODUCTO[number];
+type TamGota = typeof TAMANIOS_GOTA[number];
 type InfoKey =
   | 'ESTACION' | 'FECHA' | 'METODO' | 'PRIORIDAD' | 'CULTIVO' | 'PRODUCTO' | 'GOTA'
   | 'KP' | 'GNSS'
@@ -100,7 +128,9 @@ type InfoKey =
   selector: 'app-conditions-to-apply',
   standalone: true,
   imports: [
+    GruposEstacionesPipe,
     CommonModule,
+    ValorPipe,
     FormsModule,
     MatDialogModule,
     MatDatepickerModule,
@@ -110,6 +140,8 @@ type InfoKey =
     MatButtonModule,
     MatSelectModule,
     MatTooltipModule,
+    CopiarEnlaceComponent,
+    ComoSeLeeComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },
@@ -119,7 +151,9 @@ type InfoKey =
   templateUrl: './conditions-to-apply.component.html',
   styleUrls: ['./conditions-to-apply.component.css']
 })
-export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
+export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
 
   // ===== UI state =====
   loadingEstaciones = true;
@@ -139,6 +173,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
 
   weatherData: WeatherData[] = [];
   private weatherDataRaw: HourlyWeatherRow[] = [];
+  /** Fecha (yyyy-MM-dd) de weatherDataRaw */
+  private ymdDatos = '';
   selectedRow: WeatherData | null = null;
 
   // ===== parámetros (como app) =====
@@ -154,9 +190,16 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   cultivos: Cultivo[] = ['CAÑA', 'CITRUS', 'GRANOS'];
 
   // ===== KP =====
-  kpIndex = 1;
+  /** Último Kp publicado por NOAA; null si no se pudo leer (entonces no se considera) */
+  kpIndex: number | null = null;
   kpTimeTag: string | null = null;
   kpLoading = false;
+  /** Kp por intervalos de 3 h del día consultado (ver KpHistoricoService) */
+  private serieKp: SerieKp | null = null;
+  /** Aclaración en pantalla sobre el Kp usado en la tabla */
+  kpNota = '';
+  /** Aviso para el usuario cuando el Kp no corresponde al momento de cada registro */
+  kpAviso = false;
 
   sats = 12; // opcional para DRON/AVION (si tu advisor lo usa)
 
@@ -169,7 +212,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
     cultivo: 'El cultivo puede modificar recomendaciones y umbrales.',
     producto: 'Tipo de producto: ajusta reglas de deriva/eficacia.',
     gota: 'Tamaño de gota: más gruesa reduce deriva, puede afectar cobertura.',
-    kp: 'Kp (NOAA): actividad geomagnética. Puede afectar GNSS/compás (dron/avión).',
+    kp: 'Kp: actividad geomagnética. Puede afectar GNSS/compás (dron/avión).',
     gnss: 'Satélites GNSS: relevante en dron/avión para precisión de guiado.',
   };
 
@@ -194,22 +237,70 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   infoTitle = '';
   infoBody: string[] = [];
 
+  /** Favoritas del usuario, para mostrarlas primero en el selector */
+  readonly favoritas$ = inject(StationService).favoritas$;
+
+  /** Consulta recibida por enlace (ver shared/enlace-consulta.ts) */
+  private readonly consulta = consultaDe(inject(MAT_DIALOG_DATA, { optional: true }));
+
+  /**
+   * Enlace a la consulta actual (botón "Copiar enlace"). La fecha va sólo si no es hoy: así una
+   * consulta guardada sigue mostrando el día en que se abre. Los satélites sólo cuentan con dron o avión.
+   */
+  readonly enlaceConsulta = (): string => {
+    const hoy = fechaIso(new Date());
+    const fecha = this.selectedDate ? fechaIso(new Date(this.selectedDate)) : hoy;
+    return armarEnlace('aplicar', {
+      estacion: this.selectedStation,
+      fecha: fecha === hoy ? null : fecha,
+      metodo: this.metodo.toLowerCase(),
+      prioridad: this.prioridad.toLowerCase(),
+      cultivo: this.cultivo.toLowerCase(),
+      producto: this.tipoProducto.toLowerCase(),
+      gota: this.tamGota.toLowerCase(),
+      satelites: this.metodo === 'DRON' || this.metodo === 'AVION' ? this.sats : null
+    });
+  };
+
   constructor(
     private weatherService: WeatherService,
+    private stationService: StationService,
     private kp: KpService,
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<ConditionsToApplyComponent>,
-    private advisor: SprayAdvisorService
+    private advisor: SprayAdvisorService,
+    private kpHistorico: KpHistoricoService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
     this.selectedDate = new Date();
+    this.aplicarConsulta();
     this.loadKp();
     this.loadStations();
   }
 
   ngAfterViewInit(): void {
     setTimeout(() => this.initMap(), 0);
+  }
+
+  /**
+   * Parámetros del enlace (la estación ya llega como activa). Sólo se aplican valores que existen
+   * en los selectores: un enlace editado a mano no rompe la evaluación.
+   */
+  private aplicarConsulta(): void {
+    const c = this.consulta;
+    const elegir = <T extends string>(valor: string | undefined, opciones: readonly T[]): T | undefined =>
+      opciones.find(o => o === valor?.toUpperCase());
+    const fecha = leerFecha(c['fecha']);
+    if (fecha && fecha <= new Date()) this.selectedDate = fecha;
+    this.metodo = elegir(c['metodo'], this.metodos) ?? this.metodo;
+    this.prioridad = elegir(c['prioridad'], this.prioridades) ?? this.prioridad;
+    this.cultivo = elegir(c['cultivo'], this.cultivos) ?? this.cultivo;
+    this.tipoProducto = elegir(c['producto'], TIPOS_PRODUCTO) ?? this.tipoProducto;
+    this.tamGota = elegir(c['gota'], TAMANIOS_GOTA) ?? this.tamGota;
+    const sats = leerNumero(c['satelites']);
+    if (sats !== null && sats >= 0) this.sats = Math.round(sats);
   }
 
   closeWindow(): void {
@@ -270,7 +361,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
     else lines.push('• (No se registraron recomendaciones)');
 
     lines.push('—');
-    lines.push(`Extras: Kp=${Number(this.kpIndex).toFixed(1)}${this.usarGnssEnDecision() ? ` · Satélites=${this.sats}` : ''}`);
+    lines.push(`Extras: Kp=${this.kpIndex != null ? this.kpIndex.toFixed(1) : 'no disponible'}${this.usarGnssEnDecision() ? ` · Satélites=${this.sats}` : ''}`);
 
     return lines;
   }
@@ -285,14 +376,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
     return this.metodo === 'DRON' || this.metodo === 'AVION';
   }
 
-  private extrasDecision() {
-    return {
-      kpIndex: this.kpIndex,
-      sats: this.usarGnssEnDecision() ? this.sats : undefined
-    };
-  }
-
   // ===== KP =====
+  /** Último Kp publicado (el de la pastilla y el del mapa, que evalúa el último dato). */
   loadKp(): void {
     this.kpLoading = true;
     this.kp.getLatestKp().subscribe({
@@ -306,8 +391,59 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       error: err => {
         console.warn('[KP] Error leyendo SWPC', err);
         this.kpLoading = false;
+        this.refreshMarkers();
+        if (this.weatherDataRaw.length) this.recalcTableFromRaw();
       }
     });
+  }
+
+  /**
+   * Kp por intervalos de 3 h del día consultado, para usar en cada registro el Kp de su momento.
+   * Si falla, la tabla usa el último Kp publicado y lo aclara (ver actualizarNotaKp).
+   */
+  private cargarKpDelDia(ymd: string): void {
+    const [y, m, d] = ymd.split('-').map(Number);
+    // Día local completo (UTC−3): de las 3 h UTC del día a las 3 h UTC del siguiente
+    const desde = new Date(Date.UTC(y, m - 1, d, 3));
+    const hasta = new Date(Date.UTC(y, m - 1, d + 1, 3));
+    this.serieKp = null;
+    this.kpHistorico.serie(desde, hasta).subscribe({
+      next: serie => {
+        if (this.formatDate(this.selectedDate) !== ymd) return; // cambió la fecha mientras tanto
+        this.serieKp = serie;
+        if (this.weatherDataRaw.length) this.recalcTableFromRaw();
+      },
+      error: err => {
+        console.warn('[KP] Error leyendo el Kp por intervalos', err);
+        if (this.weatherDataRaw.length) this.recalcTableFromRaw();
+      }
+    });
+  }
+
+  /** Kp para un registro: el de su intervalo de 3 h; si no está, el último publicado. */
+  private kpParaInstante(instanteMs: number | null): { kp: number | null; delIntervalo: boolean } {
+    const kp = instanteMs != null ? kpEnInstante(this.serieKp, instanteMs) : null;
+    if (kp != null) return { kp, delIntervalo: true };
+    return { kp: this.kpIndex, delIntervalo: false };
+  }
+
+  private actualizarNotaKp(delIntervalo: number, ultimo: number, sinKp: number, esHoy: boolean): void {
+    const fuente = this.serieKp?.fuente ?? 'NOAA SWPC';
+    const ultimoTxt = this.kpTimeTag ? ` (${this.kpTimeTag} UTC)` : '';
+    this.kpAviso = false;
+    if (sinKp) {
+      this.kpNota = 'Kp no disponible: no se consideró en el semáforo.';
+      this.kpAviso = true;
+    } else if (!ultimo) {
+      this.kpNota = `Kp del intervalo de 3 h de cada registro (fuente: ${fuente}).`;
+    } else if (esHoy && delIntervalo) {
+      this.kpNota = `Kp del intervalo de 3 h de cada registro (fuente: ${fuente}); en las horas que todavía no tienen Kp publicado se usó el último${ultimoTxt}.`;
+    } else {
+      this.kpNota = esHoy
+        ? `Kp: se usó el último publicado por NOAA${ultimoTxt}.`
+        : `No hay Kp histórico disponible para esta fecha: se usó el último publicado por NOAA${ultimoTxt}, que no corresponde al día consultado.`;
+      this.kpAviso = !esHoy;
+    }
   }
 
   // ===== Estaciones =====
@@ -322,21 +458,26 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
           return {
             identificacion,
             nombre: item.nombre,
-            lat: parseFloat(item.lat) || 0,
-            lon: parseFloat(item.lon) || 0,
-            temp_af: parseFloat(item.temp_af ?? '') || 0,
-            hum_af: parseFloat(item.hum_af ?? '') || 0,
-            viento_max: parseFloat(item.viento_max ?? '') || 0,
+            lat: this.numOrNull(item.lat),
+            lon: this.numOrNull(item.lon),
+            temp_af: this.numOrNull(item.temp_af),
+            hum_af: this.numOrNull(item.hum_af),
+            viento_medio: this.numOrNull(item.viento_medio),
+            viento_max: this.numOrNull(item.viento_max),
+            lluvia: this.numOrNull((item as WeatherStation & { rr_15?: string }).rr_15),
             fecha_I: item.fecha_I || ''
           };
         });
 
-        const twoHoursAgo = new Date(Date.now() - 2 * 3600 * 1000);
-        this.estacionesRecientes = this.estaciones.filter(est => new Date(est.fecha_I) >= twoHoursAgo);
+        const twoHoursAgo = Date.now() - 2 * 3600 * 1000;
+        this.estacionesRecientes = this.estaciones.filter(est => (this.instanteDeFechaI(est.fecha_I) ?? 0) >= twoHoursAgo);
 
+        // La activa si tiene dato reciente; si no, El Colmenar
+        const activa = this.stationService.activa;
         const defaultEst =
-          this.estacionesRecientes.find(est => est.identificacion === '2049') ||
-          this.estaciones.find(est => est.identificacion === '2049') ||
+          this.estacionesRecientes.find(est => est.identificacion === activa) ||
+          this.estacionesRecientes.find(est => est.identificacion === ESTACION_INICIAL) ||
+          this.estaciones.find(est => est.identificacion === ESTACION_INICIAL) ||
           this.estacionesRecientes[0] ||
           this.estaciones[0];
 
@@ -356,6 +497,12 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   // ===== Datos horarios =====
+  /** Cambio desde el selector: la estación pasa a ser la activa del sitio y se consulta. */
+  onStationChange(): void {
+    this.stationService.setActiva(this.selectedStation);
+    this.searchData();
+  }
+
   searchData(): void {
     if (!this.selectedStation) return;
 
@@ -363,10 +510,12 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
     this.selectedRow = null;
 
     const ymd = this.formatDate(this.selectedDate);
+    this.cargarKpDelDia(ymd);
 
     this.weatherService.getWeatherDataHourly<HourlyWeatherRow>(ymd, this.selectedStation).subscribe({
       next: (resp) => {
         this.weatherDataRaw = resp.data || [];
+        this.ymdDatos = ymd;
         this.recalcTableFromRaw();
 
         const estacion = this.estaciones.find(e => e.identificacion === this.selectedStation);
@@ -393,22 +542,40 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   private recalcTableFromRaw(): void {
-    const ymd = this.formatDate(this.selectedDate);
+    const ymd = this.ymdDatos || this.formatDate(this.selectedDate);
+    const est = this.estaciones.find(e => e.identificacion === this.selectedStation);
+    let delIntervalo = 0, ultimo = 0, sinKp = 0;
 
     this.weatherData = this.weatherDataRaw.map((item) => {
-      const evBase = this.evaluarDesdeWebRow(item, ymd);
-      const ev = this.applyProductoExtras(evBase, {
-        tC: this.numOrNull(item.temp_af),
-        rh: this.numOrNull(item.hum_af),
-        windMs: item.viento_medio != null ? Number(item.viento_medio) / 3.6 : null
-      });
+      const instante = this.instanteDeHora(ymd, item.hora);
+      const kp = this.kpParaInstante(instante);
+      if (kp.kp == null) sinKp++;
+      else if (kp.delIntervalo) delIntervalo++;
+      else ultimo++;
+
+      const r = this.evaluarRegistro({
+        instante: instante != null ? new Date(instante) : null,
+        lat: est?.lat ?? null,
+        lon: est?.lon ?? null,
+        temperatura: this.numOrNull(item.temp_af),
+        humedad: this.numOrNull(item.hum_af),
+        vientoMedio: this.numOrNull(item.viento_medio),
+        rafaga: this.numOrNull(item.viento_max),
+        lluvia: this.numOrNull(item.lluvia)
+      }, kp.kp);
 
       return {
         ...item,
-        eval: ev,
-        rowClass: this.rowClass(ev.semaforo)
+        eval: r.evaluacion,
+        faltantes: r.faltantes,
+        kp: kp.kp,
+        rowClass: this.rowClass(r.evaluacion?.semaforo ?? null)
       } as WeatherData;
     });
+
+    this.actualizarNotaKp(delIntervalo, ultimo, sinKp, ymd === this.formatDate(new Date()));
+    // La fila seleccionada se reemplaza por su versión recalculada
+    if (this.selectedRow) this.selectedRow = this.weatherData.find(w => w.hora === this.selectedRow?.hora) ?? null;
   }
 
   selectRow(row: WeatherData): void {
@@ -416,45 +583,55 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   // ===== Evaluación (motor) =====
-  private evaluarDesdeWebRow(item: HourlyWeatherRow, ymd: string): EvaluacionAplicacion {
-    const hora = String(item?.hora ?? '00:00');
-    const isoLocal = `${ymd}T${hora}:00-03:00`;
-    const dtUtc = Math.floor(new Date(isoLocal).getTime() / 1000);
-    const tzSeconds = -10800;
-
-    const tC = Number(item?.temp_af ?? 0);
-    const rh = Number(item?.hum_af ?? 0);
-
-    const windMs = item?.viento_medio != null ? Number(item.viento_medio) / 3.6 : 0;
-    const gustMs = item?.viento_max != null ? Number(item.viento_max) / 3.6 : undefined;
-
-    const lluvia = Number(item?.lluvia ?? 0);
-    const pop = lluvia > 0 ? 1 : 0;
-
-    return this.advisor.evaluar(
-      {
-        tC,
-        rh,
-        windMs,
-        gustMs,
-        pop,
-        dtUtc,
-        tzSeconds,
-        sunriseUtc: undefined,
-        sunsetUtc: undefined,
-        weather: undefined
-      },
-      this.metodo,
-      this.cultivo,
-      this.prioridad,
-      this.extrasDecision()
-    );
+  /**
+   * Única evaluación de la vista: la usan la tabla y el mapa. Reglas en
+   * SprayAdvisorService.evaluarRegistro (ráfaga como referencia, «Sin evaluar» si falta un dato,
+   * noche según salida y puesta del sol); acá se suman las razones por producto y gota.
+   */
+  private evaluarRegistro(reg: RegistroMeteo, kp: number | null): ResultadoEvaluacion {
+    const r = this.advisor.evaluarRegistro(reg, {
+      metodo: this.metodo,
+      cultivo: this.cultivo,
+      prioridad: this.prioridad,
+      kpIndex: kp,
+      sats: this.usarGnssEnDecision() ? this.sats : undefined
+    });
+    if (!r.evaluacion) return r;
+    return {
+      ...r,
+      evaluacion: this.applyProductoExtras(r.evaluacion, {
+        tC: reg.temperatura,
+        rh: reg.humedad,
+        windMs: reg.rafaga != null ? reg.rafaga / 3.6 : null
+      })
+    };
   }
 
-  private rowClass(semaforo: Semaforo): 'apto-row' | 'precaucion-row' | 'no-apto-row' {
+  /** Instante (ms UTC) de un registro horario: fecha del día y hora local "HH:mm" o "HH:mm:ss" (UTC−3). */
+  private instanteDeHora(ymd: string, hora: string | null | undefined): number | null {
+    const h = /^(\d{1,2}):(\d{2})/.exec(String(hora ?? ''));
+    const [y, m, d] = ymd.split('-').map(Number);
+    if (!h || !y || !m || !d) return null;
+    return Date.UTC(y, m - 1, d, Number(h[1]) + 3, Number(h[2]));
+  }
+
+  /** fecha_I de la API ("2026-11-05 13:15:00", hora local UTC−3) → ms UTC. */
+  private instanteDeFechaI(fechaI: string): number | null {
+    const f = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(String(fechaI ?? '').trim());
+    if (!f) return null;
+    return Date.UTC(+f[1], +f[2] - 1, +f[3], +f[4] + 3, +f[5]);
+  }
+
+  private rowClass(semaforo: Semaforo | null): ClaseFila {
+    if (semaforo === null) return 'sin-evaluar-row';
     if (semaforo === 'VERDE') return 'apto-row';
     if (semaforo === 'AMARILLO') return 'precaucion-row';
     return 'no-apto-row';
+  }
+
+  /** Texto de la fila o el punto sin evaluar: "Sin evaluar: falta humedad, ráfaga". */
+  textoSinEvaluar(faltantes: string[] | undefined): string {
+    return faltantes?.length ? `Sin evaluar: falta o es inválido el dato de ${faltantes.join(', ')}` : 'Sin evaluar';
   }
 
   // ===== applyProductoExtras (igual al móvil) =====
@@ -512,16 +689,25 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   // ===== MAPA =====
+  ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.map?.remove();
+  }
+
   private initMap(): void {
     const el = document.getElementById('mapConditions');
     if (!el) return;
 
-    if (this.map) this.map.remove();
-    this.map = L.map('mapConditions', { center: [-26.8, -65.2], zoom: 8, preferCanvas: true });
+    if (this.map) {
+      this.dejarDeSeguirTamanio?.();
+      this.map.remove();
+    }
+    this.map = L.map('mapConditions', { center: [-26.8, -65.2], zoom: 8, preferCanvas: true, ...OPCIONES_GESTOS });
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+    encuadrarTucuman(this.map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OSM'
-    }).addTo(this.map);
+    const control = agregarMapaBase(this.map);
+    void cargarProvincias(this.map, this.http, { control });
   }
 
   private refreshMarkers(): void {
@@ -534,9 +720,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
 
     const featureCollection: FeatureCollection<Point, Estacion> = {
       type: 'FeatureCollection',
-      features: stations.map((est): Feature<Point, Estacion> => ({
+      features: stations.filter(est => est.lat != null && est.lon != null).map((est): Feature<Point, Estacion> => ({
         type: 'Feature',
-        geometry: { type: 'Point', coordinates: [est.lon, est.lat] },
+        geometry: { type: 'Point', coordinates: [est.lon as number, est.lat as number] },
         properties: est
       }))
     };
@@ -546,46 +732,37 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       {
         pointToLayer: (f, latlng) => {
           const p = f.properties as Estacion;
+          const instante = this.instanteDeFechaI(p.fecha_I);
 
-          const dtUtc = Math.floor(Date.now() / 1000);
-          const tzSeconds = -10800;
+          // Misma evaluación que la tabla, con el último registro de la estación
+          const { evaluacion: ev, faltantes } = this.evaluarRegistro({
+            instante: instante != null ? new Date(instante) : null,
+            lat: p.lat,
+            lon: p.lon,
+            temperatura: p.temp_af,
+            humedad: p.hum_af,
+            vientoMedio: p.viento_medio,
+            rafaga: p.viento_max,
+            lluvia: p.lluvia
+          }, this.kpIndex);
 
-          const evBase = this.advisor.evaluar(
-            {
-              tC: Number(p.temp_af ?? 0),
-              rh: Number(p.hum_af ?? 0),
-              windMs: Number(p.viento_max ?? 0) / 3.6,
-              gustMs: undefined,
-              pop: 0,
-              dtUtc,
-              tzSeconds
-            },
-            this.metodo,
-            this.cultivo,
-            this.prioridad,
-            this.extrasDecision()
-          );
-
-          const ev = this.applyProductoExtras(evBase, {
-            tC: this.numOrNull(p.temp_af),
-            rh: this.numOrNull(p.hum_af),
-            windMs: (p.viento_max != null ? Number(p.viento_max) / 3.6 : null)
-          });
-
-          const color = this.semaforoColor(ev.semaforo);
+          const kpTxt = this.kpIndex != null ? this.kpIndex.toFixed(1) : 'no disponible';
+          const detalle = ev
+            ? `Semáforo: <b>${ev.semaforo}</b><br>
+             ΔT: ${ev.deltaT.toFixed(1)} °C ${ev.inversionProbable ? '(Inv.)' : ''}<br>
+             Deriva: ${ev.scoreDeriva} | Efic.: ${ev.scoreEficacia}<br>`
+            : `<b>${this.textoSinEvaluar(faltantes)}</b><br>`;
 
           return L.circleMarker(latlng, {
             radius: 7,
-            fillColor: color,
+            fillColor: ev ? this.semaforoColor(ev.semaforo) : COLOR_SIN_EVALUAR,
             color: '#000',
             weight: 1,
             fillOpacity: 0.85
           }).bindTooltip(
             `<b>${p.nombre}</b><br>
-             Semáforo: <b>${ev.semaforo}</b><br>
-             ΔT: ${ev.deltaT?.toFixed ? ev.deltaT.toFixed(1) : ev.deltaT} °C ${ev.inversionProbable ? '(Inv.)' : ''}<br>
-             Deriva: ${ev.scoreDeriva} | Efic.: ${ev.scoreEficacia}<br>
-             Kp: ${this.kpIndex}${this.usarGnssEnDecision() ? ` | Sats: ${this.sats}` : ''}`,
+             ${detalle}
+             Kp: ${kpTxt}${this.usarGnssEnDecision() ? ` | Sats: ${this.sats}` : ''}`,
             { sticky: true }
           );
         }
@@ -596,9 +773,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
   }
 
   private semaforoColor(s: Semaforo): string {
-    if (s === 'VERDE') return '#2e7d32';
-    if (s === 'AMARILLO') return '#ffeb3b';
-    return '#c0392b';
+    if (s === 'VERDE') return '#009e73';
+    if (s === 'AMARILLO') return '#f0e442';
+    return '#b84a00';
   }
 
   // ===== helpers =====
@@ -609,7 +786,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
     return `${y}-${m}-${d}`;
   }
 
+  /** Número o null: vacío, null y textos no numéricos son dato faltante (Number(null) daría 0). */
   private numOrNull(v: unknown): number | null {
+    if (v == null || (typeof v === 'string' && v.trim() === '')) return null;
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
   }
@@ -662,7 +841,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       title: 'Kp (índice geomagnético)',
       body: [
         'Mide actividad geomagnética; puede afectar GNSS/compás.',
-        'Guía: <4 normal; 4–5 precaución; ≥5 puede degradar precisión (dron/aéreo).'
+        'Guía: <4 normal; 4–5 precaución; ≥5 puede degradar precisión (dron/aéreo).',
+        'En la tabla se usa el Kp del intervalo de 3 h de cada registro (NOAA SWPC para la última semana, GFZ Potsdam para fechas anteriores). Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla. El mapa usa el último publicado.'
       ]
     },
     GNSS: {
@@ -674,20 +854,20 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       ]
     },
 
-    SEMAFORO: { title: 'Semáforo', body: ['VERDE: aplicar · AMARILLO: precaución · ROJO: no aplicar'] },
+    SEMAFORO: { title: 'Semáforo', body: ['VERDE: aplicar · AMARILLO: precaución · ROJO: no aplicar', 'SIN EVALUAR (gris): falta o es inválido algún dato; no se evalúa con valores supuestos.'] },
     DELTA_T: {
       title: 'ΔT (Delta T)',
       body: [
         'Indicador del potencial de evaporación de la gota.',
         'ΔT alto: aumenta evaporación → más deriva y menor depósito.',
-        'Guía: 2–8 mejor; 8–10 precaución; >10–12 alto riesgo.'
+        'Guía GRDC: 2–8 adecuado; 8–10 y 1–2 precaución; más de 10 o menos de 1, no aplicar.'
       ]
     },
     INVERSION: {
       title: 'Inversión térmica',
       body: [
         'Aire estable: la nube puede viajar lejos sin dispersarse.',
-        'Típico noche/madrugada con viento muy bajo y HR alta.',
+        'Se estima probable de noche (entre la puesta y la salida del sol en la estación) con viento medio menor a 5 km/h y HR de 85 % o más.',
         'Riesgo alto de deriva a larga distancia.'
       ]
     },
@@ -701,9 +881,10 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit {
       title: 'Cómo leer la tabla',
       body: [
         'Temp/HR: evaporación.',
-        'Viento: deriva.',
+        'Viento: deriva (la referencia es la ráfaga).',
         'Lluvia: lavado.',
-        'Semáforo: síntesis deriva/eficacia según método y prioridad.'
+        'Semáforo: síntesis deriva/eficacia según método y prioridad.',
+        'Sin evaluar (gris): falta o es inválido algún dato del registro.'
       ]
     },
     CONSEJOS: {

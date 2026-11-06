@@ -1,0 +1,166 @@
+/* Estilos comunes del visor y el control de estaciones (prefijo est-) */
+:host {
+  display: block;
+}
+
+.est-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  margin-bottom: 14px;
+  font-size: .88rem;
+}
+
+.est-estado {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.est-estado--error,
+.est-err {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.est-mut {
+  color: var(--muted);
+}
+
+.est-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.est-caja {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.est-caja__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: .95rem;
+  font-weight: 900;
+}
+
+.est-caja__titulo small {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.est-cuerpo {
+  padding: 12px 14px 14px;
+}
+
+.est-scroll {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.est-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .86rem;
+}
+
+.est-tabla th,
+.est-tabla td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid #eef2f6;
+  white-space: nowrap;
+}
+
+.est-tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 900;
+}
+
+.est-tabla .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Colores de estado (mismos que el visor original) */
+.est-c-ok, .est-t-ok { background: #e3f4e8; color: #1b8a3a; }
+.est-c-retraso, .est-t-retraso { background: #fff1d6; color: #a86400; }
+.est-c-sin, .est-t-sin { background: #fbe4e2; color: #b3261e; }
+.est-t-info { background: #e2eefa; color: #1c5fa8; }
+
+.est-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.est-btn-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.est-btn-sec:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.est-btn-sec:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.est-btn-sec mat-icon,
+.est-enlace mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.est-enlace {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.est-enlace:hover {
+  background: color-mix(in srgb, var(--brand) 8%, white);
+}

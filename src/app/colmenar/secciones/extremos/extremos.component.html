@@ -10,6 +10,18 @@
         <h2 class="panel__titulo">Resumen anual de extremos térmicos {{ anio }} <app-ayuda-termino termino="extremo"></app-ayuda-termino></h2>
         <p class="panel__sub">Criterio: {{ e.criterio | lowercase }}. Clasificación percentilar respecto de {{ e.periodo_normales }},
           sólo cuando el año está completo para la variable.</p>
+        <!-- Pregunta para la Sección: ¿cómo cuenta extremos_termicos.php un día sin dato dentro de un mes (no suma o deja el
+          mes incompleto)? ¿Con cuántos años completos de 1991–2020 se calculan los percentiles anuales y las normales en días? -->
+        <app-como-se-lee>
+          <p>Las tarjetas cuentan los días del año en que la temperatura máxima igualó o superó 30 y 35 °C, y la mínima, 20 y
+            22 °C. Con el año completo para la variable, el conteo se clasifica frente a 1991–2020: la regla de colores, de azul
+            (menos días) a rojo (más días), marca los cortes P10 a P90 en días y la marca negra indica dónde cae el año.</p>
+          <p>Con el año incompleto no hay clasificación anual: se comparan sólo los meses completos con la normal de esos mismos
+            meses.</p>
+          <p>El gráfico mensual muestra el indicador elegido con los botones: barras llenas en los meses completos, rayadas en
+            el conteo parcial de un mes incompleto y la normal mensual en línea punteada. La anomalía va en rojo (más días que lo
+            normal) o azul (menos). Cada «?» explica el término.</p>
+        </app-como-se-lee>
       </div>
       <span class="tag" [class.tag--ok]="e.resumen_anual.anio_completo" [class.tag--parcial]="!e.resumen_anual.anio_completo">
         {{ e.resumen_anual.anio_completo ? 'Año completo' : 'Año incompleto: ' + e.resumen_anual.dias_registrados + ' de ' + e.resumen_anual.dias_anio + ' días' }}
@@ -74,12 +86,14 @@
     </div>
 
     <div class="grid-2">
+      <app-exportar-grafico nombre="colmenar-extremos-frecuencia"></app-exportar-grafico>
       <div class="grafico" role="img" [attr.aria-label]="indicador.etiqueta + ' por mes en ' + anio + ' y normal. Valores exactos en la tabla.'">
         <canvas baseChart [type]="'bar'" [data]="$any(datosFrecuencia)" [options]="opcionesFrecuencia"></canvas>
       </div>
       <div>
         <h3 class="panel__titulo panel__titulo--sm">Anomalía mensual (días) <app-ayuda-termino termino="anomalia"></app-ayuda-termino></h3>
         <p class="panel__sub">Rojo: más días que lo normal · Azul: menos días. Sólo meses completos.</p>
+        <app-exportar-grafico nombre="colmenar-extremos-anomalias"></app-exportar-grafico>
         <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Anomalía mensual de ' + indicador.etiqueta">
           <canvas baseChart [type]="'bar'" [data]="datosAnomalia" [options]="opcionesAnomalia"></canvas>
         </div>

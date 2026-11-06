@@ -3,17 +3,27 @@
 
   <div class="viewer-container">
     <div class="do-topbar">
-      <div class="titulo">Datos en Tiempo Real</div>
-
-      <div class="controls" *ngIf="!loading && !error">
-        <div class="control-group">
-          <label class="control-label" for="baseMapSelect">Mapa Base:</label>
-          <select id="baseMapSelect" [(ngModel)]="selectedBaseMap" (ngModelChange)="setBaseMap($event)">
-            <option *ngFor="let key of baseMapKeys" [ngValue]="key">
-              {{ baseMaps[key].name }}
-            </option>
-          </select>
+      <div class="dialogo-texto">
+        <div class="dialogo-titulo dialogo-titulo--con-cerrar">
+          <h2 class="titulo">Datos en tiempo real</h2>
+          <span class="app-dialog-eyebrow">MONITOREO</span>
         </div>
+        <app-como-se-lee>
+          <p>El mapa y la tabla muestran el último dato recibido de cada estación de la red de la EEAOC. Al elegir
+            una estación, el gráfico muestra la variable seleccionada registro por registro (en general cada 15
+            minutos; algunas estaciones transmiten con otro intervalo), desde ayer hasta el último dato de hoy.</p>
+          <p>La lluvia del día que muestran la tabla y el mapa es la acumulada desde las 0 h de hoy. En el gráfico,
+            cada barra de lluvia es la caída en ese registro (lo acumulado en el intervalo de la estación,
+            normalmente 15 minutos).</p>
+          <p>En el mapa, el relleno indica el estado de comunicación: pleno si el último dato es de la última hora,
+            tenue si hace más de 1 hora que no llegan datos y hueco con borde punteado si la estación no envió datos
+            hoy. Al acercar el mapa, cada estación muestra el valor de la variable elegida.</p>
+          <p>En el gráfico de temperatura, las líneas de 0 °C y −2 °C marcan los umbrales de helada. Los registros que
+            no llegaron se ven como franjas grises y se informan debajo del gráfico, según el intervalo con que
+            transmite cada estación.</p>
+          <p>Las lecturas fuera del rango físico posible (por ejemplo, temperaturas menores a −25 °C o mayores a
+            55 °C) se toman como error del sensor y no se muestran. Son datos provisorios, sujetos a modificación.</p>
+        </app-como-se-lee>
       </div>
     </div>
 
@@ -34,7 +44,7 @@
         <div class="variable-selector" [class.is-disabled]="!selectedStationId">
           <label for="varSelect"><strong>Variable:</strong></label>
 
-          <select id="varSelect" [(ngModel)]="selectedVariable" (change)="actualizarGrafico()"
+          <select id="varSelect" [(ngModel)]="selectedVariable" (change)="actualizarGrafico(); actualizarEtiquetas()"
             [disabled]="!selectedStationId">
             <option value="temp_af">Temperatura (°C)</option>
             <option value="hum_af">Humedad relativa (%)</option>
@@ -46,10 +56,16 @@
 
           <span class="rango-fechas" *ngIf="selectedStationId">Período: {{ fechasPeriodo }}</span>
         </div>
+        <app-copiar-enlace *ngIf="selectedStationId" [enlace]="enlaceConsulta"></app-copiar-enlace>
 
         <div class="chart-box" *ngIf="selectedStationId">
+          <!-- Registros de 15 minutos: 31 días = 31 × 96 filas como máximo en el CSV -->
+          <app-exportar-grafico nombre="datos-en-tiempo-real" [maxFilas]="31 * 96"></app-exportar-grafico>
           <canvas id="graficoVariables"></canvas>
         </div>
+        <p class="aviso-faltantes" *ngIf="selectedStationId && textoSinRegistro" role="status">
+          <span><i class="muestra-sin-datos" aria-hidden="true"></i>Sin datos: {{ textoSinRegistro }}</span>
+        </p>
 
         <div class="selector-text" *ngIf="selectedStationId">
           Clic sobre una estación en el mapa para ver su gráfico.
@@ -57,8 +73,15 @@
       </div>
     </div>
 
+    <div class="tabla-acciones" *ngIf="!loading && !error && estaciones.length">
+      <button type="button" class="tabla-csv" (click)="descargarTablaCsv()"
+        title="Descargar en CSV el último dato de cada estación"
+        aria-label="Descargar en CSV el último dato de cada estación">
+        <mat-icon aria-hidden="true">download</mat-icon>Descargar tabla de estaciones (CSV)
+      </button>
+    </div>
     <div class="tabla-wrapper">
-      <div class="tabla-scroll-x">
+      <div class="tabla-scroll-x tabla-fija">
         <table *ngIf="!loading && !error" class="tabla-datos">
           <thead>
             <tr>

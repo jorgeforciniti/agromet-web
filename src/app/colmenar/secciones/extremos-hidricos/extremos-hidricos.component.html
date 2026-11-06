@@ -1,0 +1,220 @@
+<div class="panel">
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__titulo">Extremos hídricos <app-ayuda-termino termino="retorno"></app-ayuda-termino></h2>
+      <p class="panel__sub">Frecuencia de lluvias máximas de 1 a 5 días consecutivos y períodos de retorno estimados con la
+        distribución de Gumbel <app-ayuda-termino termino="gumbel"></app-ayuda-termino>, sobre los máximos de cada año del período.</p>
+      <!-- Pregunta para la Sección: se toma como válido el día con estado_pp 0, 1 o 2 y valor informado; ¿es el criterio
+        correcto? ¿Alcanzan 5 años completos como mínimo para mostrar el ajuste, o conviene exigir más? -->
+      <app-como-se-lee>
+        <p>Para cada año del período elegido se toma la mayor lluvia caída en 1 día, o en 2 a 5 días consecutivos según el
+          botón. Con esos máximos anuales se ajusta una distribución de Gumbel que estima la lluvia esperable para 2, 5, 10, 25,
+          50 y 100 años de retorno, con su intervalo de confianza del 80 %. Sólo entran los años con lluvia válida todos los
+          días, y se necesitan al menos 5.</p>
+        <p>En la curva, cada punto es un máximo anual ubicado según su frecuencia empírica; la línea es el ajuste y la banda,
+          el intervalo. La tarjeta del año elegido muestra su máximo y el período de retorno que le asigna ese ajuste; con el
+          año incompleto es provisorio.</p>
+        <p>La tabla por mes repite el ajuste con los máximos (o los totales) de cada mes; los eventos de varios días se asignan
+          al mes de su día central. Debajo, un gráfico cuenta en qué mes cayó la máxima diaria de cada año y otro relaciona la
+          lluvia de octubre a marzo con la suma de las máximas diarias de esos meses. Cada «?» explica el término.</p>
+      </app-como-se-lee>
+    </div>
+    <div class="chips" role="group" aria-label="Duración del evento">
+      <button *ngFor="let d of duraciones" type="button" class="chip" [class.chip--activo]="duracion === d"
+        [attr.aria-pressed]="duracion === d" (click)="setDuracion(d)">{{ d === 1 ? '1 día' : d + ' días' }}</button>
+    </div>
+  </div>
+  <div class="controles">
+    <label class="campo">Período de análisis
+      <select [value]="periodo.id" (change)="setPeriodo($any($event.target).value)">
+        <option *ngFor="let p of periodos" [value]="p.id" [selected]="p.id === periodo.id">{{ p.etiqueta }}</option>
+      </select>
+    </label>
+  </div>
+</div>
+
+<div class="panel" *ngIf="estado === 'cargando'" aria-live="polite">
+  <p class="panel__sub">Procesando los registros diarios de lluvia: {{ descargados }} de {{ aDescargar }} años.</p>
+  <div class="progreso" role="progressbar" [attr.aria-valuenow]="descargados" aria-valuemin="0" [attr.aria-valuemax]="aDescargar">
+    <span [style.width.%]="aDescargar ? 100 * descargados / aDescargar : 0"></span>
+  </div>
+</div>
+
+<app-estado-carga *ngIf="estado === 'error'" [estado]="estado" [mensaje]="mensaje" fuente="diarios.php"
+  (reintentar)="cargar()"></app-estado-carga>
+
+<ng-container *ngIf="estado === 'ok'">
+  <app-estado-carga *ngIf="!ajuste" [estado]="'vacio'"
+    mensajeVacio="No hay suficientes años completos en el período para ajustar la distribución (se requieren al menos 5)."></app-estado-carga>
+
+  <ng-container *ngIf="ajuste as a">
+    <div class="kpis">
+      <article class="kpi kpi--retorno" *ngFor="let f of kpisRetorno">
+        <span class="kpi__label">Retorno de {{ f.T }} años</span>
+        <span class="kpi__valor">{{ fmt(f.valor) }} <small>{{ unidad }}</small></span>
+        <span class="kpi__det">IC 80 %: {{ fmt(f.inferior, 0) }}–{{ fmt(f.superior, 0) }} mm ·
+          {{ fmt(100 / f.T, 0) }} % de probabilidad anual de superarse</span>
+      </article>
+      <article class="kpi" *ngIf="maximoObservado as m">
+        <span class="kpi__label">Máximo observado del período</span>
+        <span class="kpi__valor">{{ fmt(m.mm) }} <small>mm</small></span>
+        <span class="kpi__det">{{ duracion === 1 ? 'El ' + fechaCorta(m.fecha) : 'Del ' + fechaCorta(m.inicio) + ' al ' + fechaCorta(m.fin) }}</span>
+      </article>
+      <article class="kpi kpi--anio" *ngIf="seleccionado as s">
+        <span class="kpi__label">Año {{ anio }}<span class="tag tag--parcial" *ngIf="s.provisional">provisional</span></span>
+        <span class="kpi__valor">{{ fmt(s.maximo.mm) }} <small>mm</small></span>
+        <span class="kpi__det">{{ duracion === 1 ? 'El ' + fechaCorta(s.maximo.fecha) : 'Del ' + fechaCorta(s.maximo.inicio) + ' al ' + fechaCorta(s.maximo.fin) }}
+          · retorno ≈ {{ textoRetorno(s.retorno) }}
+          <ng-container *ngIf="s.provisional"> (máximo hasta la fecha; año incompleto)</ng-container></span>
+      </article>
+    </div>
+
+    <div class="panel">
+      <div class="grid-2">
+        <div>
+          <h3 class="panel__titulo panel__titulo--sm">Curva de Gumbel · {{ etiquetaDuracion }}</h3>
+          <p class="panel__sub">Puntos: máximos anuales con su frecuencia empírica n/(N+1). Línea: ajuste de Gumbel. Banda: intervalo
+            de confianza del 80 % <app-ayuda-termino termino="confianza"></app-ayuda-termino>.</p>
+          <app-exportar-grafico nombre="colmenar-extremos-hidricos-gumbel"></app-exportar-grafico>
+          <div class="grafico grafico--alto" role="img"
+            [attr.aria-label]="'Curva de Gumbel de la ' + etiquetaDuracion + ' para ' + periodo.etiqueta + '. Valores en la tabla.'">
+            <canvas baseChart [type]="'scatter'" [data]="datosGumbel" [options]="opcionesGumbel"></canvas>
+          </div>
+        </div>
+        <div>
+          <h3 class="panel__titulo panel__titulo--sm">Valores esperados por período de retorno ({{ unidad }})</h3>
+          <p class="panel__sub">{{ a.n }} máximos anuales · media {{ fmt(a.media) }} mm · desvío {{ fmt(a.desvio) }} mm.</p>
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th scope="col" class="num">T (años)</th>
+                  <th scope="col" class="num">Probabilidad</th>
+                  <th scope="col" class="num">Estimado</th>
+                  <th scope="col" class="num">IC 80 % inf.</th>
+                  <th scope="col" class="num">IC 80 % sup.</th>
+                  <th scope="col" class="num" *ngIf="comparaConTrabajo">Figueroa et al. 1970–99</th>
+                  <th scope="col" class="num" *ngIf="comparaConTrabajo">Medina y Moyano 1908–72</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let f of tablaRetorno">
+                  <th scope="row" class="num">{{ f.T }}</th>
+                  <td class="num">{{ fmt(f.probabilidad, 2) }}</td>
+                  <td class="num"><strong>{{ fmt(f.valor) }}</strong></td>
+                  <td class="num">{{ fmt(f.inferior, 0) }}</td>
+                  <td class="num">{{ fmt(f.superior, 0) }}</td>
+                  <td class="num" *ngIf="comparaConTrabajo">{{ fmt(f.figueroa) }}</td>
+                  <td class="num" *ngIf="comparaConTrabajo">{{ fmt(f.medina, 0) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="nota">Probabilidad: frecuencia acumulada (no superación) en un año. El intervalo del 80 % deja un 20 % de
+            probabilidad de que el valor real quede fuera del rango.</p>
+          <p class="nota" *ngIf="comparaConTrabajo">Los máximos anuales 1970–1999 coinciden con los del Cuadro 1 del trabajo; las
+            diferencias de 0,5 mm en los valores estimados provienen de redondeos. Los intervalos difieren porque el trabajo usó las
+            bandas binomiales de Oosterbaan.</p>
+        </div>
+      </div>
+      <p class="nota" *ngIf="aniosExcluidos.length">Años excluidos por registros de lluvia incompletos: {{ aniosExcluidos.join(', ') }}.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel__head">
+        <div>
+          <h3 class="panel__titulo panel__titulo--sm">Valores esperados por mes (mm)</h3>
+          <p class="panel__sub">{{ vistaMensual === 'totales' ? 'Lluvia total del mes' : (duracion === 1 ? 'Lluvia máxima diaria del mes' :
+            'Lluvia máxima de ' + duracion + ' días; cada evento se asigna al mes de su día central') }} para cada período de retorno.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Variable mensual">
+          <button type="button" class="chip" [class.chip--activo]="vistaMensual === 'duracion'" [attr.aria-pressed]="vistaMensual === 'duracion'"
+            (click)="setVistaMensual('duracion')">{{ duracion === 1 ? 'Máxima diaria' : 'Máxima de ' + duracion + ' días' }}</button>
+          <button type="button" class="chip" [class.chip--activo]="vistaMensual === 'totales'" [attr.aria-pressed]="vistaMensual === 'totales'"
+            (click)="setVistaMensual('totales')">Totales mensuales</button>
+        </div>
+      </div>
+      <div class="tabla-wrap">
+        <table class="tabla tabla--mensual">
+          <thead>
+            <tr>
+              <th scope="col">T (años)</th>
+              <th scope="col" class="num" *ngFor="let m of MESES_CORTOS">{{ m }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of matrizMensual; let i = index">
+              <th scope="row">{{ PERIODOS_RETORNO[i] }}</th>
+              <td class="num" *ngFor="let v of fila" [style.--int]="v !== null && maxMensual ? v / maxMensual : 0">{{ fmt(v) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="nota">El sombreado indica la magnitud relativa respecto del mes más lluvioso a 100 años.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3 class="panel__titulo panel__titulo--sm">Mes de ocurrencia de la lluvia máxima diaria anual</h3>
+        <p class="panel__sub">Cantidad de años en que el máximo diario del año ocurrió en cada mes · más frecuente: {{ mesesConMasMaximos }}.</p>
+        <app-exportar-grafico nombre="colmenar-extremos-hidricos-ocurrencia"></app-exportar-grafico>
+        <div class="grafico grafico--bajo" role="img" [attr.aria-label]="'Cantidad de máximos diarios anuales por mes. Más frecuente: ' + mesesConMasMaximos">
+          <canvas baseChart [type]="'bar'" [data]="datosOcurrencia" [options]="opcionesOcurrencia"></canvas>
+        </div>
+        <p class="nota" *ngIf="contribucion as c">En el evento máximo anual de 5 días, el día más lluvioso aporta en promedio el
+          <strong>{{ fmt(c.media, 0) }} %</strong> de la lluvia del evento (entre {{ fmt(c.minimo, 0) }} % y {{ fmt(c.maximo, 0) }} %,
+          {{ c.n }} años).</p>
+      </div>
+      <div class="panel">
+        <h3 class="panel__titulo panel__titulo--sm">Lluvia de la campaña y lluvias intensas (octubre–marzo)</h3>
+        <p class="panel__sub" *ngIf="correlacionOctMar as c; else sinCorrelacion">
+          r = {{ fmt(c.r, 3) }} con {{ c.n }} campañas ·
+          {{ c.p < 0.001 ? 'altamente significativa (p < 0,001)' : c.p < 0.01 ? 'muy significativa (p < 0,01)' : c.p < 0.05 ? 'significativa (p < 0,05)' : 'no significativa (p = ' + fmt(c.p, 2) + ')' }}.
+          {{ c.r > 0 && c.p < 0.05 ? 'Las campañas más lluviosas se asocian a lluvias diarias más intensas.' : '' }}
+        </p>
+        <ng-template #sinCorrelacion><p class="panel__sub">No hay campañas completas suficientes en el período.</p></ng-template>
+        <app-exportar-grafico nombre="colmenar-extremos-hidricos-correlacion"></app-exportar-grafico>
+        <div class="grafico grafico--bajo" role="img" aria-label="Dispersión entre la lluvia total de octubre a marzo y la suma de sus máximas diarias mensuales">
+          <canvas baseChart [type]="'scatter'" [data]="datosCorrelacion" [options]="opcionesCorrelacion"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <details class="panel detalle-anual">
+      <summary class="panel__titulo panel__titulo--sm">Máximos anuales del período ordenados ({{ empirica.length }} años)</summary>
+      <div class="tabla-wrap tabla-wrap--evolucion">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col" class="num">Orden</th>
+              <th scope="col">Año</th>
+              <th scope="col">{{ duracion === 1 ? 'Fecha' : 'Período del evento' }}</th>
+              <th scope="col" class="num">{{ unidad }}</th>
+              <th scope="col" class="num">Fe</th>
+              <th scope="col" class="num">Fc</th>
+              <th scope="col" class="num">T empírico (años)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of empirica">
+              <td class="num">{{ f.orden }}</td>
+              <th scope="row">{{ f.maximo.anio }}</th>
+              <td>{{ duracion === 1 ? fechaCorta(f.maximo.fecha) : fechaCorta(f.maximo.inicio) + ' – ' + fechaCorta(f.maximo.fin) }}</td>
+              <td class="num">{{ fmt(f.maximo.mm) }}</td>
+              <td class="num">{{ fmt(f.fe, 3) }}</td>
+              <td class="num">{{ fmt(f.fc, 3) }}</td>
+              <td class="num">{{ fmt(f.retorno, 2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </ng-container>
+
+  <p class="nota cita">
+    Metodología basada en Figueroa, L. R., Lamelas, C. M. y Forciniti, J. D. <em>Frecuencia de ocurrencia de precipitaciones
+    extremas diarias en El Colmenar – Tucumán.</em> Estación Experimental Agroindustrial Obispo Colombres (EEAOC). Ajuste de Gumbel
+    por momentos; intervalo de confianza del 80 % con el error estándar de los cuantiles (Kite, 1977). Sólo se usan años con lluvia
+    válida todos los días.
+  </p>
+</ng-container>

@@ -4,6 +4,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import {
+  MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -17,10 +18,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, filasConNormal, popupEstacion } from '../maps/popup';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
+import { colorPorcentajeNormal, filasLeyendaPorcentajeNormal } from '../maps/paleta-porcentaje-normal';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { WeatherService } from '../services/weather.service'; // Assuming path to your service
-import { firstValueFrom } from 'rxjs';
-import { GeoJsonObject } from 'geojson';
 import { KmzLayerService } from '../services/kmz-layer.service';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 // Interfaces based on your provided JSON structure and rain-campaign-dialog.component.ts
 interface RainRecord {
@@ -48,14 +57,6 @@ interface Month {
   label: string;
 }
 
-interface RainZoneLayer {
-  label: string;
-  file: string;
-  color: string;
-  selected: boolean;
-  layer?: L.GeoJSON;
-}
-
 @Component({
   selector: 'app-rain-monthly-map',
   standalone: true,
@@ -71,32 +72,29 @@ interface RainZoneLayer {
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatCheckboxModule,
+    ComoSeLeeComponent,
   ],
   templateUrl: './map-rain-monthly.component.html',
   styleUrls: ['./map-rain-monthly.component.css'],
 })
 export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   public map!: L.Map;
   public errorMessage: string | null = null;
   private stationsLayerGroup: L.LayerGroup = L.layerGroup();
-  public zoneLayers: RainZoneLayer[] = [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
-  ];
+  public zoneLayers: ZonaProductiva[] = crearZonasProductivas();
   public isLoading = false;
-  private provincesLayer: L.GeoJSON | undefined;
   public noDataForSelection = false;
-  public osmLayer!: L.TileLayer;
-  public satLayer!: L.TileLayer;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
+
+  /** Puntos del mapa por id (de pluviómetro), para abrir su ficha de lluvias. */
+  private puntos = new Map<number, StationRainData>();
+  /** Campaña que se cargó: los selectores pueden cambiar después sin volver a cargar. */
+  private consulta?: { inicioMes: number; inicioAnio: number; unSoloMes: boolean };
 
   public selectedStartMonth!: number;
   public selectedEndMonth!: number;
   public selectedStartYear!: number;
-  public selectedBaseMap: string = 'osm';
 
   public monthsList: Month[] = [
     { value: 1, label: 'Ene' }, { value: 2, label: 'Feb' }, { value: 3, label: 'Mar' },
@@ -107,11 +105,15 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
 
   public yearsList: number[] = [];
 
-  // Listado de mapas base
-  baseMapsList = [
-    { value: 'osm', label: 'OSM Estándar' },
-    { value: 'sat', label: 'Satelital' }
-  ];
+  /**
+   * Último mes completo (el anterior al actual): el período no puede incluir el mes en curso ni
+   * posteriores, porque todavía no están cerrados ni validados.
+   */
+  public readonly ultimoMesCompleto = (() => {
+    const hoy = new Date();
+    const mesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+    return { mes: mesAnterior.getMonth() + 1, anio: mesAnterior.getFullYear() };
+  })();
 
   private monthMap: { [key: string]: number } = {
     ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
@@ -126,6 +128,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     private weatherService: WeatherService,
     private http: HttpClient,
     private kmzLayerService: KmzLayerService,
+    private dialog: MatDialog,
     public dialogRef: MatDialogRef<MapRainMonthlyComponent>,
     @Inject(MAT_DIALOG_DATA) public data: RainMonthlyMapDialogData
   ) { }
@@ -143,16 +146,17 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     this.selectedEndMonth = lastMonthDate.getMonth() + 1;
     this.selectedStartYear = lastMonthDate.getFullYear();
 
-    const currentYear = new Date().getFullYear();
-    for (let y = currentYear; y >= currentYear - 20; y--) {
+    // En enero, el año en curso no tiene ningún mes completo: la lista empieza en el anterior
+    const ultimoAnio = this.ultimoMesCompleto.anio;
+    for (let y = ultimoAnio; y >= ultimoAnio - 20; y--) {
       this.yearsList.push(y);
     }
     this.loadRainData();
   }
 
   async ngAfterViewInit(): Promise<void> {
-    this.initMap();
-    await this.loadProvinces();
+    const control = this.initMap();
+    if (this.map) await cargarProvincias(this.map, this.http, { control });
     await this.loadZoneLayers();
 
     this.dialogRef.afterOpened().subscribe(() => {
@@ -166,34 +170,33 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
     if (this.map) {
       this.map.remove();
     }
   }
 
-  private initMap(): void {
+  /** Devuelve el control de capas del mapa base, para sumarle las provincias. */
+  private initMap(): L.Control.Layers | undefined {
+    let control: L.Control.Layers | undefined;
     if (document.getElementById('rainMapDialog')) {
       this.map = L.map('rainMapDialog', {
         center: this.defaultMapCenter,
         zoom: this.defaultMapZoom,
-        maxBoundsViscosity: 0.0,
-        scrollWheelZoom: false  // Desactivar zoom por rueda
+        ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
       });
+      this.dejarDeSeguirTamanio = seguirTamanioMapa(this.map);
+      encuadrarTucuman(this.map);
       this.map.createPane('zonePane').style.zIndex = '450';
       this.map.createPane('rainMarkersPane').style.zIndex = '600';
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 18,
-      }).addTo(this.map);
-
-      this.satLayer = L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        {
-          attribution: 'Tiles © Esri',
-          maxZoom: 18,
-        }
-      );
+      control = agregarMapaBase(this.map);
+      // Todos los puntos (estaciones y pluviómetros) tienen ficha de lluvias, la misma que abre
+      // Lluvias por campaña: esta fuente es la misma y su id es el del pluviómetro.
+      conectarBotonesFicha(this.map, {
+        buscar: async ref => this.puntos.get(Number(ref.id)),
+        abrirPorReferencia: ref => this.abrirFichaLluvia(Number(ref.id))
+      });
 
       this.stationsLayerGroup.addTo(this.map);
       setTimeout(() => {
@@ -204,82 +207,69 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     } else {
       console.error('Map container "rainMapDialog" not found.');
     }
-    this.updateBaseMap();
-
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.map?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.map?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.map.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.map?.scrollWheelZoom.enable();
-      } else {
-        this.map?.scrollWheelZoom.disable();
-      }
-    });
-
+    return control;
   }
 
   private async loadZoneLayers(): Promise<void> {
-    await Promise.all(this.zoneLayers.map(async zone => {
-      try {
-        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
-        zone.layer = L.geoJSON(data, {
-          pane: 'zonePane',
-          style: {
-            color: zone.color,
-            weight: 2,
-            opacity: 0.9,
-            fillColor: zone.color,
-            fillOpacity: 0.35
-          }
-        });
-      } catch (error) {
-        console.error(`Error al cargar ${zone.file}:`, error);
-      }
-    }));
+    await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
-  public toggleZoneLayer(zone: RainZoneLayer, selected: boolean): void {
-    zone.selected = selected;
-    if (!this.map || !zone.layer) return;
-
-    if (selected) {
-      zone.layer.addTo(this.map);
-    } else {
-      this.map.removeLayer(zone.layer);
-    }
+  public toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
+    alternarZona(this.map, zone, selected);
   }
 
-  onBaseMapChange(): void {
-    this.updateBaseMap();
+  /**
+   * Ficha de lluvias del punto (mapa y estadísticas de su serie), igual que en Lluvias por
+   * campaña. Con un solo mes elegido abre en ese mes (el primero de la campaña); si no, en el total.
+   */
+  private async abrirFichaLluvia(id: number): Promise<void> {
+    const punto = this.puntos.get(id);
+    if (!punto || !this.consulta) return;
+    const { EstacionLluviaDialogComponent } = await import('../estacion-lluvia-dialog/estacion-lluvia-dialog.component');
+    this.dialog.open(EstacionLluviaDialogComponent, {
+      data: {
+        id: punto.id,
+        name: punto.name,
+        lat: punto.lat,
+        lon: punto.lon,
+        referencePeriod: punto.reference_period,
+        inicioMes: this.consulta.inicioMes,
+        inicioAnio: this.consulta.inicioAnio,
+        campania: punto.dataset,
+        mesIdx: this.consulta.unSoloMes ? 0 : null
+      },
+      width: 'min(900px, 96vw)',
+      maxWidth: '96vw',
+      panelClass: 'do-dialog',
+      autoFocus: false
+    });
   }
 
-  private updateBaseMap(): void {
-    if (!this.map) {
-      return;
-    }
-    // Remover capas sólo si existen
-    if (this.osmLayer && this.map.hasLayer(this.osmLayer)) {
-      this.map.removeLayer(this.osmLayer);
-    }
-    if (this.satLayer && this.map.hasLayer(this.satLayer)) {
-      this.map.removeLayer(this.satLayer);
-    }
+  /** Año del mes de fin: si es anterior al de inicio, corresponde al año siguiente. */
+  public anioFin(mesFin: number): number {
+    return mesFin < this.selectedStartMonth ? this.selectedStartYear + 1 : this.selectedStartYear;
+  }
 
-    // Añadir capa seleccionada
-    if (this.selectedBaseMap === 'osm' && this.osmLayer) {
-      this.osmLayer.addTo(this.map);
-    } else if (this.selectedBaseMap === 'sat' && this.satLayer) {
-      this.satLayer.addTo(this.map);
+  /** true si el mes (1 a 12) del año dado es el mes en curso o uno posterior. */
+  public mesPosteriorAlUltimoCompleto(mes: number, anio: number): boolean {
+    const { mes: ultimoMes, anio: ultimoAnio } = this.ultimoMesCompleto;
+    return anio > ultimoAnio || (anio === ultimoAnio && mes > ultimoMes);
+  }
+
+  /** true si el período elegido llega al mes en curso o más allá (no se puede cargar). */
+  public get periodoIncluyeMesIncompleto(): boolean {
+    return this.mesPosteriorAlUltimoCompleto(this.selectedEndMonth, this.anioFin(this.selectedEndMonth));
+  }
+
+  /** Al cambiar el año de inicio, lleva los meses que queden fuera al último mes completo. */
+  public ajustarAlUltimoMesCompleto(): void {
+    const { mes, anio } = this.ultimoMesCompleto;
+    if (this.mesPosteriorAlUltimoCompleto(this.selectedStartMonth, this.selectedStartYear)) {
+      this.selectedStartMonth = mes;
+      this.selectedStartYear = anio;
+    }
+    if (this.periodoIncluyeMesIncompleto) {
+      this.selectedEndMonth = mes;
     }
   }
 
@@ -288,10 +278,19 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
       alert('Por favor, seleccione el período completo.');
       return;
     }
+    if (this.periodoIncluyeMesIncompleto) {
+      return; // El mensaje en pantalla indica hasta qué mes se puede elegir
+    }
 
     this.isLoading = true;
     this.noDataForSelection = false;
     this.stationsLayerGroup.clearLayers();
+    this.puntos.clear();
+    this.consulta = {
+      inicioMes: this.selectedStartMonth,
+      inicioAnio: this.selectedStartYear,
+      unSoloMes: this.selectedEndMonth === this.selectedStartMonth
+    };
 
     this.weatherService
       .getRainCampaign(this.selectedStartMonth, this.selectedStartYear)
@@ -315,15 +314,15 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
                   });
 
                   // Popup con detalles
-                  marker.bindPopup(
-                    `<b>${station.name}</b><br>
-                     Lluvia período: ${sumValue.toFixed(1)} mm<br>
-                     Normal período: ${sumNormal.toFixed(1)} mm<br>
-                     Porcentaje: ${((sumValue / sumNormal) * 100).toFixed(1)}%`
-                  );
+                  marker.bindPopup(popupEstacion({
+                    titulo: station.name,
+                    filas: filasConNormal('Lluvia del período', sumValue, sumNormal, 'mm'),
+                    ficha: { id: String(station.id), lat: station.lat, lon: station.lon }
+                  }));
+                  this.puntos.set(station.id, station);
 
                   // Tooltip permanente con solo el valor
-                  marker.bindTooltip(`${sumValue.toFixed(1)} mm`, {
+                  marker.bindTooltip(`${formatDecimal(sumValue, 1)} mm`, {
                     direction: 'right',
                     offset: [8, 0],
                     className: 'rain-value-label'
@@ -363,10 +362,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     let hasMissingDataInPeriod = false;
 
     const userStartDate = new Date(this.selectedStartYear, this.selectedStartMonth - 1, 1);
-    let userEndDateYear = this.selectedStartYear;
-    if (this.selectedEndMonth < this.selectedStartMonth) {
-      userEndDateYear = this.selectedStartYear + 1;
-    }
+    const userEndDateYear = this.anioFin(this.selectedEndMonth);
     // Create the date for the first day of the end month
     const userEndDate = new Date(userEndDateYear, this.selectedEndMonth - 1, 1);
     // To include the whole end month, set date to the last day of that month
@@ -397,48 +393,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private getRainColor(value: number, normal: number): string {
-    if (normal === 0) {
-      return '#808080'; // Grey for no normal data or normal is zero
-    }
-    const ratio = value / normal;
-
-    if (ratio < 0.33) return '#FF0000'; // Rojo
-    if (ratio < 0.66) return '#FFA500'; // Naranja
-    if (ratio < 1.00) return '#FFFF00'; // Amarillo
-    if (ratio <= 1.5) return '#87CEEB'; // Celeste (Sky Blue)
-    if (ratio < 2.0) return '#00BFFF';  // Azul claro (Deep Sky Blue)
-    return '#00008B'; // Azul oscuro (Dark Blue)
-  }
-
-  private async loadProvinces(): Promise<void> {
-    try {
-      const provincesUrl = '../../assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(
-        this.http.get<GeoJsonObject>(provincesUrl)
-      );
-
-      this.provincesLayer = L.geoJSON(provincesData, {
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0 // Sin relleno para no interferir con la capa de temperaturas
-        },
-        onEachFeature: (feature, layer) => {
-          if (feature.properties && feature.properties.nam) {
-            layer.bindPopup(feature.properties.nam);
-          }
-        }
-      });
-
-      if (this.map) {
-        this.provincesLayer.addTo(this.map);
-        this.provincesLayer.setZIndex(2); // Provincias en el frente
-      }
-    } catch (error) {
-      console.error('Error al cargar provincias:', error);
-      this.errorMessage = 'No se pudieron cargar los límites provinciales';
-    }
+    return colorPorcentajeNormal(value, normal);
   }
 
   private addRainLegendControl(): void {
@@ -447,16 +402,8 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'info legend');
 
-      div.innerHTML = `
-  <div class="legend-title">Relación al normal</div>
-    <i style="background:#a50f15; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &lt; 33%<br>
-    <i style="background:#d97401; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 33–66%<br>
-    <i style="background:#f5f10b; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 66–99%<br>
-    <i style="background:#88dafd; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 100–150%<br>
-    <i style="background:#2597cc; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> 150–200%<br>
-    <i style="background:#254faa; width:16px; height:16px; display:inline-block; margin-right:6px; border-radius:3px;"></i> &gt; 200%<br>
-`;
-      return div;
+      div.innerHTML = `<div class="legend-title">Relación al normal</div>${filasLeyendaPorcentajeNormal()}`;
+      return leyendaPlegable(div);
     };
 
     legend.addTo(this.map);

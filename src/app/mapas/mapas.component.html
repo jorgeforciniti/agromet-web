@@ -1,87 +1,30 @@
 <div class="dm">
   <div class="dm__main">
     <div class="dm__intro">
-      <div>
-        <div class="dm__eyebrow">CAPAS PRINCIPALES</div>
-        <h3 class="dm__headline">Mapas para lectura espacial y monitoreo territorial</h3>
-      </div>
-      <p class="dm__lead">Accedé a visualizaciones temáticas para interpretar rápidamente precipitaciones, temperaturas y eventos de helada.</p>
+      <div class="dm__eyebrow">MAPAS</div>
+      <h1 class="dm__headline">Mapas de la red de estaciones</h1>
+      <p class="dm__lead">Lluvias, temperaturas y heladas registradas por las estaciones de la EEAOC, en el período que
+        elijas.</p>
     </div>
 
     <div class="dm__grid">
-      <mat-card class="dm-card dm-card--primary tap-feedback" [appScrollReveal]="0">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/mapas/lluviasmensuales.png" alt="Lluvias mensuales" />
-          <div class="dm-card__badge">PRECIPITACIONES</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Cobertura mensual</div>
-          <h3 class="dm-card__title">Precipitaciones</h3>
-          <p class="dm-card__sub">Mapa de acumulados mensuales para seguir distribución territorial y contrastes espaciales.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openMapRainMonthly()">Ver mapa</button>
-        </mat-card-actions>
-      </mat-card>
-
-      <mat-card class="dm-card tap-feedback" [appScrollReveal]="80">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/mapas/temperaturas.png" alt="Temperaturas" loading="lazy" />
-          <div class="dm-card__badge">TEMPERATURA</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Extremos y medias</div>
-          <h3 class="dm-card__title">Temperaturas</h3>
-          <p class="dm-card__sub">Distribución de máximas, mínimas y promedios para ubicar comportamientos relevantes.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openMapTemperature()">Ver mapa</button>
-        </mat-card-actions>
-      </mat-card>
-
-      <mat-card class="dm-card tap-feedback" [appScrollReveal]="160">
-        <div class="dm-card__media">
-          <img class="dm-card__img" src="../../assets/images/mapas/heladas.png" alt="Heladas" loading="lazy" />
-          <div class="dm-card__badge">RIESGO</div>
-        </div>
-        <mat-card-content class="dm-card__body">
-          <div class="dm-card__kicker">Impacto térmico</div>
-          <h3 class="dm-card__title">Heladas</h3>
-          <p class="dm-card__sub">Lectura espacial de intensidad y duración para identificar zonas más expuestas.</p>
-        </mat-card-content>
-        <mat-card-actions class="dm-card__actions">
-          <button mat-button class="dm-btn" (click)="openMapFrost()">Ver mapa</button>
-        </mat-card-actions>
-      </mat-card>
+      @for (mapa of mapas; track mapa.id; let i = $index) {
+        <mat-card class="dm-card tap-feedback" [appScrollReveal]="i * 80">
+          <button type="button" class="dm-card__media" (click)="abrir(mapa)" [attr.aria-label]="'Ver mapa de ' + mapa.titulo.toLowerCase()" tabindex="-1">
+            <img class="dm-card__img" [src]="mapa.imagen" alt="" [attr.loading]="i === 0 ? null : 'lazy'" />
+          </button>
+          <mat-card-content class="dm-card__body">
+            <h2 class="dm-card__title">{{ mapa.titulo }}</h2>
+            <p class="dm-card__sub">{{ mapa.descripcion }}</p>
+          </mat-card-content>
+          <mat-card-actions class="dm-card__actions">
+            <button mat-button class="dm-btn" (click)="abrir(mapa)">Ver mapa</button>
+          </mat-card-actions>
+        </mat-card>
+      }
     </div>
+
+    <!-- Lluvias máximas 24h: todavía no existe; volver a mostrarla como tarjeta cuando esté.
+         Distribución de máximos diarios por localidad. -->
   </div>
-
-  <aside class="dm__side">
-    <div class="dm__header">
-      <div class="dm__eyebrow dm__eyebrow--side">MAPAS COMPLEMENTARIOS</div>
-      <h2 class="dm__title">Más capas para explorar</h2>
-      <p class="dm__side-copy">Accesos a mapas adicionales y próximas visualizaciones para ampliar el análisis espacial.</p>
-    </div>
-
-    <ul class="dm-links">
-      <li>
-        <button type="button" class="dm-link tap-feedback" (click)="openMapRains()">
-          <mat-icon inline>water_drop</mat-icon>
-          <span>
-            <strong>Lluvias diarias:</strong> distribución de lluvias acumuladas por período.
-          </span>
-        </button>
-      </li>
-
-      <li>
-        <span class="dm-link dm-link--disabled">
-          <mat-icon inline>cloud</mat-icon>
-          <span>
-            <strong>Lluvias máximas 24h:</strong> distribución de máximos diarios por localidad.
-            <span class="dm-soon">Próximamente</span>
-          </span>
-        </span>
-      </li>
-    </ul>
-  </aside>
 </div>

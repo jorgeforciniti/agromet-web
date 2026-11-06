@@ -1,5 +1,5 @@
 ﻿import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -12,6 +12,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { AnalyticsService } from './services/analytics.service';
+import { CuentaPreferenciasService } from './services/cuenta-preferencias.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +21,7 @@ import { FooterComponent } from './components/footer/footer.component';
   imports: [
     MatGridListModule,
     RouterOutlet,
+    RouterLink,
     MatToolbarModule,
     MatButtonModule,
     MatMenuModule,
@@ -37,8 +40,22 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly onScroll = this.onWindowScroll.bind(this);
   private headerResizeObserver?: ResizeObserver;
 
-  constructor(library: FaIconLibrary, public dialog: MatDialog) {
+  constructor(library: FaIconLibrary, public dialog: MatDialog, private analytics: AnalyticsService,
+    cuentaPreferencias: CuentaPreferenciasService) {
     library.addIcons(faTwitter, faYoutube, faInstagram, faFacebook);
+
+    // Favoritas de la cuenta al iniciar sesión (y las del visitante al cerrarla)
+    cuentaPreferencias.iniciar();
+
+    // Estadísticas: qué herramientas (diálogos) se abren. Se identifica cada una por su
+    // título visible, que no cambia con la compilación (los nombres de clase sí).
+    this.dialog.afterOpened.subscribe(ref => {
+      setTimeout(() => {
+        const titulo = document.getElementById(ref.id)
+          ?.querySelector('h2, h1, .titulo')?.textContent?.replace(/\s+/g, ' ').trim();
+        this.analytics.registrar('abrir_herramienta', { herramienta: (titulo || 'sin título').slice(0, 100) });
+      }, 400);
+    });
   }
 
   ngOnInit(): void {

@@ -2,15 +2,21 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Injectable, Optional } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import * as L from 'leaflet';
+import { OPCIONES_GESTOS } from '../maps/gestos';
+import { ZonaProductiva, alternarZona, cargarCapasZonas, crearZonasProductivas } from '../maps/zonas-productivas';
+import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
+import { conectarBotonesFicha, popupEstacion } from '../maps/popup';
+import { FichaEstacionService } from '../services/ficha-estacion.service';
+import { seguirTamanioMapa } from '../maps/map-size';
+import { encuadrarTucuman } from '../maps/encuadre';
+import { leyendaPlegable } from '../maps/leyenda-plegable';
 import { Subscription } from 'rxjs';
 import { WeatherDataApiResponse, WeatherService } from '../services/weather.service'; // Asegurarse del path correcto
-import { MatSelectChange } from '@angular/material/select';
+import { formatDecimal } from '../pipes/valor.pipe';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatTabsModule } from '@angular/material/tabs';
-import { FeatureCollection } from 'geojson';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -82,14 +88,6 @@ interface FrostMapRecord {
   FUH?: string | Date | null;
 }
 
-interface FrostZoneLayer {
-  label: string;
-  file: string;
-  color: string;
-  selected: boolean;
-  layer?: L.GeoJSON;
-}
-
 @Injectable()
 export class DmyDateAdapter extends NativeDateAdapter {
   override parse(value: unknown, parseFormat?: string): Date | null {
@@ -114,6 +112,9 @@ export class DmyDateAdapter extends NativeDateAdapter {
     return super.parse(value, parseFormat);
   }
 }
+import { ValorPipe } from '../pipes/valor.pipe';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+
 @Component({
   selector: 'app-map-temperature',
   templateUrl: './map-frost.component.html',
@@ -121,6 +122,7 @@ export class DmyDateAdapter extends NativeDateAdapter {
   standalone: true,
   imports: [
     CommonModule,
+    ValorPipe,
     MatIconModule,
     MatDialogModule,
     MatFormFieldModule,
@@ -133,7 +135,8 @@ export class DmyDateAdapter extends NativeDateAdapter {
     MatProgressSpinnerModule,
     MatTabsModule,
     HttpClientModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    ComoSeLeeComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: DmyDateAdapter },    // ← nuevo
@@ -143,6 +146,8 @@ export class DmyDateAdapter extends NativeDateAdapter {
   encapsulation: ViewEncapsulation.None
 })
 export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
+  private dejarDeSeguirTamanio?: () => void;
   private defaultMapCenter: L.LatLngTuple = [-26.8305, -65.2226];
   today: Date = new Date();
   hoy: boolean = false;
@@ -156,37 +161,12 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
   form: FormGroup;
   mapa?: L.Map;
-  private ctrlZoomTimeout?: ReturnType<typeof setTimeout>;
-  baseMapsList = [
-    {
-      label: 'OpenStreetMap',
-      value: 'osm',
-      layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'OpenStreetMap contributors'
-      })
-    },
-    {
-      label: 'ESRI Satelital',
-      value: 'esri',
-      layer: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles © Esri'
-      })
-    }
-  ];
-  currentBaseLayer = this.baseMapsList[0].layer;
 
   heladasData: FrostMapRecord[] = [];
   heladasSubscription: Subscription | undefined;
   markersLayer = L.layerGroup();
-  provincesLayer: L.GeoJSON | null = null;
   loading = false;
-  zoneLayers: FrostZoneLayer[] = [
-    { label: 'Zona Cañera', file: 'cania.kmz', color: '#f48fb1', selected: false },
-    { label: 'Zona Citrícola', file: 'citrus.kmz', color: '#fbc02d', selected: false },
-    { label: 'Zona de Granos', file: 'soja_maiz.kmz', color: '#ef6c00', selected: false },
-    { label: 'Zona de Tabaco', file: 'tabaco.kmz', color: '#795548', selected: false },
-    { label: 'Zona Hortícola', file: 'horticola.kmz', color: '#d32f2f', selected: false },
-  ];
+  zoneLayers: ZonaProductiva[] = crearZonasProductivas();
 
   constructor(
     private fb: FormBuilder,
@@ -194,6 +174,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     private dialogRef: MatDialogRef<MapFrostComponent>,
     private http: HttpClient, // Añadir HttpClient
     private kmzLayerService: KmzLayerService,
+    private fichaEstacion: FichaEstacionService,
     private dateAdapter: DateAdapter<Date>, // Añadir DateAdapter
     @Inject(MAT_DIALOG_DATA) @Optional() public data: { hoy?: boolean } | null
 
@@ -211,8 +192,7 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.form = this.fb.group({
       desde: [firstDay, [Validators.required]],
-      hasta: [new Date(), [Validators.required]],
-      baseMap: [this.baseMapsList[0].value]
+      hasta: [new Date(), [Validators.required]]
     });
   }
 
@@ -226,113 +206,29 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mapa = L.map('mapfrost', {
       center: this.defaultMapCenter,
       zoom: 8,
-      maxBoundsViscosity: 0.0,
-      scrollWheelZoom: false  // Desactivar zoom por rueda
+      ...OPCIONES_GESTOS   // gestos táctiles y Ctrl+rueda (ver maps/gestos.ts)
     });
-    this.currentBaseLayer.addTo(this.mapa);
+    this.dejarDeSeguirTamanio = seguirTamanioMapa(this.mapa);
+    encuadrarTucuman(this.mapa);
+    const control = agregarMapaBase(this.mapa);
+    conectarBotonesFicha(this.mapa, this.fichaEstacion);
     this.mapa.createPane('zonePane').style.zIndex = '450';
     this.mapa.createPane('frostMarkersPane').style.zIndex = '600';
     this.markersLayer.addTo(this.mapa);
 
-    await this.loadProvinces(); // Cargar provincias al inicio
+    await cargarProvincias(this.mapa, this.http, { control });
     await this.loadZoneLayers();
 
-    // Mostrar mensaje si gira la rueda sin Ctrl
-    if (!this.mapa) return;
-    this.mapa.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (!e.ctrlKey) {
-        this.mapa?.getContainer().classList.add('ctrl-zoom-message');
-        clearTimeout(this.ctrlZoomTimeout);
-        this.ctrlZoomTimeout = setTimeout(() => {
-          this.mapa?.getContainer().classList.remove('ctrl-zoom-message');
-        }, 1000);
-      }
-    });
-
-    // Habilitar zoom si Ctrl está presionado
-    this.mapa.getContainer().addEventListener('wheel', (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        this.mapa?.scrollWheelZoom.enable();
-      } else {
-        this.mapa?.scrollWheelZoom.disable();
-      }
-    });
     this.addLegend();
     setTimeout(() => this.mapa?.invalidateSize(), 50);
   }
 
   private async loadZoneLayers(): Promise<void> {
-    await Promise.all(this.zoneLayers.map(async zone => {
-      try {
-        const data = await this.kmzLayerService.load(`assets/shapes/${zone.file}`);
-        zone.layer = L.geoJSON(data, {
-          pane: 'zonePane',
-          style: {
-            color: zone.color,
-            weight: 2,
-            opacity: 0.9,
-            fillColor: zone.color,
-            fillOpacity: 0.35
-          }
-        });
-      } catch (error) {
-        console.error(`Error al cargar ${zone.file}:`, error);
-      }
-    }));
+    await cargarCapasZonas(this.zoneLayers, this.kmzLayerService);
   }
 
-  toggleZoneLayer(zone: FrostZoneLayer, selected: boolean): void {
-    zone.selected = selected;
-    if (!this.mapa || !zone.layer) return;
-
-    if (selected) {
-      zone.layer.addTo(this.mapa);
-    } else {
-      this.mapa.removeLayer(zone.layer);
-    }
-  }
-
-  private async loadProvinces(): Promise<void> {
-    try {
-      const url = 'assets/shapes/provincias.geojson';
-      const provincesData = await firstValueFrom(this.http.get<FeatureCollection>(url));
-
-      /* 1 ─ pane específico, z-index bajo */
-      if (!this.mapa!.getPane('provincePane')) {
-        this.mapa!.createPane('provincePane');
-        this.mapa!.getPane('provincePane')!.style.zIndex = '350';   // markerPane = 600
-      }
-
-      if (this.provincesLayer) this.provincesLayer.remove();
-
-      /* 2 ─ dibuja TODA la colección, sin capturar eventos */
-      this.provincesLayer = L.geoJSON(provincesData, {
-        pane: 'provincePane',
-        interactive: false,                //  ←  no bloquea los clics
-        style: {
-          color: 'blue',
-          weight: 1,
-          opacity: 0.8,
-          fillOpacity: 0
-        }
-      }).addTo(this.mapa!);
-
-      // opcional: ajustar vista
-      // this.mapa.fitBounds(this.provincesLayer.getBounds(), { padding: [20, 20] });
-
-    } catch (err) {
-      console.error('Error al cargar provincias:', err);
-    }
-  }
-
-
-  onBaseMapChange(event?: MatSelectChange): void {
-    const selectedBase = this.baseMapsList.find(b => b.value === this.form.value.baseMap);
-    if (selectedBase && this.mapa) {
-      this.mapa.removeLayer(this.currentBaseLayer);
-      this.currentBaseLayer = selectedBase.layer;
-      this.currentBaseLayer.addTo(this.mapa);
-    }
+  toggleZoneLayer(zone: ZonaProductiva, selected: boolean): void {
+    alternarZona(this.mapa, zone, selected);
   }
 
   public loadData(): void {
@@ -388,28 +284,41 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
         color: '#000',
         weight: 1,
         fillOpacity: 1
-      }).bindPopup(`
-        <b>${d.nombre}</b><br>
-        MinAbs: ${d.minAbs}°C<br>
-        Horas por debajo de -4°C: ${d['hsDebajo-4']}<br>
-        Horas por debajo de -2°C: ${d['hsDebajo-2']}<br>
-        Total horas de helada: ${d.hsDebajo0}<br>
-        Registros: ${d.cantidadDias} de ${totalDias}
-      `);
+      }).bindPopup(popupEstacion({
+        titulo: d.nombre,
+        filas: [
+          { etiqueta: 'Mínima absoluta', valor: `${formatDecimal(Number(d.minAbs), 1)} °C`, destacada: true },
+          { etiqueta: 'Horas por debajo de −4 °C', valor: formatDecimal(Number(d['hsDebajo-4']), 1) },
+          { etiqueta: 'Horas por debajo de −2 °C', valor: formatDecimal(Number(d['hsDebajo-2']), 1) },
+          { etiqueta: 'Total de horas de helada', valor: formatDecimal(Number(d.hsDebajo0), 1) },
+          { etiqueta: 'Primera helada (FPH)', valor: this.fechaCorta(d.FPH) },
+          { etiqueta: 'Última helada (FUH)', valor: this.fechaCorta(d.FUH) }
+        ],
+        registros: { cantidad: Number(d.cantidadDias), total: totalDias },
+        ficha: { lat, lon }
+      }));
 
       this.markersLayer.addLayer(marker);
     });
   }
 
+  /** Fecha «aaaa-mm-dd» (o Date) como dd/mm/aaaa; «—» si no hay. */
+  private fechaCorta(fecha: string | Date | null | undefined): string {
+    if (!fecha) return '—';
+    if (fecha instanceof Date) return this.formatToString(fecha);
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : fecha;
+  }
+
   getColor(minAbs: number): string {
-    if (minAbs >= -2) return '#fffb07';
-    if (minAbs >= -4) return '#ff9800';
-    if (minAbs >= -6) return 'red';
-    return '#8B0000'; // rojo oscuro
+    if (minAbs >= -2) return '#fed976';
+    if (minAbs >= -4) return '#fd8d3c';
+    if (minAbs >= -6) return '#e31a1c';
+    return '#800026'; // bordó (paleta YlOrRd, apta para daltonismo)
   }
 
   getColorLetra(minAbs: number): string {
-    if (minAbs >= -2) return 'black';
+    if (minAbs >= -4) return 'black'; // amarillo y naranja: el blanco no contrasta
     return 'white';
   }
 
@@ -421,12 +330,12 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
         const div = L.DomUtil.create('div', 'info legend');
         div.innerHTML = `
         <strong>Intensidad de Helada</strong><br>
-        <i style="background:#fffb07"></i> 0 a -2°C<br>
-        <i style="background:#ff9800"></i> -2 a -4°C<br>
-        <i style="background:red"></i> -4 a -6°C<br>
-        <i style="background:#8B0000"></i> < -6°C
+        <i style="background:#fed976"></i> 0 a -2°C<br>
+        <i style="background:#fd8d3c"></i> -2 a -4°C<br>
+        <i style="background:#e31a1c"></i> -4 a -6°C<br>
+        <i style="background:#800026"></i> < -6°C
       `;
-        return div;
+        return leyendaPlegable(div);
       }
     });
     if (this.mapa) {
@@ -470,8 +379,11 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.dejarDeSeguirTamanio?.();
+    this.mapa?.remove();
+    // Sin mapa: los pasos que siguen a las cargas asíncronas no tocan un mapa ya destruido
+    this.mapa = undefined;
     this.heladasSubscription?.unsubscribe();
-    if (this.ctrlZoomTimeout) clearTimeout(this.ctrlZoomTimeout);
   }
 
   close(): void {

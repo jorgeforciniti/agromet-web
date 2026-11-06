@@ -271,6 +271,37 @@ export interface EpisodiosAnualResponse extends EpisodiosBase {
   datos: EpisodiosAnuales[];
 }
 
+/* ---------- diarios.php ---------- */
+export interface Diario {
+  fecha: string;
+  temp_max: number | null;
+  temp_min: number | null;
+  precipitacion: number | null;
+  /** Coincide con los conteos de mensuales.php: 0 sin lluvia, 1 traza, 2 lluvia medible, 3 sin dato. */
+  estado_pp: number | null;
+  origen: string | null;
+  estado_registro: number | null;
+  definitivo: boolean | null;
+}
+
+export interface DiariosResponse {
+  ok: boolean;
+  estacion: EstacionInfo;
+  periodo: { desde: string; hasta: string };
+  cantidad: number;
+  datos: Diario[];
+}
+
+/** Lluvia diaria de un año: null en los días sin precipitación válida. */
+export interface LluviaDiariaAnio {
+  anio: number;
+  /** Fechas YYYY-MM-DD de todos los días del año, en orden. */
+  fechas: string[];
+  mm: (number | null)[];
+  /** true si todos los días del año tienen precipitación válida. */
+  completo: boolean;
+}
+
 /* ---------- Estado de carga en la UI ---------- */
 export type EstadoCarga = 'cargando' | 'ok' | 'vacio' | 'error';
 

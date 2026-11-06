@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { DatosService, Informe } from '../services/datos.service';
+import { Subject, debounceTime, filter, map, switchMap, catchError, of, tap } from 'rxjs';
+import { DatosService, FiltroInformes, Informe, InformesResponse } from '../services/datos.service';
 import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
 type InformeDialogInput = Partial<Informe> & {
@@ -19,6 +22,8 @@ interface CategoryMeta {
   color: string;
 }
 
+const POR_PAGINA = 20;
+
 @Component({
   selector: 'app-informes',
   standalone: true,
@@ -32,8 +37,11 @@ interface CategoryMeta {
   styleUrls: ['./informes.component.css']
 })
 export class InformesComponent implements OnInit {
-  datos: Informe[] = [];
-  filteredDatos: Informe[] = [];
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  informes: Informe[] = [];
 
   tiposInformes = [
     { value: '', viewValue: 'Todos' },
@@ -43,7 +51,8 @@ export class InformesComponent implements OnInit {
     { value: 'co', viewValue: 'Presentaciones en congresos' },
     { value: 'ad', viewValue: 'Seguimiento de adversidades' },
     { value: 'rv', viewValue: 'Artículos en revistas' },
-    { value: 'et', viewValue: 'Estadísticas agrometeorológicas' }
+    { value: 'et', viewValue: 'Estadísticas agrometeorológicas' },
+    { value: 'ta', viewValue: 'Talleres y reuniones técnicas' }
   ];
 
   private readonly categoryMeta: Record<string, CategoryMeta> = {
@@ -53,11 +62,29 @@ export class InformesComponent implements OnInit {
     co: { label: 'Congresos', color: '#64748b' },
     ad: { label: 'Adversidades', color: '#dc2626' },
     rv: { label: 'Revistas', color: '#db2777' },
-    et: { label: 'Estadísticas', color: '#0d9488' }
+    et: { label: 'Estadísticas', color: '#0d9488' },
+    ta: { label: 'Talleres', color: '#d97706' }
   };
 
+  // Filtros vigentes (vienen de la URL: /informes?categoria=ll&anio=2019&q=...)
   selectedCategoria = '';
+  anio = '';
+  busqueda = '';
+  /** Lo que está escrito en el buscador (puede no estar aplicado todavía). */
+  textoBusqueda = '';
+
+  modo: InformesResponse['modo'] = 'resumen';
+  total = 0;
+  anios: number[] = [];
+  private siguiente: string | null = null;
+
   loading = true;
+  cargandoMas = false;
+  error = false;
+
+  private readonly busqueda$ = new Subject<string>();
+  // Descarta las páginas de "Cargar más" que llegan después de cambiar los filtros.
+  private consulta = 0;
 
   constructor(
     private datosService: DatosService,
@@ -65,42 +92,127 @@ export class InformesComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.datosService.getInformes().subscribe({
+    this.route.queryParamMap.pipe(
+      map(params => ({
+        categoria: this.tiposInformes.some(t => t.value === params.get('categoria')) ? params.get('categoria')! : '',
+        anio: /^\d{4}$/.test(params.get('anio') ?? '') ? params.get('anio')! : '',
+        q: (params.get('q') ?? '').trim()
+      })),
+      tap(filtro => {
+        this.selectedCategoria = filtro.categoria;
+        this.anio = filtro.anio;
+        this.busqueda = filtro.q;
+        if (filtro.q !== this.textoBusqueda.trim()) this.textoBusqueda = filtro.q;
+        this.loading = true;
+        this.error = false;
+        this.consulta++;
+      }),
+      switchMap(filtro => this.datosService.getInformes({ ...filtro, limite: POR_PAGINA }).pipe(
+        catchError(() => of(null))
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(resp => {
+      this.loading = false;
+      if (!resp) {
+        this.error = true;
+        this.informes = [];
+        this.total = 0;
+        this.siguiente = null;
+        return;
+      }
+      this.modo = resp.modo;
+      this.informes = resp.data;
+      this.total = resp.total;
+      this.siguiente = resp.siguiente;
+      this.anios = resp.anios;
+    });
+
+    this.busqueda$.pipe(
+      map(texto => texto.trim()),
+      debounceTime(300),
+      filter(q => q !== this.busqueda),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(q => this.actualizarUrl({ q }, true));
+  }
+
+  get hayMas(): boolean {
+    return this.siguiente !== null;
+  }
+
+  get hayFiltros(): boolean {
+    return !!(this.selectedCategoria || this.anio || this.busqueda);
+  }
+
+  get titulo(): string {
+    if (!this.hayFiltros) return 'Informes y publicaciones recientes';
+    const tipo = this.tiposInformes.find(t => t.value === this.selectedCategoria);
+    const partes = [this.selectedCategoria && tipo ? tipo.viewValue : 'Informes y publicaciones'];
+    if (this.anio) partes.push(this.anio);
+    return partes.join(' · ');
+  }
+
+  get resumenResultados(): string {
+    if (this.modo === 'resumen') return 'Los 3 más recientes de cada tema';
+    const n = this.total;
+    if (n === 0) return '';
+    const base = n === 1 ? '1 informe' : `${n.toLocaleString('es-AR')} informes`;
+    return this.informes.length < n ? `Mostrando ${this.informes.length} de ${base}` : base;
+  }
+
+  selectCategoria(value: string): void {
+    // Los años disponibles cambian con la categoría.
+    this.actualizarUrl({ categoria: value, anio: '' });
+  }
+
+  selectAnio(value: string): void {
+    this.actualizarUrl({ anio: value });
+  }
+
+  buscar(texto: string): void {
+    this.textoBusqueda = texto;
+    this.busqueda$.next(texto);
+  }
+
+  limpiarFiltros(): void {
+    this.actualizarUrl({ categoria: '', anio: '', q: '' });
+  }
+
+  cargarMas(): void {
+    if (!this.siguiente || this.cargandoMas) return;
+    const consulta = this.consulta;
+    const filtro: FiltroInformes = {
+      categoria: this.selectedCategoria,
+      anio: this.anio,
+      q: this.busqueda,
+      despues: this.siguiente,
+      limite: POR_PAGINA
+    };
+    this.cargandoMas = true;
+    this.datosService.getInformes(filtro).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: resp => {
-        this.datos = resp.data;
-        this.applyFilter();
-        this.loading = false;
+        if (consulta !== this.consulta) return;
+        this.informes = [...this.informes, ...resp.data];
+        this.siguiente = resp.siguiente;
+        this.total = resp.total;
+        this.cargandoMas = false;
       },
       error: () => {
-        this.loading = false;
+        this.cargandoMas = false;
       }
     });
   }
 
-  selectCategoria(value: string): void {
-    this.selectedCategoria = value;
-    this.applyFilter();
-  }
-
-  applyFilter() {
-    if (this.selectedCategoria === '') {
-      const categorias = ['ll', 'he', 'bo', 'co', 'ad', 'rv', 'et'];
-      const agrupados: Informe[] = [];
-
-      categorias.forEach(cat => {
-        const ultimosTres = this.datos
-          .filter(i => i.categoria === cat)
-          .sort((a, b) => b.creado.localeCompare(a.creado))
-          .slice(0, 3);
-        agrupados.push(...ultimosTres);
-      });
-
-      this.filteredDatos = agrupados.sort((a, b) => b.creado.localeCompare(a.creado));
-    } else {
-      this.filteredDatos = this.datos
-        .filter(i => i.categoria === this.selectedCategoria)
-        .sort((a, b) => b.creado.localeCompare(a.creado));
+  private actualizarUrl(cambios: Record<string, string>, reemplazar = false): void {
+    const queryParams: Record<string, string | null> = {};
+    for (const [clave, valor] of Object.entries(cambios)) {
+      queryParams[clave] = valor || null;
     }
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: reemplazar
+    });
   }
 
   categoriaLabel(categoria: string): string {

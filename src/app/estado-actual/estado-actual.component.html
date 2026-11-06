@@ -1,8 +1,12 @@
 <div class="page-estado-actual">
+  <!-- Título de la página para lectores de pantalla; visualmente lo resuelven las dos secciones -->
+  <h1 class="cdk-visually-hidden">Estado actual</h1>
   <nav class="quick-nav" aria-label="Ir a sección">
     <a href="#sec-alertas" (click)="scrollToSection($event, 'sec-alertas')">Alertas</a>
     <a href="#sec-datos" (click)="scrollToSection($event, 'sec-datos')">Datos y pronóstico</a>
   </nav>
+
+  <app-mis-estaciones></app-mis-estaciones>
 
   <section class="section section--alertas" id="sec-alertas">
     <header class="section-header">

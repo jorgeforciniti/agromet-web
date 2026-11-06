@@ -19,6 +19,13 @@ body {
   overflow-x: hidden;
 }
 
+/* Foco visible para navegación con teclado (WCAG 2.4.7). :where() no suma especificidad:
+   cualquier estilo de foco propio de un componente tiene prioridad sobre este. */
+:where(a, button, [role="button"], [role="tab"], input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
+}
+
 /* =========================
    Skeleton loaders
    ========================= */
@@ -91,230 +98,12 @@ body {
   color: var(--text);
 }
 
-.custom-dialog-container {
-  padding: 0;
-  margin: 0;
-  flex: 1;
-  /* Permite que el contenido ocupe todo el espacio disponible */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: #1e1e1e;
-  border-radius: 12px;
-}
-
-.custom-dialog-class .mat-dialog-container {
-  padding: 0;
-  /* Elimina el relleno predeterminado */
-  height: 100%;
-  /* Fuerza al contenedor a usar toda la altura */
-  display: flex;
-  flex-direction: column;
-}
-
-.custom-dialog-class .mat-dialog-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-  height: 100%;
-}
-
-.custom-dialog-class .content-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.custom-dialog-class iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* ==== Fecha: texto blanco ===== */
-input[type="date"] {
-  color: #eee !important;
-  caret-color: #ffcc00 !important;
-  /* opcional, para que la línea de edición también sea visible */
-}
-
-/* WebKit / Blink (Chrome, Edge, Safari) */
-input[type="date"]::-webkit-datetime-edit,
-input[type="date"]::-webkit-datetime-edit-text,
-input[type="date"]::-webkit-datetime-edit-month-field,
-input[type="date"]::-webkit-datetime-edit-day-field,
-input[type="date"]::-webkit-datetime-edit-year-field {
-  color: #fff !important;
-}
-
-/* Firefox */
-input[type="date"]::-moz-placeholder {
-  /* placeholder nativo */
-  color: #fff !important;
-}
-
-input[type="date"]::-moz-calendar-picker-indicator {
-  /* icono calendario */
-  filter: invert(1);
-}
-
-.mat-tab-group .mat-tab-label {
-  color: #f0f0f0 !important;
-}
-
-.mat-tab-group .mat-ink-bar {
-  background-color: #f0f0f0 !important;
-}
-
-.custom-dark-table {
-  background-color: #2c2c2c;
-}
-
-.custom-dark-table .mat-header-row,
-.custom-dark-table .mat-row {
-  background-color: #2c2c2c;
-}
-
-.custom-dark-table .mat-header-cell,
-.custom-dark-table .mat-cell {
-  color: #f8f5d7;
-  border-bottom: 1px solid rgba(248, 245, 215, 0.2);
-}
-
-.mat-mdc-text-field .mat-mdc-input-element,
-.mat-mdc-text-field .mat-mdc-text-field-input {
-  color: #eee !important;
-}
-
-/* placeholder */
-.mat-mdc-text-field .mat-mdc-text-field-input::placeholder {
-  color: #bbb !important;
-}
-
-/* 1) Inputs de Angular Material (matInput) */
-input[matInput],
-textarea[matInput] {
-  color: #eee !important;
-}
-
-/* 2) Placeholder / hint */
-input[matInput]::placeholder,
-textarea[matInput]::placeholder {
-  color: #bbb !important;
-}
-
-/* 3) Fecha manual (mat-datepicker-input) */
-.mat-datepicker-input {
-  color: #eee !important;
-}
-
-/* Datepicker toggle icon */
-.mat-datepicker-toggle .mat-icon {
-  color: #eee !important;
-}
-
-/************************************************************************/
-
-
-/* Fondo blanco para el panel del datepicker */
-.mat-datepicker-content {
-  background-color: #ffffff !important;
-}
-
-/* Fondo blanco para el calendario */
-.mat-calendar {
-  background-color: #ffffff !important;
-}
-
-/* Color del texto para que sea legible */
-.mat-calendar-body-cell-content,
-.mat-calendar-period-button,
-.mat-calendar-arrow {
-  color: #333333 !important;
-}
-
-/* Fondo de las celdas del calendario */
-.mat-calendar-body-cell-content {
-  background-color: #ffffff !important;
-}
-
-/* Fondo para el día seleccionado */
-.mat-calendar-body-selected {
-  background-color: #1976d2 !important;
-  /* Azul para el día seleccionado */
-  color: #ffffff !important;
-}
-
-/* Borde para el día actual */
-.mat-calendar-body-today:not(.mat-calendar-body-selected) .mat-calendar-body-cell-content {
-  border: 1px solid #1976d2 !important;
-}
-
-.mat-raised-button.my-custom {
-  background-color: #2e7d32 !important;
-  color: #fff !important;
-  border-radius: 24px !important;
-  padding: 0.75rem 1.5rem !important;
-  font-size: 1.1rem !important;
-  transition: background-color 200ms ease-out !important;
-}
-
-.mat-raised-button.my-custom:hover {
-  background-color: #276c28 !important;
-}
-
-.custom-info-btn {
-  font-size: 1.1rem;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.custom-info-btn:hover {
-  background-color: #ffffff;
-  color: #3f51b5;
-  /* color primaria contrastante */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.custom-info-btn mat-icon {
-  margin-right: 0.5rem;
-  vertical-align: middle;
-}
-
-.main-content {
-  width: 100%;
-  max-width: none;
-  padding: 0;
-  /* o un padding reducido como 10px si querés espacio mínimo */
-}
-
-@media (min-width: 1400px) {
-  .main-content {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-
 .section-title {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 900;
   color: var(--text);
   text-align: left;
-}
-.titulo {
-  padding-left: 25px;
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #fcfaa5;
-  margin-bottom: 20px;
 }
 
 /* Botón de búsqueda */
@@ -328,15 +117,6 @@ textarea[matInput]::placeholder {
 
 .search-button:hover {
   background-color: var(--brand-600) !important;
-}
-
-@media (max-width: 768px) {
-  .section-title {
-    font-size: 1.8rem !important;
-    font-weight: bold !important;
-    margin-top: .5rem !important;
-    margin-bottom: 1rem !important;
-  }
 }
 
 .btn {
@@ -365,7 +145,7 @@ textarea[matInput]::placeholder {
 }
 .btn--ghost:hover { background: rgba(17,24,39,.04); }
 
-.cdk-overlay-pane {
+.cdk-overlay-pane.mat-mdc-dialog-panel {
   max-width: 96vw !important;
 }
 
@@ -382,6 +162,79 @@ textarea[matInput]::placeholder {
 /* A veces el culpable es el propio "surface" sumando padding/border */
 .mat-mdc-dialog-surface {
   box-sizing: border-box !important;
+}
+
+/* Superficie común de todos los dialogs do-dialog. Antes vivía en componentes con
+   ViewEncapsulation.None (map-rain, map-frost, comparaciones) y sólo se aplicaba al resto
+   después de abrir uno de ellos. El tamaño de cada diálogo se define en su dialog.open(). */
+.do-dialog .mat-mdc-dialog-surface {
+  height: 100%;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+}
+
+.do-dialog .mat-mdc-dialog-content {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  /* Los dialogs cuyo propio mat-dialog-content lleva padding (weather-dashboard,
+     rain-campaign) lo declaran con !important en su CSS para ganarle a esta regla. */
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  scrollbar-gutter: stable;
+}
+
+/* Etiqueta superior del encabezado de los dialogs (misma apariencia que .dialog-eyebrow
+   de lluvias, comparaciones y enfermedades). Clase propia y global para que no dependa
+   de qué componente sin encapsulación se cargó antes. */
+/* Encabezado de los dialogs: título y etiqueta en una sola línea, y la descripción a todo
+   el ancho que deja el botón de cerrar. Los selectores llevan el elemento para ganarle a los
+   márgenes que cada componente le pone a .titulo y a su etiqueta. */
+.dialogo-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.dialogo-titulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+
+/* Diálogos con el botón de cerrar flotando en la esquina */
+.dialogo-titulo--con-cerrar {
+  padding-right: 56px;
+}
+
+.dialogo-titulo > h2.titulo {
+  margin: 0;
+  padding-right: 0;
+}
+
+.dialogo-titulo > span.dialog-eyebrow,
+.dialogo-titulo > span.app-dialog-eyebrow {
+  min-height: 24px;
+  margin: 0;
+  padding: 0 10px;
+}
+
+.app-dialog-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-bottom: 10px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mod-data) 18%, var(--border));
+  background: rgba(255,255,255,.92);
+  color: color-mix(in srgb, var(--mod-data) 66%, #46505c);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
 }
 
 /* === FIX DEFINITIVO: el componente dentro del dialog debe estirar y permitir overflow === */
@@ -411,31 +264,150 @@ textarea[matInput]::placeholder {
   flex-direction: column !important;
   min-height: 0 !important;
 }
-/* ================================
-   OVERRIDE: do-dialog (tema claro)
-   Esto pisa el tema oscuro global
-   ================================ */
-
-/* Inputs matInput dentro de do-dialog */
-.do-dialog input[matInput],
-.do-dialog textarea[matInput],
-.do-dialog .mat-datepicker-input{
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
+/* =========================
+   Mapas Leaflet
+   Leaflet crea leyendas y popups fuera de las plantillas de los componentes, por eso
+   su estilo es global (antes vivía en map-rain/map-frost y sólo se aplicaba al resto
+   después de abrir uno de esos mapas).
+   ========================= */
+/* Los z-index internos de Leaflet (controles en 1000) quedan dentro del mapa: sin esto la
+   leyenda y el zoom se dibujaban encima del menú fijo del sitio al desplazar la página. */
+.leaflet-container {
+  isolation: isolate;
 }
 
-.do-dialog input[matInput]::placeholder,
-.do-dialog textarea[matInput]::placeholder{
-  color: rgba(17,24,39,.55) !important;
+.leaflet-container .info.legend,
+.leaflet-container .temperature-legend {
+  background: #fff;
+  color: #333;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, .12);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, .18);
+  font-size: .85rem;
+  line-height: 1.5;
 }
 
-/* Icono del datepicker dentro de do-dialog */
-.do-dialog .mat-datepicker-toggle .mat-icon{
-  color: rgba(17,24,39,.85) !important;
+.leaflet-container .info.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: .85;
+  /* Borde fino: los rangos que el mapa pinta transparentes se ven como casilla vacía */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18);
 }
 
-.do-dialog .titulo{
-  color: rgba(17,24,39,.92) !important;
+/* Leyendas plegables (maps/leyenda-plegable.ts): plegada sólo muestra la primera línea, el título */
+.leaflet-container .leaflet-control.leyenda-plegable {
+  position: relative;
+  padding-right: 30px;
+  cursor: pointer;
+  user-select: none;
+  transition: max-height .25s ease;
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+.leaflet-container .leaflet-control.leyenda-plegable::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .25s ease;
+  opacity: .7;
+}
+
+.leaflet-container .leaflet-control.leyenda-plegable.plegada {
+  max-height: 2.6em;
+}
+
+.leaflet-container .leaflet-control.leyenda-plegable.plegada::after {
+  top: 17px;
+  transform: rotate(-135deg);
+}
+
+.leaflet-container .leaflet-control.leyenda-plegable:focus-visible {
+  outline: 2px solid var(--accent, #0284c7);
+  outline-offset: 2px;
+}
+
+.leaflet-container .legend-title {
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #fff;
+  color: #111;
+  border-radius: 10px;
+}
+
+.leaflet-popup-tip {
+  background: #fff;
+}
+
+.leaflet-popup-close-button {
+  color: #111 !important;
+}
+
+/* Las tablas de datos no se pueden seleccionar ni copiar en todo el sitio (como en El Colmenar):
+   quien necesite los datos los pide a la Sección, que figura como fuente. Los gráficos se
+   descargan en PNG con la fuente y, donde está permitido, en CSV de hasta 31 días
+   (shared/exportar-grafico.component.ts). La excepción es /admin. */
+table,
+.mat-mdc-table,
+.tabla-fija {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+app-admin table,
+app-admin .mat-mdc-table {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Tablas largas con encabezado fijo. El contenedor desplaza en ambos ejes y tiene altura
+   máxima: así el encabezado sticky queda visible al recorrer las filas (con sólo
+   overflow-x: auto y sin altura, el sticky no tenía efecto). !important porque cada
+   componente define overflow-y en su propio contenedor. */
+.tabla-fija {
+  max-height: min(65vh, 620px) !important;
+  overflow: auto !important;
+  /* Dentro de diálogos en columna flex, overflow:auto deja que el item se encoja hasta
+     casi cero (el formulario de arriba le quita el alto); con flex-shrink:0 conserva su altura. */
+  flex-shrink: 0;
+}
+
+/* En el teléfono no hay lugar para una caja con scroll propio: la tabla muestra todas sus
+   filas y el diálogo entero desplaza en vertical (el horizontal sigue en la tabla). */
+@media (max-width: 768px) {
+  .tabla-fija {
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+}
+
+.tabla-fija thead th,
+.tabla-fija th.mat-mdc-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+/* Cifras de ancho fijo en todas las tablas: los decimales quedan encolumnados */
+table th,
+table td {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ================================
@@ -550,7 +522,7 @@ textarea[matInput]::placeholder {
 
 /* ===== Mobile: que el overlay no achique el dialog ===== */
 @media (max-width: 768px){
-  .cdk-overlay-pane{
+  .cdk-overlay-pane.mat-mdc-dialog-panel{
     width: 96vw !important;
     max-width: 96vw !important;
     margin: 0 !important;
@@ -561,4 +533,236 @@ textarea[matInput]::placeholder {
   .mat-mdc-dialog-surface{
     max-width: 96vw !important;
   }
+}
+
+/* Marcador de estación favorita en los mapas: el marcador rojo pasado a dorado */
+.leaflet-marker-icon.marcador-favorita {
+  filter: hue-rotate(40deg) saturate(1.8) brightness(1.05) drop-shadow(0 0 2px rgba(122, 90, 0, .7));
+}
+
+/* Estado de comunicación (shared/estado-estacion.ts): un dato viejo no se ve igual que uno actual.
+   Atrasada = más de 1 h sin datos; sin datos hoy = gris. Van después de .marcador-favorita
+   para ganarle con su filtro. */
+.leaflet-marker-icon.marcador--atrasada {
+  opacity: .55;
+}
+
+.leaflet-marker-icon.marcador--sin-datos-hoy {
+  opacity: .5;
+  filter: grayscale(1);
+}
+
+/* Hora del último dato en los popups de estaciones */
+.popup-actualizado {
+  margin-top: 6px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.popup-actualizado--atrasada { color: #b45309; }
+.popup-actualizado--sin-datos-hoy { color: #6b7280; }
+
+/* Popup común de las estaciones en los mapas (maps/popup.ts) */
+.station-popup h4 {
+  margin: 0 0 4px;
+  font-size: .95rem;
+}
+
+.popup-location {
+  margin: 0 0 4px;
+  color: var(--muted, #6b7280);
+  font-size: .76rem;
+  line-height: 1.3;
+}
+
+.popup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: .82rem;
+}
+
+.popup-destacada {
+  font-weight: 700;
+}
+
+/* Días con datos en el período: completo / faltan < 10 % / hasta 20 % / más */
+.popup-registros {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: .76rem;
+}
+
+.popup-registros--completo { background: #dcfce7; color: #166534; }
+.popup-registros--casi { background: #fef9c3; color: #854d0e; }
+.popup-registros--incompleto { background: #ffedd5; color: #9a3412; }
+.popup-registros--escaso { background: #fee2e2; color: #991b1b; }
+
+.popup-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.popup-fav,
+.popup-ficha {
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.popup-fav {
+  border: 1px solid #e5d3a1;
+  background: #fffaf0;
+  color: #7a5a00;
+}
+
+.popup-fav.is-fav {
+  background: #fdf3d0;
+}
+
+.popup-ficha {
+  border: 1px solid var(--border, #d1d5db);
+  background: #fff;
+  color: var(--brand, #4a7a2c);
+}
+
+/* Muestras de la referencia de estados (maps/leyenda-estados.ts). El color y la variante de
+   cada estado van en línea: dependen de cómo dibuja sus marcadores cada mapa. */
+.leaflet-container .info.legend i.leyenda-estados__muestra {
+  width: 14px;
+  height: 14px;
+  margin: 2px 8px 0 2px;
+  border-radius: 50%;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, .3);
+  opacity: 1;
+}
+
+/* Etiqueta con el valor de cada estación en el mapa de datos en línea: sólo desde zoom 9
+   (.con-etiquetas en el contenedor), sin flecha y oculta si no hay dato de hoy */
+.leaflet-tooltip.etiqueta-valor {
+  display: none;
+  padding: 1px 5px;
+  border: 1px solid rgba(0, 0, 0, .2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: none;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.leaflet-tooltip.etiqueta-valor::before {
+  display: none;
+}
+
+.con-etiquetas .leaflet-tooltip.etiqueta-valor {
+  display: block;
+}
+
+.con-etiquetas .leaflet-tooltip.etiqueta-valor:empty {
+  display: none;
+}
+
+/* Resumen de cuatro cifras sobre un gráfico (charts/resumen-series.ts): una línea por serie */
+.resumen-grafico {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .88);
+  font-size: .88rem;
+}
+
+.resumen-grafico__serie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 16px;
+}
+
+.resumen-grafico dt {
+  min-width: 140px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.resumen-grafico dt i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.resumen-grafico dd {
+  margin: 0;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.resumen-grafico dd span {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+/* Texto sólo para lectores de pantalla. Angular Material carga esta clase recién cuando
+   la necesita alguno de sus componentes; se define acá para que funcione siempre. */
+.cdk-visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+  outline: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  left: 0;
+}
+
+/* Aviso de días sin registro bajo los gráficos de datos diarios (ver charts/dias-faltantes.ts) */
+.aviso-faltantes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #475467;
+}
+.aviso-faltantes > span { display: inline-flex; align-items: center; gap: 6px; }
+.muestra-sin-datos,
+.muestra-incompleto {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 2px;
+  vertical-align: -1px;
+  background: rgba(148, 163, 184, .45);
+}
+.muestra-incompleto {
+  background: transparent;
+  border: 1.5px dashed #667085;
 }

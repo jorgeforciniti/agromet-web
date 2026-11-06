@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import {
   SmnAlertByAreaResponse,
   SmnAreaReport,
@@ -7,10 +7,17 @@ import {
   WeatherAlertStation,
   WeatherService
 } from '../services/weather.service';
+
+/** datos-alerta.php también devuelve la lluvia máxima de un registro (no está en WeatherAlertStation). */
+type EstacionAlerta = WeatherAlertStation & { maxLluvia?: string | number };
+
+/** Lluvia mínima de un registro (mm) para el aviso: con menos puede ser rocío. */
+const LLUVIA_MINIMA_REGISTRO = 0.3;
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { forkJoin, map, Observable } from 'rxjs';
+import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 
 /**
  * Tipo interno para la franja de temperaturas extremas
@@ -38,10 +45,61 @@ interface UniqueAlert {
   instruction: string;
 }
 
+/** Fila de la grilla de una alerta: una región con su estado en cada día y período */
+interface FilaAlerta {
+  area: number;
+  nombre: string;
+  corto: string;
+  celdas: boolean[];
+}
+
+/** Una tarjeta por evento y nivel: qué (descripción), cuándo y dónde (grilla) */
+interface EventoAlerta {
+  eventId: number;
+  level: number;
+  nombre: string;
+  description: string;
+  instruction: string;
+  dias: string[];
+  filas: FilaAlerta[];
+  resumen: string;
+  regiones: string;
+}
+
+const PERIODOS = ['early_morning', 'morning', 'afternoon', 'night'];
+
+const AREAS: Record<number, string> = {
+  3373: 'Provincia de Tucumán',
+  3375: 'Valles Calchaquíes'
+};
+
+/** Nombres para la grilla en pantallas angostas */
+const AREAS_CORTO: Record<number, string> = {
+  3373: 'Tucumán',
+  3375: 'Valles'
+};
+
+/*
+ * El SMN identifica el fenómeno sólo con un código (event_id) y no publica la tabla de
+ * nombres en su API abierta. 41 = tormentas está confirmado; para el resto se deduce de la
+ * descripción. Si no se reconoce, la tarjeta muestra sólo el color de la alerta.
+ */
+const EVENTO_POR_CODIGO: Record<number, string> = { 41: 'Tormentas' };
+const EVENTO_POR_TEXTO: [string, string][] = [
+  ['tormenta', 'Tormentas'],
+  ['zonda', 'Viento Zonda'],
+  ['nevad', 'Nevadas'],
+  ['viento', 'Viento'],
+  ['lluvia', 'Lluvias'],
+  ['niebla', 'Niebla'],
+  ['polvo', 'Polvo en suspensión'],
+  ['humo', 'Humo']
+];
+
 @Component({
   selector: 'app-alert',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, ComoSeLeeComponent],
   templateUrl: './alert.component.html',
   styleUrls: ['./alert.component.css']
 })
@@ -50,19 +108,26 @@ export class AlertComponent implements OnInit {
   showFrostAlert = false;
   frostAlertLevel: number = 0; // 0 = none, 1 = leve, 2 = moderada, 3 = severa
   smnAlertsByArea: { [area: number]: SmnAlert[] } = {};
-  smnShortAlerts: SmnAlert[] = [];
+  /*
+   * Alertas de corto plazo del SMN: pendientes del servidor. smn-alerta-area.php ignora el
+   * parámetro «tipo» (con tipo=1, 2, 3, 4 o sin tipo devuelve exactamente lo mismo: las alertas por
+   * área), y la API del SMN (ws1.smn.gob.ar) pide autenticación, así que no se puede consultar desde
+   * el navegador. Hace falta un PHP en el servidor que traiga las alertas de corto plazo del SMN
+   * para Tucumán y devuelva, como mínimo, nivel, fenómeno, descripción, zona afectada y vigencia
+   * (emitida / válida hasta). Cuando exista, se suma a las tarjetas de este componente.
+   */
 
   // NUEVO â€“ banner de temperaturas extremas
   tempExtremes: TempWarning[] = [];
   bannerText = '';
 
-  selectedAlert: SmnAlert | null = null;
-
-  smnDescriptions: { [area: number]: UniqueAlert[] } = {};
-
-  selectAlert(alert: SmnAlert): void {
-    this.selectedAlert = alert;
-  }
+  /** Tarjetas de alertas SMN agrupadas por evento y nivel */
+  eventos: EventoAlerta[] = [];
+  /** Hora de la última actualización del SMN (la más reciente de las dos áreas) */
+  actualizado: Date | null = null;
+  /** true cuando llegó la respuesta del SMN (evita mostrar "sin alertas" mientras carga) */
+  cargado = false;
+  readonly periodos = PERIODOS;
 
   constructor(
     private weatherService: WeatherService,
@@ -77,29 +142,14 @@ export class AlertComponent implements OnInit {
       this.smnAlertsByArea[3373] = tucuman.alerts;
       this.smnAlertsByArea[3375] = valles.alerts;
 
-      this.smnDescriptions[3373] = tucuman.uniqueAlerts;
-      this.smnDescriptions[3375] = valles.uniqueAlerts;
+      this.cargado = true;
+      this.eventos = this.armarEventos([...tucuman.alerts, ...valles.alerts],
+        [...tucuman.uniqueAlerts, ...valles.uniqueAlerts]);
+      const fechas = [tucuman.updated, valles.updated]
+        .map(u => u ? new Date(u) : null)
+        .filter((d): d is Date => !!d && !isNaN(d.getTime()));
+      this.actualizado = fechas.length ? new Date(Math.max(...fechas.map(d => d.getTime()))) : null;
 
-      const allAlerts = [...tucuman.alerts, ...valles.alerts].map(alert => {
-        const desc = [...tucuman.uniqueAlerts, ...valles.uniqueAlerts]
-          .find(d => d.eventId === alert.eventId && d.level === alert.level);
-
-        return {
-          ...alert,
-          description: desc?.description ?? '',
-          instruction: desc?.instruction ?? '',
-        };
-      });
-
-      /*      if (allAlerts.length > 0) {
-              this.dialog.open(AlertDialogComponent, {
-                panelClass: 'do-dialog',
-                autoFocus: false,
-                restoreFocus: false,
-                data: { alerts: allAlerts }
-              });
-            }
-      */
       this.loadAlerts();
       this.loadTempExtremes();
     });
@@ -141,7 +191,7 @@ export class AlertComponent implements OnInit {
    * Consulta la API y determina si hay alertas de lluvia o helada.
    */
   private loadAlerts(): void {
-    this.weatherService.getAlerts().subscribe((response) => {
+    this.weatherService.getAlerts<EstacionAlerta>().subscribe((response) => {
       const stations = response.data.filter((s) => s.habilitada > 0);
       this.checkRainAlert(stations);
       this.frostAlertLevel = this.checkFrostAlertLevel(stations);
@@ -150,20 +200,17 @@ export class AlertComponent implements OnInit {
   }
 
   /**
-   * Activa alerta de lluvia si al menos una estación cumple criterios.
+   * Aviso de lluvia: alguna estación tuvo hoy (desde las 0 h) un registro con más de 0,3 mm.
+   * Con menos puede ser rocío (criterio de la Sección).
    */
-  private checkRainAlert(stations: WeatherAlertStation[]): void {
-    this.showRainAlert = stations.some(s => {
-      const recs = parseInt(s.registrosLluvia, 10);
-      const total = parseFloat(s.totalLluvia);
-      return recs > 1 || (recs > 1 && total > 0.6);
-    });
+  private checkRainAlert(stations: EstacionAlerta[]): void {
+    this.showRainAlert = stations.some(s => parseFloat(String(s.maxLluvia ?? '')) > LLUVIA_MINIMA_REGISTRO);
   }
 
   /**
    * Devuelve nivel de helada: 0 = no, 1 = leve, 2 = moderada, 3 = severa.
    */
-  public checkFrostAlertLevel(stations: WeatherAlertStation[]): number {
+  public checkFrostAlertLevel(stations: EstacionAlerta[]): number {
     const temps = stations
       .map(s => parseFloat(s.minimaTemperatura))
       .filter(t => !isNaN(t));
@@ -186,8 +233,10 @@ export class AlertComponent implements OnInit {
     const { MapFrostComponent } = await import('../map-frost/map-frost.component');
 
     this.dialog.open(MapFrostComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       data: { hoy: true }
     });
@@ -200,8 +249,10 @@ export class AlertComponent implements OnInit {
     const { MapRainComponent } = await import('../map-rain/map-rain.component');
 
     this.dialog.open(MapRainComponent, {
-      width: '90vw',
-      maxWidth: '1200px',
+      width: 'min(1300px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
       panelClass: 'do-dialog',
       data: { hoy: true }
     });
@@ -241,7 +292,7 @@ export class AlertComponent implements OnInit {
     }
   }
 
-  loadSmnAlerts(area: number): Observable<{ alerts: SmnAlert[], uniqueAlerts: UniqueAlert[] }> {
+  loadSmnAlerts(area: number): Observable<{ alerts: SmnAlert[], uniqueAlerts: UniqueAlert[], updated?: string }> {
     return this.weatherService.getSmnAlertByArea(area).pipe(
       map((alerta: SmnAlertByAreaResponse) => {
         const reportsMap = new Map<number, SmnAreaReport['levels']>();
@@ -289,7 +340,8 @@ export class AlertComponent implements OnInit {
 
         return {
           alerts: smnAlerts,
-          uniqueAlerts: Array.from(uniqueMap.values())
+          uniqueAlerts: Array.from(uniqueMap.values()),
+          updated: alerta.updated
         };
       })
     );
@@ -322,32 +374,109 @@ export class AlertComponent implements OnInit {
     });
   }
 
-  getAllUniqueDescriptions(): UniqueAlert[] {
-    const map = new Map<string, UniqueAlert>();
-    for (const area of [3373, 3375]) {
-      for (const a of this.smnDescriptions[area] ?? []) {
-        const key = `${a.eventId}-${a.level}`;
-        if (!map.has(key)) {
-          map.set(key, a);
-        }
-      }
+  /** Agrupa los períodos con alerta por evento y nivel, con una fila por región. */
+  private armarEventos(alertas: SmnAlert[], descripciones: UniqueAlert[]): EventoAlerta[] {
+    const grupos = new Map<string, SmnAlert[]>();
+    for (const a of alertas) {
+      const key = `${a.eventId}-${a.level}`;
+      grupos.set(key, [...(grupos.get(key) ?? []), a]);
     }
-    return Array.from(map.values());
+
+    return Array.from(grupos.values())
+      .map(grupo => {
+        const { eventId, level } = grupo[0];
+        const desc = descripciones.find(d => d.eventId === eventId && d.level === level);
+        const dias = this.rangoDias(grupo.map(a => a.date));
+        const indice = (a: SmnAlert) => dias.indexOf(a.date) * PERIODOS.length + PERIODOS.indexOf(a.period);
+
+        const filas = [3373, 3375].map(area => {
+          const celdas: boolean[] = new Array(dias.length * PERIODOS.length).fill(false);
+          grupo.filter(a => a.area === area).forEach(a => celdas[indice(a)] = true);
+          return { area, nombre: AREAS[area], corto: AREAS_CORTO[area], celdas };
+        });
+
+        const posiciones = grupo.map(indice).filter(i => i >= 0);
+
+        return {
+          eventId,
+          level,
+          nombre: this.nombreEvento(eventId, desc?.description ?? ''),
+          description: desc?.description ?? '',
+          instruction: desc?.instruction ?? '',
+          dias,
+          filas,
+          resumen: this.resumenVigencia(dias, Math.min(...posiciones), Math.max(...posiciones)),
+          regiones: filas.filter(f => f.celdas.some(Boolean)).map(f => f.nombre).join(' y ')
+        };
+      })
+      .sort((a, b) => b.level - a.level || a.nombre.localeCompare(b.nombre));
   }
 
-  getUniqueGlobalDescriptions(): UniqueAlert[] {
-    const seen = new Map<string, UniqueAlert>();
-
-    [3373, 3375].forEach(area => {
-      (this.smnDescriptions[area] ?? []).forEach(alert => {
-        const key = `${alert.eventId}-${alert.level}`;
-        if (!seen.has(key)) {
-          seen.set(key, alert);
-        }
-      });
-    });
-
-    return Array.from(seen.values());
+  private nombreEvento(eventId: number, description: string): string {
+    if (EVENTO_POR_CODIGO[eventId]) return EVENTO_POR_CODIGO[eventId];
+    const texto = description.toLowerCase();
+    return EVENTO_POR_TEXTO.find(([clave]) => texto.includes(clave))?.[1] ?? '';
   }
 
+  /** Días consecutivos entre la primera y la última fecha con alerta (YYYY-MM-DD). */
+  private rangoDias(fechas: string[]): string[] {
+    const ordenadas = [...new Set(fechas)].sort();
+    const dias: string[] = [];
+    const d = this.fechaLocal(ordenadas[0]);
+    const fin = this.fechaLocal(ordenadas[ordenadas.length - 1]);
+    while (d <= fin) {
+      dias.push(formatDate(d, 'yyyy-MM-dd', 'es-AR'));
+      d.setDate(d.getDate() + 1);
+    }
+    return dias;
+  }
+
+  private fechaLocal(iso: string): Date {
+    const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  /** Días desde hoy (0 = hoy, 1 = mañana). */
+  private diasDesdeHoy(iso: string): number {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return Math.round((this.fechaLocal(iso).getTime() - hoy.getTime()) / 86400000);
+  }
+
+  /** Encabezado de la grilla: "Hoy, mié 28", "Mañana, jue 29" o "Vie 30". */
+  etiquetaDia(iso: string): string {
+    const corto = formatDate(this.fechaLocal(iso), 'EEE d', 'es-AR').replace('.', '');
+    const diff = this.diasDesdeHoy(iso);
+    if (diff === 0) return `Hoy, ${corto}`;
+    if (diff === 1) return `Mañana, ${corto}`;
+    return corto.charAt(0).toUpperCase() + corto.slice(1);
+  }
+
+  periodoCorto(period: string): string {
+    const cortos: Record<string, string> = { early_morning: 'Madr.', morning: 'Mañ.', afternoon: 'Tarde', night: 'Noche' };
+    return cortos[period] ?? period;
+  }
+
+  /** "Hoy a la noche" o "Desde hoy a la tarde hasta mañana de madrugada". */
+  private resumenVigencia(dias: string[], desde: number, hasta: number): string {
+    const cuando: Record<string, string> = {
+      early_morning: 'de madrugada', morning: 'a la mañana', afternoon: 'a la tarde', night: 'a la noche'
+    };
+    const momento = (i: number) => {
+      const iso = dias[Math.floor(i / PERIODOS.length)];
+      const diff = this.diasDesdeHoy(iso);
+      const dia = diff === 0 ? 'hoy' : diff === 1 ? 'mañana' : 'el ' + formatDate(this.fechaLocal(iso), 'EEEE d', 'es-AR');
+      return `${dia} ${cuando[PERIODOS[i % PERIODOS.length]]}`;
+    };
+    const frase = desde === hasta ? momento(desde) : `desde ${momento(desde)} hasta ${momento(hasta)}`;
+    return frase.charAt(0).toUpperCase() + frase.slice(1);
+  }
+
+  /** Texto para lectores de pantalla de cada casilla de la grilla. */
+  etiquetaCelda(ev: EventoAlerta, fila: FilaAlerta, i: number): string {
+    const dia = this.etiquetaDia(ev.dias[Math.floor(i / PERIODOS.length)]);
+    const periodo = this.periodoEnCastellano(PERIODOS[i % PERIODOS.length]);
+    const estado = fila.celdas[i] ? `alerta ${this.levelName(ev.level)}` : 'sin alerta';
+    return `${fila.nombre}, ${dia}, ${periodo}: ${estado}`;
+  }
 }

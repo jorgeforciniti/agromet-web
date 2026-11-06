@@ -21,8 +21,9 @@
 /* BotÃƒÂ³n cerrar Ã¢â‚¬â€œ mismo patrÃƒÂ³n que dialogs */
 .do-close {
   position: absolute;
-  right: calc(22px + env(safe-area-inset-right));
-  top: calc(14px + env(safe-area-inset-top));
+  /* A la altura de la etiqueta y fuera de la franja de la barra de desplazamiento */
+  right: calc(31px + env(safe-area-inset-right));
+  top: calc(16px + env(safe-area-inset-top));
   width: 40px;
   height: 40px;
   border-radius: 999px;
@@ -70,32 +71,12 @@
 /* TÃƒÂ­tulo */
 .titulo {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: var(--text);
 }
 
-/* Controls */
-.controls {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.control-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-label {
-  color: var(--muted);
-  font-weight: 700;
-}
-
 /* Selects con tokens */
-.controls select,
 .variable-selector select {
   appearance: none;
   background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
@@ -107,7 +88,6 @@
   outline: none;
 }
 
-.controls select:focus,
 .variable-selector select:focus {
   border-color: rgba(79, 121, 50, .6);
   box-shadow: 0 0 0 3px rgba(79, 121, 50, .14);
@@ -139,10 +119,11 @@
 }
 
 /* Map */
+/* 480 px como mínimo: con el zoom inicial común (maps/encuadre.ts) la provincia mide ~410 px */
 #mapDatosOnline {
   width: 100%;
-  height: clamp(280px, 42vh, 430px);
-  min-height: 280px;
+  height: clamp(480px, 55vh, 560px);
+  min-height: 480px;
 }
 
 .chart-box {
@@ -208,6 +189,40 @@
 /* =============================
    Tabla abajo (clara)
    ============================= */
+
+/* Descarga de la tabla: misma píldora que los botones PNG/CSV de los gráficos */
+.tabla-acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 6px;
+}
+
+.tabla-csv {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--border, #d9dee5);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  color: var(--muted, #5b6470);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tabla-csv:hover {
+  color: var(--brand, #4a7a2c);
+  border-color: currentColor;
+}
+
+.tabla-csv mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
 
 .tabla-wrapper {
   border: 1px solid var(--border);
@@ -325,10 +340,6 @@
     grid-template-columns: 1fr;
   }
 
-  #mapDatosOnline {
-    height: clamp(260px, 40vh, 360px);
-  }
-
   .chart-box {
     height: clamp(260px, 36vh, 360px);
   }
@@ -365,5 +376,7 @@
   outline-offset: 2px;
 }
 
-
-
+/* Encabezados de columnas numéricas alineados con sus valores (td.derecha) */
+.tabla-datos thead th:nth-child(n+4) {
+  text-align: right;
+}

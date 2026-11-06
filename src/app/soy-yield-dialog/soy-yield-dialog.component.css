@@ -61,7 +61,7 @@
 
 .titulo {
   margin: 10px 0 8px;
-  font-size: 1.45rem;
+  font-size: 1.3rem;
   line-height: 1.08;
   font-weight: 900;
   color: var(--text);
@@ -69,7 +69,6 @@
 
 .dialog-lead {
   margin: 0;
-  max-width: 52ch;
   color: var(--muted);
   line-height: 1.5;
 }
