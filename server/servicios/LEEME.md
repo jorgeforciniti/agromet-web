@@ -11,6 +11,8 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `lluvia-periodo.php` | Mapa de lluvias diarias: lluvia de 0 a 24 h o de 9 a 9 h y cantidad de registros por estación | `estaciones`, `datos_estaciones` |
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
+| `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
+| `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
 
 ## `normales.php`
 
@@ -121,3 +123,32 @@ El servidor tiene que poder hacer pedidos HTTPS hacia afuera (cURL de PHP o `all
 Para instalarlo: copiar el archivo a `/services/` y probar
 `https://agromet.eeaoc.gob.ar/services/kp-gfz.php?start=2026-10-01T03:00:00Z&end=2026-10-02T03:00:00Z&index=Kp`
 (tiene que devolver `"Kp":[...]` y `"datetime":[...]`).
+
+## `datos-alerta.php`
+
+**Cuidado:** consulta `datos_estaciones` (más de 20 millones de filas). Antes de instalar un cambio,
+revisar el `EXPLAIN` con un mes y con 90 días (lo pide el mapa de lluvia acumulada).
+
+`GET /services/datos-alerta.php` (desde las 12 h de ayer) o `?desde=AAAA-MM-DD&hasta=AAAA-MM-DD`
+(hasta 400 días) devuelve, por estación, la lluvia total, la máxima de un registro (`maxLluvia`), los
+registros con lluvia, la mínima y los registros con helada. Con rango agrupa por estación y día, y
+PHP suma los días; así devuelve además la lluvia máxima de un día de 0 a 24 h y su fecha
+(`maxLluviaDia`, `fechaMaxLluviaDia`), que el mapa de lluvias diarias muestra en períodos de más de
+un día. Sin rango esos campos van `null`. No modifica datos.
+
+Para instalarlo: guardar el actual como `datos-alerta.php.ant`, copiar el nuevo a `/services/` y
+probar `https://agromet.eeaoc.gob.ar/services/datos-alerta.php?desde=<día 1>&hasta=<hoy>`. Si tarda,
+volver al `.ant` y revisar `SHOW PROCESSLIST`.
+
+## `pronosticos/smn-alerta-area.php`
+
+Va en `/services/pronosticos/`, junto a `smn_token.php` y `token.json` (no están en el repositorio:
+tienen el token del SMN). `GET ...?area=<id>&tipo=1` devuelve las alertas del área y `tipo=2` los
+avisos de corto plazo (`/v1/warning/shortterm/area/<id>/`). La versión anterior ignoraba `tipo` (leía
+una variable inexistente y comparaba con `=`), así que siempre devolvía las alertas.
+
+Usa `api-test.smn.gob.ar`, el entorno de prueba del SMN; conviene confirmar con el SMN si hay que
+pasar a la API de producción.
+
+Para instalarlo: copiarlo a `/services/pronosticos/` y comparar `?area=<id>&tipo=1` con `tipo=2`
+(tienen que ser distintos, salvo que no haya alertas ni avisos).

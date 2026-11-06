@@ -390,9 +390,9 @@ Pregunta pendiente:
 
 ### Abierto con la Sección
 
-- **«Lluvia máxima» del mapa de lluvias diarias:** se respondió «de un día», pero `datos-alerta.php` devuelve
-  la máxima de un registro (ej.: Santa Ana, 1/10 al 4/11: total 133,6 mm, máxima 2,03 mm). Hoy el popup dice
-  «Lluvia máxima en un registro».
+- **«Lluvia máxima» del mapa de lluvias diarias:** se respondió «de un día». `datos-alerta.php` (en el repo,
+  sin instalar) ahora devuelve también la máxima de un día de 0 a 24 h y su fecha; en períodos de más de un
+  día el popup la muestra junto a la «Lluvia máxima en un registro». Falta revisar el `EXPLAIN` e instalarlo.
 - **Horas de lluvia:** `registrosLluvia` cuenta sólo los registros > 0,3 mm, así que las horas quedan por
   debajo de las reales (los registros de 0,25 mm no suman).
 - **«Días de lluvia» de Datos por localidad:** la consulta citada cuenta registros; ¿el resumen cuenta días con
@@ -405,11 +405,13 @@ Pregunta pendiente:
 
 ### Pendiente en el servidor (PHP que no están en el repositorio)
 
-- `datos-alerta.php`: la lluvia máxima diaria, si se la quiere (hoy es la de un registro).
+- `datos-alerta.php` (ahora en el repo): devuelve la lluvia máxima diaria. Falta revisar el `EXPLAIN` e instalarlo.
 - `normales.php` (sí está en el repo): la tabla `normales` no tiene columnas de período. Hay que agregar
   `periodo_desde` y `periodo_hasta` y cargarlas por estación (ver `server/servicios/LEEME.md`); después,
   comprobar que la versión instalada devuelve `periodo`.
-- Alertas de corto plazo del SMN: `smn-alerta-area.php` ignora `tipo` (con 1, 2, 3 o 4 devuelve lo mismo). Hace
-  falta un PHP que pida al SMN, con su token, las alertas de corto plazo de Tucumán.
+- Alertas de corto plazo del SMN: `smn-alerta-area.php` ignoraba `tipo` por un error (leía una variable
+  inexistente y comparaba con `=`). Corregido en el repo (`server/servicios/pronosticos/`); falta instalarlo,
+  ver la respuesta de `tipo=2` y sumar esos avisos a las tarjetas de Estado actual. Usa la API de prueba del SMN
+  (`api-test.smn.gob.ar`).
 - Kp histórico: `kp-gfz.php` (en el repo) es el proxy de GFZ, que no permite CORS. El sitio lo usa para fechas
   de más de una semana; si no está instalado, sigue con NOAA. Falta instalarlo y probarlo.

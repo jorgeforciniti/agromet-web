@@ -72,6 +72,9 @@ interface RainMapRecord {
   nombre: string;
   totalLluvia: number | string | null;
   maxLluvia: number | string | null;
+  /** Lluvia máxima de un día de 0 a 24 h y su fecha (datos-alerta.php con rango; antes no venía) */
+  maxLluviaDia?: number | string | null;
+  fechaMaxLluviaDia?: string | null;
   registrosLluvia: number | string | null;
   frecuenciaDato: number | string;
   /** Horas cubiertas por los registros y horas del período (lluvia-periodo.php); sin dato si no respondió */
@@ -162,6 +165,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
   conRegistros = false;
   /** Período de la última carga, para el título del mapa */
   tituloPeriodo = '';
+  /** Días del período de la última carga (la máxima diaria se muestra con más de uno) */
+  private diasCargados = 1;
 
   constructor(
     private fb: FormBuilder,
@@ -258,6 +263,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       next: ([resp, periodo, estaciones]) => {
         this.ultimoDato = new Map((estaciones ?? []).map(e => [String(e.Identificacion), leerFechaEstacion(e.fecha_I)]));
         this.diaCargado = dia;
+        this.diasCargados = this.hoy ? 1 : dias;
         this.tituloPeriodo = this.textoPeriodo(desde, hasta, dia);
         this.conRegistros = periodo?.status === 'success';
         if (dia === 'pluviometrico' && periodo?.status !== 'success') {
@@ -292,7 +298,8 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       if (dia === 'calendario') {
         return { ...d, ...cobertura, totalLluvia: p.registros > 0 ? d.totalLluvia : null };
       }
-      return { ...d, ...cobertura, totalLluvia: p.mm, maxLluvia: p.maxRegistro, registrosLluvia: p.registrosLluvia };
+      // La máxima diaria de datos-alerta.php es de 0 a 24 h: no corresponde a la vista de 9 a 9 h
+      return { ...d, ...cobertura, totalLluvia: p.mm, maxLluvia: p.maxRegistro, registrosLluvia: p.registrosLluvia, maxLluviaDia: null, fechaMaxLluviaDia: null };
     });
   }
 
@@ -333,6 +340,12 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
           { etiqueta: 'Lluvia máxima en un registro', valor: `${formatDecimal(maxLluvia, 1)} mm` },
           { etiqueta: 'Horas de lluvia', valor: formatDecimal((registrosLluvia * frecuenciaDato) / 60, 1) }
         ];
+      // En un período de varios días, la lluvia del día más lluvioso (de 0 a 24 h)
+      const maxDia = d.maxLluviaDia == null ? NaN : parseFloat(String(d.maxLluviaDia));
+      if (!sinDatos && this.diasCargados > 1 && Number.isFinite(maxDia)) {
+        const fechaMax = d.fechaMaxLluviaDia ? ` (${d.fechaMaxLluviaDia.split('-').reverse().join('/')})` : '';
+        filas.splice(1, 0, { etiqueta: 'Lluvia máxima diaria (0 a 24 h)', valor: `${formatDecimal(maxDia, 1)} mm${fechaMax}` });
+      }
       if (!sinDatos && conCobertura) {
         filas.push({ etiqueta: 'Registros', valor: `cubren ${formatDecimal(Math.min(cubiertas as number, delPeriodo as number), 1)} h de ${formatDecimal(delPeriodo as number, 1)} h` });
       }
