@@ -8,7 +8,6 @@
         <ng-container *ngIf="primerAnio">· serie {{ primerAnio }}–{{ ultimoAnio }}</ng-container>
         <ng-container *ngIf="data.referencePeriod">· normal {{ data.referencePeriod }}</ng-container>
       </p>
-      <!-- Pregunta para la Sección: las estadísticas (mediana, bandas, promedio) usan toda la serie, mientras que la normal usa el período de referencia; ¿se prefiere calcularlas sobre el mismo período que la normal? -->
       <app-como-se-lee>
         <p>Totales mensuales de la red pluviométrica de la EEAOC. «Por mes» muestra cada mes de la campaña
           consultada (barras; en naranja, el mes elegido; en celeste claro, el mes en curso, que es un
@@ -17,9 +16,12 @@
         <p>«Serie del mes» muestra el mismo mes en cada año de la serie, con sus estadísticas. «Por campaña»
           compara el total de 12 meses de cada campaña que empieza en el mismo mes; las campañas con algún
           mes sin dato quedan en gris y no entran en la comparación.</p>
-        <p>Las estadísticas usan todos los años con dato de la serie, sin el mes en curso ni los posteriores;
-          la normal corresponde al período indicado arriba, por eso la mediana y la normal pueden diferir.
-          «Superó a X de N años» cuenta los años con menos lluvia que el valor consultado.</p>
+        <p>La normal y las estadísticas salen de períodos distintos. La normal es la del período de
+          referencia indicado arriba, más largo. La mediana, las bandas y el promedio se calculan con la
+          serie propia de este punto (los años indicados arriba, a lo sumo unos 15), sin el mes en curso ni
+          los posteriores. Por eso la mediana y la normal pueden diferir: la serie corta muestra cómo
+          llovió en los últimos años y la normal, el comportamiento de largo plazo.</p>
+        <p>«Superó a X de N años» cuenta los años de la serie con menos lluvia que el valor consultado.</p>
       </app-como-se-lee>
     </div>
     <button type="button" class="ed__cerrar" (click)="cerrar()" aria-label="Cerrar">

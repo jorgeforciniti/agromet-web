@@ -18,7 +18,7 @@
   height: 100%;
 }
 
-/* No se achica: si no entra, se desplaza (el mapa no tapa la nota) */
+/* No se achica: si no entra, se desplaza (el mapa no tapa lo de abajo) */
 .dialog-body-wrapper{
   position: relative;
   flex: 1 0 auto;
@@ -65,13 +65,6 @@
   flex: 0 0 auto;
   background: #fff;
   font-weight: 800;
-}
-
-.nota{
-  margin: 10px 0 0;
-  color: rgba(17,24,39,.72);
-  font-size: .85rem;
-  line-height: 1.4;
 }
 
 .no-data-message,

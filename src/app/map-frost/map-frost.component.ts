@@ -290,7 +290,9 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
           { etiqueta: 'Mínima absoluta', valor: `${formatDecimal(Number(d.minAbs), 1)} °C`, destacada: true },
           { etiqueta: 'Horas por debajo de −4 °C', valor: formatDecimal(Number(d['hsDebajo-4']), 1) },
           { etiqueta: 'Horas por debajo de −2 °C', valor: formatDecimal(Number(d['hsDebajo-2']), 1) },
-          { etiqueta: 'Total de horas de helada', valor: formatDecimal(Number(d.hsDebajo0), 1) }
+          { etiqueta: 'Total de horas de helada', valor: formatDecimal(Number(d.hsDebajo0), 1) },
+          { etiqueta: 'Primera helada (FPH)', valor: this.fechaCorta(d.FPH) },
+          { etiqueta: 'Última helada (FUH)', valor: this.fechaCorta(d.FUH) }
         ],
         registros: { cantidad: Number(d.cantidadDias), total: totalDias },
         ficha: { lat, lon }
@@ -298,6 +300,14 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.markersLayer.addLayer(marker);
     });
+  }
+
+  /** Fecha «aaaa-mm-dd» (o Date) como dd/mm/aaaa; «—» si no hay. */
+  private fechaCorta(fecha: string | Date | null | undefined): string {
+    if (!fecha) return '—';
+    if (fecha instanceof Date) return this.formatToString(fecha);
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(fecha);
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : fecha;
   }
 
   getColor(minAbs: number): string {

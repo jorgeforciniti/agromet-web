@@ -3,14 +3,18 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">IMPACTO TÉRMICO</div>
       <h2 class="titulo">Mapa de Heladas</h2>
-      <!-- Pregunta para la Sección: ¿qué umbral y qué sensor (altura, abrigo) definen un día con helada en datos-heladas.php? ¿Las horas bajo 0, −2 y −4 °C se calculan como registros por la duración de cada registro? -->
-      <!-- Pregunta para la Sección: FPH y FUH, ¿son la fecha de la primera y de la última helada del período? Si es así, conviene explicarlo en el texto o en el encabezado de la tabla. -->
       <app-como-se-lee class="mapa-como-se-lee">
         <p>Cada punto es una estación de la red EEAOC que registró al menos un día con helada en el período
-          elegido. El color indica la temperatura mínima absoluta del período: amarillo, de 0 a −2 °C;
-          naranja, de −2 a −4 °C; rojo, de −4 a −6 °C; bordó, menos de −6 °C.</p>
-        <p>Al tocar un punto se ven las horas por debajo de 0, −2 y −4 °C y cuántos días del período tienen
-          datos. La pestaña «Datos» resume lo mismo en una tabla, con la cantidad de días con helada.</p>
+          elegido. La temperatura es la del aire medida a 1,5 m de altura, en abrigo meteorológico (criterio
+          de la OMM): hay helada cuando llega a 0 °C o menos.</p>
+        <p>El color indica la temperatura mínima absoluta del período: amarillo, de 0 a −2 °C; naranja, de
+          −2 a −4 °C; rojo, de −4 a −6 °C; bordó, menos de −6 °C.</p>
+        <p>Las horas por debajo de 0, −2 y −4 °C se calculan con los registros de la estación: cada uno
+          representa 15 minutos, así que cada registro en o por debajo del umbral suma 0,25 h. Al tocar un
+          punto se ven esas horas, las fechas de la primera y la última helada y cuántos días del período
+          tienen datos.</p>
+        <p>La pestaña «Datos» resume lo mismo en una tabla, con la cantidad de días con helada. FPH es la
+          fecha de la primera helada del período y FUH, la de la última.</p>
         <p>Las estaciones sin heladas en el período y las que no tienen datos no aparecen en el mapa: un
           lugar sin punto no significa necesariamente que no haya helado.</p>
       </app-como-se-lee>
@@ -87,13 +91,13 @@
                 <thead>
                   <tr>
                     <th>Estación</th>
-                    <th>MinAbs (°C)</th>
-                    <th>Horas &lt; -4°C</th>
-                    <th>Horas &lt; -2°C</th>
-                    <th>Horas &lt; 0°C</th>
-                    <th>Días Heladas</th>
-                    <th>FPH</th>
-                    <th>FUH</th>
+                    <th title="Temperatura mínima absoluta del período">MinAbs (°C)</th>
+                    <th title="Horas con temperatura de −4 °C o menos (0,25 h por registro)">Horas &le; −4 °C</th>
+                    <th title="Horas con temperatura de −2 °C o menos (0,25 h por registro)">Horas &le; −2 °C</th>
+                    <th title="Horas con temperatura de 0 °C o menos (0,25 h por registro)">Horas &le; 0 °C</th>
+                    <th title="Días con temperatura de 0 °C o menos">Días con helada</th>
+                    <th title="Fecha de la primera helada del período">FPH</th>
+                    <th title="Fecha de la última helada del período">FUH</th>
                   </tr>
                 </thead>
 
@@ -113,6 +117,10 @@
                 </tbody>
               </table>
             </div>
+            <p class="tabla-referencias">
+              MinAbs: temperatura mínima absoluta. Horas: 0,25 h por cada registro de 15 minutos en o por
+              debajo del umbral. FPH: fecha de la primera helada del período. FUH: fecha de la última helada.
+            </p>
           </div>
         </mat-tab>
       </mat-tab-group>

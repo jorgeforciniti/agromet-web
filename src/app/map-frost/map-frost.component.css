@@ -241,6 +241,13 @@
   color: var(--text);
 }
 
+.tabla-referencias{
+  margin: 8px 2px 0;
+  color: rgba(17,24,39,.72);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
 .table-scroll{
   width: 100%;
   position: relative;

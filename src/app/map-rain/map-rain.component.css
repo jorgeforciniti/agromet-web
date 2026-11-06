@@ -255,3 +255,18 @@
 app-como-se-lee.mapa-como-se-lee {
   margin: -6px 0 12px;
 }
+
+/* Día de 0 a 24 h o pluviométrico (de 9 a 9 h) */
+.dia-lluvia {
+  margin: 0 0 10px;
+  font-size: .88rem;
+}
+
+.aviso-lluvia {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #854d0e;
+  font-size: .88rem;
+}

@@ -3,20 +3,26 @@
     <div class="dialog-body-wrapper">
       <div class="app-dialog-eyebrow">LLUVIA ACUMULADA</div>
       <h2 class="titulo">Lluvia de los últimos 30, 60 y 90 días</h2>
-      <!-- Pregunta para la Sección: ¿es correcto repartir la normal mensual en partes iguales por día para comparar períodos que no son meses completos? -->
-      <!-- Pregunta para la Sección: ¿el dato del mes en curso (datos-campania-mes-en-curso.php) es provisorio y puede corregirse? Si es así, convendría decirlo. -->
-      <!-- Pregunta para la Sección: la nota al pie repite parte de este texto; ¿se deja la nota, se quita o se pasa todo acá? -->
       <app-como-se-lee class="mapa-como-se-lee">
-        <p>Cada punto es un pluviómetro de la red EEAOC con la lluvia acumulada en el período elegido. El
-          color indica qué porcentaje de la normal de esas mismas fechas llovió: rojo, naranja y amarillo,
-          menos que la normal; celeste y azul, igual o más. La normal de cada mes se reparte en partes
-          iguales entre sus días, para que cubra exactamente las mismas fechas.</p>
+        <p>Cada punto es un pluviómetro de la red EEAOC con la lluvia acumulada en el período elegido.
+          Estos datos se cargan por mes: cada período toma 1, 2 o 3 meses completos más lo que va del mes
+          en curso, por eso dura algo más que 30, 60 o 90 días.
+          @if (ultimoDato) {
+            Los pluviómetros que todavía no tienen datos de este mes llegan hasta el
+            {{ finMesAnterior | date:'dd/MM/yyyy' }}.
+          }
+        </p>
+        <p>El dato del mes en curso es provisorio: se va cargando durante el mes y puede corregirse.</p>
+        <p>El color indica qué porcentaje de la normal de esas mismas fechas llovió: rojo, naranja y
+          amarillo, menos que la normal; celeste y azul, igual o más. Como la normal es mensual, para
+          comparar se reparte en partes iguales entre los días del mes; así cubre exactamente las mismas
+          fechas que la lluvia medida.</p>
         <p>Si a un pluviómetro le falta el dato de alguno de los meses completos del período, no se muestra
           en ese período. Al tocar un punto se ven la normal, el desvío, los otros dos períodos y «Ver
           ficha», con la serie histórica del pluviómetro.</p>
         <p>Si hay una estación automática a menos de 2 km, el popup muestra lo que midió en las mismas
           fechas. El borde punteado aparece cuando el pluviómetro suma al menos 10 mm y la automática midió
-          menos del 70 % de ese valor.</p>
+          menos del 70 % de ese valor: puede tener el pluviómetro obstruido.</p>
       </app-como-se-lee>
 
       <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
@@ -63,17 +69,6 @@
           </div>
         </div>
       </div>
-
-      <p class="nota">
-        Datos de los pluviómetros de la red EEAOC, que se cargan por mes. Cada período toma 1, 2 o 3
-        meses completos más lo que va del mes en curso, por eso dura algo más que 30, 60 o 90 días.
-        @if (ultimoDato) {
-          Los pluviómetros sin datos de este mes llegan hasta el {{ finMesAnterior | date:'dd/MM/yyyy' }}.
-        }
-        El color compara con la normal de esas mismas fechas. El borde punteado indica que la
-        estación automática cercana midió mucho menos en esas fechas: puede tener el pluviómetro
-        obstruido.
-      </p>
     </div>
   </div>
 </mat-dialog-content>

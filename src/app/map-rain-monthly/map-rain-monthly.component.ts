@@ -105,6 +105,16 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
 
   public yearsList: number[] = [];
 
+  /**
+   * Último mes completo (el anterior al actual): el período no puede incluir el mes en curso ni
+   * posteriores, porque todavía no están cerrados ni validados.
+   */
+  public readonly ultimoMesCompleto = (() => {
+    const hoy = new Date();
+    const mesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+    return { mes: mesAnterior.getMonth() + 1, anio: mesAnterior.getFullYear() };
+  })();
+
   private monthMap: { [key: string]: number } = {
     ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
     JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
@@ -136,8 +146,9 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     this.selectedEndMonth = lastMonthDate.getMonth() + 1;
     this.selectedStartYear = lastMonthDate.getFullYear();
 
-    const currentYear = new Date().getFullYear();
-    for (let y = currentYear; y >= currentYear - 20; y--) {
+    // En enero, el año en curso no tiene ningún mes completo: la lista empieza en el anterior
+    const ultimoAnio = this.ultimoMesCompleto.anio;
+    for (let y = ultimoAnio; y >= ultimoAnio - 20; y--) {
       this.yearsList.push(y);
     }
     this.loadRainData();
@@ -234,10 +245,41 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
+  /** Año del mes de fin: si es anterior al de inicio, corresponde al año siguiente. */
+  public anioFin(mesFin: number): number {
+    return mesFin < this.selectedStartMonth ? this.selectedStartYear + 1 : this.selectedStartYear;
+  }
+
+  /** true si el mes (1 a 12) del año dado es el mes en curso o uno posterior. */
+  public mesPosteriorAlUltimoCompleto(mes: number, anio: number): boolean {
+    const { mes: ultimoMes, anio: ultimoAnio } = this.ultimoMesCompleto;
+    return anio > ultimoAnio || (anio === ultimoAnio && mes > ultimoMes);
+  }
+
+  /** true si el período elegido llega al mes en curso o más allá (no se puede cargar). */
+  public get periodoIncluyeMesIncompleto(): boolean {
+    return this.mesPosteriorAlUltimoCompleto(this.selectedEndMonth, this.anioFin(this.selectedEndMonth));
+  }
+
+  /** Al cambiar el año de inicio, lleva los meses que queden fuera al último mes completo. */
+  public ajustarAlUltimoMesCompleto(): void {
+    const { mes, anio } = this.ultimoMesCompleto;
+    if (this.mesPosteriorAlUltimoCompleto(this.selectedStartMonth, this.selectedStartYear)) {
+      this.selectedStartMonth = mes;
+      this.selectedStartYear = anio;
+    }
+    if (this.periodoIncluyeMesIncompleto) {
+      this.selectedEndMonth = mes;
+    }
+  }
+
   public loadRainData(): void {
     if (!this.selectedStartMonth || !this.selectedEndMonth || !this.selectedStartYear) {
       alert('Por favor, seleccione el período completo.');
       return;
+    }
+    if (this.periodoIncluyeMesIncompleto) {
+      return; // El mensaje en pantalla indica hasta qué mes se puede elegir
     }
 
     this.isLoading = true;
@@ -320,10 +362,7 @@ export class MapRainMonthlyComponent implements OnInit, AfterViewInit, OnDestroy
     let hasMissingDataInPeriod = false;
 
     const userStartDate = new Date(this.selectedStartYear, this.selectedStartMonth - 1, 1);
-    let userEndDateYear = this.selectedStartYear;
-    if (this.selectedEndMonth < this.selectedStartMonth) {
-      userEndDateYear = this.selectedStartYear + 1;
-    }
+    const userEndDateYear = this.anioFin(this.selectedEndMonth);
     // Create the date for the first day of the end month
     const userEndDate = new Date(userEndDateYear, this.selectedEndMonth - 1, 1);
     // To include the whole end month, set date to the last day of that month

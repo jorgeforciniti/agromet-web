@@ -9,7 +9,7 @@ export interface WeatherStation {
   Localidad?: string;
   departamento?: string;
   provincia?: string;
-  /** 1 = Llanura Tucumana, 2 = Pedemonte Tucumano, 3|4 = Valles Intermontanos, 5 = Provincias Adyacentes */
+  /** 1 = Llanura Tucumana, 2 = Pedemonte Tucumano, 3 = Valles Intermontanos, 4 = Valles de Altura, 5 = Provincias Adyacentes */
   zona?: string;
   lat: string;
   lon: string;
@@ -207,6 +207,33 @@ export interface DiseaseApiRecord {
   ultregrecibido?: string | null;
 }
 
+/** Día de la lluvia: calendario (0 a 24 h) o pluviométrico (de 9 a 9 h, termina a las 9 de cada fecha) */
+export type DiaLluvia = 'calendario' | 'pluviometrico';
+
+export interface LluviaPeriodoEstacion {
+  id: string;
+  nombre: string;
+  habilitada: number;
+  /** null: sin registros en el período */
+  mm: number | null;
+  maxRegistro: number | null;
+  registros: number;
+  /** Registros con más de 0,3 mm */
+  registrosLluvia: number;
+  /** Horas cubiertas por los registros */
+  horas: number;
+}
+
+export interface LluviaPeriodoResponse {
+  status: string;
+  desde: string;
+  hasta: string;
+  dia: DiaLluvia;
+  /** Horas transcurridas del período (hasta ahora si todavía no terminó) */
+  horasPeriodo: number;
+  estaciones: LluviaPeriodoEstacion[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -246,6 +273,14 @@ export class WeatherService {
 
   getRains<TRain = WeatherAlertStation>(desde: string, hasta: string): Observable<StationsApiResponse<TRain>> {
     return this.http.get<StationsApiResponse<TRain>>(this.stationsUrl + `datos-alerta.php?desde=${desde}&hasta=${hasta}`);
+  }
+
+  /**
+   * Lluvia por estación con la cantidad de registros (server/servicios/lluvia-periodo.php, la misma
+   * consulta que «Lluvias 9 a 9» de /admin). dia: de 0 a 24 h o día pluviométrico de 9 a 9 h.
+   */
+  getLluviaPeriodo(desde: string, hasta: string, dia: DiaLluvia): Observable<LluviaPeriodoResponse> {
+    return this.http.get<LluviaPeriodoResponse>(this.stationsUrl + `lluvia-periodo.php?desde=${desde}&hasta=${hasta}&dia=${dia}`);
   }
 
   getStationsAll(): Observable<WeatherStation[]> {

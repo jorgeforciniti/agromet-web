@@ -52,6 +52,10 @@ export class DmyDateAdapter extends NativeDateAdapter {
   }
 }
 
+/** Rango físico aceptado (°C): fuera de él, el valor se descarta por erróneo. */
+const TEMP_MIN_VALIDA = -25;
+const TEMP_MAX_VALIDA = 50;
+
 interface TemperatureData {
   lat: number;
   lon: number;
@@ -232,12 +236,8 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
             // Si no es un número válido, descartamos
             if (!Number.isFinite(value)) return false;
 
-            // Solo filtrar rango en ABS (como ya hacías)
-            if (variable === 'abs_min_temp' || variable === 'abs_max_temp') {
-              return value >= -25 && value <= 50;
-            }
-
-            return true;
+            // Rango físico de −25 a 50 °C, en las absolutas y también en las medias
+            return value >= TEMP_MIN_VALIDA && value <= TEMP_MAX_VALIDA;
           });
 
           data.forEach((d: TemperatureData) => {
@@ -251,14 +251,18 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
             const color = this.getColor(value);
             const varLabel = this.variables.find(v => v.key === variable)?.label ?? variable;
 
+            // Días con dato de la estación (datos_diarios); no hay un mínimo: si faltan días, el
+            // punto se marca con borde punteado y el popup dice cuántos tiene
             const countRecords = Number(d['count_records']) || 0;
+            const incompleta = totalDias > 0 && countRecords < totalDias;
 
             L.circleMarker([d.lat, d.lon], {
               pane: 'temperatureMarkersPane',
               radius: 6,
               fillColor: color,
-              color: '#333',
-              weight: 1,
+              color: incompleta ? '#000' : '#333',
+              weight: incompleta ? 2 : 1,
+              dashArray: incompleta ? '3 3' : undefined,
               fillOpacity: 1
             })
               .bindPopup(popupEstacion({
@@ -311,6 +315,11 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
                 <span>15</span>
                 <span>25</span>
                 <span>&ge;35</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+                  border: 2px dashed #000; box-sizing: border-box;"></span>
+                Faltan días con datos
             </div>
         `;
       return leyendaPlegable(div);
