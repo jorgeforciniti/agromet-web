@@ -2,13 +2,14 @@
 // datos-alerta.php
 // Resumen por estacion (lluvia y minimas) de un rango de fechas; sin rango: desde las 12:00 de ayer hasta ahora.
 //
-// Con rango, la consulta agrupa por estación y día, y PHP suma los días: así, con la misma lectura de
-// datos_estaciones, también sale la lluvia máxima de un día (de 0 a 24 h) y su fecha (maxLluviaDia,
-// fechaMaxLluviaDia). maxLluvia sigue siendo la máxima de un registro. Sin rango esos dos campos van null.
-//
 // Se resuelve en dos consultas separadas y se unen en PHP. Antes era un JOIN de datos_estaciones (InnoDB, mas de 20 millones
 // de filas) con estaciones (MyISAM): en MariaDB el optimizador recorria casi toda datos_estaciones y, como MyISAM bloquea la
 // tabla completa, la consulta lenta dejaba bloqueadas la web, las APIs y el guardado de datos de las estaciones.
+//
+// No agrupar también por fecha (para sacar la lluvia máxima diaria): se probó en noviembre de 2026 y, con
+// 90 días, la consulta tardó 70 s contra menos de 1 s de esta versión, aunque el EXPLAIN se veía parecido.
+// La máxima diaria (maxLluviaDia, fechaMaxLluviaDia) sale de datos_diarios.rr_24, una fila por estación y
+// día (ver el paso 3b); sólo con rango y sólo de los días que ya tienen su fila en datos_diarios.
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
@@ -71,10 +72,8 @@ if ($sinFecha) {
     GROUP BY identificacion
     ORDER BY identificacion";
 } else {
-    // Mismo WHERE que antes; sólo se agrega fecha al GROUP BY (ver el encabezado)
     $sql = "SELECT
         identificacion,
-        fecha,
         SUM(lluvia)        AS totalLluvia,
         MAX(lluvia)        AS maxLluvia,
         COUNT(CASE WHEN lluvia > 0.3 THEN 1 END) AS registrosLluvia,
@@ -82,8 +81,8 @@ if ($sinFecha) {
         SUM(temp_laf <= 0) AS registrosHelada
     FROM datos_estaciones
     WHERE fecha BETWEEN ? AND ?
-    GROUP BY identificacion, fecha
-    ORDER BY identificacion, fecha";
+    GROUP BY identificacion
+    ORDER BY identificacion";
 }
 
 $stmt = $conexion->prepare($sql);
@@ -98,59 +97,35 @@ if (!$stmt->execute()) {
 }
 $res = $stmt->get_result();
 $agregados = [];
-if ($sinFecha) {
-    while ($row = $res->fetch_assoc()) {
-        $row['maxLluviaDia'] = null;
-        $row['fechaMaxLluviaDia'] = null;
-        $agregados[] = $row;
-    }
-} else {
-    // Una fila por estación y día: se juntan por estación (los NULL de SUM, MAX y MIN se respetan)
-    $porEstacion = [];
-    while ($row = $res->fetch_assoc()) {
-        $id = $row['identificacion'];
-        if (!isset($porEstacion[$id])) {
-            $porEstacion[$id] = [
-                'identificacion'    => $id,
-                'totalLluvia'       => null,
-                'maxLluvia'         => null,
-                'registrosLluvia'   => 0,
-                'minimaTemperatura' => null,
-                'registrosHelada'   => null,
-                'maxLluviaDia'      => null,
-                'fechaMaxLluviaDia' => null,
-            ];
-        }
-        $a = &$porEstacion[$id];
-        if ($row['totalLluvia'] !== null) {
-            $lluviaDia = (float) $row['totalLluvia'];
-            $a['totalLluvia'] = ($a['totalLluvia'] === null ? 0 : $a['totalLluvia']) + $lluviaDia;
-            // Ante empate queda el primer día (las filas vienen ordenadas por fecha)
-            if ($a['maxLluviaDia'] === null || $lluviaDia > $a['maxLluviaDia']) {
-                $a['maxLluviaDia'] = $lluviaDia;
-                $a['fechaMaxLluviaDia'] = $row['fecha'];
-            }
-        }
-        if ($row['maxLluvia'] !== null && ($a['maxLluvia'] === null || (float) $row['maxLluvia'] > $a['maxLluvia'])) {
-            $a['maxLluvia'] = (float) $row['maxLluvia'];
-        }
-        $a['registrosLluvia'] += (int) $row['registrosLluvia'];
-        if ($row['minimaTemperatura'] !== null && ($a['minimaTemperatura'] === null || (float) $row['minimaTemperatura'] < $a['minimaTemperatura'])) {
-            $a['minimaTemperatura'] = (float) $row['minimaTemperatura'];
-        }
-        if ($row['registrosHelada'] !== null) {
-            $a['registrosHelada'] = ($a['registrosHelada'] === null ? 0 : $a['registrosHelada']) + (int) $row['registrosHelada'];
-        }
-        unset($a);
-    }
-    foreach ($porEstacion as $a) {
-        // Sumas de decimales: se redondean para no devolver 133.60000000000002
-        if ($a['totalLluvia'] !== null) $a['totalLluvia'] = round($a['totalLluvia'], 2);
-        if ($a['maxLluviaDia'] !== null) $a['maxLluviaDia'] = round($a['maxLluviaDia'], 2);
-        $agregados[] = $a;
-    }
+while ($row = $res->fetch_assoc()) {
+    $agregados[] = $row;
 }
 $stmt->close();
+
+// 3b) Lluvia máxima de un día (de 0 a 24 h) por estación, de datos_diarios (tabla resumida: una fila por
+//     estación y día). Se leen las filas y el máximo se busca en PHP; ante empate queda el primer día.
+$maxDia = [];
+if (!$sinFecha) {
+    $stmtDia = $conexion->prepare("SELECT identificacion, fecha, rr_24
+        FROM datos_diarios
+        WHERE fecha BETWEEN ? AND ? AND rr_24 BETWEEN 0 AND 1000
+        ORDER BY fecha");
+    // Si falla, la respuesta sale igual, sin la máxima diaria
+    if ($stmtDia) {
+        $stmtDia->bind_param('ss', $desde, $hasta);
+        if ($stmtDia->execute()) {
+            $resDia = $stmtDia->get_result();
+            while ($row = $resDia->fetch_assoc()) {
+                $id = (int) $row['identificacion'];
+                $mm = (float) $row['rr_24'];
+                if (!isset($maxDia[$id]) || $mm > $maxDia[$id]['mm']) {
+                    $maxDia[$id] = ['mm' => $mm, 'fecha' => $row['fecha']];
+                }
+            }
+        }
+        $stmtDia->close();
+    }
+}
 
 // 4) Datos de las estaciones (tabla chica); sin rango solo las habilitadas
 $sqlEst = "SELECT identificacion, nombre, lat, lon, alt, tiempo AS frecuenciaDato, habilitada FROM estaciones"
@@ -187,8 +162,8 @@ foreach ($agregados as $a) {
         'habilitada'        => $e['habilitada'],
         'totalLluvia'       => $a['totalLluvia'],
         'maxLluvia'         => $a['maxLluvia'],
-        'maxLluviaDia'      => $a['maxLluviaDia'],
-        'fechaMaxLluviaDia' => $a['fechaMaxLluviaDia'],
+        'maxLluviaDia'      => isset($maxDia[$id]) ? $maxDia[$id]['mm'] : null,
+        'fechaMaxLluviaDia' => isset($maxDia[$id]) ? $maxDia[$id]['fecha'] : null,
         'registrosLluvia'   => $a['registrosLluvia'],
         'minimaTemperatura' => $a['minimaTemperatura'],
         'registrosHelada'   => $a['registrosHelada'],

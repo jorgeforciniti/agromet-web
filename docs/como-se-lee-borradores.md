@@ -390,9 +390,10 @@ Pregunta pendiente:
 
 ### Abierto con la Sección
 
-- **«Lluvia máxima» del mapa de lluvias diarias:** se respondió «de un día». `datos-alerta.php` (en el repo,
-  sin instalar) ahora devuelve también la máxima de un día de 0 a 24 h y su fecha; en períodos de más de un
-  día el popup la muestra junto a la «Lluvia máxima en un registro». Falta revisar el `EXPLAIN` e instalarlo.
+- **«Lluvia máxima» del mapa de lluvias diarias:** se respondió «de un día», pero `datos-alerta.php` devuelve
+  la máxima de un registro, y el popup dice «Lluvia máxima en un registro». En el repo (sin instalar),
+  `datos-alerta.php` agrega la máxima de un día desde `datos_diarios.rr_24`, y en períodos de más de un día el
+  popup la muestra con su fecha (sacarla de `datos_estaciones` agrupando por día tardó 70 s con 90 días).
 - **Horas de lluvia:** `registrosLluvia` cuenta sólo los registros > 0,3 mm, así que las horas quedan por
   debajo de las reales (los registros de 0,25 mm no suman).
 - **«Días de lluvia» de Datos por localidad:** la consulta citada cuenta registros; ¿el resumen cuenta días con
@@ -405,7 +406,8 @@ Pregunta pendiente:
 
 ### Pendiente en el servidor (PHP que no están en el repositorio)
 
-- `datos-alerta.php` (ahora en el repo): devuelve la lluvia máxima diaria. Falta revisar el `EXPLAIN` e instalarlo.
+- `datos-alerta.php` (en el repo): lluvia máxima diaria desde `datos_diarios`. Falta medir esa consulta e
+  instalarlo (ver `server/servicios/LEEME.md`).
 - `normales.php` (sí está en el repo): la tabla `normales` no tiene columnas de período. Hay que agregar
   `periodo_desde` y `periodo_hasta` y cargarlas por estación (ver `server/servicios/LEEME.md`); después,
   comprobar que la versión instalada devuelve `periodo`.

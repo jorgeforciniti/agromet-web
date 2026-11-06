@@ -72,7 +72,10 @@ interface RainMapRecord {
   nombre: string;
   totalLluvia: number | string | null;
   maxLluvia: number | string | null;
-  /** Lluvia máxima de un día de 0 a 24 h y su fecha (datos-alerta.php con rango; antes no venía) */
+  /**
+   * Lluvia máxima de un día de 0 a 24 h y su fecha (datos-alerta.php con rango, de datos_diarios: sólo días
+   * ya cerrados). Si la API no los manda, el popup no muestra la fila.
+   */
   maxLluviaDia?: number | string | null;
   fechaMaxLluviaDia?: string | null;
   registrosLluvia: number | string | null;

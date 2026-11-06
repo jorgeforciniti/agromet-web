@@ -127,18 +127,23 @@ Para instalarlo: copiar el archivo a `/services/` y probar
 ## `datos-alerta.php`
 
 **Cuidado:** consulta `datos_estaciones` (más de 20 millones de filas). Antes de instalar un cambio,
-revisar el `EXPLAIN` con un mes y con 90 días (lo pide el mapa de lluvia acumulada).
+revisar el `EXPLAIN` **y medir el tiempo real** con 90 días (lo pide el mapa de lluvia acumulada): el
+`EXPLAIN` no alcanza (ver abajo).
 
 `GET /services/datos-alerta.php` (desde las 12 h de ayer) o `?desde=AAAA-MM-DD&hasta=AAAA-MM-DD`
 (hasta 400 días) devuelve, por estación, la lluvia total, la máxima de un registro (`maxLluvia`), los
-registros con lluvia, la mínima y los registros con helada. Con rango agrupa por estación y día, y
-PHP suma los días; así devuelve además la lluvia máxima de un día de 0 a 24 h y su fecha
-(`maxLluviaDia`, `fechaMaxLluviaDia`), que el mapa de lluvias diarias muestra en períodos de más de
-un día. Sin rango esos campos van `null`. No modifica datos.
+registros con lluvia, la mínima y los registros con helada. No modifica datos. La versión instalada
+antes de la máxima diaria tardaba 0,3 s con un mes y 0,9 s con 90 días (noviembre de 2026).
 
-Para instalarlo: guardar el actual como `datos-alerta.php.ant`, copiar el nuevo a `/services/` y
-probar `https://agromet.eeaoc.gob.ar/services/datos-alerta.php?desde=<día 1>&hasta=<hoy>`. Si tarda,
-volver al `.ant` y revisar `SHOW PROCESSLIST`.
+**Lluvia máxima diaria.** Con rango devuelve además `maxLluviaDia` y `fechaMaxLluviaDia`: el día con más
+lluvia (`rr_24`, de 0 a 24 h) de `datos_diarios`, que tiene una fila por estación y día. Es una consulta
+aparte; si falla, la respuesta sale igual sin esos campos. Sólo cuenta los días que ya tienen su fila en
+`datos_diarios`. **No agrupar `datos_estaciones` por fecha:** se probó y, con 90 días, tardó 70 s, aunque
+el `EXPLAIN` daba `range` sobre `idx_cub` con «Using index», igual que la versión original.
+
+Para instalarlo: medir antes la consulta de `datos_diarios` (con 1 día, 1 mes y 90 días), guardar el
+actual como `datos-alerta.php.ant`, copiar el nuevo a `/services/` y comparar el tiempo de
+`?desde=<hace 90 días>&hasta=<ayer>` con el de antes. Si tarda más, volver al `.ant`.
 
 ## `pronosticos/smn-alerta-area.php`
 
