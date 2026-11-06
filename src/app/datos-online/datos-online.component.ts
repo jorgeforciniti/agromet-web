@@ -84,6 +84,8 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Registros que faltan en las últimas 48 h: franjas grises en el gráfico y aviso */
   indicesSinRegistro: number[] = [];
   textoSinRegistro = '';
+  /** Intervalo habitual entre registros de la estación elegida (calculado en conHuecos) */
+  private intervaloMs = 15 * 60000;
   selectedStationId: string = '';
   selectedVariable: string = 'temp_af';
   fechasPeriodo: string = '';
@@ -433,7 +435,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
     const filas = this.conHuecos(datos);
     this.indicesSinRegistro = filas.map((f, i) => (f.fila ? -1 : i)).filter(i => i >= 0);
     const n = this.indicesSinRegistro.length;
-    this.textoSinRegistro = n ? `${n} ${n === 1 ? 'registro' : 'registros'} de 15 minutos` : '';
+    this.textoSinRegistro = n ? `${n} ${n === 1 ? 'registro' : 'registros'} de ${this.textoIntervalo(this.intervaloMs)}` : '';
 
     const config: ChartConfiguration<ChartType> = {
       type: chartType,
@@ -514,11 +516,13 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Filas ordenadas con un lugar vacío por cada registro que falta entre dos existentes,
-   * según el intervalo habitual de la estación (15 minutos).
+   * según el intervalo habitual de la estación (la mediana de los pasos entre registros: no
+   * todas las estaciones transmiten cada 15 minutos). Guarda ese intervalo en intervaloMs.
    */
   private conHuecos(datos: ChartWeatherRow[]): { hora: string; fila: ChartWeatherRow | null }[] {
     const pasos = datos.slice(1).map((d, i) => d.timestamp.getTime() - datos[i].timestamp.getTime()).filter(p => p > 0);
     const intervalo = pasos.length ? pasos.sort((a, b) => a - b)[Math.floor(pasos.length / 2)] : 15 * 60000;
+    this.intervaloMs = intervalo;
     const filas: { hora: string; fila: ChartWeatherRow | null }[] = [];
     datos.forEach((d, i) => {
       if (i > 0) {
@@ -531,6 +535,16 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
       filas.push({ hora: d.hora, fila: d });
     });
     return filas;
+  }
+
+  /** Intervalo entre registros en palabras: «15 minutos», «1 hora», «1 h 30 min». */
+  private textoIntervalo(ms: number): string {
+    const min = Math.max(1, Math.round(ms / 60000));
+    if (min < 60) return `${min} ${min === 1 ? 'minuto' : 'minutos'}`;
+    const h = Math.floor(min / 60);
+    const resto = min % 60;
+    if (resto) return `${h} h ${resto} min`;
+    return `${h} ${h === 1 ? 'hora' : 'horas'}`;
   }
 
   private formatHora(horaStr: string): string {

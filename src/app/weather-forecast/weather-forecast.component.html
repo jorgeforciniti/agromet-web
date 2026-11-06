@@ -74,12 +74,13 @@
           </mat-form-field>
         </header>
 
-        <!-- Pregunta para la Sección: ¿desde qué hora se acumula la «Lluvia» del día (0 h, 9 h)? ¿El viento es
-             el promedio de qué intervalo? ¿Confirmar que todas las estaciones transmiten cada 15 o 30 minutos? -->
         @if (mode === 'realtime' || mode === 'full') {
           <app-como-se-lee class="como-se-lee--realtime">
             <p>Muestra el último registro de la estación automática de la EEAOC elegida: temperatura del aire,
-              lluvia acumulada del día, humedad relativa y viento (dirección y velocidad media, en km/h).</p>
+              lluvia acumulada en el día (desde las 0 h), humedad relativa y viento (dirección y velocidad promedio
+              de 15 minutos, en km/h).</p>
+            <p>Cada estación envía datos con su propio intervalo (por ejemplo, cada 15 o 30 minutos, según la
+              estación).</p>
             <p>«Última actualización» es la hora de ese registro y cuánto hace que llegó: en verde si es de la última
               hora, en naranja si está atrasado más de 1 hora y en gris si no hay datos de hoy. En esos dos últimos
               casos los valores no reflejan las condiciones actuales.</p>
@@ -137,12 +138,14 @@
             Pronóstico para los próximos días para <span>{{ selectedStation?.nombre || 'la estación seleccionada' }}</span>
           </div>
           <p class="forecast-lead">Seguimiento operativo con días clave, detalle horario y evolución térmica.</p>
-          <!-- Pregunta para la Sección: ¿cada cuánto se renueva el pronóstico en el servidor (forecast.php)? ¿Qué
-               modelo usa OpenWeatherMap para esta zona y conviene nombrarlo? -->
+          <!-- Lo averiguado: forecast.php usa la API «5 day / 3 hour forecast» de OpenWeatherMap. Su
+               documentación oficial no publica qué modelo usa ni cada cuánto se actualiza exactamente,
+               así que no se nombra modelo ni frecuencia; sólo que se actualiza varias veces al día. -->
           @if (mode === 'forecast' || mode === 'full') {
             <app-como-se-lee class="como-se-lee--forecast">
-              <p>Es el pronóstico de OpenWeatherMap, un proveedor externo, calculado para la ubicación de la estación
-                elegida. No lo elabora la EEAOC ni lo mide la estación.</p>
+              <p>Es el pronóstico de OpenWeatherMap, un proveedor externo, en pasos de 3 horas para los próximos 5
+                días, calculado para la ubicación de la estación elegida. El servicio lo actualiza varias veces al
+                día. No lo elabora la EEAOC ni lo mide la estación.</p>
               <p>Cada día muestra la máxima y la mínima pronosticadas, una barra que ubica ese rango dentro del de
                 toda la semana y la mayor probabilidad de lluvia del día. Al elegir un día se ve el detalle cada 3
                 horas: cielo, temperatura, probabilidad de lluvia (no la cantidad) y viento en km/h.</p>

@@ -7,6 +7,12 @@ import {
   WeatherAlertStation,
   WeatherService
 } from '../services/weather.service';
+
+/** datos-alerta.php también devuelve la lluvia máxima de un registro (no está en WeatherAlertStation). */
+type EstacionAlerta = WeatherAlertStation & { maxLluvia?: string | number };
+
+/** Lluvia mínima de un registro (mm) para el aviso: con menos puede ser rocío. */
+const LLUVIA_MINIMA_REGISTRO = 0.3;
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -102,7 +108,14 @@ export class AlertComponent implements OnInit {
   showFrostAlert = false;
   frostAlertLevel: number = 0; // 0 = none, 1 = leve, 2 = moderada, 3 = severa
   smnAlertsByArea: { [area: number]: SmnAlert[] } = {};
-  smnShortAlerts: SmnAlert[] = [];
+  /*
+   * Alertas de corto plazo del SMN: pendientes del servidor. smn-alerta-area.php ignora el
+   * parámetro «tipo» (con tipo=1, 2, 3, 4 o sin tipo devuelve exactamente lo mismo: las alertas por
+   * área), y la API del SMN (ws1.smn.gob.ar) pide autenticación, así que no se puede consultar desde
+   * el navegador. Hace falta un PHP en el servidor que traiga las alertas de corto plazo del SMN
+   * para Tucumán y devuelva, como mínimo, nivel, fenómeno, descripción, zona afectada y vigencia
+   * (emitida / válida hasta). Cuando exista, se suma a las tarjetas de este componente.
+   */
 
   // NUEVO â€“ banner de temperaturas extremas
   tempExtremes: TempWarning[] = [];
@@ -137,26 +150,6 @@ export class AlertComponent implements OnInit {
         .filter((d): d is Date => !!d && !isNaN(d.getTime()));
       this.actualizado = fechas.length ? new Date(Math.max(...fechas.map(d => d.getTime()))) : null;
 
-      const allAlerts = [...tucuman.alerts, ...valles.alerts].map(alert => {
-        const desc = [...tucuman.uniqueAlerts, ...valles.uniqueAlerts]
-          .find(d => d.eventId === alert.eventId && d.level === alert.level);
-
-        return {
-          ...alert,
-          description: desc?.description ?? '',
-          instruction: desc?.instruction ?? '',
-        };
-      });
-
-      /*      if (allAlerts.length > 0) {
-              this.dialog.open(AlertDialogComponent, {
-                panelClass: 'do-dialog',
-                autoFocus: false,
-                restoreFocus: false,
-                data: { alerts: allAlerts }
-              });
-            }
-      */
       this.loadAlerts();
       this.loadTempExtremes();
     });
@@ -198,7 +191,7 @@ export class AlertComponent implements OnInit {
    * Consulta la API y determina si hay alertas de lluvia o helada.
    */
   private loadAlerts(): void {
-    this.weatherService.getAlerts().subscribe((response) => {
+    this.weatherService.getAlerts<EstacionAlerta>().subscribe((response) => {
       const stations = response.data.filter((s) => s.habilitada > 0);
       this.checkRainAlert(stations);
       this.frostAlertLevel = this.checkFrostAlertLevel(stations);
@@ -207,20 +200,17 @@ export class AlertComponent implements OnInit {
   }
 
   /**
-   * Activa alerta de lluvia si al menos una estación cumple criterios.
+   * Aviso de lluvia: alguna estación tuvo hoy (desde las 0 h) un registro con más de 0,3 mm.
+   * Con menos puede ser rocío (criterio de la Sección).
    */
-  private checkRainAlert(stations: WeatherAlertStation[]): void {
-    this.showRainAlert = stations.some(s => {
-      const recs = parseInt(s.registrosLluvia, 10);
-      const total = parseFloat(s.totalLluvia);
-      return recs > 1 || (recs > 1 && total > 0.6);
-    });
+  private checkRainAlert(stations: EstacionAlerta[]): void {
+    this.showRainAlert = stations.some(s => parseFloat(String(s.maxLluvia ?? '')) > LLUVIA_MINIMA_REGISTRO);
   }
 
   /**
    * Devuelve nivel de helada: 0 = no, 1 = leve, 2 = moderada, 3 = severa.
    */
-  public checkFrostAlertLevel(stations: WeatherAlertStation[]): number {
+  public checkFrostAlertLevel(stations: EstacionAlerta[]): number {
     const temps = stations
       .map(s => parseFloat(s.minimaTemperatura))
       .filter(t => !isNaN(t));

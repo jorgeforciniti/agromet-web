@@ -11,9 +11,6 @@
         Actualizado {{ actualizado | date:'dd/MM HH:mm' }} ·
         <a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">alertas oficiales del SMN</a>
       </div>
-      <!-- Pregunta para la Sección: ¿en qué período cuentan «Lluvia registrada» y «Helada registrada» (hoy desde
-           las 0 h, últimas 24 h, otro)? ¿Qué criterio exacto de lluvia se quiere informar? (hoy: más de un registro
-           con lluvia en alguna estación). ¿Conviene aclarar que no se muestran las alertas de corto plazo del SMN? -->
       <app-como-se-lee>
         <p>Las alertas son las que publica el Servicio Meteorológico Nacional (SMN) para dos zonas: Provincia de
           Tucumán y Valles Calchaquíes. Sólo se muestran los niveles amarillo, naranja y rojo; hay una tarjeta por
@@ -21,10 +18,13 @@
         <p>La grilla indica en qué día y en qué momento (madrugada, mañana, tarde o noche) rige la alerta en cada
           zona: las casillas coloreadas tienen alerta. «Qué hacer» abre las recomendaciones del SMN para ese nivel.
           La franja de temperaturas extremas también es del SMN y aparece desde el nivel amarillo.</p>
-        <p>Los avisos de la red de estaciones EEAOC no son alertas del SMN: surgen de lo que midieron las estaciones.
-          «Lluvia registrada» aparece cuando alguna estación registró lluvia. «Helada registrada» aparece cuando la
-          mínima más baja de la red es de 0 °C o menos; el color indica si fue leve (entre 0 y −2 °C), moderada (entre
-          −2 y −4 °C) o severa (−4 °C o menos). Cada botón abre el mapa con el detalle por estación.</p>
+        <p>Por ahora no se incluyen las alertas de corto plazo del SMN (las que se emiten para las próximas horas):
+          consultalas en smn.gob.ar.</p>
+        <p>Los avisos de la red de estaciones EEAOC no son alertas del SMN: surgen de lo que midieron las estaciones
+          en el día de hoy, desde las 0 h. «Lluvia registrada» aparece cuando alguna estación registró más de 0,3 mm en
+          una medición (menos puede ser rocío). «Helada registrada» aparece cuando la mínima más baja de la red es de
+          0 °C o menos; el color indica si fue leve (entre 0 y −2 °C), moderada (entre −2 y −4 °C) o severa (−4 °C o
+          menos). Cada botón abre el mapa con el detalle por estación.</p>
         <p>La hora de actualización es la del último informe del SMN. Ante cualquier diferencia, vale la publicación
           oficial en smn.gob.ar.</p>
       </app-como-se-lee>

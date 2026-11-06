@@ -127,8 +127,8 @@ class TemperatureLegendControl extends L.Control {
     ];
 
     for (let i = 0; i < stops.length - 1; i++) {
-      const from = stops[i].limit;
-      const to = stops[i + 1].limit;
+      const from = Math.round(stops[i].limit * 3.6);
+      const to = Math.round(stops[i + 1].limit * 3.6);
       const color = stops[i].color;
 
       const label = i === stops.length - 2 ? `${from}+` : `${from}–${to}`;
@@ -193,9 +193,9 @@ class WindLegendControl extends L.Control {
 
   override onAdd(_map: L.Map): HTMLElement {
     const div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML = '<strong>Viento (m/s)</strong>';
+    div.innerHTML = '<strong>Viento (km/h)</strong>';
 
-    // Usar los stops exactos de OpenWeatherMap
+    // Stops exactos de OpenWeatherMap, en m/s; la referencia se muestra en km/h (× 3,6) como el resto del sitio
     const stops = [
       { limit: 1, color: 'rgba(255, 255, 255, 0)' },
       { limit: 5, color: 'rgba(238, 206, 206, 0.4)' },
@@ -207,8 +207,8 @@ class WindLegendControl extends L.Control {
     ];
 
     for (let i = 0; i < stops.length - 1; i++) {
-      const from = stops[i].limit;
-      const to = stops[i + 1].limit;
+      const from = Math.round(stops[i].limit * 3.6);
+      const to = Math.round(stops[i + 1].limit * 3.6);
       const color = stops[i].color;
 
       const label = i === stops.length - 2 ? `${from}+` : `${from}–${to}`;
