@@ -46,6 +46,13 @@ interface DiseaseResultRow {
   classification: string;
   tone: string;
   values: Record<string, string>;
+  /** Registros del día y registros esperados según el intervalo de la estación */
+  registros?: number;
+  esperados?: number;
+  /** El día tiene menos de COBERTURA_MINIMA de los registros esperados */
+  incompleto?: boolean;
+  /** Día del período sin ningún registro */
+  sinDatos?: boolean;
 }
 
 interface SummaryItem {
@@ -57,10 +64,19 @@ interface SummaryItem {
 const DISEASES_REQUIRING_LEAF_WETNESS = new Set([1, 2, 3, 4, 5, 9, 10, 11, 14, 15, 16]);
 
 /**
- * El sensor de hoja (Davis) informa de 0 (seca) a 15 (mojada). La hoja se toma como mojada por
- * encima de 10 en todas las reglas, criterio de Mercobras, el proveedor de las estaciones.
+ * El sensor de hoja (Davis) informa de 0 (seca) a 15 (mojada). La hoja se toma como mojada desde 10
+ * (>= 10) en todas las reglas, criterio de Mercobras, el proveedor de las estaciones.
  */
 const UMBRAL_HOJA_MOJADA = 10;
+
+/**
+ * Un día con menos del 90 % de los registros esperados se marca como incompleto: las horas
+ * contadas pueden quedar por debajo de las reales (un registro faltante no suma).
+ */
+const COBERTURA_MINIMA = 0.9;
+
+/** Intervalo entre registros (minutos) si no se puede inferir de los datos */
+const INTERVALO_POR_DEFECTO = 15;
 
 const DISEASE_DATE_FORMATS = {
   parse: {
@@ -288,11 +304,22 @@ export class DiseaseConditionsDialogComponent implements OnInit {
         const diseaseCode = Number(disease);
         const records = Array.isArray(response.data) ? response.data : [];
         const grouped = this.groupRecordsByDate(records);
-        const dates = Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b));
+        const intervalo = this.inferirIntervalo(grouped);
 
         this.columns = this.getColumns(diseaseCode);
-        this.rows = dates.map((date) => this.buildRow(diseaseCode, date, grouped.get(date) ?? []));
-        this.summaryItems = this.buildSummaryItems(diseaseCode, this.rows);
+        // Todos los días del período (hasta hoy): un día sin registros queda como fila «Sin datos»
+        this.rows = this.diasDelPeriodo(fromDate, toDate).map((date) => {
+          const delDia = grouped.get(date) ?? [];
+          if (!delDia.length) {
+            return this.filaSinDatos(date, this.columns);
+          }
+          const row = this.buildRow(diseaseCode, date, delDia);
+          row.registros = delDia.length;
+          row.esperados = this.registrosEsperados(date, intervalo);
+          row.incompleto = row.registros < row.esperados * COBERTURA_MINIMA;
+          return row;
+        });
+        this.summaryItems = this.buildSummaryItems(diseaseCode, this.rows.filter(row => !row.sinDatos));
         this.appliedStation = station;
         this.appliedDisease = diseaseCode;
         this.appliedFromDate = this.formatApiDate(fromDate);
@@ -456,6 +483,22 @@ export class DiseaseConditionsDialogComponent implements OnInit {
 
   rowTrackBy(_: number, row: DiseaseResultRow): string {
     return row.date;
+  }
+
+  /** Días del período con al menos un registro */
+  get diasConDatos(): number {
+    return this.rows.filter(row => !row.sinDatos).length;
+  }
+
+  /** Días con registros pero incompletos */
+  get diasIncompletos(): number {
+    return this.rows.filter(row => row.incompleto).length;
+  }
+
+  /** Texto del title de un día incompleto */
+  detalleIncompleto(row: DiseaseResultRow): string {
+    return `Día incompleto: ${row.registros} de ${row.esperados} registros esperados. ` +
+      'Las horas pueden quedar por debajo de las reales.';
   }
 
   onStationChange(): void {
@@ -991,6 +1034,65 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     }, new Map<string, DiseaseApiRecord[]>());
   }
 
+  /**
+   * Intervalo de registro de la estación (minutos): la diferencia más frecuente entre registros
+   * consecutivos del mismo día (típicamente 15 min).
+   */
+  private inferirIntervalo(grouped: Map<string, DiseaseApiRecord[]>): number {
+    const frecuencia = new Map<number, number>();
+    grouped.forEach((records) => {
+      const minutos = records
+        .map(record => this.minutosDelDia(record.hora))
+        .filter((m): m is number => m !== null)
+        .sort((a, b) => a - b);
+      for (let i = 1; i < minutos.length; i += 1) {
+        const diferencia = minutos[i] - minutos[i - 1];
+        if (diferencia > 0) {
+          frecuencia.set(diferencia, (frecuencia.get(diferencia) ?? 0) + 1);
+        }
+      }
+    });
+    let intervalo = INTERVALO_POR_DEFECTO;
+    let maximo = 0;
+    frecuencia.forEach((cantidad, diferencia) => {
+      if (cantidad > maximo) {
+        maximo = cantidad;
+        intervalo = diferencia;
+      }
+    });
+    return intervalo;
+  }
+
+  /** "HH:MM" o "HH:MM:SS" → minutos desde las 0 h (null si no se puede leer) */
+  private minutosDelDia(hora: string | null | undefined): number | null {
+    const [h, m] = String(hora ?? '').split(':').map(Number);
+    return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+  }
+
+  /** Registros esperados en el día; hoy, sólo hasta la hora actual. */
+  private registrosEsperados(date: string, intervalo: number): number {
+    const ahora = new Date();
+    const minutos = date === this.formatApiDate(ahora) ? ahora.getHours() * 60 + ahora.getMinutes() : 24 * 60;
+    return Math.max(1, Math.floor(minutos / intervalo));
+  }
+
+  /** Fechas AAAA-MM-DD del período, sin pasar de hoy */
+  private diasDelPeriodo(desde: Date, hasta: Date): string[] {
+    const hoy = this.coerceDate(new Date());
+    const fin = hasta > hoy ? hoy : hasta;
+    const dias: string[] = [];
+    for (let d = new Date(desde); d <= fin; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+      dias.push(this.formatApiDate(d));
+    }
+    return dias;
+  }
+
+  private filaSinDatos(date: string, columns: DiseaseColumn[]): DiseaseResultRow {
+    const values: Record<string, string> = {};
+    columns.forEach(column => values[column.key] = '—');
+    return { date, classification: 'Sin datos', tone: 'none', values, registros: 0, sinDatos: true };
+  }
+
   private coerceDate(value: Date | string): Date {
     if (value instanceof Date) {
       return new Date(value.getFullYear(), value.getMonth(), value.getDate());
@@ -1019,7 +1121,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   }
 
   private hojaMojada(record: DiseaseApiRecord): boolean {
-    return this.num(record.hum_hoja) > UMBRAL_HOJA_MOJADA;
+    return this.num(record.hum_hoja) >= UMBRAL_HOJA_MOJADA;
   }
 
   private num(value: unknown): number {

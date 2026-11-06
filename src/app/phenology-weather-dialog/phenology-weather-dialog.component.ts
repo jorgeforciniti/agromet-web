@@ -42,7 +42,7 @@ interface PhenologyDailyRecord {
   hum_hoja_hs?: number | string | null;
 }
 
-type CropKey = 'SOJA' | 'MAIZ' | 'CANA';
+type CropKey = 'SOJA' | 'MAIZ' | 'CANA' | 'CITRUS';
 
 interface CropPreset {
   key: CropKey;
@@ -187,13 +187,34 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   styleUrls: ['./phenology-weather-dialog.component.css']
 })
 export class PhenologyWeatherDialogComponent implements OnInit {
+  /*
+   * Kc por defecto: FAO-56 (Allen et al., 1998, Riego y Drenaje 56, cuadro 12,
+   * https://www.fao.org/4/x0490e/x0490e0b.htm), como pidió la Sección. Cada etapa toma el Kc de la
+   * fase FAO que le corresponde (inicial, media o final); en las etapas de transición (desarrollo y
+   * final), el promedio entre los dos valores vecinos, porque FAO-56 interpola linealmente entre ellos:
+   *   soja: ini 0,40, med 1,15, fin 0,50 → 0,40 / 0,78 / 1,15 / 1,15 / 0,83
+   *   maíz grano: ini 0,30, med 1,20, fin 0,35 (secado en el campo) → 0,30 / 0,75 / 1,20 / 0,35
+   *   caña: ini 0,40, med 1,25, fin 0,75 → 0,40 / 0,40 / 0,83 / 1,25 / 1,00
+   * Las duraciones de los hitos sugeridos no salen de FAO-56 (cuadro 11: soja 85 a 150 días según la
+   * región; caña soca 280 a 420) y su origen sigue sin confirmar (ver la pregunta en el HTML).
+   *
+   * Cítricos: Kc de FAO-56, cuadro 12, «Citrus, no ground cover, 70 % canopy» (ini 0,70, med 0,65,
+   * fin 0,70; con malezas o cobertura activa los valores son mayores: 0,75 / 0,70 / 0,75). Como es
+   * perenne, el ciclo empieza en la brotación de primavera y dura un año (cuadro 11: 60 / 90 / 120 /
+   * 95 días, 365 en total, para el Mediterráneo). Las etapas siguen el calendario típico del limón en
+   * Tucumán: brotación y floración (septiembre-octubre), cuaje y caída fisiológica (noviembre-
+   * diciembre), crecimiento del fruto (enero a mediados de marzo), maduración y cosecha principal de
+   * otoño-invierno (abril a agosto). Los Kc de las etapas de transición (cuaje y maduración) son el
+   * promedio de la interpolación lineal de FAO-56 entre los valores vecinos (0,675 → 0,68).
+   * Pendiente de validar con la Sección Fruticultura/Citrus de la EEAOC.
+   */
   readonly cropPresets: CropPreset[] = [
     {
       key: 'SOJA',
       label: 'Soja',
       totalDays: 210,
       milestones: ['Acumulación de lluvia', 'Siembra', 'R1', 'R5', 'R6', 'Cosecha'],
-      kcDefaults: [0.35, 0.75, 1.12, 1.2, 0.75],
+      kcDefaults: [0.4, 0.78, 1.15, 1.15, 0.83],
       ancla: 1,
       desdeAncla: [null, 0, 45, 80, 95, 135],
       antesDeAncla: 30,
@@ -204,7 +225,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       label: 'Maíz',
       totalDays: 210,
       milestones: ['Acumulación de lluvia', 'Siembra', 'Período crítico', 'Madurez fisiológica', 'Cosecha'],
-      kcDefaults: [0.35, 0.6, 1.15, 0.7],
+      kcDefaults: [0.3, 0.75, 1.2, 0.35],
       ancla: 1,
       desdeAncla: [null, 0, 55, 120, 150],
       antesDeAncla: 30,
@@ -215,10 +236,21 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       label: 'Caña de azúcar',
       totalDays: 320,
       milestones: ['Emergencia', 'Brotación', 'Macollaje', 'Gran crecimiento', 'Maduración', 'Cosecha'],
-      kcDefaults: [0.35, 0.55, 0.75, 1.1, 0.65],
+      kcDefaults: [0.4, 0.4, 0.83, 1.25, 1.0],
       ancla: 0,
       desdeAncla: [0, 30, 60, 120, 240, 320],
       anclaTipica: [8, 15]
+    },
+    {
+      // Perenne: la referencia es el inicio de la brotación y el ciclo termina en la siguiente
+      key: 'CITRUS',
+      label: 'Cítricos',
+      totalDays: 365,
+      milestones: ['Brotación', 'Cuaje', 'Crecimiento del fruto', 'Maduración', 'Cosecha', 'Nueva brotación'],
+      kcDefaults: [0.7, 0.68, 0.65, 0.68, 0.7],
+      ancla: 0,
+      desdeAncla: [0, 60, 120, 195, 240, 365],
+      anclaTipica: [8, 1]
     }
   ];
 
@@ -386,17 +418,17 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       m4: [null as Date | null, Validators.required],
       m5: [null as Date | null, Validators.required],
       m6: [null as Date | null],
-      kc1: [0.35, [Validators.required, Validators.min(0)]],
-      kc2: [0.75, [Validators.required, Validators.min(0)]],
-      kc3: [1.12, [Validators.required, Validators.min(0)]],
-      kc4: [1.2, [Validators.required, Validators.min(0)]],
-      kc5: [0.75, [Validators.required, Validators.min(0)]]
+      kc1: [0.4, [Validators.required, Validators.min(0)]],
+      kc2: [0.78, [Validators.required, Validators.min(0)]],
+      kc3: [1.15, [Validators.required, Validators.min(0)]],
+      kc4: [1.15, [Validators.required, Validators.min(0)]],
+      kc5: [0.83, [Validators.required, Validators.min(0)]]
     }, { validators: this.milestoneOrderValidator.bind(this) });
 
     this.applyCropPreset('SOJA');
     this.aplicarConsulta();
 
-    // Cambiar la fecha de referencia (siembra o emergencia) sugiere las siguientes; cambiar
+    // Cambiar la fecha de referencia (siembra, emergencia o brotación) sugiere las siguientes; cambiar
     // a mano un hito sugerido lo deja como fecha propia.
     [1, 2, 3, 4, 5, 6].forEach(n => {
       this.form.controls[`m${n}`].valueChanges.subscribe(() => {
@@ -587,7 +619,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   }
 
   /**
-   * Completa los hitos posteriores a la referencia (siembra o emergencia) con las duraciones
+   * Completa los hitos posteriores a la referencia (siembra, emergencia o brotación) con las duraciones
    * típicas del cultivo, y los anteriores (acumulación de lluvia) con su anticipación.
    * Se pueden cambiar después; un hito cambiado a mano deja de figurar como sugerido.
    */
@@ -616,7 +648,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     return desde && hasta ? this.diffInDays(desde, hasta) : null;
   }
 
-  /** Hito de referencia del cultivo elegido (siembra o emergencia) */
+  /** Hito de referencia del cultivo elegido (siembra, emergencia o brotación) */
   get anclaActual(): number {
     return this.activePreset.ancla;
   }
@@ -627,7 +659,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   }
 
   /**
-   * Fechas iniciales: la referencia en su fecha típica (siembra o emergencia) de la última
+   * Fechas iniciales: la referencia en su fecha típica (siembra, emergencia o brotación) de la última
    * campaña ya cosechada, así la consulta inicial es realista y tiene datos completos.
    */
   private buildDefaultMilestones(preset: CropPreset): Date[] {
@@ -1059,6 +1091,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       'Período crítico': 'P. crítico',
       'Madurez fisiológica': 'Madurez fis.',
       'Gran crecimiento': 'Gran crec.',
+      'Crecimiento del fruto': 'Crec. fruto',
+      'Nueva brotación': 'N. brotación',
       'Caña de azúcar': 'Caña'
     };
     return cortos[nombre] ?? nombre;

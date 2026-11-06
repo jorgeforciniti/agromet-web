@@ -10,21 +10,34 @@
           Reorganiza la serie diaria según hitos fenológicos del lote y resume lluvia, ETo,
           demanda hídrica ajustada con Kc, humectación foliar, radiación y extremos térmicos.
         </p>
-        <!-- Preguntas para la Sección:
-             1. ¿De dónde salen los Kc por defecto de cada cultivo y las duraciones con que se sugieren los
-                hitos (soja: R1 a 45 días de la siembra, R5 a 80, R6 a 95, cosecha a 135; maíz y caña)? Se
-                podrían citar.
-             2. ¿Con qué ecuación calcula la estación la ETo (campo et)?
-             3. Un día con ET 0 y radiación 0 se toma como falla del sensor. ¿Es correcto? -->
+        <!-- Pregunta para la Sección: las duraciones de los hitos sugeridos (soja: R1 a 45 días de la siembra,
+             R5 a 80, R6 a 95, cosecha a 135; maíz: período crítico a 55, madurez a 120, cosecha a 150; caña:
+             brotación a 30 días de la emergencia, macollaje a 60, gran crecimiento a 120, maduración a 240,
+             cosecha a 320) no tienen fuente en el código. ¿Son valores locales o se toman de otra referencia? -->
+        <!-- Pregunta para la Sección: validar con la Sección Fruticultura/Citrus de la EEAOC las etapas de
+             cítricos (brotación, cuaje y caída fisiológica, crecimiento del fruto, maduración, cosecha), sus
+             fechas sugeridas (brotación el 1/9; cuaje a 60 días, crecimiento del fruto a 120, maduración a
+             195, cosecha a 240, nueva brotación a 365) y los Kc (0,70 / 0,68 / 0,65 / 0,68 / 0,70, de FAO-56
+             cuadro 12 para 70 % de cobertura sin cobertura de suelo). ¿Conviene distinguir limón de naranja
+             o usar los valores con malezas (0,75 / 0,70 / 0,75)? -->
         <app-como-se-lee>
           <p>Cada etapa va de un hito al siguiente: empieza el día del hito y termina el día anterior al hito
-            que sigue. Al cambiar la fecha de referencia (siembra o emergencia), las demás se sugieren con la
-            duración típica del cultivo y se pueden corregir a mano.</p>
+            que sigue. Al cambiar la fecha de referencia (siembra, emergencia o, en los cítricos, el inicio de
+            la brotación), las demás se sugieren con la duración típica del cultivo y se pueden corregir a
+            mano. Los cítricos son perennes: el ciclo va de una brotación de primavera a la siguiente.</p>
           <p>Para cada etapa se suman la lluvia, la ETo y las horas de hoja mojada de la estación, y se promedian
             la radiación solar y las temperaturas máxima y mínima. También se cuentan los días con máxima de
             35 °C o más y con mínima de 0 °C o menos.</p>
-          <p>La demanda hídrica es la ETo de cada día multiplicada por el Kc de la etapa; los Kc propuestos son
-            valores de referencia y se pueden cambiar. Sin «Aplicar Kc», la demanda es la ETo. El balance simple
+          <p>La ETo la calcula la consola de la estación (Davis Vantage Pro2) con la ecuación de Penman
+            modificada tal como la usa CIMIS, el servicio de riego de California (Pruitt y Doorenbos, 1977, con
+            la función de viento de la Universidad de California en Davis). Se calcula cada hora con la
+            temperatura, la humedad, el viento medio y la radiación solar, y la ETo del día es la suma de las
+            horarias. Un día con ETo y radiación en 0 a la vez es una falla del sensor y se toma como día sin
+            dato.</p>
+          <p>La demanda hídrica es la ETo de cada día multiplicada por el Kc de la etapa. Los Kc propuestos son
+            los de FAO-56 (Allen et al., 1998, cuadro 12): cada etapa toma el valor inicial, medio o final del
+            cultivo y, en las etapas de transición, el promedio entre los dos; en los cítricos, los de una
+            plantación con 70 % de cobertura y sin malezas. Se pueden cambiar. Sin «Aplicar Kc», la demanda es la ETo. El balance simple
             es lluvia menos demanda: no considera el agua del suelo, el escurrimiento ni la lluvia que no
             infiltra (para eso está el balance hidrológico seriado).</p>
           <p>En el gráfico por etapa, las líneas punteadas son la lluvia y la demanda normales de la estación en

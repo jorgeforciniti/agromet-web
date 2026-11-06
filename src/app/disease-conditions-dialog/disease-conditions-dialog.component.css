@@ -537,6 +537,39 @@
   color: #ffffff;
 }
 
+/* Día del período sin ningún registro */
+.disease-table tr[data-tone='none'] td {
+  background: repeating-linear-gradient(135deg, #f1f5f9 0 8px, #e2e8f0 8px 16px) !important;
+  color: #64748b;
+}
+
+.disease-table tr[data-tone='none'] .classification {
+  color: #475569;
+  font-style: italic;
+}
+
+/* Día con menos registros de los esperados: marca legible sobre cualquier color de fila */
+.dia-incompleto {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border: 1px dashed #111827;
+  border-radius: 999px;
+  background: #fff;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.dias-incompletos {
+  font-weight: 700;
+  color: #b45309;
+  margin-left: 4px;
+}
+
 .disease-table th.align-right,
 .disease-table td.align-right {
   text-align: right;

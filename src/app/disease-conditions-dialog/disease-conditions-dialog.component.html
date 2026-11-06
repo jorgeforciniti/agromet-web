@@ -10,14 +10,12 @@
           Evalúa condiciones meteorológicas predisponentes para distintas enfermedades a partir
           de registros horarios de estación.
         </p>
-        <!-- Pregunta para la Sección: un día sin ningún registro no aparece en la tabla y un dato faltante
-             dentro del día se toma como 0. ¿Conviene marcar los días incompletos? -->
         <app-como-se-lee>
           <p>{{ diseaseHelp() }}</p>
           <p>Cada fila es un día calendario (de 0 a 24 h) de la estación elegida. Las horas se cuentan con los
             registros de ese día: cada registro que cumple la condición suma 15 minutos. «Hs mojado» son las horas
             con la hoja mojada: el sensor de humedad foliar informa de 0 (seca) a 15 (mojada) y se toma como
-            mojada por encima de 10, criterio del proveedor de las estaciones. «Temp. mojado» es la temperatura
+            mojada desde 10, criterio del proveedor de las estaciones. «Temp. mojado» es la temperatura
             media durante esas horas.</p>
           <p>La calificación aplica a esos valores los criterios de la enfermedad, aportados por la <strong>Sección
             Fitopatología de la EEAOC</strong>, que se ven al tocar la «i» junto a su nombre. El color de cada fila va del verde
@@ -25,8 +23,12 @@
             tarjetas de arriba cuentan los días del período en cada clase.</p>
           <p>Indica si el tiempo fue favorable para la enfermedad, no si hubo infección: no tiene en cuenta la
             presencia del patógeno, la variedad ni el estado del cultivo. Las enfermedades que dependen del mojado
-            de hoja sólo se habilitan en estaciones con ese sensor. Los días sin registros no aparecen en la tabla
-            y, si faltan registros, las horas pueden quedar por debajo de las reales.</p>
+            de hoja sólo se habilitan en estaciones con ese sensor.</p>
+          <p>Si a un día le faltan registros, las horas pueden quedar por debajo de las reales y la calificación
+            puede ser menor que la que correspondería. Por eso, un día con menos del 90 % de los registros
+            esperados (según el intervalo de la estación, en general uno cada 15 minutos; para hoy, hasta la hora
+            actual) lleva la marca «incompleto»: al pasar el mouse se ve cuántos registros tiene. Un día sin
+            ningún registro figura como «Sin datos» y no se cuenta en las tarjetas.</p>
         </app-como-se-lee>
       </div>
 
@@ -105,7 +107,10 @@
       </div>
       <div class="disease-summary__item">
         <dt>Días</dt>
-        <dd>{{ rows.length }}</dd>
+        <dd>
+          {{ diasConDatos }}<ng-container *ngIf="diasConDatos < rows.length"> de {{ rows.length }}</ng-container>
+          <small *ngIf="diasIncompletos" class="dias-incompletos">({{ diasIncompletos }} {{ diasIncompletos === 1 ? 'incompleto' : 'incompletos' }})</small>
+        </dd>
       </div>
     </dl>
     <div class="criterios" id="criterios-enfermedad" *ngIf="rows.length && criteriosVisibles">
@@ -135,7 +140,11 @@
         </thead>
         <tbody>
           <tr *ngFor="let row of rows; trackBy: rowTrackBy" [attr.data-tone]="row.tone">
-            <td>{{ formatDisplayDate(row.date) }}</td>
+            <td>
+              {{ formatDisplayDate(row.date) }}
+              <span *ngIf="row.incompleto" class="dia-incompleto" tabindex="0"
+                [attr.title]="detalleIncompleto(row)" [attr.aria-label]="detalleIncompleto(row)">incompleto</span>
+            </td>
             <td *ngFor="let column of columns" [class.align-right]="column.align === 'right'">{{ row.values[column.key] }}</td>
             <td class="classification classification-col">
               <span class="classification-badge" [attr.data-tone]="row.tone">{{ row.classification }}</span>
