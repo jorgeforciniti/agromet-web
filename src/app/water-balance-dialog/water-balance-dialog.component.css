@@ -172,44 +172,12 @@
 }
 
 .bhs-tabla {
-  width: 100%;
   min-width: 760px;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: .9rem;
-}
-
-.bhs-tabla thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #111827;
-  color: #fff;
-  font-weight: 900;
-  font-size: .82rem;
 }
 
 .bhs-tabla th,
 .bhs-tabla td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
   white-space: nowrap;
-}
-
-.bhs-tabla tbody th {
-  font-weight: 800;
-  background: rgba(255,255,255,.9);
-}
-
-.bhs-tabla td {
-  font-weight: 700;
-  background: rgba(255,255,255,.88);
-}
-
-.bhs-tabla .num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
 }
 
 .bhs-tabla tr.incompleta td,
