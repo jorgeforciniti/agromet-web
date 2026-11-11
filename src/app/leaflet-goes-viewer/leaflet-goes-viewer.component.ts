@@ -242,6 +242,12 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   /** Deja de observar el tamaño del contenedor del mapa (ver seguirTamanioMapa). */
   private dejarDeSeguirTamanio?: () => void;
   private map: L.Map | undefined;
+  /**
+   * El componente ya se destruyó (el usuario salió del inicio). ngOnInit y la carga de capas
+   * siguen después de esperas; sin esto tocaban el mapa ya eliminado (error '_leaflet_pos').
+   */
+  private destruido = false;
+  private ajusteTamanio?: ReturnType<typeof setTimeout>;
   private baseLayer: L.ImageOverlay | L.GeoJSON | L.TileLayer | undefined;
   private legend: L.Control | undefined;
   public selectedLayer: string = 'precipitacion';
@@ -363,7 +369,9 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
     const control = this.initMap();
     // 450: el límite queda sobre las capas de lluvia, nubes, etc. (owmPane, 401) y bajo las estaciones
     if (this.map) await cargarProvincias(this.map, this.http, { control, zIndex: 450 });
+    if (this.destruido) return;
     await this.loadStations();
+    if (this.destruido) return;
     this.loadLatestData();
 
     // Sincroniza con la estación elegida en el selector de "Estado actual" (weather-forecast):
@@ -375,12 +383,14 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
       this.syncPopupToSelectedStation();
     });
 
-    setTimeout(() => {
-      this.map?.invalidateSize();
+    this.ajusteTamanio = setTimeout(() => {
+      if (!this.destruido) this.map?.invalidateSize();
     }, 200);
   }
 
   ngOnDestroy(): void {
+    this.destruido = true;
+    clearTimeout(this.ajusteTamanio);
     this.stopRainViewerAnimation();
     this.dejarDeSeguirTamanio?.();
     this.map?.remove();
@@ -900,6 +910,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   }
 
   private displayGeoJSON(geojson: FireGeoJson, attribution: string, date: string): void {
+    if (this.destruido) return;
     this.currentDateTime = `${date.substring(6, 8)}/${date.substring(4, 6)}/${date.substring(0, 4)}`;
     this.updateGeoJSONLayer(geojson, attribution);
     this.addLegend();
@@ -907,6 +918,7 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   }
 
   private displayTileLayer(url: string, attribution: string, date: string): void {
+    if (this.destruido) return;
     this.currentDateTime = `${date.substring(6, 8)}/${date.substring(4, 6)}/${date.substring(0, 4)}`;
     this.updateTileLayer(url, attribution);
     this.isLoading = false;
