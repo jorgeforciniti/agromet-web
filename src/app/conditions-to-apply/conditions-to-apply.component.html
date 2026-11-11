@@ -1,35 +1,32 @@
 <div class="container">
-  <!-- X fija estilo dialogs -->
-  <button class="do-close" type="button" (click)="closeWindow()" aria-label="Cerrar diálogo"><mat-icon>close</mat-icon></button>
-
   <div class="viewer-container">
 
-    <div class="dialogo-titulo dialogo-titulo--con-cerrar">
-      <h2 class="titulo">Condiciones actuales para aplicación de agroquímicos</h2>
-      <span class="app-dialog-eyebrow">MANEJO</span>
-    </div>
     <!-- Umbrales aprobados por la Sección (nov. 2026); el detalle y su origen están en RULES de spray-advisor.service.ts. -->
-    <app-como-se-lee>
-      <p>Evalúa, para cada registro del día elegido, si las condiciones medidas en la estación permitían aplicar con
-        el método, la prioridad y el cultivo indicados. Cada botón «i» explica un criterio en detalle.</p>
-      <p>El semáforo combina dos puntajes de riesgo, deriva y eficacia (más alto es peor), ponderados según la
-        prioridad, y nunca es mejor que el peor criterio individual: ráfaga, diferencia entre ráfaga y viento medio,
-        ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la fila en
-        rojo.</p>
-      <p>Viento: el techo se compara con la ráfaga y el piso con el viento medio. Con viento medio menor a 3 km/h hay
-        calma y riesgo de inversión (rojo). En aplicación terrestre la ráfaga es verde hasta 20 km/h, amarillo hasta
-        25 y rojo por encima; los demás métodos tienen sus propios límites. ΔT (guía GRDC de Australia): de 2 a 8 °C
-        es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; más de 10 o menos de 1 °C, no aplicar.</p>
-      <p>Si falta un dato del registro (temperatura, humedad, viento medio, ráfaga o lluvia) o es inválido, esa fila
-        o ese punto del mapa queda «Sin evaluar», en gris: nunca se evalúa con valores supuestos.</p>
-      <p>La inversión no se mide: se estima como probable de noche (entre la puesta y la salida del sol, calculadas
-        para la fecha y la ubicación de cada estación) con viento medio menor a 5 km/h y humedad de 85 % o más. El producto
-        y el tamaño de gota no cambian el semáforo: sólo agregan razones y recomendaciones al seleccionar una fila.</p>
-      <p>El Kp es el del intervalo de 3 h de cada registro: de NOAA para la última semana y de GFZ Potsdam para
-        fechas anteriores. Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla.</p>
-      <p>El mapa usa la misma evaluación que la tabla, con el último registro de cada estación y el último Kp, y
-        muestra sólo las estaciones con datos de las últimas 2 horas.</p>
-    </app-como-se-lee>
+    <app-encabezado-dialogo titulo="Condiciones para aplicar"
+      bajada="Si lo que midió cada estación permitía aplicar agroquímicos, registro por registro, según el método, la prioridad y el cultivo."
+      (cerrar)="closeWindow()">
+      <app-como-se-lee>
+        <p>Evalúa, para cada registro del día elegido, si las condiciones medidas en la estación permitían aplicar con
+          el método, la prioridad y el cultivo indicados. Cada botón «i» explica un criterio en detalle.</p>
+        <p>El semáforo combina dos puntajes de riesgo, deriva y eficacia (más alto es peor), ponderados según la
+          prioridad, y nunca es mejor que el peor criterio individual: ráfaga, diferencia entre ráfaga y viento medio,
+          ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la fila en
+          rojo.</p>
+        <p>Viento: el techo se compara con la ráfaga y el piso con el viento medio. Con viento medio menor a 3 km/h hay
+          calma y riesgo de inversión (rojo). En aplicación terrestre la ráfaga es verde hasta 20 km/h, amarillo hasta
+          25 y rojo por encima; los demás métodos tienen sus propios límites. ΔT (guía GRDC de Australia): de 2 a 8 °C
+          es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; más de 10 o menos de 1 °C, no aplicar.</p>
+        <p>Si falta un dato del registro (temperatura, humedad, viento medio, ráfaga o lluvia) o es inválido, esa fila
+          o ese punto del mapa queda «Sin evaluar», en gris: nunca se evalúa con valores supuestos.</p>
+        <p>La inversión no se mide: se estima como probable de noche (entre la puesta y la salida del sol, calculadas
+          para la fecha y la ubicación de cada estación) con viento medio menor a 5 km/h y humedad de 85 % o más. El producto
+          y el tamaño de gota no cambian el semáforo: sólo agregan razones y recomendaciones al seleccionar una fila.</p>
+        <p>El Kp es el del intervalo de 3 h de cada registro: de NOAA para la última semana y de GFZ Potsdam para
+          fechas anteriores. Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla.</p>
+        <p>El mapa usa la misma evaluación que la tabla, con el último registro de cada estación y el último Kp, y
+          muestra sólo las estaciones con datos de las últimas 2 horas.</p>
+      </app-como-se-lee>
+    </app-encabezado-dialogo>
 
     <div *ngIf="loadingEstaciones" class="loading-overlay">
       <div class="spinner"></div>
@@ -182,9 +179,8 @@
           <span class="kp-time" *ngIf="kpTimeTag">Último: {{ kpTimeTag }} UTC</span>
         </div>
 
-        <button *ngIf="!loadingData" class="btn-search params__buscar" type="button" (click)="searchData()">
-          Buscar datos
-        </button>
+        <button *ngIf="!loadingData" mat-raised-button color="primary" class="dlg-calcular params__buscar" type="button"
+          (click)="searchData()">Ver datos</button>
         <div *ngIf="loadingData" class="loading-indicator">
           <div class="spinner"></div>
           <div class="loading-text">Cargando datos horarios...</div>

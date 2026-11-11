@@ -11,9 +11,7 @@
   flex-direction: column;
   min-height: 0;
 
-  border-radius: 12px;
   background: var(--surface);
-  padding: 10px;
   box-sizing: border-box;
 }
 
@@ -25,17 +23,17 @@
 
   background: var(--surface);
   color: var(--text);
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
+  padding: 20px 24px 24px;
 }
 
-.titulo {
-  margin: 0 0 12px 0;
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: var(--text);
+.viewer-container > app-encabezado-dialogo {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 600px) {
+  .viewer-container {
+    padding: 14px 12px 18px;
+  }
 }
 
 /* ===== Controls ===== */
@@ -934,7 +932,6 @@ mat-form-field.date-field{ width: 100%; }
 .th-info mat-icon{ font-size: 18px; width: 18px; height: 18px; }
 .th-info:hover{ background: rgba(255,255,255,.18); }
 
-
 /* Controles en grid (evita amontonamiento) */
 .controls-grid{
   display: grid;
@@ -1021,9 +1018,6 @@ mat-form-field.date-field{ width: 100%; }
 }
 
 .viewer-container{ position: relative; padding-top: 14px; }
-
-/* Ajuste de título para no pelearse con la X */
-.titulo{ padding-right: 56px; }
 
 /* Amarillo REAL */
 .precaucion-row{
@@ -1116,26 +1110,6 @@ mat-form-field.date-field{ width: 100%; }
 
 .container{ position: relative; }
 
-.do-close{
-  position: absolute;
-  /* A la altura de la etiqueta y fuera de la franja de la barra de desplazamiento */
-  right: calc(31px + env(safe-area-inset-right));
-  top: calc(25px + env(safe-area-inset-top));
-
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.92);
-  color: var(--text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: var(--shadow-sm);
-  z-index: 50;
-}
-.do-close:hover{ background: rgba(17,24,39,.04); }
-
 .controls{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1175,7 +1149,6 @@ mat-form-field.date-field{ width: 100%; }
   opacity: 1 !important;
   font-weight: 800;
 }
-
 
 /* Scroll horizontal propio con degradé en los bordes (avisa que hay más columnas
    y desaparece solo al llegar al final); vertical sigue sin scroll anidado
@@ -1222,7 +1195,6 @@ mat-form-field.date-field{ width: 100%; }
   top: 0;
   z-index: 9;
 }
-
 
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
@@ -1303,11 +1275,9 @@ mat-form-field.date-field{ width: 100%; }
 
 .params__grupo legend {
   padding: 0 6px;
-  color: var(--muted);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  color: var(--text);
+  font-size: .85rem;
+  font-weight: 700;
 }
 
 .param {

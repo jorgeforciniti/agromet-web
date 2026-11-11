@@ -41,6 +41,7 @@ import {
 } from '../services/spray-advisor.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { armarEnlace, consultaDe, fechaIso, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
 // ===== Formato fechas dd/MM/yyyy =====
@@ -128,7 +129,7 @@ type InfoKey =
   selector: 'app-conditions-to-apply',
   standalone: true,
   imports: [
-    GruposEstacionesPipe,
+    EncabezadoDialogoComponent, GruposEstacionesPipe,
     CommonModule,
     ValorPipe,
     FormsModule,
