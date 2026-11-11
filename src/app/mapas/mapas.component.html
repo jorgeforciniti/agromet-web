@@ -1,30 +1,34 @@
-<div class="dm">
-  <div class="dm__main">
-    <div class="dm__intro">
-      <div class="dm__eyebrow">MAPAS</div>
-      <h1 class="dm__headline">Mapas de la red de estaciones</h1>
-      <p class="dm__lead">Lluvias, temperaturas y heladas registradas por las estaciones de la EEAOC, en el período que
-        elijas.</p>
-    </div>
+<div class="mp">
+  <header class="mp__intro">
+    <h1 class="mp__titulo">Mapas</h1>
+    <p class="mp__bajada">Lo que registró cada estación de la red, sobre el mapa de la provincia.</p>
+  </header>
 
-    <div class="dm__grid">
-      @for (mapa of mapas; track mapa.id; let i = $index) {
-        <mat-card class="dm-card tap-feedback" [appScrollReveal]="i * 80">
-          <button type="button" class="dm-card__media" (click)="abrir(mapa)" [attr.aria-label]="'Ver mapa de ' + mapa.titulo.toLowerCase()" tabindex="-1">
-            <img class="dm-card__img" [src]="mapa.imagen" alt="" [attr.loading]="i === 0 ? null : 'lazy'" />
-          </button>
-          <mat-card-content class="dm-card__body">
-            <h2 class="dm-card__title">{{ mapa.titulo }}</h2>
-            <p class="dm-card__sub">{{ mapa.descripcion }}</p>
-          </mat-card-content>
-          <mat-card-actions class="dm-card__actions">
-            <button mat-button class="dm-btn" (click)="abrir(mapa)">Ver mapa</button>
-          </mat-card-actions>
-        </mat-card>
-      }
-    </div>
+  <div class="mp-grupos">
+    @for (g of grupos; track g.titulo; let gi = $index) {
+      <section class="mp-grupo" [attr.aria-labelledby]="'mp-grupo-' + gi">
+        <h2 class="mp-grupo__titulo" [id]="'mp-grupo-' + gi">
+          <mat-icon aria-hidden="true">{{ g.icono }}</mat-icon>{{ g.titulo }}
+        </h2>
 
-    <!-- Lluvias máximas 24h: todavía no existe; volver a mostrarla como tarjeta cuando esté.
-         Distribución de máximos diarios por localidad. -->
+        <ul class="mp-grupo__lista">
+          @for (mapa of g.mapas; track mapa.id) {
+            <li>
+              <button type="button" class="mp-mapa" (click)="abrir(mapa)">
+                <img class="mp-mapa__img" [src]="mapa.imagen" alt="" loading="lazy" />
+                <span class="mp-mapa__texto">
+                  <span class="mp-mapa__titulo">{{ mapa.titulo }}</span>
+                  <span class="mp-mapa__periodo">{{ mapa.periodo }}</span>
+                  <span class="mp-mapa__desc">{{ mapa.descripcion }}</span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
   </div>
+
+  <!-- Lluvias máximas 24h: todavía no existe; volver a mostrarla cuando esté.
+       Distribución de máximos diarios por localidad. -->
 </div>

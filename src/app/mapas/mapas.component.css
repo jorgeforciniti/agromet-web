@@ -1,192 +1,144 @@
-.dm {
-  width: 100%;
+.mp {
+  margin: 0 auto;
+  padding: 18px 18px 40px;
+  display: grid;
+  gap: 22px;
 }
 
-.dm__main {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-maps) 4%, white), rgba(255,255,255,.99));
-  border: 1px solid color-mix(in srgb, var(--mod-maps) 12%, var(--border));
-  border-radius: 20px;
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.dm__intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 18px;
-  border-bottom: 1px solid color-mix(in srgb, var(--mod-maps) 10%, var(--border));
-  background: linear-gradient(180deg, rgba(255,255,255,.94), color-mix(in srgb, var(--mod-maps) 6%, white));
-}
-
-.dm__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mod-maps) 18%, var(--border));
-  background: rgba(255,255,255,.82);
-  color: color-mix(in srgb, var(--mod-maps) 66%, #46505c);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .08em;
-}
-
-.dm__headline {
-  margin: 2px 0 0;
-  font-size: 1.28rem;
-  font-weight: 900;
-  line-height: 1.08;
+/* ====== Encabezado ====== */
+.mp__titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+  line-height: 1.05;
   color: var(--text);
 }
 
-.dm__lead {
-  margin: 0;
-  max-width: 62ch;
+.mp__bajada {
+  margin: 6px 0 0;
   color: var(--muted);
-  font-size: .93rem;
-  line-height: 1.45;
+  font-size: 1.02rem;
 }
 
-.dm__grid {
-  padding: 16px;
+/* ====== Grupos por variable ====== */
+.mp-grupos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 22px 32px;
+  align-items: start;
 }
 
-.dm-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: 168px 1fr;
-  grid-template-rows: 1fr auto;
-  column-gap: 14px;
-  min-height: 0;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--mod-maps) 14%, var(--border));
-  box-shadow: 0 12px 24px rgba(15, 23, 42, .05);
-  overflow: hidden;
-  background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,250,252,.98));
-  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+.mp-grupo__titulo {
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: var(--text);
 }
 
-.dm-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 34px rgba(15, 23, 42, .10);
-  border-color: color-mix(in srgb, var(--mod-maps) 24%, var(--border));
+.mp-grupo__titulo mat-icon {
+  color: var(--brand-600);
 }
 
-.dm-card__media {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  display: block;
+.mp-grupo__lista {
+  list-style: none;
+  margin: 0 -10px;
   padding: 0;
-  border: none;
-  background: #e2e8f0;
+  display: grid;
+  gap: 4px;
+}
+
+/* ====== Cada mapa ====== */
+.mp-mapa {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.dm-card__img {
+.mp-mapa:hover {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.mp-mapa:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 55%, white);
+  outline-offset: 1px;
+}
+
+.mp-mapa__img {
   width: 100%;
-  height: 100%;
-  min-height: 132px;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
+  border-radius: 10px;
+  background: var(--surface-2);
   display: block;
-  transition: transform .3s ease;
 }
 
-.dm-card:hover .dm-card__img {
-  transform: scale(1.04);
+.mp-mapa__texto {
+  display: grid;
+  gap: 3px;
 }
 
-.dm-card__body {
-  grid-column: 2;
-  grid-row: 1;
-  padding: 14px 14px 4px 0;
-  min-width: 0;
-}
-
-.dm-card__title {
-  margin: 0 0 6px;
-  font-size: 1.04rem;
-  font-weight: 900;
-  color: var(--text);
+.mp-mapa__titulo {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
   line-height: 1.15;
+  color: var(--text);
 }
 
-.dm-card__sub {
-  margin: 0;
+.mp-mapa:hover .mp-mapa__titulo {
+  text-decoration: underline;
+  text-decoration-color: var(--brand);
+  text-underline-offset: 3px;
+}
+
+.mp-mapa__periodo {
+  color: var(--brand-600);
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.mp-mapa__desc {
   color: var(--muted);
-  font-size: .88rem;
+  font-size: .9rem;
   line-height: 1.4;
 }
 
-.dm-card__actions {
-  grid-column: 2;
-  grid-row: 2;
-  padding: 6px 14px 14px 0;
-  display: flex;
-  justify-content: flex-start;
-}
-
-.dm-btn {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--mod-maps) 82%, white), var(--mod-maps));
-  color: #fff !important;
-  border-radius: 999px;
-  /* Alto según el texto: con el alto fijo del mat-button, una etiqueta en dos
-     renglones quedaba cortada en tablets. */
-  height: auto;
-  min-height: 40px;
-  padding: 8px 16px;
-  line-height: 1.2;
-  font-weight: 800;
-  box-shadow: var(--shadow-sm);
-}
-
-.dm-btn:hover {
-  filter: brightness(.98);
-}
-
-.dm-btn:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod-maps) 16%, white);
-  outline-offset: 2px;
-}
-
-@media (max-width: 900px) {
-  .dm__grid {
+/* ====== Responsive ====== */
+@media (max-width: 1000px) {
+  .mp-grupos {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 760px) {
-  .dm__intro,
-  .dm__grid {
-    padding: 14px;
-  }
-
-  .dm-card {
-    grid-template-columns: 104px 1fr;
-  }
-
-  .dm-card__img {
-    min-height: 120px;
-  }
-
-  .dm-btn {
-    width: 100%;
-    justify-content: center;
+  .mp-grupo + .mp-grupo {
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .dm-card,
-  .dm-card__img {
-    transition: none;
+@media (max-width: 520px) {
+  .mp {
+    padding: 14px 12px 32px;
   }
 
-  .dm-card:hover .dm-card__img {
-    transform: none;
+  .mp-mapa {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
   }
 }
