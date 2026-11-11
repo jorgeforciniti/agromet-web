@@ -180,8 +180,8 @@
   white-space: nowrap;
 }
 
-.bhs-tabla tr.incompleta td,
-.bhs-tabla tr.incompleta th {
+/* Con .dlg-tabla repetida para ganarle a las filas alternadas de la tabla común */
+.bhs-tabla.dlg-tabla.dlg-tabla tbody tr.incompleta > * {
   background: #fffbeb;
 }
 
