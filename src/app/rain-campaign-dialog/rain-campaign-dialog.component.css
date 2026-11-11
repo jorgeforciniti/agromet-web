@@ -3,145 +3,18 @@
   color: var(--text);
 }
 
-:host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
-  width: min(1320px, 96vw) !important;
-  max-width: 96vw !important;
-  height: 92vh !important;
-  max-height: 92vh !important;
-  min-height: 92vh !important;
-  overflow: hidden !important;
-  border-radius: 24px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
-}
-
-:host ::ng-deep .do-dialog .mat-mdc-dialog-content {
-  height: 100% !important;
-  max-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 0 !important;
-  overflow: auto !important;
-  overflow-x: auto !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  scrollbar-gutter: stable;
-}
-
 .rain-dialog {
   display: flex;
   flex-direction: column;
-  gap: 14px;
   height: 100%;
   min-height: 0;
-  /* !important: la regla global .do-dialog .mat-mdc-dialog-content pone padding 0 */
-  padding: 16px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
   color: var(--text);
   box-sizing: border-box;
 }
 
-.dialog-header {
-  position: relative;
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--mod-data) 12%, var(--border));
-}
-
-.dialog-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mod-data) 18%, var(--border));
-  background: rgba(255,255,255,.92);
-  color: color-mix(in srgb, var(--mod-data) 66%, #46505c);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .08em;
-}
-
-.titulo {
-  margin: 10px 0 0;
-  padding-right: 64px;
-  font-size: 1.3rem;
-  line-height: 1.1;
-  font-weight: 900;
-  color: var(--text);
-}
-
-.close-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.92);
-  color: var(--text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: var(--shadow-sm);
-}
-
-.close-btn:hover {
-  background: rgba(17, 24, 39, .04);
-}
-
-.close-btn:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
-  outline-offset: 2px;
-}
-
-.selection-form {
-  flex: 0 0 auto;
-}
-
-.selection-fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 260px)) minmax(180px, 220px);
-  gap: 12px;
-  align-items: end;
-}
-
-.field {
-  width: 100%;
-}
-
-.search-button {
-  min-height: 56px;
-  border-radius: 12px;
-  font-weight: 800;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-:host ::ng-deep .mat-mdc-form-field .mdc-floating-label {
-  color: rgba(17,24,39,.70) !important;
-  font-weight: 700;
-}
-
-:host ::ng-deep .mat-mdc-form-field .mdc-text-field__input,
-:host ::ng-deep .mat-mdc-select-value,
-:host ::ng-deep .mat-mdc-select-value-text {
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
-  font-weight: 700;
-}
-
-:host ::ng-deep .mat-mdc-select-arrow {
-  color: rgba(17,24,39,.85) !important;
-}
-
-:host ::ng-deep .mdc-text-field--outlined,
-:host ::ng-deep .mdc-text-field--filled {
-  background: rgba(255,255,255,.92) !important;
+/* Sólo dos campos (mes y año): no hace falta que ocupen todo el ancho */
+.rain-campos {
+  grid-template-columns: repeat(2, minmax(0, 200px));
 }
 
 .rain-legend {
@@ -321,21 +194,7 @@
   white-space: pre-line;
 }
 
-@media (max-width: 900px) {
-  .selection-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .search-button {
-    width: 100%;
-  }
-}
-
 @media (max-width: 768px) {
-  .rain-dialog {
-    padding: 12px !important;
-  }
-
   .rain-table {
     min-width: 640px;
   }

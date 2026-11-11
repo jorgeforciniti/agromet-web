@@ -13,6 +13,7 @@ import { WeatherService } from '../services/weather.service';
 import { forkJoin } from 'rxjs';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
 
 
@@ -50,7 +51,7 @@ interface StationRain {
   selector: 'app-rain-campaign-dialog',
   standalone: true,
   imports: [
-    ComoSeLeeComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent,
     CopiarEnlaceComponent,
     CommonModule,
     MatDialogModule,

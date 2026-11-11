@@ -1,55 +1,47 @@
-<mat-dialog-content class="rain-dialog rain-dialog--light">
-  <div class="dialog-header">
-    <div class="dialogo-texto">
-      <div class="dialogo-titulo">
-        <h2 class="titulo">Lluvias por campaña</h2>
-        <span class="dialog-eyebrow">ANÁLISIS DE CAMPAÑA</span>
+<mat-dialog-content class="rain-dialog rain-dialog--light dlg-cuerpo">
+  <app-encabezado-dialogo titulo="Lluvias por campaña"
+    bajada="Lluvia mensual de cada estación de la red durante una campaña de 12 meses, comparada con su normal."
+    (cerrar)="close()">
+    <app-como-se-lee>
+      <p>Cada fila es una estación (pluviómetros y estaciones automáticas de la red, con datos validados) y cada
+        columna, un mes de la campaña de 12 meses que empieza en el mes y año elegidos. Los valores son la lluvia
+        mensual en milímetros.</p>
+      <p>El color compara la lluvia de cada mes con su normal, el promedio de la estación para ese mes en el período
+        de referencia (ambos aparecen al pasar el mouse sobre el valor). Las clases son las de la referencia: menos
+        del 33 %, de 33 a menos de 66 %, de 66 a menos de 100 %, de 100 a menos de 150 %, de 150 a menos de 200 % y
+        200 % o más. Si la normal del mes es 0 mm no se calcula el porcentaje y la celda queda sin color.</p>
+      <p>El mes en curso tiene un color propio porque su dato es parcial: es la lluvia acumulada hasta la fecha de la
+        columna «Último registro». Mientras la campaña no termina, no se muestra el total.</p>
+      <p>Un «—» indica que falta el dato de ese mes o que el mes no pasó el control de validación (no se muestran
+        meses parciales); en ese caso tampoco se calcula el total de la campaña. No se
+        listan las estaciones sin ningún dato en la campaña.</p>
+      <p>Al hacer clic en un valor mensual o en el total se abre la ficha de la estación, con su serie histórica.</p>
+    </app-como-se-lee>
+  </app-encabezado-dialogo>
+
+  <div class="dlg-form">
+    <form (ngSubmit)="loadCampaign()">
+      <div class="dlg-campos rain-campos">
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Mes</mat-label>
+          <mat-select [(value)]="selectedMonth" required>
+            <mat-option *ngFor="let m of monthsList" [value]="m.value">
+              {{ m.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Año</mat-label>
+          <input matInput type="number" [(ngModel)]="selectedYear" name="year" required min="1900" max="2100">
+        </mat-form-field>
       </div>
-      <app-como-se-lee>
-        <p>Cada fila es una estación (pluviómetros y estaciones automáticas de la red, con datos validados) y cada
-          columna, un mes de la campaña de 12 meses que empieza en el mes y año elegidos. Los valores son la lluvia
-          mensual en milímetros.</p>
-        <p>El color compara la lluvia de cada mes con su normal, el promedio de la estación para ese mes en el período
-          de referencia (ambos aparecen al pasar el mouse sobre el valor). Las clases son las de la referencia: menos
-          del 33 %, de 33 a menos de 66 %, de 66 a menos de 100 %, de 100 a menos de 150 %, de 150 a menos de 200 % y
-          200 % o más. Si la normal del mes es 0 mm no se calcula el porcentaje y la celda queda sin color.</p>
-        <p>El mes en curso tiene un color propio porque su dato es parcial: es la lluvia acumulada hasta la fecha de la
-          columna «Último registro». Mientras la campaña no termina, no se muestra el total.</p>
-        <p>Un «—» indica que falta el dato de ese mes o que el mes no pasó el control de validación (no se muestran
-          meses parciales); en ese caso tampoco se calcula el total de la campaña. No se
-          listan las estaciones sin ningún dato en la campaña.</p>
-        <p>Al hacer clic en un valor mensual o en el total se abre la ficha de la estación, con su serie histórica.</p>
-      </app-como-se-lee>
-    </div>
-
-    <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
-      <mat-icon>close</mat-icon>
-    </button>
+      <div class="dlg-acciones">
+        <button mat-raised-button color="primary" type="submit" class="dlg-calcular">Ver datos</button>
+      </div>
+    </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
   </div>
-
-  <form class="selection-form" (ngSubmit)="loadCampaign()">
-    <div class="selection-fields">
-      <mat-form-field appearance="outline" class="field">
-        <mat-label>Mes</mat-label>
-        <mat-select [(value)]="selectedMonth" required>
-          <mat-option *ngFor="let m of monthsList" [value]="m.value">
-            {{ m.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="field">
-        <mat-label>Año</mat-label>
-        <input matInput type="number" [(ngModel)]="selectedYear" name="year" required min="1900" max="2100">
-      </mat-form-field>
-
-      <button mat-raised-button color="primary" type="submit" class="search-button">
-        <mat-icon>search</mat-icon>
-        Buscar datos
-      </button>
-    </div>
-  </form>
-  <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
   <div class="rain-legend">
     <strong>Referencias respecto a lo normal</strong>
