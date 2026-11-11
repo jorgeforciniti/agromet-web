@@ -252,6 +252,13 @@ body {
   background: var(--surface);
 }
 
+/* Cuando el contenedor es el propio mat-dialog-content, hay que ganarle al padding 0 de
+   .do-dialog .mat-mdc-dialog-content */
+.do-dialog .mat-mdc-dialog-content.dlg-cuerpo {
+  padding: 20px 24px 24px !important;
+  background: var(--surface) !important;
+}
+
 /* Formulario en una franja verde suave, como la estación de /datos. La franja envuelve al
    <form> y al «Copiar enlace» (que tiene su propio formulario y no puede ir adentro); el
    <form> usa display: contents para que el botón y el enlace queden en la misma fila. */
@@ -314,8 +321,9 @@ body {
   margin: 0;
 }
 
-/* La única acción principal del diálogo */
-.dlg-form .dlg-calcular.mat-mdc-raised-button {
+/* La única acción principal del diálogo (la clase repetida le gana a los estilos de Material,
+   que se cargan después; así sirve también fuera de .dlg-form) */
+.dlg-calcular.dlg-calcular.mat-mdc-raised-button {
   min-width: 140px;
   height: 44px;
   border-radius: 10px;
@@ -327,11 +335,11 @@ body {
   letter-spacing: 0;
 }
 
-.dlg-form .dlg-calcular.mat-mdc-raised-button:hover {
+.dlg-calcular.dlg-calcular.mat-mdc-raised-button:hover {
   background: var(--brand-600);
 }
 
-.dlg-form .dlg-calcular.mat-mdc-raised-button:disabled {
+.dlg-calcular.dlg-calcular.mat-mdc-raised-button:disabled {
   background: color-mix(in srgb, var(--brand) 35%, white);
   color: #fff;
 }
@@ -387,9 +395,10 @@ body {
 }
 
 @media (max-width: 600px) {
-  .dlg-cuerpo {
+  .dlg-cuerpo,
+  .do-dialog .mat-mdc-dialog-content.dlg-cuerpo {
     gap: 12px;
-    padding: 14px 12px 18px;
+    padding: 14px 12px 18px !important;
   }
 
   .dlg-campos {
