@@ -19,6 +19,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
@@ -55,7 +56,7 @@ const COLOR_ALMACENAJE = '#5c940d';
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    CopiarEnlaceComponent,
+    EncabezadoDialogoComponent, CopiarEnlaceComponent,
     ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,

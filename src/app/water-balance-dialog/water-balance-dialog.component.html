@@ -1,91 +1,79 @@
 <mat-dialog-content class="bhs-dialog">
-  <div class="bhs-shell">
-    <div class="bhs-header">
-      <div class="bhs-header__texto">
-        <div class="bhs-header__titulo">
-          <h2 class="bhs-titulo">Balance hidrológico seriado decádico</h2>
-          <span class="bhs-eyebrow">ESTIMACIÓN TEÓRICA</span>
+  <div class="bhs-shell dlg-cuerpo">
+    <app-encabezado-dialogo titulo="Balance hidrológico seriado decádico"
+      bajada="Estimación teórica del almacenaje de agua en el suelo, el déficit y los excedentes de cada década, calculada a partir de la lluvia y la evapotranspiración potencial (EP) medidas por la estación. No reemplaza una medición de humedad en el lote." aviso="Estimación teórica"
+      (cerrar)="close()">
+      <app-como-se-lee>
+        <p>Es el balance hidrológico seriado de Pascale y Damario (1977). Para cada década (1–10, 11–20 y 21 a
+          fin de mes) se suman la lluvia (P) y la EP de la estación. La EP es la ETo que calcula la consola de
+          la estación Davis con la ecuación de Penman modificada que usa CIMIS (Universidad de California),
+          hora por hora a partir de temperatura, humedad, viento y radiación solar. Si
+          la lluvia cubre la EP, el sobrante se suma al almacenaje hasta el contenido de agua útil del suelo
+          (CAD, {{ cadPorDefecto }} mm por defecto); lo que lo supera es excedente. Si no la cubre, el almacenaje
+          baja en forma exponencial: <code>Alm = Alm anterior × e<sup>−(EP − P) / CAD</sup></code>.</p>
+        <p>La EP real es la lluvia más el agua que cede el suelo. En «Situación hídrica», las barras hacia
+          abajo son déficit (EP real menor que la EP) y las barras hacia arriba, excedente. La EP relativa es
+          EP real / EP en %: 100 % indica que no hubo déficit.</p>
+        <p>Sin un almacenaje conocido, el cálculo arranca con {{ almacenajeInicial }} mm unas 18 décadas (seis
+          meses) antes del período, para que ese valor inicial pese poco. Si se indica el almacenaje al inicio,
+          arranca con ese valor en la primera década.</p>
+        <p>Una década con días sin dato se calcula con los días que hay y se muestra más clara. Una década sin
+          lluvia o sin EP corta el balance: desde ahí sólo se muestran lluvia y EP. Salvo que se indique otro
+          valor, el CAD es el mismo para todos los sitios y no considera el tipo de suelo ni el cultivo.</p>
+        <p class="bhs-cita">Pascale, A. J. y Damario, E. A. (1977). El balance hidrológico seriado y su utilización en
+          estudios agroclimáticos. <em>Revista de la Facultad de Agronomía de La Plata</em>, 53(1-2): 15-34. Buenos Aires.</p>
+      </app-como-se-lee>
+    </app-encabezado-dialogo>
+
+    <div class="dlg-form">
+      <form [formGroup]="form" (ngSubmit)="calcular()">
+        <div class="dlg-campos">
+          <app-selector-estacion appearance="outline" class="dlg-campo--ancho" formControlName="station" etiqueta="Estación"
+            [estaciones]="stations"></app-selector-estacion>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Desde</mat-label>
+            <input matInput [matDatepicker]="desdePicker" formControlName="from">
+            <mat-datepicker-toggle matSuffix [for]="desdePicker"></mat-datepicker-toggle>
+            <mat-datepicker #desdePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Hasta</mat-label>
+            <input matInput [matDatepicker]="hastaPicker" formControlName="to">
+            <mat-datepicker-toggle matSuffix [for]="hastaPicker"></mat-datepicker-toggle>
+            <mat-datepicker #hastaPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="dlg-campo--ancho">
+            <mat-label>Agua útil del suelo (CAD)</mat-label>
+            <input matInput type="number" formControlName="cad" [min]="cadMin" [max]="cadMax" step="1">
+            <span matTextSuffix>mm</span>
+            <mat-hint *ngIf="!form.get('cad')?.invalid">Por defecto {{ cadPorDefecto }} mm. Al cambiarlo se recalcula.</mat-hint>
+            <mat-error>Entre {{ cadMin }} y {{ cadMax }} mm</mat-error>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" class="dlg-campo--ancho">
+            <mat-label>Almacenaje inicial</mat-label>
+            <select matNativeControl formControlName="modoInicio">
+              <option value="estimado">Estimado ({{ almacenajeInicial }} mm, 6 meses antes)</option>
+              <option value="conocido">Conocido al inicio del período</option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline" *ngIf="form.get('modoInicio')?.value === 'conocido'">
+            <mat-label>Almacenaje al inicio</mat-label>
+            <input matInput type="number" formControlName="almacenaje" min="0" [max]="form.get('cad')?.value" step="1">
+            <span matTextSuffix>mm</span>
+            <mat-hint>Entre 0 y {{ form.get('cad')?.value }} mm (el CAD)</mat-hint>
+          </mat-form-field>
         </div>
-        <p class="bhs-lead">
-          Estimación teórica del almacenaje de agua en el suelo, el déficit y los excedentes de cada década,
-          calculada a partir de la lluvia y la evapotranspiración potencial (EP) medidas por la estación. No
-          reemplaza una medición de humedad en el lote.
-        </p>
-        <app-como-se-lee>
-          <p>Es el balance hidrológico seriado de Pascale y Damario (1977). Para cada década (1–10, 11–20 y 21 a
-            fin de mes) se suman la lluvia (P) y la EP de la estación. La EP es la ETo que calcula la consola de
-            la estación Davis con la ecuación de Penman modificada que usa CIMIS (Universidad de California),
-            hora por hora a partir de temperatura, humedad, viento y radiación solar. Si
-            la lluvia cubre la EP, el sobrante se suma al almacenaje hasta el contenido de agua útil del suelo
-            (CAD, {{ cadPorDefecto }} mm por defecto); lo que lo supera es excedente. Si no la cubre, el almacenaje
-            baja en forma exponencial: <code>Alm = Alm anterior × e<sup>−(EP − P) / CAD</sup></code>.</p>
-          <p>La EP real es la lluvia más el agua que cede el suelo. En «Situación hídrica», las barras hacia
-            abajo son déficit (EP real menor que la EP) y las barras hacia arriba, excedente. La EP relativa es
-            EP real / EP en %: 100 % indica que no hubo déficit.</p>
-          <p>Sin un almacenaje conocido, el cálculo arranca con {{ almacenajeInicial }} mm unas 18 décadas (seis
-            meses) antes del período, para que ese valor inicial pese poco. Si se indica el almacenaje al inicio,
-            arranca con ese valor en la primera década.</p>
-          <p>Una década con días sin dato se calcula con los días que hay y se muestra más clara. Una década sin
-            lluvia o sin EP corta el balance: desde ahí sólo se muestran lluvia y EP. Salvo que se indique otro
-            valor, el CAD es el mismo para todos los sitios y no considera el tipo de suelo ni el cultivo.</p>
-          <p class="bhs-cita">Pascale, A. J. y Damario, E. A. (1977). El balance hidrológico seriado y su utilización en
-            estudios agroclimáticos. <em>Revista de la Facultad de Agronomía de La Plata</em>, 53(1-2): 15-34. Buenos Aires.</p>
-        </app-como-se-lee>
-      </div>
-      <button type="button" class="bhs-cerrar" (click)="close()" aria-label="Cerrar diálogo">
-        <mat-icon>close</mat-icon>
-      </button>
+        <div class="dlg-acciones">
+          <button mat-raised-button color="primary" class="dlg-calcular" type="submit" [disabled]="isLoading">{{ isLoading ? 'Calculando…' : 'Calcular' }}</button>
+        </div>
+      </form>
+      <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
     </div>
-
-    <form [formGroup]="form" (ngSubmit)="calcular()" class="bhs-form">
-      <div class="bhs-grid">
-        <app-selector-estacion formControlName="station" etiqueta="Estación"
-          [estaciones]="stations"></app-selector-estacion>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Desde</mat-label>
-          <input matInput [matDatepicker]="desdePicker" formControlName="from">
-          <mat-datepicker-toggle matSuffix [for]="desdePicker"></mat-datepicker-toggle>
-          <mat-datepicker #desdePicker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Hasta</mat-label>
-          <input matInput [matDatepicker]="hastaPicker" formControlName="to">
-          <mat-datepicker-toggle matSuffix [for]="hastaPicker"></mat-datepicker-toggle>
-          <mat-datepicker #hastaPicker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Agua útil del suelo (CAD)</mat-label>
-          <input matInput type="number" formControlName="cad" [min]="cadMin" [max]="cadMax" step="1">
-          <span matTextSuffix>mm</span>
-          <mat-hint *ngIf="!form.get('cad')?.invalid">Por defecto {{ cadPorDefecto }} mm. Al cambiarlo se recalcula.</mat-hint>
-          <mat-error>Entre {{ cadMin }} y {{ cadMax }} mm</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Almacenaje inicial</mat-label>
-          <select matNativeControl formControlName="modoInicio">
-            <option value="estimado">Estimado ({{ almacenajeInicial }} mm, 6 meses antes)</option>
-            <option value="conocido">Conocido al inicio del período</option>
-          </select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" *ngIf="form.get('modoInicio')?.value === 'conocido'">
-          <mat-label>Almacenaje al inicio</mat-label>
-          <input matInput type="number" formControlName="almacenaje" min="0" [max]="form.get('cad')?.value" step="1">
-          <span matTextSuffix>mm</span>
-          <mat-hint>Entre 0 y {{ form.get('cad')?.value }} mm (el CAD)</mat-hint>
-        </mat-form-field>
-
-        <button mat-raised-button color="primary" class="bhs-calcular" type="submit" [disabled]="isLoading">
-          <mat-icon>water</mat-icon>
-          Calcular
-        </button>
-      </div>
-    </form>
-    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
 
@@ -96,29 +84,29 @@
 
     <ng-container *ngIf="resultado && decadas.length && !isLoading">
       <!-- Resumen en una franja: los cuatro datos en línea, separados por divisores -->
-      <div class="bhs-resumen">
-        <div class="bhs-resumen__card">
-          <span>Estación</span>
-          <strong>{{ estacionCalculada }}</strong>
+      <dl class="dlg-resumen">
+        <div class="dlg-resumen__dato">
+          <dt>Estación</dt>
+          <dd>{{ estacionCalculada }}</dd>
         </div>
-        <div class="bhs-resumen__card">
-          <span>Almacenaje al final</span>
-          <strong *ngIf="totales.ultima as u; else sinAlm">{{ u.almacenaje | number:'1.0-0' }} mm
-            <small>de {{ cadCalculado }} · {{ u.etiqueta }}</small></strong>
-          <ng-template #sinAlm><strong>—</strong></ng-template>
+        <div class="dlg-resumen__dato">
+          <dt>Almacenaje al final</dt>
+          <dd *ngIf="totales.ultima as u; else sinAlm">{{ u.almacenaje | number:'1.0-0' }} mm
+            <small>de {{ cadCalculado }} · {{ u.etiqueta }}</small></dd>
+          <ng-template #sinAlm><dd>—</dd></ng-template>
         </div>
-        <div class="bhs-resumen__card">
-          <span>Lluvia / EP del período</span>
-          <strong>{{ totales.lluvia | number:'1.0-0' }} / {{ totales.ep | number:'1.0-0' }} mm</strong>
+        <div class="dlg-resumen__dato">
+          <dt>Lluvia / EP del período</dt>
+          <dd>{{ totales.lluvia | number:'1.0-0' }} / {{ totales.ep | number:'1.0-0' }} mm</dd>
         </div>
-        <div class="bhs-resumen__card">
-          <span>Déficit / excedente</span>
-          <strong>
+        <div class="dlg-resumen__dato">
+          <dt>Déficit / excedente</dt>
+          <dd>
             <span class="neg">{{ totales.deficit | number:'1.0-0' }}</span> /
             <span class="pos">{{ totales.exceso | number:'1.0-0' }}</span> mm
-          </strong>
+          </dd>
         </div>
-      </div>
+      </dl>
 
       <div class="bhs-aviso" *ngIf="resultado.corte">
         <mat-icon>warning_amber</mat-icon>
