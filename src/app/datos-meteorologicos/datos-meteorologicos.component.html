@@ -1,33 +1,42 @@
 <div class="dm">
-  <div class="dm__intro">
-    <div>
-      <div class="dm__eyebrow">CONSULTA PRINCIPAL</div>
-      <h1 class="dm__headline">Herramientas de análisis y consulta meteorológica</h1>
+  <header class="dm__intro">
+    <h1 class="dm__titulo">Datos y estadísticas</h1>
+    <p class="dm__bajada">Elegí la estación y después lo que querés saber.</p>
+  </header>
+
+  <!-- La estación elegida acá es la activa: cada herramienta arranca con ella -->
+  <section class="dm-estacion" aria-label="Estación para las herramientas">
+    <mat-icon class="dm-estacion__icono" aria-hidden="true">location_on</mat-icon>
+    <div class="dm-estacion__texto">
+      <p class="dm-estacion__ayuda">Estación para todas las herramientas</p>
+      <p class="dm-estacion__lugar" *ngIf="lugarActiva">{{ lugarActiva }}</p>
     </div>
-    <p class="dm__lead">Elegí una herramienta según lo que necesitás: lo que pasa ahora, cómo viene la campaña o la
-      comparación con otros años y lugares.</p>
+    <app-selector-estacion class="dm-estacion__selector" etiqueta="Estación" appearance="outline"
+      [estaciones]="estaciones" [ngModel]="activa" (cambio)="elegirEstacion($event)"></app-selector-estacion>
+  </section>
+
+  <!-- Herramientas según cuándo pasó lo que muestran: hoy, esta campaña y otros años -->
+  <div class="dm-tiempo" aria-hidden="true">
+    <span class="dm-tiempo__punto dm-tiempo__punto--hoy"></span>
+    <span class="dm-tiempo__punto"></span>
+    <span class="dm-tiempo__punto"></span>
   </div>
 
-  <!-- Herramientas agrupadas por uso; cada tarjeta indica si el dato es en vivo, histórico o un cálculo -->
-  <section class="dm-grupo" *ngFor="let g of grupos; let gi = index" [attr.aria-labelledby]="'dm-grupo-' + gi">
-    <header class="dm-grupo__head">
+  <div class="dm-columnas">
+    <section class="dm-grupo" *ngFor="let g of grupos; let gi = index" [attr.aria-labelledby]="'dm-grupo-' + gi">
       <h2 class="dm-grupo__titulo" [id]="'dm-grupo-' + gi">{{ g.titulo }}</h2>
       <p class="dm-grupo__desc">{{ g.descripcion }}</p>
-    </header>
 
-    <div class="dm-grupo__grid">
-      <button type="button" class="dm-tarjeta tap-feedback" *ngFor="let t of g.tarjetas" (click)="abrir(t)">
-        <span class="dm-tarjeta__miniatura" aria-hidden="true">
-          <img *ngIf="t.imagen; else icono" [src]="t.imagen" alt="" loading="lazy">
-          <ng-template #icono><mat-icon>{{ t.icono }}</mat-icon></ng-template>
-        </span>
-        <span class="dm-tarjeta__texto">
-          <span class="dm-tarjeta__tipo" [attr.data-tipo]="t.tipo">{{ t.tipo }}</span>
-          <span class="dm-tarjeta__titulo">{{ t.titulo }}</span>
-          <span class="dm-tarjeta__desc">{{ t.descripcion }}</span>
-        </span>
-        <mat-icon class="dm-tarjeta__flecha" aria-hidden="true">chevron_right</mat-icon>
-      </button>
-    </div>
-  </section>
+      <ul class="dm-grupo__lista">
+        <li *ngFor="let t of g.tarjetas">
+          <button type="button" class="dm-pregunta" (click)="abrir(t)">
+            <span class="dm-pregunta__texto">{{ t.pregunta }}</span>
+            <span class="dm-pregunta__herramienta">
+              {{ t.titulo }}<span class="dm-pregunta__nota" *ngIf="t.nota">{{ t.nota }}</span>
+            </span>
+          </button>
+        </li>
+      </ul>
+    </section>
+  </div>
 </div>

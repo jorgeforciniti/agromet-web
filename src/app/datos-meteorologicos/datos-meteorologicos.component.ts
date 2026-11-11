@@ -1,22 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { StationService } from '../services/station.service';
+import { WeatherService, WeatherStation } from '../services/weather.service';
+import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { Consulta, Herramienta } from '../shared/enlace-consulta';
-
-/** Qué tipo de dato muestra cada herramienta (etiqueta de la tarjeta) */
-type TipoDato = 'En vivo' | 'Histórico' | 'Cálculo';
 
 interface Tarjeta {
   herramienta: Herramienta;
+  /** Lo que la herramienta responde, como lo preguntaría quien la usa */
+  pregunta: string;
+  /** Nombre de la herramienta */
   titulo: string;
-  descripcion: string;
-  tipo: TipoDato;
-  /** Miniatura; sin imagen se muestra el ícono */
-  imagen?: string;
-  icono: string;
+  /** Aclaración junto al nombre (por ejemplo, que el resultado es una estimación) */
+  nota?: string;
 }
 
 interface Grupo {
@@ -25,54 +25,40 @@ interface Grupo {
   tarjetas: Tarjeta[];
 }
 
-const IMG = 'assets/images/datosmeteorologicos/';
-
 /**
- * Herramientas agrupadas por para qué sirven (A3 del informe de mejoras): lo de ahora, lo de la
- * campaña y el cultivo, y lo histórico. Antes eran 7 tarjetas grandes y 5 enlaces en una barra
- * lateral, sin distinguir si el dato era actual o histórico.
+ * Herramientas ordenadas según cuándo pasó lo que muestran: hoy, la campaña en curso y otros
+ * años. Cada una se presenta por la pregunta que responde, con el nombre técnico debajo.
  */
 const GRUPOS: Grupo[] = [
   {
-    titulo: 'Ahora y próximos días',
-    descripcion: 'Lo que está pasando en las estaciones y las condiciones para trabajar hoy.',
+    titulo: 'Hoy',
+    descripcion: 'Datos en vivo de las estaciones.',
     tarjetas: [
-      { herramienta: 'tiempo-real', titulo: 'Datos en tiempo real', tipo: 'En vivo', imagen: IMG + 'datostiemporeal.png', icono: 'sensors',
-        descripcion: 'Estaciones en el mapa con su último dato y las últimas 48 horas de cada variable.' },
-      { herramienta: 'aplicar', titulo: 'Condiciones para aplicar agroquímicos', tipo: 'En vivo', imagen: IMG + 'aplicacion.png', icono: 'agriculture',
-        descripcion: 'Viento, temperatura, humedad y Delta T por estación para elegir la ventana de aplicación.' }
+      { herramienta: 'tiempo-real', pregunta: '¿Qué marcan las estaciones ahora?', titulo: 'Datos en tiempo real' },
+      { herramienta: 'aplicar', pregunta: '¿Puedo aplicar hoy?', titulo: 'Condiciones para aplicar agroquímicos' }
     ]
   },
   {
-    titulo: 'Campaña y cultivo',
-    descripcion: 'Cómo viene la campaña: agua, temperatura y sanidad desde una fecha o por etapa del cultivo.',
+    titulo: 'Esta campaña',
+    descripcion: 'Desde una fecha o por etapa del cultivo.',
     tarjetas: [
-      { herramienta: 'campania-lluvias', titulo: 'Lluvias por campaña', tipo: 'Histórico', imagen: IMG + 'tormenta.png', icono: 'water_drop',
-        descripcion: 'Lluvia mensual de todas las estaciones frente a la normal, desde el mes de inicio.' },
-      { herramienta: 'fenologia', titulo: 'Meteorología por estadíos fenológicos', tipo: 'Histórico', imagen: IMG + 'estadios-fenologicos-card.png', icono: 'eco',
-        descripcion: 'Lluvia, ETo, demanda hídrica y temperaturas de cada etapa del cultivo.' },
-      { herramienta: 'balance-hidrico', titulo: 'Balance hidrológico seriado', tipo: 'Cálculo', imagen: IMG + 'balance-hidrico-card.png', icono: 'water',
-        descripcion: 'Almacenaje de agua en el suelo, déficit y excedentes de cada década.' },
-      { herramienta: 'enfermedades', titulo: 'Condiciones para enfermedades', tipo: 'Cálculo', imagen: IMG + 'condiciones-enfermedades-card.png', icono: 'biotech',
-        descripcion: 'Días con condiciones predisponentes según los registros horarios de la estación.' },
-      { herramienta: 'horas-frio', titulo: 'Horas de frío', tipo: 'Cálculo', imagen: IMG + 'horas-frio-card.jpg', icono: 'ac_unit',
-        descripcion: 'Horas bajo el umbral y unidades Utah acumuladas en el período.' },
-      { herramienta: 'suma-termica', titulo: 'Sumas térmicas', tipo: 'Cálculo', imagen: IMG + 'sumas-termicas-card.jpg', icono: 'functions',
-        descripcion: 'Grados-día por promedio o seno simple, con la base del cultivo.' },
-      { herramienta: 'rinde-soja', titulo: 'Estimador de rindes de soja', tipo: 'Cálculo', imagen: IMG + 'rinde-soja-card.jpg', icono: 'grass',
-        descripcion: 'Rendimiento a partir del conteo de vainas y el peso de mil semillas.' }
+      { herramienta: 'campania-lluvias', pregunta: '¿Cuánto llovió desde que empezó la campaña?', titulo: 'Lluvias por campaña' },
+      { herramienta: 'balance-hidrico', pregunta: '¿Cuánta agua tendría el suelo?', titulo: 'Balance hidrológico seriado',
+        nota: 'Estimación teórica' },
+      { herramienta: 'fenologia', pregunta: '¿Cómo fue el tiempo en cada etapa del cultivo?', titulo: 'Meteorología por estadíos fenológicos' },
+      { herramienta: 'enfermedades', pregunta: '¿Hubo condiciones para enfermedades?', titulo: 'Condiciones para enfermedades' },
+      { herramienta: 'horas-frio', pregunta: '¿Cuántas horas de frío se acumularon?', titulo: 'Horas de frío' },
+      { herramienta: 'suma-termica', pregunta: '¿Cuántos grados-día lleva el cultivo?', titulo: 'Sumas térmicas' },
+      { herramienta: 'rinde-soja', pregunta: '¿Cuánto puede rendir la soja?', titulo: 'Estimador de rindes de soja' }
     ]
   },
   {
-    titulo: 'Histórico y comparación',
-    descripcion: 'Series diarias de una estación y comparaciones entre años o entre localidades.',
+    titulo: 'Otros años',
+    descripcion: 'Series diarias y comparaciones.',
     tarjetas: [
-      { herramienta: 'datos-localidad', titulo: 'Datos por localidad', tipo: 'Histórico', imagen: IMG + 'datosporlocalidad.png', icono: 'table_chart',
-        descripcion: 'Resumen, gráficos y tablas diarias de una estación en el período elegido.' },
-      { herramienta: 'comparar-anios', titulo: 'Comparación entre años', tipo: 'Histórico', imagen: IMG + 'comparar-anios-card.svg', icono: 'insights',
-        descripcion: 'El mismo período de dos años en una estación, con la normal de referencia.' },
-      { herramienta: 'comparar-localidades', titulo: 'Comparación entre localidades', tipo: 'Histórico', imagen: IMG + 'comparar-localidades-card.svg', icono: 'compare',
-        descripcion: 'Dos estaciones en el mismo período, día por día o agrupado.' }
+      { herramienta: 'datos-localidad', pregunta: '¿Qué registró la estación en un período?', titulo: 'Datos por localidad' },
+      { herramienta: 'comparar-anios', pregunta: '¿Este año viene distinto a otro?', titulo: 'Comparación entre años' },
+      { herramienta: 'comparar-localidades', pregunta: '¿Cómo se compara con otra localidad?', titulo: 'Comparación entre localidades' }
     ]
   }
 ];
@@ -80,19 +66,39 @@ const GRUPOS: Grupo[] = [
 @Component({
   selector: 'app-datos-meteorologicos',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatDialogModule, MatIconModule, SelectorEstacionComponent],
   templateUrl: './datos-meteorologicos.component.html',
   styleUrls: ['./datos-meteorologicos.component.css']
 })
 export class DatosMeteorologicosComponent implements OnInit {
   readonly grupos = GRUPOS;
 
+  /** Estaciones para el selector de arriba (todas las de la red) */
+  estaciones: WeatherStation[] = [];
+
   constructor(
     private dialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router,
-    private stationService: StationService
+    private stationService: StationService,
+    private weatherService: WeatherService
   ) { }
+
+  get activa(): string {
+    return this.stationService.activa;
+  }
+
+  /** Localidad, departamento y provincia de la estación activa, junto al selector */
+  get lugarActiva(): string {
+    const e = this.estaciones.find(s => s.Identificacion === this.activa);
+    if (!e) return '';
+    return [...new Set([e.Localidad, e.departamento, e.provincia].map(t => (t ?? '').trim()).filter(Boolean))].join(', ');
+  }
+
+  /** La estación elegida arriba pasa a ser la activa: con ella arranca cada herramienta. */
+  elegirEstacion(id: string): void {
+    this.stationService.setActiva(id);
+  }
 
   abrir(t: Tarjeta): void {
     void this.abrirPorEnlace[t.herramienta]({});
@@ -115,6 +121,11 @@ export class DatosMeteorologicosComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.weatherService.getStationsAll().subscribe({
+      next: lista => this.estaciones = [...lista].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+      error: () => this.estaciones = []
+    });
+
     if (typeof window !== 'undefined' && window.location.search.includes('debugDiseaseDialog=1')) {
       setTimeout(() => { void this.openDiseaseConditionsDialog(); }, 300);
     }
