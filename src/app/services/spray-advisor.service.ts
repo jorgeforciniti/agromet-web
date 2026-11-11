@@ -48,8 +48,11 @@ interface MetodoRule {
   calmaKmh: { rojo: number; amarillo: number };
   /** Techo de viento: se compara con la RÁFAGA (verde hasta `verde`, amarillo hasta `amarillo`, después rojo) */
   rafagaKmh: { verde: number; amarillo: number };
-  /** Techo del VIENTO MEDIO (amarillo desde `amarillo`, rojo por encima de `rojo`); sin él sólo cuenta la ráfaga */
-  medioKmh?: { amarillo: number; rojo: number };
+  /**
+   * Techo del VIENTO MEDIO: amarillo desde `amarillo`; rojo por encima de `rojo` o, con `rojoIncluido`,
+   * desde `rojo`. Sin él sólo cuenta la ráfaga.
+   */
+  medioKmh?: { amarillo: number; rojo: number; rojoIncluido?: boolean; fuente: string };
   deltaT: ThresholdRule;
   gustDeltaYellow: number;
   gustDeltaRed: number;
@@ -81,8 +84,12 @@ interface MetodoRule {
  *   de 10 a 12 °C sólo con gota muy gruesa o mayor y nunca por encima de 12 °C; acá, de 10 a 12 °C es
  *   amarillo con gota gruesa o muy gruesa y rojo con gota media o más fina; más de 12 °C, rojo.
  * - gustDeltaYellow/gustDeltaRed (ráfaga − viento medio, turbulencia): criterio propio, sin fuente.
- * - popRed/popYellow: pensados para probabilidad de lluvia de un pronóstico; con datos medidos
- *   cualquier lluvia registrada cuenta como probabilidad 1 (rojo).
+ * - popRed/popYellow: pensados para probabilidad de lluvia de un pronóstico; con datos medidos, una
+ *   lluvia de más de 0,2 mm cuenta como probabilidad 1 (rojo), como en Kogan et al. (2017): las
+ *   estaciones Davis miden de a 0,2 mm y un solo registro puede ser rocío.
+ * - AIRBLAST: techo del viento medio de Kogan et al. (2017), semáforo para pulverizadoras
+ *   hidroneumáticas en frutales del Alto Valle (umbrales de Rodríguez et al., 2015, INTA EEA Alto
+ *   Valle): menos de 14,4 km/h verde, de 14,4 a 18 amarillo, desde 18 rojo.
  * - Inversión (inversionProbable): proxy propio (viento medio < 5 km/h y HR ≥ 85 %) dentro del horario
  *   de INTA Pergamino (desde una hora antes de la puesta hasta una hora después de la salida del sol,
  *   citado por AgroSpray, 2020); agrava el semáforo junto con ΔT < 2.
@@ -91,7 +98,7 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
   MOSQUITO: {
     calmaKmh: { rojo: 3, amarillo: 5 },
     rafagaKmh: { verde: 20, amarillo: 25 },
-    medioKmh: { amarillo: 15, rojo: 20 },
+    medioKmh: { amarillo: 15, rojo: 20, fuente: 'INTA EEA Oliveros; Queensland Government. AAPRESID, citada por AgroSpray, recomienda menos de 10 km/h' },
     deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 8,
     gustDeltaRed: 15,
@@ -133,6 +140,7 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
   AIRBLAST: {
     calmaKmh: { rojo: 3, amarillo: 3 },
     rafagaKmh: { verde: 15, amarillo: 20 },
+    medioKmh: { amarillo: 14.4, rojo: 18, rojoIncluido: true, fuente: 'Kogan et al., 2017; Rodríguez et al., 2015' },
     deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 6,
     gustDeltaRed: 12,
@@ -165,13 +173,14 @@ export function describirUmbrales(metodo: MetodoAplicacion): string[] {
     `Ráfaga: verde hasta ${num(r.rafagaKmh.verde)} km/h, amarillo hasta ${num(r.rafagaKmh.amarillo)} km/h, rojo por encima (${fuenteViento[metodo]}).`,
   ];
   if (r.medioKmh) {
-    lineas.push(`Viento medio (techo): desde ${num(r.medioKmh.amarillo)} km/h, amarillo; más de ${num(r.medioKmh.rojo)} km/h, rojo (INTA EEA Oliveros; Queensland Government). AAPRESID, citada por AgroSpray, recomienda menos de 10 km/h.`);
+    const m = r.medioKmh;
+    lineas.push(`Viento medio (techo): desde ${num(m.amarillo)} km/h, amarillo; ${m.rojoIncluido ? 'desde' : 'más de'} ${num(m.rojo)} km/h, rojo (${m.fuente}).`);
   }
   lineas.push(
     `Ráfaga menos viento medio (turbulencia): desde ${num(r.gustDeltaYellow)} km/h, amarillo; desde ${num(r.gustDeltaRed)} km/h, rojo (criterio propio).`,
     'ΔT: verde de 2 a 8 °C; amarillo de 1 a 2 °C y de 8 a 10 °C; de 10 a 12 °C, amarillo con gota gruesa o muy gruesa y rojo con gota más fina; más de 12 °C, rojo (GRDC, 2025). Menos de 1 °C, rojo (criterio propio).',
     `Inversión probable: ${r.inversion.forceRed ? 'rojo' : 'amarillo'} (criterio propio; ver «Inversión»).`,
-    'Lluvia registrada: cualquier cantidad, rojo (criterio propio).',
+    `Lluvia registrada: más de ${num(LLUVIA_MINIMA_MM)} mm, rojo (Kogan et al., 2017).`,
     'Kp: desde 4, amarillo; desde 5, rojo (NOAA SWPC: con Kp 5 empieza la tormenta geomagnética G1).',
   );
   if (metodo === 'DRON' || metodo === 'AVION') {
@@ -187,6 +196,8 @@ export const BIBLIOGRAFIA_APLICACION: string[] = [
   'GRDC (2025). Practical tips for spraying (fact sheet, revisión de enero de 2025). Grains Research and Development Corporation, Australia: ΔT de 2 a 8 °C; de 10 a 12 °C sólo con gota muy gruesa o mayor; no aplicar con más de 12 °C ni con inversión.',
   'INTA EEA Oliveros. Delta T como indicador del ambiente para pulverizar: 15 km/h es el viento máximo de buena práctica.',
   'INTA Pergamino. Caracterización del fenómeno de inversión térmica (Engormix): viento de 4,2 km/h o menos como indicador de inversión.',
+  'Kogan, P.; Grosso, G.; Magdalena, C.; Fernández, D.; Muñoz, A. R.; Rodríguez, A. B. y Giorgetti, G. (2017). Desarrollo web de un semáforo indicador de condiciones climáticas necesarias para realizar una correcta aplicación de agroquímicos en fruticultura (Alto Valle de Río Negro y Neuquén). CAI, Congreso Argentino de AgroInformática, 46 JAIIO, pp. 241-251. ISSN 2525-0949. Pulverizadoras hidroneumáticas: viento menor a 14,4 km/h verde, de 14,4 a 18 amarillo, desde 18 rojo; lluvia de más de 0,2 mm, rojo. Para esa región también fija temperatura (menos de 25 °C) y humedad (de 35 a 85 %), que acá no se usan: el ΔT ya combina las dos.',
+  'Rodríguez, A.; Magdalena, C.; Muñoz, A.; Benítez-Piccini, E. y Fernández, D. (2015). Ventana de aplicación de productos fitosanitarios en cultivos de pepita en el Alto Valle de Río Negro y Neuquén. 38.º Congreso Argentino de Horticultura, Bahía Blanca. Origen de los umbrales de Kogan et al. (2017), con doce temporadas de datos.',
   'Engormix. Conocer y manejar parámetros para reducir la deriva: viento de 5 a 15 km/h; con menos de 5 km/h, probable inversión.',
   'AgroSpray (2020). Fitosanitarios: ¿cómo les influyen las condiciones climáticas? (agrospray.com.ar). Cita a AAPRESID: viento menor a 10 km/h, temperatura menor a 30 °C, humedad relativa mayor a 55 % y ΔT de 2 a 8 °C; y a INTA Pergamino: la inversión empieza una hora antes de la puesta del sol y termina una hora después de la salida.',
   'AgroSpray (2026). El clima también se calibra: cómo tomar la decisión de pulverizar en la campaña 2026/27 (agrospray.com.ar). Viento de 4 a 9 km/h según distintas guías; ante sospecha de inversión, no pulverizar.',
@@ -194,6 +205,9 @@ export const BIBLIOGRAFIA_APLICACION: string[] = [
   'NOAA SWPC. Space Weather Scales: escala de tormentas geomagnéticas (G1 desde Kp 5).',
   'Stull, R. (2011). Wet-bulb temperature from relative humidity and air temperature. Journal of Applied Meteorology and Climatology, 50: 2267-2269 (cálculo del ΔT).',
 ];
+
+/** Lluvia medida que cuenta: hasta 0,2 mm (un registro de la estación Davis) puede ser rocío (Kogan et al., 2017) */
+const LLUVIA_MINIMA_MM = 0.2;
 
 /** La inversión empieza una hora antes de la puesta y termina una hora después de la salida del sol */
 const MARGEN_INVERSION_S = 3600;
@@ -464,7 +478,7 @@ export class SprayAdvisorService {
         rh,
         windMs: medio / 3.6,
         gustMs: rafaga / 3.6,
-        pop: lluvia > 0 ? 1 : 0,
+        pop: lluvia > LLUVIA_MINIMA_MM ? 1 : 0,
         dtUtc: Math.floor((instanteMs as number) / 1000),
         sunriseUtc: sol ? Math.floor(sol.salidaMs / 1000) : undefined,
         sunsetUtc: sol ? Math.floor(sol.puestaMs / 1000) : undefined,
@@ -523,7 +537,8 @@ export class SprayAdvisorService {
     const lCalma: Semaforo = windKmh < rules.calmaKmh.rojo ? 'ROJO' : windKmh < rules.calmaKmh.amarillo ? 'AMARILLO' : 'VERDE';
     const lTecho: Semaforo = refKmh > rules.rafagaKmh.amarillo ? 'ROJO' : refKmh > rules.rafagaKmh.verde ? 'AMARILLO' : 'VERDE';
     const medio = rules.medioKmh;
-    const lMedio: Semaforo = !medio ? 'VERDE' : windKmh > medio.rojo ? 'ROJO' : windKmh >= medio.amarillo ? 'AMARILLO' : 'VERDE';
+    const medioRojo = !!medio && (medio.rojoIncluido ? windKmh >= medio.rojo : windKmh > medio.rojo);
+    const lMedio: Semaforo = !medio ? 'VERDE' : medioRojo ? 'ROJO' : windKmh >= medio.amarillo ? 'AMARILLO' : 'VERDE';
     const lWind = worst(lCalma, worst(lTecho, lMedio));
     let lDT = evalThreshold(dT, rules.deltaT);
     // GRDC: de 10 a 12 °C sólo con gota muy gruesa o mayor
@@ -624,7 +639,7 @@ export class SprayAdvisorService {
     if (lInv !== 'VERDE') push(razones, 'Riesgo de inversión/atmósfera estable.');
     if (lCalma !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(0)} km/h: calma (${lCalma}).`);
     if (lTecho !== 'VERDE') push(razones, `${gustKmh != null ? 'Ráfaga' : 'Viento'} ${refKmh.toFixed(0)} km/h (${lTecho}).`);
-    if (lMedio !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(0)} km/h: por encima de 15 km/h (${lMedio}).`);
+    if (lMedio !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(1)} km/h: desde ${num(medio!.amarillo)} km/h es demasiado (${lMedio}).`);
     if (lGust !== 'VERDE' && gustKmh != null) push(razones, `Ráfaga ${(gustKmh - windKmh).toFixed(0)} km/h sobre el viento medio (${lGust}).`);
     if (lDT !== 'VERDE') push(razones, dtConGotaGruesa
       ? `ΔT ${dT.toFixed(1)} °C (AMARILLO): entre 10 y 12 °C sólo se aplica con gota gruesa o muy gruesa.`

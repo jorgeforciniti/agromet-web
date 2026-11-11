@@ -882,7 +882,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
         'Verde: aplicar. Amarillo: precaución. Rojo: no aplicar. Sin evaluar (gris): falta o es inválido algún dato; no se evalúa con valores supuestos.',
         'Se combinan los dos riesgos según la prioridad (deriva / eficacia): Seguridad 80 / 20, Equilibrado 60 / 40, Eficacia 40 / 60. En citrus pesa un poco más la deriva y en granos, la eficacia. Resultado: menos de 35, verde; de 35 a 65, amarillo; más de 65, rojo (criterio propio).',
         'Nunca es mejor que el peor criterio individual: si alguno de los de abajo da amarillo o rojo, el semáforo queda por lo menos de ese color.',
-        'La etiqueta del producto tiene prioridad sobre estos criterios.'
+        'La etiqueta del producto tiene prioridad sobre estos criterios. El semáforo es una herramienta de apoyo: la decisión de aplicar es de quien aplica (Kogan et al., 2017).'
       ]
     },
     DELTA_T: {
@@ -921,7 +921,13 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       ]
     },
     DIRECCION: { title: 'Dirección', body: ['Si sopla hacia zonas sensibles, evitar aplicar.'] },
-    LLUVIA: { title: 'Lluvia', body: ['Riesgo de lavado y pérdida de eficacia según rainfastness.'] },
+    LLUVIA: {
+      title: 'Lluvia',
+      body: [
+        'Riesgo de lavado y pérdida de eficacia según rainfastness.',
+        'Una lluvia de más de 0,2 mm en el registro pone la fila en rojo. Hasta 0,2 mm (un registro de la estación) puede ser rocío y no cuenta (Kogan et al., 2017).'
+      ]
+    },
 
     SCORES: { title: 'Riesgos', body: ['Menos de 35, bajo; de 35 a 65, medio; más de 65, alto.'] },
     FORECAST_HELP: {

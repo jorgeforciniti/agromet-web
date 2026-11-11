@@ -10,13 +10,13 @@
           el método, la prioridad y el cultivo indicados. Cada botón «i» explica un criterio en detalle.</p>
         <p>El semáforo combina dos puntajes de riesgo, deriva y eficacia (más alto es peor), ponderados según la
           prioridad, y nunca es mejor que el peor criterio individual: ráfaga, diferencia entre ráfaga y viento medio,
-          ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la fila en
-          rojo.</p>
+          ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Una lluvia de más de 0,2 mm en el registro
+          pone la fila en rojo.</p>
         <p>Viento: el piso se compara con el viento medio y el techo con la ráfaga. Con viento medio menor a 3 km/h hay
           calma y riesgo de inversión (rojo). En aplicación terrestre la ráfaga es verde hasta 20 km/h, amarillo hasta
           25 y rojo por encima, y además un viento medio de 15 km/h o más da amarillo y de más de 20 km/h, rojo. Con
-          dron la ráfaga es verde hasta 13 km/h; los demás métodos tienen sus propios límites (ver la «i» del
-          semáforo). ΔT (GRDC, 2025): de 2 a 8 °C es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; de 10 a 12 °C,
+          airblast el viento medio da amarillo desde 14,4 km/h y rojo desde 18; con dron la ráfaga es verde hasta
+          13 km/h. Los límites de cada método están en la «i» del semáforo. ΔT (GRDC, 2025): de 2 a 8 °C es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; de 10 a 12 °C,
           sólo con gota gruesa o muy gruesa; más de 12 o menos de 1 °C, no aplicar.</p>
         <p>Si falta un dato del registro (temperatura, humedad, viento medio, ráfaga o lluvia) o es inválido, esa fila
           o ese punto del mapa queda «Sin evaluar», en gris: nunca se evalúa con valores supuestos.</p>
@@ -28,9 +28,10 @@
           fechas anteriores. Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla.</p>
         <p>El mapa usa la misma evaluación que la tabla, con el último registro de cada estación y el último Kp, y
           muestra sólo las estaciones con datos de las últimas 2 horas.</p>
-        <p>La etiqueta del producto tiene prioridad sobre estos criterios. Las fuentes de cada umbral (GRDC, INTA,
-          AAPRESID, APVMA, Agriculture Victoria, Queensland Government, NOAA) y los criterios propios se listan en la «i» del
-          semáforo.</p>
+        <p>El semáforo es una herramienta de apoyo: la decisión de aplicar es de quien aplica. La etiqueta del producto
+          tiene prioridad sobre estos criterios. Las fuentes de cada umbral (GRDC, INTA, AAPRESID, APVMA, Agriculture
+          Victoria, Queensland Government, NOAA y trabajos de INTA EEA Alto Valle) y los criterios propios se listan
+          en la «i» del semáforo.</p>
       </app-como-se-lee>
     </app-encabezado-dialogo>
 
