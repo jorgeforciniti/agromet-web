@@ -175,36 +175,12 @@
 }
 
 .phenology-table {
-  width: 100%;
   min-width: 1200px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.phenology-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: #111827;
-  color: #fff;
-  font-weight: 900;
 }
 
 .phenology-table th,
 .phenology-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
   vertical-align: top;
-}
-
-.phenology-table tbody td {
-  color: var(--text);
-  font-weight: 700;
-  background: rgba(255,255,255,.88);
-}
-
-.phenology-table tbody tr:nth-child(even) td {
-  background: #f8fafc;
 }
 
 .balance-negative {
@@ -240,8 +216,8 @@
 /* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
 
 /* Etapa y Período son texto; el resto, valores. */
-.phenology-table th:nth-child(n+3),
-.phenology-table td:nth-child(n+3) {
+.phenology-table.dlg-tabla th:nth-child(n+3),
+.phenology-table.dlg-tabla td:nth-child(n+3) {
   text-align: right;
 }
 
@@ -557,21 +533,13 @@
   left: 0;
   z-index: 1;
   min-width: 150px;
-  background: #fff;
-  color: var(--text);
-  font-weight: 800;
   text-align: left;
   white-space: normal;
 }
 
-.phenology-table tbody tr:nth-child(even) th.col-etapa {
-  background: #f8fafc;
-}
-
-.phenology-table thead th:first-child {
-  position: sticky;
+.phenology-table.dlg-tabla thead th:first-child {
   left: 0;
-  z-index: 2;
+  z-index: 3;
 }
 
 .phenology-table .col-periodo {
