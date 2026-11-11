@@ -452,8 +452,8 @@ body {
   }
 }
 
-/* Tablas de los diálogos de "Datos y estadísticas": el mismo estilo que la de Red de estaciones.
-   Cabecera clara, filas sin alternar con divisores finos y cifras en peso normal. La clase va
+/* Tablas de los diálogos de "Datos y estadísticas": cabecera clara como la de Red de estaciones,
+   filas alternadas en gris y blanco con divisores finos y cifras en peso normal. La clase va
    repetida para ganarle a mat-table y a los estilos de cada componente. */
 .dlg-tabla {
   width: 100%;
@@ -495,6 +495,11 @@ body {
 /* Alineación por defecto sin especificidad: la de cada columna (cifras a la derecha) gana */
 :where(.dlg-tabla) th {
   text-align: left;
+}
+
+/* Filas alternadas en gris muy claro: ayudan a seguir una fila larga con la vista */
+.dlg-tabla.dlg-tabla tbody tr:nth-child(even) > * {
+  background: #f4f5f7;
 }
 
 .dlg-tabla.dlg-tabla tbody tr:last-child > * {
