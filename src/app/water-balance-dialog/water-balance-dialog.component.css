@@ -224,6 +224,21 @@
   margin: 0;
 }
 
+.bhs-nota h3 {
+  margin: 0 0 4px;
+  font-size: .95rem;
+  font-weight: 800;
+}
+
+.bhs-nota ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.bhs-nota li + li {
+  margin-top: 2px;
+}
+
 .bhs-error mat-icon,
 .bhs-aviso mat-icon,
 .bhs-nota mat-icon {

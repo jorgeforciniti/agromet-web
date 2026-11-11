@@ -4,8 +4,9 @@ import { fechaIso, periodosDe, valorDiario } from '../charts/dias-faltantes';
  * Balance hidrológico seriado decádico (mismo cálculo que bhs.php / traer_bhs.php del sitio anterior).
  *
  * Por década: P = lluvia, EP = evapotranspiración potencial de la estación (suma de los días).
- *   P ≥ EP: Alm = min(Alm anterior + P − EP, CMR); ER = EP; SH = excedente sobre CMR; ER% = 100
- *   P < EP: Alm = Alm anterior · e^(−(EP − P) / CMR); ER = Alm anterior − Alm + P; SH = ER − EP (déficit)
+ *   P ≥ EP: Alm = min(Alm anterior + P − EP, CAD); ER = EP; SH = excedente sobre CAD; ER% = 100
+ *   P < EP: Alm = Alm anterior · e^(−(EP − P) / CAD); ER = Alm anterior − Alm + P; SH = ER − EP (déficit)
+ * CAD es el contenido de agua útil del suelo (antes llamado CMR, capacidad máxima de retención).
  * Por defecto arranca con 100 mm de almacenaje 18 décadas (unos 6 meses) antes de la primera que
  * se muestra, para que el almacenaje inicial pese poco. Si se conoce el almacenaje al inicio del
  * período (por ejemplo, medido a la siembra), arranca con ese valor en la primera década mostrada.
@@ -16,8 +17,11 @@ import { fechaIso, periodosDe, valorDiario } from '../charts/dias-faltantes';
  *  - en la estabilización, el balance vuelve a empezar con 100 mm después del hueco.
  */
 
-// Capacidad máxima de retención (mm en 1 m de suelo), igual para todos los sitios: a revisar con la Sección Suelos
-export const CMR = 300;
+// Contenido de agua útil por defecto (mm en 1 m de suelo), igual para todos los sitios.
+// Quien conoce el suelo de su lote puede usar otro valor (CAD_MIN a CAD_MAX).
+export const CAD_POR_DEFECTO = 300;
+export const CAD_MIN = 10;
+export const CAD_MAX = 600;
 export const ALMACENAJE_INICIAL = 100;
 export const DECADAS_ESTABILIZACION = 18;
 
@@ -65,13 +69,15 @@ export function inicioDeDecada(fecha: Date, n = 0): Date {
 }
 
 export interface OpcionesBalance {
-  /** mm al arrancar el cálculo (0 a CMR) */
+  /** mm al arrancar el cálculo (0 a cad) */
   almacenajeInicial: number;
+  /** Contenido de agua útil del suelo, en mm */
+  cad: number;
   /** true: arranca 18 décadas antes para estabilizar; false: arranca en la primera década mostrada */
   estabilizar: boolean;
 }
 
-export const OPCIONES_POR_DEFECTO: OpcionesBalance = { almacenajeInicial: ALMACENAJE_INICIAL, estabilizar: true };
+export const OPCIONES_POR_DEFECTO: OpcionesBalance = { almacenajeInicial: ALMACENAJE_INICIAL, cad: CAD_POR_DEFECTO, estabilizar: true };
 
 /** Primer día a pedir a la API según las opciones. */
 export function inicioDelCalculo(desde: Date, opciones: OpcionesBalance): Date {
@@ -87,7 +93,8 @@ export function calcularBalance(registros: Map<string, object>, fechas: string[]
   opciones: OpcionesBalance = OPCIONES_POR_DEFECTO): ResultadoBalance {
   const inicioMostrado = fechaIso(inicioDeDecada(primeraMostrada));
   const decadas: DecadaBalance[] = [];
-  let almAnterior: number | null = Math.min(Math.max(opciones.almacenajeInicial, 0), CMR);
+  const cad = opciones.cad;
+  let almAnterior: number | null = Math.min(Math.max(opciones.almacenajeInicial, 0), cad);
   let reinicio: string | null = null;
   let corte: string | null = null;
 
@@ -124,10 +131,10 @@ export function calcularBalance(registros: Map<string, object>, fechas: string[]
         fila.estado = 'cortada';
       } else {
         if (almAnterior === null) {
-          almAnterior = Math.min(Math.max(opciones.almacenajeInicial, 0), CMR);
+          almAnterior = Math.min(Math.max(opciones.almacenajeInicial, 0), cad);
           reinicio = desde;
         }
-        const r = paso(fila.lluvia, fila.ep, almAnterior);
+        const r = paso(fila.lluvia, fila.ep, almAnterior, cad);
         Object.assign(fila, r);
         almAnterior = r.almacenaje;
         fila.estado = fila.diasLluvia < fila.dias || fila.diasEp < fila.dias ? 'incompleta' : 'completa';
@@ -140,17 +147,17 @@ export function calcularBalance(registros: Map<string, object>, fechas: string[]
 }
 
 /** Un paso del balance (fórmulas de traer_bhs.php). */
-function paso(p: number, ep: number, almAnterior: number) {
+function paso(p: number, ep: number, almAnterior: number, cad: number) {
   const prueba = p + almAnterior - ep;
   if (p < ep) {
-    const almacenaje = almAnterior * Math.exp(-(ep - p) / CMR);
+    const almacenaje = almAnterior * Math.exp(-(ep - p) / cad);
     const erReal = almAnterior - almacenaje + p;
     return { almacenaje, erReal, situacion: erReal - ep, erRelativa: ep > 0 ? erReal / ep * 100 : 100 };
   }
   return {
-    almacenaje: Math.min(prueba, CMR),
+    almacenaje: Math.min(prueba, cad),
     erReal: ep,
-    situacion: prueba > CMR ? prueba - CMR : 0,
+    situacion: prueba > cad ? prueba - cad : 0,
     erRelativa: 100
   };
 }

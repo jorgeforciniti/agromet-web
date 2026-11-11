@@ -4,20 +4,21 @@
       <div class="bhs-header__texto">
         <div class="bhs-header__titulo">
           <h2 class="bhs-titulo">Balance hidrológico seriado decádico</h2>
-          <span class="bhs-eyebrow">AGUA EN EL SUELO</span>
+          <span class="bhs-eyebrow">ESTIMACIÓN TEÓRICA</span>
         </div>
         <p class="bhs-lead">
-          Almacenaje de agua en el suelo, déficit y excedentes de cada década, a partir de la lluvia y la
-          evapotranspiración potencial (EP) medidas por la estación.
+          Estimación teórica del almacenaje de agua en el suelo, el déficit y los excedentes de cada década,
+          calculada a partir de la lluvia y la evapotranspiración potencial (EP) medidas por la estación. No
+          reemplaza una medición de humedad en el lote.
         </p>
         <app-como-se-lee>
           <p>Es el balance hidrológico seriado de Pascale y Damario (1977). Para cada década (1–10, 11–20 y 21 a
             fin de mes) se suman la lluvia (P) y la EP de la estación. La EP es la ETo que calcula la consola de
             la estación Davis con la ecuación de Penman modificada que usa CIMIS (Universidad de California),
             hora por hora a partir de temperatura, humedad, viento y radiación solar. Si
-            la lluvia cubre la EP, el sobrante se suma al almacenaje hasta la capacidad máxima de retención
-            (CMR, {{ cmr }} mm); lo que la supera es excedente. Si no la cubre, el almacenaje baja en forma
-            exponencial: <code>Alm = Alm anterior × e<sup>−(EP − P) / CMR</sup></code>.</p>
+            la lluvia cubre la EP, el sobrante se suma al almacenaje hasta el contenido de agua útil del suelo
+            (CAD, {{ cadPorDefecto }} mm por defecto); lo que lo supera es excedente. Si no la cubre, el almacenaje
+            baja en forma exponencial: <code>Alm = Alm anterior × e<sup>−(EP − P) / CAD</sup></code>.</p>
           <p>La EP real es la lluvia más el agua que cede el suelo. En «Situación hídrica», las barras hacia
             abajo son déficit (EP real menor que la EP) y las barras hacia arriba, excedente. La EP relativa es
             EP real / EP en %: 100 % indica que no hubo déficit.</p>
@@ -25,8 +26,8 @@
             meses) antes del período, para que ese valor inicial pese poco. Si se indica el almacenaje al inicio,
             arranca con ese valor en la primera década.</p>
           <p>Una década con días sin dato se calcula con los días que hay y se muestra más clara. Una década sin
-            lluvia o sin EP corta el balance: desde ahí sólo se muestran lluvia y EP. La CMR es la misma para
-            todos los sitios y no considera el tipo de suelo ni el cultivo.</p>
+            lluvia o sin EP corta el balance: desde ahí sólo se muestran lluvia y EP. Salvo que se indique otro
+            valor, el CAD es el mismo para todos los sitios y no considera el tipo de suelo ni el cultivo.</p>
           <p class="bhs-cita">Pascale, A. J. y Damario, E. A. (1977). El balance hidrológico seriado y su utilización en
             estudios agroclimáticos. <em>Revista de la Facultad de Agronomía de La Plata</em>, 53(1-2): 15-34. Buenos Aires.</p>
         </app-como-se-lee>
@@ -56,6 +57,14 @@
         </mat-form-field>
 
         <mat-form-field appearance="fill">
+          <mat-label>Agua útil del suelo (CAD)</mat-label>
+          <input matInput type="number" formControlName="cad" [min]="cadMin" [max]="cadMax" step="1">
+          <span matTextSuffix>mm</span>
+          <mat-hint *ngIf="!form.get('cad')?.invalid">Por defecto {{ cadPorDefecto }} mm. Al cambiarlo se recalcula.</mat-hint>
+          <mat-error>Entre {{ cadMin }} y {{ cadMax }} mm</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
           <mat-label>Almacenaje inicial</mat-label>
           <select matNativeControl formControlName="modoInicio">
             <option value="estimado">Estimado ({{ almacenajeInicial }} mm, 6 meses antes)</option>
@@ -65,9 +74,9 @@
 
         <mat-form-field appearance="fill" *ngIf="form.get('modoInicio')?.value === 'conocido'">
           <mat-label>Almacenaje al inicio</mat-label>
-          <input matInput type="number" formControlName="almacenaje" min="0" [max]="cmr" step="1">
+          <input matInput type="number" formControlName="almacenaje" min="0" [max]="form.get('cad')?.value" step="1">
           <span matTextSuffix>mm</span>
-          <mat-hint>Entre 0 y {{ cmr }} mm</mat-hint>
+          <mat-hint>Entre 0 y {{ form.get('cad')?.value }} mm (el CAD)</mat-hint>
         </mat-form-field>
 
         <button mat-raised-button color="primary" class="bhs-calcular" type="submit" [disabled]="isLoading">
@@ -95,7 +104,7 @@
         <div class="bhs-resumen__card">
           <span>Almacenaje al final</span>
           <strong *ngIf="totales.ultima as u; else sinAlm">{{ u.almacenaje | number:'1.0-0' }} mm
-            <small>de {{ cmr }} · {{ u.etiqueta }}</small></strong>
+            <small>de {{ cadCalculado }} · {{ u.etiqueta }}</small></strong>
           <ng-template #sinAlm><strong>—</strong></ng-template>
         </div>
         <div class="bhs-resumen__card">
@@ -125,7 +134,7 @@
       <section class="bhs-grafico">
         <div class="bhs-grafico__head">
           <h3>Lluvia, EP y almacenaje</h3>
-          <p>Barras: lluvia y EP de cada década. Área: agua almacenada en el suelo (máximo {{ cmr }} mm).</p>
+          <p>Barras: lluvia y EP de cada década. Área: agua almacenada en el suelo (máximo {{ cadCalculado }} mm, el CAD).</p>
         </div>
         <div class="bhs-grafico__lienzo">
           <app-exportar-grafico nombre="balance-hidrico"></app-exportar-grafico>
@@ -194,19 +203,28 @@
         </table>
       </div>
 
-      <div class="bhs-nota">
+      <section class="bhs-nota" aria-labelledby="bhs-supuestos">
         <mat-icon>info</mat-icon>
         <div>
-          <p>Capacidad máxima de retención (CMR): {{ cmr }} mm, para 1 m de profundidad, uniforme e idéntica para todos los
-            sitios.
+          <h3 id="bhs-supuestos">Supuestos básicos</h3>
+          <ul>
+            <li>Contenido de agua útil (CAD): {{ cadCalculado }} mm<ng-container *ngIf="cadCalculado !== cadPorDefecto">
+              (indicado; el valor por defecto es {{ cadPorDefecto }} mm)</ng-container>.</li>
+            <li>Profundidad considerada: 1,00 m.</li>
+            <li>El CAD es uniforme e idéntico para todos los sitios.</li>
+            <li>La evapotranspiración de referencia (ETo, la EP de este balance) se calcula en función de la radiación,
+              la temperatura, la humedad relativa y la velocidad del viento. No se corrige por coeficiente de cultivo.</li>
+            <li>Las lluvias no se corrigen por factor de eficiencia.</li>
+          </ul>
+          <p>
             <ng-container *ngIf="opcionesCalculadas?.estabilizar; else inicioConocido">El balance arranca con
-              {{ almacenajeInicial }} mm seis meses antes del período elegido para estabilizar el almacenaje.</ng-container>
+              {{ opcionesCalculadas?.almacenajeInicial | number:'1.0-1' }} mm seis meses antes del período elegido para
+              estabilizar el almacenaje.</ng-container>
             <ng-template #inicioConocido>El balance arranca con {{ opcionesCalculadas?.almacenajeInicial | number:'1.0-1' }} mm
-              en la primera década del período, el valor indicado como conocido.</ng-template></p>
-          <p>La EP la calcula cada estación a partir de radiación, temperatura, humedad relativa y velocidad del viento.
+              en la primera década del período, el valor indicado como conocido.</ng-template>
             Valores en mm por década (1–10, 11–20 y 21 a fin de mes).</p>
         </div>
-      </div>
+      </section>
     </ng-container>
   </div>
 </mat-dialog-content>

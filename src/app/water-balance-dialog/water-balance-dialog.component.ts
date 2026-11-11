@@ -10,6 +10,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, MatNativeDateModule, NativeDateAdapter } from '@angular/material/core';
 import { BaseChartDirective } from 'ng2-charts';
+import { debounceTime } from 'rxjs';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import '../charts/chart-theme';
 import { GRID_COLOR, VAR_COLOR, conAlfa } from '../charts/chart-theme';
@@ -22,7 +23,7 @@ import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
-import { ALMACENAJE_INICIAL, CMR, DecadaBalance, OpcionesBalance, ResultadoBalance, calcularBalance, inicioDelCalculo } from './balance-hidrico';
+import { ALMACENAJE_INICIAL, CAD_MAX, CAD_MIN, CAD_POR_DEFECTO, DecadaBalance, OpcionesBalance, ResultadoBalance, calcularBalance, inicioDelCalculo } from './balance-hidrico';
 
 const FORMATOS_FECHA = {
   parse: { dateInput: 'DD/MM/YYYY' },
@@ -79,7 +80,9 @@ const COLOR_ALMACENAJE = '#5c940d';
   styleUrls: ['./water-balance-dialog.component.css']
 })
 export class WaterBalanceDialogComponent implements OnInit {
-  readonly cmr = CMR;
+  readonly cadPorDefecto = CAD_POR_DEFECTO;
+  readonly cadMin = CAD_MIN;
+  readonly cadMax = CAD_MAX;
   readonly almacenajeInicial = ALMACENAJE_INICIAL;
 
   form!: FormGroup;
@@ -88,6 +91,8 @@ export class WaterBalanceDialogComponent implements OnInit {
   /** Opciones con las que se calculó el resultado que se muestra */
   opcionesCalculadas: OpcionesBalance | null = null;
   estacionCalculada = '';
+  /** Datos del último cálculo: si sólo cambia el CAD, se recalcula sin volver a pedirlos */
+  private ultimosDatos: { registros: Map<string, object>; fechas: string[]; desde: Date } | null = null;
   isLoading = false;
   loadError = '';
 
@@ -99,7 +104,8 @@ export class WaterBalanceDialogComponent implements OnInit {
     const v = this.form.getRawValue();
     return armarEnlace('balance-hidrico', {
       estacion: v.station, desde: v.from, hasta: v.to,
-      almacenaje: v.modoInicio === 'conocido' ? v.almacenaje : null
+      almacenaje: v.modoInicio === 'conocido' ? v.almacenaje : null,
+      cad: Number(v.cad) !== CAD_POR_DEFECTO ? v.cad : null
     });
   };
 
@@ -139,7 +145,8 @@ export class WaterBalanceDialogComponent implements OnInit {
       to: [recordado?.hasta ?? ayer, Validators.required],
       // 'estimado': 100 mm seis meses antes; 'conocido': el valor indicado al inicio del período
       modoInicio: ['estimado'],
-      almacenaje: [ALMACENAJE_INICIAL, [Validators.required, Validators.min(0), Validators.max(CMR)]]
+      almacenaje: [ALMACENAJE_INICIAL, [Validators.required, Validators.min(0)]],
+      cad: [CAD_POR_DEFECTO, [Validators.required, Validators.min(CAD_MIN), Validators.max(CAD_MAX)]]
     }, { validators: this.validarRango });
 
     const consulta = consultaDe(this.data);
@@ -147,8 +154,12 @@ export class WaterBalanceDialogComponent implements OnInit {
     const hasta = leerFecha(consulta['hasta']);
     if (desde) this.form.controls['from'].setValue(desde);
     if (hasta) this.form.controls['to'].setValue(hasta);
+    const cad = leerNumero(consulta['cad']);
+    if (cad !== null && cad >= CAD_MIN && cad <= CAD_MAX) {
+      this.form.patchValue({ cad });
+    }
     const almacenaje = leerNumero(consulta['almacenaje']);
-    if (almacenaje !== null && almacenaje >= 0 && almacenaje <= CMR) {
+    if (almacenaje !== null && almacenaje >= 0 && almacenaje <= this.form.value.cad) {
       this.form.patchValue({ modoInicio: 'conocido', almacenaje });
     }
 
@@ -163,26 +174,53 @@ export class WaterBalanceDialogComponent implements OnInit {
     });
 
     this.form.controls['station'].valueChanges.subscribe(id => this.stationService.setActiva(id));
+
+    // Con otro CAD el balance cambia: se recalcula con los datos que ya se bajaron
+    this.form.controls['cad'].valueChanges.pipe(debounceTime(400)).subscribe(() => this.recalcularConCad());
+  }
+
+  /** Recalcula el resultado en pantalla con el CAD del formulario, sin volver a pedir los datos. */
+  private recalcularConCad(): void {
+    const control = this.form.controls['cad'];
+    if (!this.ultimosDatos || !this.opcionesCalculadas || this.isLoading || control.invalid) return;
+    const cad = Number(control.value);
+    if (cad === this.opcionesCalculadas.cad) return;
+
+    const opciones: OpcionesBalance = {
+      ...this.opcionesCalculadas,
+      cad,
+      almacenajeInicial: Math.min(this.opcionesCalculadas.almacenajeInicial, cad)
+    };
+    const { registros, fechas, desde } = this.ultimosDatos;
+    this.loadError = '';
+    this.resultado = calcularBalance(registros, fechas, desde, opciones);
+    this.opcionesCalculadas = opciones;
+    this.armarGraficos(this.resultado.decadas);
   }
 
   calcular(): void {
     this.form.markAllAsTouched();
     this.loadError = '';
-    const { station, from, to, modoInicio, almacenaje } = this.form.getRawValue();
+    const { station, from, to, modoInicio, almacenaje, cad } = this.form.getRawValue();
     const conocido = modoInicio === 'conocido';
     if (this.form.hasError('rangoInvalido') || this.form.controls['from'].invalid || this.form.controls['to'].invalid) {
       this.loadError = 'Revisá el rango de fechas para continuar.';
       return;
     }
-    if (conocido && this.form.controls['almacenaje'].invalid) {
-      this.loadError = `El almacenaje inicial tiene que estar entre 0 y ${CMR} mm.`;
+    if (this.form.controls['cad'].invalid) {
+      this.loadError = `El contenido de agua útil (CAD) tiene que estar entre ${CAD_MIN} y ${CAD_MAX} mm.`;
+      return;
+    }
+    const cadMm = Number(cad);
+    if (conocido && (this.form.controls['almacenaje'].invalid || Number(almacenaje) > cadMm)) {
+      this.loadError = `El almacenaje inicial tiene que estar entre 0 y ${cadMm} mm (el CAD).`;
       return;
     }
     const desde = this.aFecha(from), hasta = this.aFecha(to);
     recordarPeriodo('balance-hidrico', desde, hasta, this.periodoPorDefecto);
     const opciones: OpcionesBalance = conocido
-      ? { almacenajeInicial: Number(almacenaje), estabilizar: false }
-      : { almacenajeInicial: ALMACENAJE_INICIAL, estabilizar: true };
+      ? { almacenajeInicial: Number(almacenaje), cad: cadMm, estabilizar: false }
+      : { almacenajeInicial: Math.min(ALMACENAJE_INICIAL, cadMm), cad: cadMm, estabilizar: true };
     const inicioCalculo = inicioDelCalculo(desde, opciones);
 
     this.isLoading = true;
@@ -191,6 +229,7 @@ export class WaterBalanceDialogComponent implements OnInit {
         const registros = porFecha(resp.data ?? []);
         const fechas = fechasDelPeriodo(inicioCalculo, hasta, f => registros.has(f));
         this.resultado = calcularBalance(registros, fechas, desde, opciones);
+        this.ultimosDatos = { registros, fechas, desde };
         this.opcionesCalculadas = opciones;
         this.estacionCalculada = this.stationLabel(station);
         this.armarGraficos(this.resultado.decadas);
@@ -200,9 +239,21 @@ export class WaterBalanceDialogComponent implements OnInit {
       error: () => {
         this.isLoading = false;
         this.resultado = null;
+        this.ultimosDatos = null;
         this.loadError = 'No se pudieron obtener los datos de la estación. Volvé a intentar.';
       }
     });
+  }
+
+  /** CAD con el que se calculó el resultado que se muestra */
+  get cadCalculado(): number {
+    return this.opcionesCalculadas?.cad ?? CAD_POR_DEFECTO;
+  }
+
+  /** El CAD del formulario es válido pero distinto del calculado (mientras se recalcula) */
+  get cadPendiente(): boolean {
+    const c = this.form.controls['cad'];
+    return !!this.resultado && c.valid && Number(c.value) !== this.cadCalculado;
   }
 
   get decadas(): DecadaBalance[] {
@@ -279,7 +330,7 @@ export class WaterBalanceDialogComponent implements OnInit {
         }
       ]
     };
-    this.balanceOptions = this.opciones('mm', CMR);
+    this.balanceOptions = this.opciones('mm', this.cadCalculado);
 
     this.situacionData = {
       labels: etiquetas,
