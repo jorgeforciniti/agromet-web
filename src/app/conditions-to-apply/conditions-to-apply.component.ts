@@ -190,6 +190,19 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   prioridades: Prioridad[] = ['SEGURIDAD', 'EQUILIBRADO', 'EFICACIA'];
   cultivos: Cultivo[] = ['CAÑA', 'CITRUS', 'GRANOS'];
 
+  /** Nombre visible de cada opción (los valores internos van en mayúsculas) */
+  private readonly etiquetas: Record<string, string> = {
+    MOSQUITO: 'Mosquito', MANUAL: 'Manual', DRON: 'Dron', AVION: 'Avión', AIRBLAST: 'Airblast',
+    SEGURIDAD: 'Seguridad', EQUILIBRADO: 'Equilibrado', EFICACIA: 'Eficacia',
+    'CAÑA': 'Caña', CITRUS: 'Citrus', GRANOS: 'Granos',
+    HERBICIDA: 'Herbicida', FUNGICIDA: 'Fungicida', INSECTICIDA: 'Insecticida',
+    MUY_FINA: 'Muy fina', FINA: 'Fina', MEDIA: 'Media', GRUESA: 'Gruesa', MUY_GRUESA: 'Muy gruesa'
+  };
+
+  etiqueta(valor: string): string {
+    return this.etiquetas[valor] ?? valor;
+  }
+
   // ===== KP =====
   /** Último Kp publicado por NOAA; null si no se pudo leer (entonces no se considera) */
   kpIndex: number | null = null;

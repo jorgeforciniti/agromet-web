@@ -1432,3 +1432,101 @@ mat-form-field.date-field{ width: 100%; }
   color: #8a4b00;
   font-weight: 700;
 }
+
+/* =========================
+   Tabla con el estilo común de los diálogos (.dlg-tabla): el semáforo va en una etiqueta y
+   en una franja al comienzo de la fila, en lugar de pintar la fila entera. Mismos colores que
+   el mapa (aptos para daltonismo). Va al final para ganarle a las reglas de fila anteriores.
+   ========================= */
+.apto-row { --tono: #009e73; --tono-claro: #d6f1e8; --tono-texto: #00573f; }
+.precaucion-row { --tono: #c9b400; --tono-claro: #fbf6c9; --tono-texto: #5c5200; }
+.no-apto-row { --tono: #b84a00; --tono-claro: #f6e3d6; --tono-texto: #7a3100; }
+.sin-evaluar-row { --tono: #9e9e9e; --tono-claro: #eeeeee; --tono-texto: #555555; }
+
+.tabla-datos.dlg-tabla tbody tr {
+  background: none !important;
+  cursor: pointer;
+}
+
+.tabla-datos.dlg-tabla tbody td:first-child {
+  box-shadow: inset 4px 0 0 var(--tono, transparent);
+}
+
+.semaforo-etiqueta {
+  display: inline-block;
+  min-width: 84px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--tono-claro);
+  color: var(--tono-texto);
+  font-size: .82rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Fila elegida: sus razones y recomendaciones se muestran debajo de la tabla */
+.tabla-datos.dlg-tabla.dlg-tabla tbody tr.fila-elegida > td {
+  background: color-mix(in srgb, var(--brand) 10%, white);
+}
+
+.tabla-datos.dlg-tabla tbody tr:hover > td {
+  background: color-mix(in srgb, var(--brand) 5%, white);
+}
+
+/* Cabecera clara: le gana a las reglas anteriores que la pintaban de negro */
+.tabla-datos.dlg-tabla.dlg-tabla thead th {
+  background: var(--surface);
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+}
+
+/* Botones «i» de la cabecera, ahora clara */
+.tabla-datos.dlg-tabla th .info-circle-btn.th-info {
+  border-color: var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--muted) !important;
+}
+
+/* Etiqueta del semáforo en el panel «¿Por qué?»: la misma que en la tabla */
+.why-chip.VERDE { --tono-claro: #d6f1e8; --tono-texto: #00573f; }
+.why-chip.AMARILLO { --tono-claro: #fbf6c9; --tono-texto: #5c5200; }
+.why-chip.ROJO { --tono-claro: #f6e3d6; --tono-texto: #7a3100; }
+.why-chip.SIN_EVALUAR { --tono-claro: #eeeeee; --tono-texto: #555555; }
+.why-chip.VERDE,
+.why-chip.AMARILLO,
+.why-chip.ROJO,
+.why-chip.SIN_EVALUAR {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--tono-claro);
+  color: var(--tono-texto);
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+/* Resumen de la consulta: estación en Barlow, fecha y parámetros en gris */
+.resumen-consulta .resumen-titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.resumen-consulta .resumen-titulo strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.resumen-consulta .resumen-titulo span {
+  color: var(--muted);
+}
+
+.resumen-consulta .resumen-sub {
+  margin-top: 0;
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 400;
+}

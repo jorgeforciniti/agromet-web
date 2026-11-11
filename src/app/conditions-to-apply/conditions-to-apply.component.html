@@ -98,7 +98,7 @@
               [attr.aria-label]="'Info Método'" [attr.title]="tooltip('METODO')">i</button>
           </div>
           <select id="condMetodo" [(ngModel)]="metodo" class="param__control" (change)="onParamsChanged()">
-            <option *ngFor="let m of metodos" [value]="m">{{ m }}</option>
+            <option *ngFor="let m of metodos" [value]="m">{{ etiqueta(m) }}</option>
           </select>
         </div>
         <div class="param">
@@ -109,7 +109,7 @@
               [attr.aria-label]="'Info Prioridad'" [attr.title]="tooltip('PRIORIDAD')">i</button>
           </div>
           <select id="condPrioridad" [(ngModel)]="prioridad" class="param__control" (change)="onParamsChanged()">
-            <option *ngFor="let p of prioridades" [value]="p">{{ p }}</option>
+            <option *ngFor="let p of prioridades" [value]="p">{{ etiqueta(p) }}</option>
           </select>
         </div>
         <div class="param">
@@ -120,7 +120,7 @@
               [attr.aria-label]="'Info Cultivo'" [attr.title]="tooltip('CULTIVO')">i</button>
           </div>
           <select id="condCultivo" [(ngModel)]="cultivo" class="param__control" (change)="onParamsChanged()">
-            <option *ngFor="let c of cultivos" [value]="c">{{ c }}</option>
+            <option *ngFor="let c of cultivos" [value]="c">{{ etiqueta(c) }}</option>
           </select>
         </div>
         <div class="param">
@@ -191,25 +191,23 @@
 
     <!-- Resumen -->
     <div *ngIf="weatherData.length" class="resumen-consulta">
-      <div>
-        <strong>Estación:</strong> {{ estacionRealDeDatos || '—' }}
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <strong>Fecha:</strong>
-        {{ fechaRealDeDatos ? (fechaRealDeDatos | date:'EEEE dd MMMM yyyy':'':'es') : '—' }}
+      <div class="resumen-titulo">
+        <strong>{{ estacionRealDeDatos || '—' }}</strong>
+        <span>{{ fechaRealDeDatos ? (fechaRealDeDatos | date:"EEEE d 'de' MMMM 'de' yyyy":'':'es') : '—' }}</span>
       </div>
 
       <div class="resumen-sub">
-        <span><b>Método:</b> {{ metodo }}</span> ·
-        <span><b>Prioridad:</b> {{ prioridad }}</span> ·
-        <span><b>Cultivo:</b> {{ cultivo }}</span> ·
-        <span><b>Producto:</b> {{ tipoProducto }}</span> ·
-        <span><b>Gota:</b> {{ tamGota }}</span>
+        <span>Método: {{ etiqueta(metodo) }}</span> ·
+        <span>Prioridad: {{ etiqueta(prioridad) }}</span> ·
+        <span>Cultivo: {{ etiqueta(cultivo) }}</span> ·
+        <span>Producto: {{ etiqueta(tipoProducto) }}</span> ·
+        <span>Gota: {{ etiqueta(tamGota) }}</span>
       </div>
     </div>
 
     <!-- TABLA -->
     <div class="table-scroll tabla-fija" *ngIf="weatherData && weatherData.length">
-      <table class="tabla-datos">
+      <table class="tabla-datos dlg-tabla">
         <thead>
           <tr>
             <th>Hora</th>
@@ -223,7 +221,7 @@
                 [attr.title]="tooltip('SEMAFORO')">i</button>
             </th>
 
-            <th>
+            <th class="num">
               ΔT (°C)
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('DELTA_T', $event)"
@@ -241,7 +239,7 @@
                 [attr.title]="tooltip('INVERSION')">i</button>
             </th>
 
-            <th>
+            <th class="num">
               Deriva
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('DERIVA', $event)"
@@ -250,7 +248,7 @@
                 [attr.title]="tooltip('DERIVA')">i</button>
             </th>
 
-            <th>
+            <th class="num">
               Efic.
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('EFICACIA', $event)"
@@ -259,10 +257,10 @@
                 [attr.title]="tooltip('EFICACIA')">i</button>
             </th>
 
-            <th>Temp. (°C)</th>
-            <th>Humedad (%)</th>
-            <th>V. Medio (km/h)</th>
-            <th>Ráfaga (km/h)</th>
+            <th class="num">Temp. (°C)</th>
+            <th class="num">Humedad (%)</th>
+            <th class="num">Viento medio (km/h)</th>
+            <th class="num">Ráfaga (km/h)</th>
 
             <th>
               Dirección
@@ -273,7 +271,7 @@
                 [attr.title]="tooltip('DIRECCION')">i</button>
             </th>
 
-            <th>
+            <th class="num">
               Lluvia (mm)
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('LLUVIA', $event)"
@@ -285,21 +283,21 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let row of weatherData" [ngClass]="row.rowClass" (click)="selectRow(row)"
-            [attr.title]="row.eval ? null : textoSinEvaluar(row.faltantes)">
+          <tr *ngFor="let row of weatherData" [ngClass]="row.rowClass" [class.fila-elegida]="row === selectedRow"
+            (click)="selectRow(row)" [attr.title]="row.eval ? null : textoSinEvaluar(row.faltantes)">
             <td>{{ row.hora }}</td>
-            <td><b>{{ row.eval?.semaforo || 'Sin evaluar' }}</b></td>
-            <td>{{ row.eval ? (row.eval.deltaT | number:'1.1-1') : '—' }}</td>
+            <td><span class="semaforo-etiqueta">{{ row.eval ? (row.eval.semaforo | titlecase) : 'Sin evaluar' }}</span></td>
+            <td class="num">{{ row.eval ? (row.eval.deltaT | number:'1.1-1') : '—' }}</td>
             <td>{{ row.eval ? (row.eval.inversionProbable ? 'Sí' : 'No') : '—' }}</td>
-            <td>{{ row.eval?.scoreDeriva ?? '—' }}</td>
-            <td>{{ row.eval?.scoreEficacia ?? '—' }}</td>
+            <td class="num">{{ row.eval?.scoreDeriva ?? '—' }}</td>
+            <td class="num">{{ row.eval?.scoreEficacia ?? '—' }}</td>
 
-            <td>{{ row.temp_af | valor }}</td>
-            <td>{{ row.hum_af | valor }}</td>
-            <td>{{ row.viento_medio | valor }}</td>
-            <td>{{ row.viento_max | valor }}</td>
+            <td class="num">{{ row.temp_af | valor }}</td>
+            <td class="num">{{ row.hum_af | valor }}</td>
+            <td class="num">{{ row.viento_medio | valor }}</td>
+            <td class="num">{{ row.viento_max | valor }}</td>
             <td>{{ row.direccion || '—' }}</td>
-            <td>{{ row.lluvia | valor }}</td>
+            <td class="num">{{ row.lluvia | valor }}</td>
           </tr>
         </tbody>
       </table>
@@ -324,7 +322,7 @@
     <div class="why-panel" *ngIf="selectedRow?.eval as ev">
       <div class="why-head">
         <div class="why-title">¿Por qué?</div>
-        <div class="why-chip" [class]="ev.semaforo">{{ ev.semaforo }}</div>
+        <div class="why-chip" [class]="ev.semaforo">{{ ev.semaforo | titlecase }}</div>
 
         <button type="button" class="why-info"
           (click)="openInfo('CONSEJOS', $event)"
