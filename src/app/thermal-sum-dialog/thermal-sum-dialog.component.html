@@ -1,89 +1,77 @@
 <mat-dialog-content class="thermal-dialog">
-  <div class="thermal-shell">
-    <div class="dialog-header">
-      <div class="dialogo-texto">
-        <div class="dialogo-titulo">
-          <h2 class="titulo">Calculador de sumas térmicas</h2>
-          <span class="dialog-eyebrow">ANÁLISIS TÉRMICO</span>
+  <div class="thermal-shell dlg-cuerpo">
+    <app-encabezado-dialogo titulo="Sumas térmicas"
+      bajada="Grados día acumulados por encima de la temperatura base, calculados con la máxima y la mínima de cada día."
+      (cerrar)="close()">
+      <app-como-se-lee>
+        <p><strong>Promedio:</strong> cada día suma <code>((Tmáx + Tmín) / 2) − base</code>, con la máxima
+          limitada a 30 °C y sin valores negativos.</p>
+        <p><strong>Seno simple</strong> (Baskerville y Emin, 1969): la temperatura del día se aproxima con una
+          onda entre la mínima y la máxima, y se suma el tiempo que pasa entre la base y 30 °C. Cuenta el calor
+          de los días con la mínima por debajo de la base, que el promedio subestima.</p>
+        <p>Un día con datos insuficientes no se computa en el acumulado.</p>
+      </app-como-se-lee>
+    </app-encabezado-dialogo>
+
+    <div class="dlg-form">
+      <form [formGroup]="form" (ngSubmit)="calculate()">
+        <div class="dlg-campos">
+          <app-selector-estacion appearance="outline" class="dlg-campo--ancho" formControlName="station" etiqueta="Estación"
+            [estaciones]="stations"></app-selector-estacion>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Base térmica</mat-label>
+            <select matNativeControl formControlName="base">
+              <option *ngFor="let base of baseOptions" [value]="base">{{ base }} °C</option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Método</mat-label>
+            <select matNativeControl formControlName="metodo">
+              <option *ngFor="let m of metodos" [value]="m.valor">{{ m.texto }}</option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Desde</mat-label>
+            <input matInput [matDatepicker]="fromPicker" formControlName="from">
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Hasta</mat-label>
+            <input matInput [matDatepicker]="toPicker" formControlName="to">
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+          </mat-form-field>
         </div>
-        <p class="dialog-lead">
-          Estima la suma térmica diaria a partir de temperaturas máximas y mínimas,
-          aplicando temperatura base y acumulado del período.
-        </p>
-        <app-como-se-lee>
-          <p><strong>Promedio:</strong> cada día suma <code>((Tmáx + Tmín) / 2) − base</code>, con la máxima
-            limitada a 30 °C y sin valores negativos.</p>
-          <p><strong>Seno simple</strong> (Baskerville y Emin, 1969): la temperatura del día se aproxima con una
-            onda entre la mínima y la máxima, y se suma el tiempo que pasa entre la base y 30 °C. Cuenta el calor
-            de los días con la mínima por debajo de la base, que el promedio subestima.</p>
-          <p>Un día con datos insuficientes no se computa en el acumulado.</p>
-        </app-como-se-lee>
-      </div>
-
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
-        <mat-icon>close</mat-icon>
-      </button>
+        <div class="dlg-acciones">
+          <button mat-raised-button color="primary" class="dlg-calcular" type="submit" [disabled]="isLoading">{{ isLoading ? 'Calculando…' : 'Calcular' }}</button>
+        </div>
+      </form>
+      <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="calculate()" class="thermal-form">
-      <div class="thermal-grid">
-        <app-selector-estacion formControlName="station" etiqueta="Estación"
-          [estaciones]="stations"></app-selector-estacion>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Base térmica</mat-label>
-          <select matNativeControl formControlName="base">
-            <option *ngFor="let base of baseOptions" [value]="base">{{ base }} °C</option>
-          </select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Método</mat-label>
-          <select matNativeControl formControlName="metodo">
-            <option *ngFor="let m of metodos" [value]="m.valor">{{ m.texto }}</option>
-          </select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Desde</mat-label>
-          <input matInput [matDatepicker]="fromPicker" formControlName="from">
-          <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-          <mat-datepicker #fromPicker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Hasta</mat-label>
-          <input matInput [matDatepicker]="toPicker" formControlName="to">
-          <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-          <mat-datepicker #toPicker></mat-datepicker>
-        </mat-form-field>
-
-        <button mat-raised-button color="primary" class="search-button" type="submit" [disabled]="isLoading">
-          <mat-icon>functions</mat-icon>
-          Calcular
-        </button>
+    <dl class="dlg-resumen" *ngIf="rows.length">
+      <div class="dlg-resumen__dato">
+        <dt>Estación</dt>
+        <dd>{{ stationLabel(form.get('station')?.value) }}</dd>
       </div>
-    </form>
-    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
-
-    <div class="thermal-summary" *ngIf="rows.length">
-      <div class="thermal-summary__card">
-        <span>Estación</span>
-        <strong>{{ stationLabel(form.get('station')?.value) }}</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Base térmica</dt>
+        <dd>{{ form.get('base')?.value }} °C · {{ form.get('metodo')?.value === 'seno' ? 'seno simple' : 'promedio' }}</dd>
       </div>
-      <div class="thermal-summary__card">
-        <span>Base térmica</span>
-        <strong>{{ form.get('base')?.value }} °C · {{ form.get('metodo')?.value === 'seno' ? 'seno simple' : 'promedio' }}</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Total acumulado</dt>
+        <dd>{{ totalThermalSum | number:'1.1-1' }}</dd>
       </div>
-      <div class="thermal-summary__card">
-        <span>Total acumulado</span>
-        <strong>{{ totalThermalSum | number:'1.1-1' }}</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Días válidos</dt>
+        <dd>{{ validDays }} / {{ rows.length }}</dd>
       </div>
-      <div class="thermal-summary__card">
-        <span>Días válidos</span>
-        <strong>{{ validDays }} / {{ rows.length }}</strong>
-      </div>
-    </div>
+    </dl>
 
     <app-aviso-calidad *ngIf="rows.length" [validos]="validDays" [total]="rows.length"></app-aviso-calidad>
 
