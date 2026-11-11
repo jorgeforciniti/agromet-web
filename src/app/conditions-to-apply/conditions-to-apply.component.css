@@ -36,78 +36,10 @@
   }
 }
 
-/* ===== Controls ===== */
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-end;
-  justify-content: flex-start;
-  margin-bottom: 12px;
-}
-
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-label {
-  font-size: .95rem;
-  font-weight: 800;
-  color: rgba(17, 24, 39, .70);
-}
-
-.select-wrapper {
-  width: 220px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 700;
-}
-
-mat-form-field.select-wrapper {
-  width: 220px;
-  margin: 0;
-}
-
-.btn-search {
-  padding: 10px 14px;
-  border: none;
-  background-color: #3f51b5;
-  color: #fff;
-  font-size: .95rem;
-  font-weight: 800;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-search:hover {
-  background-color: #3f51dd;
-}
-
 .loading-indicator {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-/* ===== Params card ===== */
-.params-card {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: rgba(17, 24, 39, .02);
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-.params-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
 }
 
 .leyenda-tabla {
@@ -142,11 +74,6 @@ mat-form-field.select-wrapper {
   height: 100%;
 }
 
-/* ===== Table ===== */
-.table-wrap {
-  margin-top: 8px;
-}
-
 .tabla-datos {
   width: 100%;
   border-collapse: separate;
@@ -178,10 +105,6 @@ mat-form-field.select-wrapper {
   box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, .04);
 }
 
-.cond-cell {
-  text-align: center;
-}
-
 /* ✅ Semáforo: NO cambiar */
 .apto-row {
   background-color: #009e73;
@@ -206,113 +129,6 @@ mat-form-field.select-wrapper {
   color: rgba(17, 24, 39, .9);
 }
 
-.pill-ok {
-  background: rgba(255, 255, 255, .85);
-}
-
-.pill-bad {
-  background: rgba(255, 255, 255, .85);
-}
-
-/* ===== Detail ===== */
-.detail-card {
-  margin-top: 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-  padding: 12px;
-}
-
-.detail-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.detail-title {
-  font-weight: 900;
-  color: var(--text);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.detail-scores {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  color: rgba(17, 24, 39, .85);
-  font-weight: 700;
-  font-size: .92rem;
-}
-
-.detail-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.detail-box {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
-  background: rgba(17, 24, 39, .02);
-}
-
-.detail-box-title {
-  font-weight: 900;
-  margin-bottom: 6px;
-  color: var(--text);
-}
-
-.detail-box ul {
-  margin: 0;
-  padding-left: 18px;
-  color: rgba(17, 24, 39, .85);
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.detail-reco {
-  margin-top: 10px;
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-}
-
-/* ...tu CSS existente... */
-
-/* ===== Info buttons (tooltips / dialog) ===== */
-.info-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  margin-left: 6px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: rgba(17, 24, 39, .70);
-  cursor: pointer;
-  vertical-align: middle;
-}
-
-.info-btn mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
-.info-btn:hover {
-  background: rgba(17, 24, 39, .04);
-  color: rgba(17, 24, 39, .92);
-}
-
 .why-info {
   margin-left: auto;
   display: inline-flex;
@@ -335,60 +151,6 @@ mat-form-field.select-wrapper {
 
 .why-info:hover {
   background: rgba(17, 24, 39, .04);
-}
-
-/* =============================
-   Info icons (tooltips nativos)
-   ============================= */
-
-.th-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
-
-  cursor: help;
-  user-select: none;
-
-  border: 1px solid rgba(17, 24, 39, .25);
-  background: rgba(17, 24, 39, .06);
-  color: rgba(17, 24, 39, .85);
-}
-
-.info-icon:hover {
-  background: rgba(17, 24, 39, .10);
-  border-color: rgba(17, 24, 39, .35);
-}
-
-/* Para headers oscuros: que el icono no “ensucie” visualmente */
-.tabla-datos th .info-icon {
-  border-color: rgba(255, 255, 255, .35);
-  background: rgba(255, 255, 255, .12);
-  color: #fff;
-}
-
-.tabla-datos th .info-icon:hover {
-  background: rgba(255, 255, 255, .18);
-}
-
-/* Variante por si querés diferenciar (ej: inversión) */
-.info-icon--inv {
-  /* sin colores fuertes: solo una leve diferencia */
-  background: rgba(255, 255, 255, .14);
 }
 
 /* ===== Info circle ===== */
@@ -421,62 +183,6 @@ mat-form-field.select-wrapper {
   color: rgba(17, 24, 39, .9);
 }
 
-.info-dot {
-  width: 22px !important;
-  height: 22px !important;
-  padding: 0 !important;
-  margin-left: 6px;
-  border-radius: 999px !important;
-  background: rgba(17, 24, 39, .06);
-  border: 1px solid rgba(17, 24, 39, .12);
-}
-
-.info-dot mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
-  color: rgba(17, 24, 39, .75);
-}
-
-.info-dot:hover {
-  background: rgba(17, 24, 39, .10);
-}
-
-/* ícono info consistente (no el “(”) */
-.info-mini {
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: rgba(17, 24, 39, .75);
-  font-weight: 900;
-  font-size: 12px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.info-mini:hover {
-  background: rgba(17, 24, 39, .04);
-  color: rgba(17, 24, 39, .92);
-}
-
-/* en header negro: blanco */
-.info-mini--th {
-  border-color: rgba(255, 255, 255, .35);
-  background: rgba(255, 255, 255, .12);
-  color: #fff;
-}
-
-.info-mini--th:hover {
-  background: rgba(255, 255, 255, .18);
-}
-
 /* fecha: forzar texto visible */
 :host ::ng-deep .mat-mdc-form-field .mdc-text-field__input {
   color: rgba(17, 24, 39, .92) !important;
@@ -492,60 +198,10 @@ mat-form-field.select-wrapper {
 }
 .precaucion-row td b{ color:#111 !important; }
 
-/* 2) Header sticky real (con wrapper) */
-.table-wrap{
-  overflow-x: auto;
-}
 .tabla-datos th{
   position: sticky;
   top: 0;
   z-index: 5;
-}
-
-/* 4) Menos amontonado: labels arriba */
-.controls{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  align-items: end;
-}
-.control-group{
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-}
-.control-head{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.select-wrapper,
-mat-form-field.select-wrapper{
-  width: 100% !important;
-}
-
-/* 5) Botón info consistente y visible */
-.info-btn{
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(17,24,39,.18);
-  background: rgba(17,24,39,.04);
-  color: rgba(17,24,39,.85);
-  font-weight: 900;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  cursor: pointer;
-  user-select:none;
-}
-.info-btn:hover{ background: rgba(17,24,39,.08); }
-.info-btn--th{
-  margin-left: 6px;
-  background: rgba(255,255,255,.14);
-  border-color: rgba(255,255,255,.22);
-  color: #fff;
 }
 
 /* Fecha legible (tu global la deja clara) */
@@ -559,34 +215,11 @@ mat-form-field.select-wrapper{
   color: rgba(17,24,39,.85) !important;
 }
 
-/* ===== Header fijo del dialog ===== */
-.dialog-header{
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-
 /* el body scrollea */
 .viewer-container{
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-}
-
-/* ===== Controles: GRID (no amontonado) ===== */
-.controls{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  align-items: end;
-  margin: 12px 0 12px;
 }
 
 .field{
@@ -596,65 +229,7 @@ mat-form-field.select-wrapper{
   min-width: 0;
 }
 
-.field-label{
-  display:flex;
-  align-items:center;
-  gap: 8px;
-  font-size: .95rem;
-  font-weight: 900;
-  color: rgba(17,24,39,.75);
-}
-
-.field-action .btn-search{
-  width: 100%;
-  height: 56px;
-}
-
-/* fecha legible (tu valor estaba “lavado”) */
-.date-field .mdc-text-field__input{
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
-  font-weight: 800 !important;
-}
-
-/* evita “aire” extra del mat-form-field */
-.date-field .mat-mdc-form-field-subscript-wrapper{ display:none; }
-
-/* ===== Info icon (visible y clickeable) ===== */
-.info-dot{
-  width: 26px !important;
-  height: 26px !important;
-  padding: 0 !important;
-  border-radius: 999px !important;
-  border: 1px solid var(--border) !important;
-  background: #fff !important;
-  display:inline-flex !important;
-  align-items:center;
-  justify-content:center;
-}
-.info-dot mat-icon{
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: rgba(17,24,39,.80);
-}
-.info-dot:hover{ background: rgba(17,24,39,.04) !important; }
-
-/* ===== KP alineado, sin romper ===== */
-.field-kp .kp-row{
-  display:flex;
-  align-items:center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
 .kp-time{ color: rgba(17,24,39,.65); font-weight: 700; }
-
-/* ===== Tabla: wrapper con scroll horizontal, sticky header real ===== */
-.table-wrap{
-  overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
 
 .tabla-datos{
   min-width: 980px; /* fuerza a que no “apriete” columnas */
@@ -706,50 +281,8 @@ mat-form-field.select-wrapper{
   color: #fff;
 }
 
-/* 2) Controles en grid (menos amontonado) */
-.controls-grid{
-  display: grid;
-  grid-template-columns: repeat(4, minmax(220px, 1fr));
-  gap: 14px;
-  align-items: end;
-  margin: 12px 0 12px;
-}
-
 .field{ display:flex; flex-direction: column; gap: 8px; min-width: 0; }
-.field-wide{ grid-column: span 2; }
-.field-action{ display:flex; justify-content: flex-end; }
-.field-head{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.field-label{
-  font-size: .95rem;
-  font-weight: 900;
-  color: rgba(17,24,39,.75);
-}
 
-/* 3) Ícono info “clickable” real */
-.info-dot{
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  border: 1px solid rgba(17,24,39,.18);
-  background: rgba(17,24,39,.06);
-  color: rgba(17,24,39,.85);
-  font-weight: 900;
-  line-height: 1;
-  display: inline-flex;
-  align-items:center;
-  justify-content:center;
-  cursor: pointer;
-  user-select: none;
-}
-.info-dot:hover{ background: rgba(17,24,39,.10); }
-
-/* 4) Fecha “lavada”: forzar color input */
-mat-form-field.date-field{ width: 100%; }
 .mat-mdc-form-field .mdc-text-field__input{
   color: rgba(17,24,39,.92) !important;
   -webkit-text-fill-color: rgba(17,24,39,.92) !important;
@@ -757,13 +290,6 @@ mat-form-field.date-field{ width: 100%; }
   font-weight: 800;
 }
 
-/* 5) KP: que no rompa línea */
-.kp-row{
-  display:flex;
-  align-items:center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
 .kp-time{ color: rgba(17,24,39,.70); font-weight: 700; }
 
 /* 6) Tabla: header sticky + scroll horizontal SIN romper sticky */
@@ -810,21 +336,6 @@ mat-form-field.date-field{ width: 100%; }
 .precaucion-row td{ color: #000; }
 .precaucion-row b{ color:#000; }
 
-/* 8) Resumen con “aire” */
-.resumen-card{
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(17,24,39,.02);
-  padding: 10px 12px;
-  margin: 8px 0 10px;
-}
-.resumen-line{
-  display:flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
-}
-.resumen-line .sep{ color: rgba(17,24,39,.35); padding: 0 6px; }
 .resumen-sub{
   margin-top: 6px;
   display:flex;
@@ -832,52 +343,6 @@ mat-form-field.date-field{ width: 100%; }
   gap: 8px;
   color: rgba(17,24,39,.82);
   font-weight: 700;
-}
-.resumen-sub .dot{ color: rgba(17,24,39,.35); }
-
-/* ===== Header sticky para que título y X no se vayan ===== */
-.dialog-header{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--surface);
-  padding: 4px 0 12px 0;
-}
-
-/* ===== Menos amontonamiento: labels arriba + grid ===== */
-.controls{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  align-items: end;
-}
-
-.control-group{
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-}
-
-.control-label-row{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.select-wrapper{ width: 100%; }
-
-/* ===== Fecha: que no quede “lavada” ===== */
-.date-field input.mat-mdc-input-element{
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
-  opacity: 1 !important;
-  font-weight: 800;
-}
-
-.date-field .mdc-text-field--filled{
-  background: #fff !important;
 }
 
 /* ===== Amarillo real ===== */
@@ -893,27 +358,6 @@ mat-form-field.date-field{ width: 100%; }
   top: 0;
   z-index: 20;
 }
-
-/* ===== Iconos de info (visibles y clicables) ===== */
-.info-dot{
-  width: 28px !important;
-  height: 28px !important;
-  border-radius: 999px !important;
-  border: 1px solid var(--border) !important;
-  background: #fff !important;
-  padding: 0 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-.info-dot mat-icon{
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  line-height: 18px;
-  color: rgba(17,24,39,.75);
-}
-.info-dot:hover{ background: rgba(17,24,39,.04) !important; }
 
 /* ícono en header oscuro */
 .th-info{
@@ -932,60 +376,14 @@ mat-form-field.date-field{ width: 100%; }
 .th-info mat-icon{ font-size: 18px; width: 18px; height: 18px; }
 .th-info:hover{ background: rgba(255,255,255,.18); }
 
-/* Controles en grid (evita amontonamiento) */
-.controls-grid{
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 12px;
-  align-items: end;
-  margin: 12px 0;
-}
 .field{ grid-column: span 3; min-width: 0; }
-.action-field{ grid-column: span 3; }
-.kp-field{ grid-column: span 4; }
 
 @media (max-width: 1100px){
   .field{ grid-column: span 6; }
-  .kp-field{ grid-column: span 12; }
-  .action-field{ grid-column: span 12; }
+
 }
 @media (max-width: 768px){
   .field{ grid-column: span 12; }
-}
-
-/* Etiqueta + info */
-.field-label{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-  font-weight: 900;
-  color: rgba(17,24,39,.80);
-  margin-bottom: 6px;
-}
-
-/* Botón i (sin mat-icon, no sale “?”) */
-.info-dot{
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(17,24,39,.20);
-  background: rgba(17,24,39,.06);
-  color: rgba(17,24,39,.85);
-  font-weight: 900;
-  font-size: 12px;
-  line-height: 1;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  cursor: pointer;
-}
-.info-dot:hover{ background: rgba(17,24,39,.10); }
-.info-dot--th{
-  margin-left: 6px;
-  border-color: rgba(255,255,255,.35);
-  background: rgba(255,255,255,.12);
-  color: #fff;
 }
 
 /* Fecha: forzar texto oscuro (tu problema de “muy clarita”) */
@@ -1011,11 +409,6 @@ mat-form-field.date-field{ width: 100%; }
   top: 0;
   z-index: 5;
 }
-.table-title{
-  margin: 10px 0 8px;
-  font-weight: 900;
-  color: rgba(17,24,39,.9);
-}
 
 .viewer-container{ position: relative; padding-top: 14px; }
 
@@ -1037,64 +430,10 @@ mat-form-field.date-field{ width: 100%; }
   background: #111;
 }
 
-/* Título de tabla + botón “Cómo leer” */
-.table-title{
-  margin-top: 10px;
-  margin-bottom: 6px;
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(17,24,39,.03);
-}
-.table-title__left{ display:flex; align-items: baseline; gap: 10px; }
-.table-title__h{ font-weight: 900; color: rgba(17,24,39,.92); }
-.table-title__hint{ color: rgba(17,24,39,.60); font-weight: 800; }
-
-/* Fecha más visible */
-.fecha-strong{
-  color: rgba(17,24,39,.92);
-  font-weight: 900;
-}
-
 /* Menos “amontonado” */
 .resumen-consulta{ display:flex; flex-direction:column; gap: 8px; }
-.resumen-line{ display:flex; flex-wrap: wrap; gap: 10px; align-items: baseline; }
-.resumen-line .sep{ color: rgba(17,24,39,.35); font-weight: 900; }
+
 .resumen-sub{ display:flex; flex-wrap: wrap; gap: 8px; color: rgba(17,24,39,.78); font-weight: 700; }
-
-/* Icono info: que sea realmente un botón con el mat-icon visible */
-.info-dot{
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  border: 1px solid rgba(17,24,39,.18);
-  background: rgba(17,24,39,.06);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 6px;
-}
-.info-dot mat-icon{
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
-  color: rgba(17,24,39,.75);
-}
-.info-dot:hover{ background: rgba(17,24,39,.10); }
-
-.info-dot--th{
-  border-color: rgba(255,255,255,.25);
-  background: rgba(255,255,255,.14);
-}
-.info-dot--th mat-icon{ color:#fff; }
-.info-dot--th:hover{ background: rgba(255,255,255,.20); }
 
 .precaucion-row{
   background-color: #f0e442;
@@ -1109,15 +448,6 @@ mat-form-field.date-field{ width: 100%; }
 .precaucion-row td{ color:#000; }
 
 .container{ position: relative; }
-
-.controls{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 12px;
-  align-items: end;
-}
-.control-group{ display:flex; gap:10px; align-items:center; }
-.control-label{ min-width: 92px; }
 
 .info-circle-btn{
   display:inline-flex;
@@ -1197,30 +527,8 @@ mat-form-field.date-field{ width: 100%; }
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 900px) {
-  .detail-cols {
-    grid-template-columns: 1fr;
-  }
-}
 
 @media (max-width: 768px) {
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .control-group {
-    justify-content: space-between;
-  }
-
-  .select-wrapper,
-  mat-form-field.select-wrapper {
-    width: 100%;
-  }
-
-  .btn-search {
-    width: 100%;
-  }
 
   .map-wrapper {
     height: 480px;
@@ -1228,16 +536,6 @@ mat-form-field.date-field{ width: 100%; }
 }
 
 /* Responsive */
-@media (max-width: 1100px){
-  .controls-grid{ grid-template-columns: repeat(2, minmax(220px, 1fr)); }
-  .field-wide{ grid-column: span 2; }
-}
-@media (max-width: 768px){
-  .controls-grid{ grid-template-columns: 1fr; }
-  .field-wide{ grid-column: span 1; }
-  .field-action{ justify-content: stretch; }
-  .btn-search{ width: 100%; }
-}
 
 /* ===== Parámetros de la consulta (reemplaza a .controls) =====
    Dos grupos con etiqueta arriba de cada control y un pie con Kp y "Buscar datos". */
