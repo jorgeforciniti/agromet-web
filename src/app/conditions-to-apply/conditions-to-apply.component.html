@@ -292,12 +292,12 @@
             <td class="num">{{ row.eval?.scoreDeriva ?? '—' }}</td>
             <td class="num">{{ row.eval?.scoreEficacia ?? '—' }}</td>
 
-            <td class="num">{{ row.temp_af | valor }}</td>
+            <td class="num">{{ row.temp_af | valor:1 }}</td>
             <td class="num">{{ row.hum_af | valor }}</td>
-            <td class="num">{{ row.viento_medio | valor }}</td>
-            <td class="num">{{ row.viento_max | valor }}</td>
+            <td class="num">{{ row.viento_medio | valor:1 }}</td>
+            <td class="num">{{ row.viento_max | valor:1 }}</td>
             <td>{{ row.direccion || '—' }}</td>
-            <td class="num">{{ row.lluvia | valor }}</td>
+            <td class="num">{{ row.lluvia | valor:1 }}</td>
           </tr>
         </tbody>
       </table>
