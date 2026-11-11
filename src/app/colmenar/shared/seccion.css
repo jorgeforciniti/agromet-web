@@ -23,6 +23,12 @@
   margin-bottom: 12px;
 }
 
+/* El bloque de título y subtítulo puede achicarse: si no, en el teléfono el subtítulo se corta */
+.panel__head > div {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
 .panel__titulo {
   display: flex;
   align-items: center;

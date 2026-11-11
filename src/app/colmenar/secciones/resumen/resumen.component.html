@@ -11,121 +11,107 @@
     <div class="panel__head">
       <div>
         <h2 class="panel__titulo">Resumen climático {{ anio }}</h2>
-        <p class="panel__sub">Valores observados y desvíos respecto de la normal 1991–2020. Sólo se usan meses validados por
-          el control de completitud.</p>
+        <p class="panel__sub">Valores observados y desvíos respecto de la normal 1991–2020.</p>
         <!-- Pregunta para la Sección: ¿qué criterio usa el servicio para validar un mes (días faltantes admitidos)? Las
           medias anuales son el promedio simple de las medias mensuales validadas (sin ponderar por días): ¿es correcto? -->
         <app-como-se-lee>
-          <p>Las tarjetas resumen el año elegido en El Colmenar. La precipitación es la suma de los meses completos; las
+          <p>Las cifras resumen el año elegido en El Colmenar. La lluvia es la suma de los meses completos; las
             temperaturas máxima y mínima y la amplitud térmica son el promedio de las medias mensuales validadas. Si el año no
-            tiene los 12 meses, la etiqueta indica qué meses se usaron y la comparación con la normal 1991–2020 se hace con esos
-            mismos meses.</p>
+            tiene los 12 meses, el título de cada cifra indica qué meses se usaron y la comparación con la normal 1991–2020 se
+            hace con esos mismos meses. En la barra de lluvia, la línea vertical marca la normal de ese período.</p>
           <p>Las temperaturas absolutas son el valor más alto y el más bajo registrados en el año, incluidos los días de meses
             incompletos; mientras el año esté en curso o incompleto son provisorias. La completitud indica los días con registro
             y los meses completos de cada variable.</p>
-          <p>En «Días con temperaturas extremas», cada tarjeta cuenta los días que igualaron o superaron el umbral. El color y
-            los símbolos ▲/▼ ubican ese conteo frente a 1991–2020 y sólo aparecen con el año completo para la variable; si no,
-            se compara la suma de los meses completos con su normal. Cada «?» explica el término.</p>
+          <p>En «Días con temperaturas extremas», cada cifra cuenta los días que igualaron o superaron el umbral. Con el año
+            completo para la variable, la etiqueta y los símbolos ▲/▼ lo ubican frente a 1991–2020; si no, se compara la suma
+            de los meses completos con su normal. Cada «?» explica el término.</p>
         </app-como-se-lee>
       </div>
     </div>
 
-    <div class="kpis">
-      <!-- Precipitación -->
-      <article class="kpi kpi--lluvia">
-        <span class="kpi__label">Precipitación acumulada</span>
-        <ng-container *ngIf="lluvia as ll; else sinDato">
-          <span class="kpi__valor" *ngIf="ll.meses.length; else sinMeses">{{ fmt(ll.total) }} <small>mm</small></span>
-          <span class="kpi__det">
-            <span class="tag" [class.tag--ok]="ll.anual" [class.tag--parcial]="!ll.anual">
-              {{ ll.anual ? 'Total anual' : 'Meses completos: ' + listaMeses(ll.meses) }}
-            </span>
-          </span>
+    <!-- Lluvia: la cifra principal, con la normal del mismo período -->
+    <article class="kpi kpi--lluvia kpi--ancha">
+      <ng-container *ngIf="lluvia as ll; else sinDatoLluvia">
+        <div class="kpi--ancha__cifra">
+          <span class="kpi__label">Lluvia acumulada, {{ periodo(ll.meses, ll.anual) }}</span>
+          <span class="kpi__valor kpi__valor--grande" *ngIf="ll.meses.length; else sinMeses">{{ fmt(ll.total) }} <small>mm</small></span>
           <span class="kpi__det" *ngIf="ll.normal !== null && ll.meses.length">
-            Normal mismo período: {{ fmt(ll.normal) }} mm ·
             <strong [class.pos-pp]="ll.total > ll.normal" [class.neg-pp]="ll.total < ll.normal">
               {{ fmtSigno(ll.total - ll.normal) }} mm ({{ fmtSigno(ll.normal ? (ll.total - ll.normal) / ll.normal * 100 : null, 0) }} %)
             </strong>
+            {{ ll.total >= ll.normal ? 'sobre' : 'bajo' }} la normal
           </span>
-          <span class="kpi__det" *ngFor="let p of ll.parciales">
-            {{ MESES[p.mes - 1] }} (parcial, {{ p.dias }}/{{ p.diasMes }} días): {{ fmt(p.mm) }} mm — no incluido
+        </div>
+        <div class="barra-lluvia" *ngIf="barraLluvia as b">
+          <div class="barra-lluvia__pista" aria-hidden="true">
+            <span class="barra-lluvia__obs" [style.width.%]="b.observado"></span>
+            <span class="barra-lluvia__normal" [style.left.%]="b.normal"></span>
+          </div>
+          <span class="kpi__det">La línea marca la normal: {{ fmt(ll.normal) }} mm</span>
+          <span class="kpi__det kpi__det--suave" *ngFor="let p of ll.parciales">
+            {{ MESES[p.mes - 1] }} va {{ fmt(p.mm) }} mm con {{ p.dias }} de {{ p.diasMes }} días; no se suma.
           </span>
-        </ng-container>
-      </article>
+        </div>
+      </ng-container>
+    </article>
 
-      <!-- Tmax media -->
+    <!-- Temperaturas medias: desvío en rojo si fue más cálido, en azul si fue más frío -->
+    <div class="kpis kpis--tres">
       <article class="kpi kpi--tmax">
-        <span class="kpi__label">Temperatura máxima media</span>
         <ng-container *ngIf="tmax as t; else sinDato">
+          <span class="kpi__label">Máxima media, {{ periodo(t.meses, t.anual) }}</span>
           <span class="kpi__valor">{{ fmt(t.media) }} <small>°C</small></span>
-          <span class="kpi__det">
-            <span class="tag" [class.tag--ok]="t.anual" [class.tag--parcial]="!t.anual">
-              {{ t.anual ? 'Media anual' : 'Promedio de ' + listaMeses(t.meses) }}
-            </span>
-          </span>
           <span class="kpi__det" *ngIf="t.anomalia !== null">
-            Anomalía vs. normal: <strong [class.pos]="t.anomalia > 0" [class.neg]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong>
+            <strong [class.pos]="t.anomalia > 0" [class.neg]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong> frente a la normal
           </span>
         </ng-container>
       </article>
 
-      <!-- Tmin media -->
       <article class="kpi kpi--tmin">
-        <span class="kpi__label">Temperatura mínima media</span>
         <ng-container *ngIf="tmin as t; else sinDato">
+          <span class="kpi__label">Mínima media, {{ periodo(t.meses, t.anual) }}</span>
           <span class="kpi__valor">{{ fmt(t.media) }} <small>°C</small></span>
-          <span class="kpi__det">
-            <span class="tag" [class.tag--ok]="t.anual" [class.tag--parcial]="!t.anual">
-              {{ t.anual ? 'Media anual' : 'Promedio de ' + listaMeses(t.meses) }}
-            </span>
-          </span>
           <span class="kpi__det" *ngIf="t.anomalia !== null">
-            Anomalía vs. normal: <strong [class.pos]="t.anomalia > 0" [class.neg]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong>
+            <strong [class.pos]="t.anomalia > 0" [class.neg]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong> frente a la normal
           </span>
         </ng-container>
       </article>
 
-      <!-- Amplitud térmica media -->
       <article class="kpi kpi--amp">
-        <span class="kpi__label">Amplitud térmica media <app-ayuda-termino termino="amplitud"></app-ayuda-termino></span>
         <ng-container *ngIf="amp as t; else sinDato">
+          <span class="kpi__label">Amplitud térmica, {{ periodo(t.meses, t.anual) }} <app-ayuda-termino termino="amplitud"></app-ayuda-termino></span>
           <span class="kpi__valor">{{ fmt(t.media) }} <small>°C</small></span>
-          <span class="kpi__det">
-            <span class="tag" [class.tag--ok]="t.anual" [class.tag--parcial]="!t.anual">
-              {{ t.anual ? 'Media anual' : 'Promedio de ' + listaMeses(t.meses) }}
-            </span>
-          </span>
           <span class="kpi__det" *ngIf="t.anomalia !== null">
-            Anomalía vs. normal: <strong [class.pos-amp]="t.anomalia > 0" [class.neg-amp]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong>
+            <strong [class.pos-amp]="t.anomalia > 0" [class.neg-amp]="t.anomalia < 0">{{ fmtSigno(t.anomalia) }} °C</strong> frente a la normal
           </span>
         </ng-container>
       </article>
+    </div>
 
-      <!-- Absolutas -->
+    <!-- Absolutas y completitud -->
+    <div class="kpis kpis--tres">
       <article class="kpi kpi--tmax">
-        <span class="kpi__label">Temperatura máxima absoluta</span>
         <ng-container *ngIf="absMax as a; else sinDato">
+          <span class="kpi__label">Máxima absoluta</span>
           <span class="kpi__valor">{{ fmt(a.valor) }} <small>°C</small></span>
-          <span class="kpi__det">Registrada en {{ mesesTexto(a.meses) }}<ng-container *ngIf="!extremos.datos?.resumen_anual?.anio_completo">
-              · valor provisional, año en curso o incompleto</ng-container></span>
+          <span class="kpi__det kpi__det--suave">en {{ mesesTexto(a.meses) }}<ng-container *ngIf="!extremos.datos?.resumen_anual?.anio_completo">, provisoria</ng-container></span>
         </ng-container>
       </article>
 
       <article class="kpi kpi--tmin">
-        <span class="kpi__label">Temperatura mínima absoluta</span>
         <ng-container *ngIf="absMin as a; else sinDato">
+          <span class="kpi__label">Mínima absoluta</span>
           <span class="kpi__valor">{{ fmt(a.valor) }} <small>°C</small></span>
-          <span class="kpi__det">Registrada en {{ mesesTexto(a.meses) }}<ng-container *ngIf="!extremos.datos?.resumen_anual?.anio_completo">
-              · valor provisional, año en curso o incompleto</ng-container></span>
+          <span class="kpi__det kpi__det--suave">en {{ mesesTexto(a.meses) }}<ng-container *ngIf="!extremos.datos?.resumen_anual?.anio_completo">, provisoria</ng-container></span>
         </ng-container>
       </article>
 
-      <!-- Completitud -->
       <article class="kpi">
-        <span class="kpi__label">Completitud de la información <app-ayuda-termino termino="completo"></app-ayuda-termino></span>
-        <span class="kpi__valor" *ngIf="diasRegistrados">{{ diasRegistrados }} <small>días</small></span>
-        <span class="kpi__det" *ngIf="extremos.datos">Meses completos: Tmax {{ mesesCompletosMax }}/12 · Tmin {{ mesesCompletosMin }}/12</span>
-        <span class="kpi__det" *ngIf="lluvia">Meses completos de lluvia: {{ lluvia.meses.length }}/12</span>
+        <span class="kpi__label">Días con registro <app-ayuda-termino termino="completo"></app-ayuda-termino></span>
+        <span class="kpi__valor" *ngIf="diasRegistrados">{{ diasRegistrados }}</span>
+        <span class="kpi__det kpi__det--suave" *ngIf="extremos.datos || lluvia">
+          Meses completos:<ng-container *ngIf="extremos.datos"> máxima {{ mesesCompletosMax }}, mínima {{ mesesCompletosMin }}</ng-container><ng-container *ngIf="extremos.datos && lluvia">,</ng-container><ng-container *ngIf="lluvia"> lluvia {{ lluvia.meses.length }}</ng-container>
+        </span>
       </article>
     </div>
   </div>
@@ -134,30 +120,29 @@
     <div class="panel__head">
       <div>
         <h2 class="panel__titulo">Días con temperaturas extremas <app-ayuda-termino termino="extremo"></app-ayuda-termino></h2>
-        <p class="panel__sub">Frecuencia de días que igualan o superan el umbral. Clasificación percentilar 1991–2020 sólo con
-          el año completo para la variable.</p>
+        <p class="panel__sub">Días que igualaron o superaron cada umbral. Sin el año completo, el desvío se calcula con los
+          meses completos.</p>
       </div>
     </div>
-    <div class="kpis">
-      <article class="kpi" *ngFor="let x of extremosRes">
-        <span class="kpi__label">{{ x.etiqueta }}</span>
-        <span class="kpi__valor">{{ fmt(x.observado, 0) }} <small>días</small></span>
-        <span class="kpi__det" *ngIf="x.completo">
-          <app-clasificacion-badge [clasificacion]="x.clasificacion" [escala]="'termica'" [compacta]="true"></app-clasificacion-badge>
+    <div class="extremos-fila">
+      <div class="extremo" *ngFor="let x of extremosRes">
+        <span class="extremo__valor">{{ fmt(x.observado, 0) }} <small>días</small></span>
+        <span class="extremo__etiqueta">{{ x.etiqueta }}</span>
+        <app-clasificacion-badge *ngIf="x.completo" [clasificacion]="x.clasificacion" [escala]="'termica'" [compacta]="true"></app-clasificacion-badge>
+        <span class="extremo__desvio" *ngIf="!x.completo && x.mesesCompletos && x.anomaliaCompletos !== null">
+          <strong [class.pos]="x.anomaliaCompletos > 0" [class.neg]="x.anomaliaCompletos < 0">{{ fmtSigno(x.anomaliaCompletos) }}</strong>
+          frente a la normal de {{ x.mesesCompletos }} meses
         </span>
-        <ng-container *ngIf="!x.completo">
-          <span class="kpi__det"><span class="tag tag--parcial">Conteo disponible · sin clasificación anual</span></span>
-          <span class="kpi__det" *ngIf="x.mesesCompletos && x.anomaliaCompletos !== null">
-            En {{ x.mesesCompletos }} meses completos: <strong [class.pos]="x.anomaliaCompletos > 0" [class.neg]="x.anomaliaCompletos < 0">
-              {{ fmtSigno(x.anomaliaCompletos) }} días</strong> vs. normal
-          </span>
-        </ng-container>
-      </article>
+      </div>
     </div>
   </div>
 </ng-container>
 
 <ng-template #sinDato>
+  <span class="kpi__det">Sin datos válidos para este año.</span>
+</ng-template>
+<ng-template #sinDatoLluvia>
+  <span class="kpi__label">Lluvia acumulada</span>
   <span class="kpi__det">Sin datos válidos para este año.</span>
 </ng-template>
 <ng-template #sinMeses>

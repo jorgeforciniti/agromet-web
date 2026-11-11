@@ -17,3 +17,128 @@
 .kpi--amp {
   border-top-color: #862e9c;
 }
+
+.kpi .kpi__valor {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi__det--suave {
+  color: var(--muted);
+}
+
+/* ===== Lluvia: tarjeta ancha con la barra frente a la normal ===== */
+.kpi--ancha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 10px 24px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.kpi--ancha__cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi__valor--grande {
+  font-size: 2.4rem !important;
+  line-height: 1;
+}
+
+.barra-lluvia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.barra-lluvia__pista {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #2a78d6 10%, white);
+}
+
+.barra-lluvia__obs {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  background: #2a78d6;
+}
+
+.barra-lluvia__normal {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--text);
+}
+
+.kpis--tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 10px;
+}
+
+.kpis--tres:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Días con temperaturas extremas, en una franja ===== */
+.extremos-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 8px 18px;
+}
+
+.extremo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+}
+
+.extremo__valor {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.6rem;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.extremo__valor small {
+  font-family: var(--font-sans);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.extremo__etiqueta {
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+.extremo__desvio {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+@media (max-width: 760px) {
+  .kpi--ancha {
+    grid-template-columns: 1fr;
+  }
+
+  .kpis--tres {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .kpis--tres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

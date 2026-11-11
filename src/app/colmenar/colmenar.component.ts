@@ -32,6 +32,12 @@ interface Seccion {
   icono: string;
 }
 
+/** Secciones agrupadas para la navegación lateral */
+interface GrupoSecciones {
+  titulo: string;
+  secciones: Seccion[];
+}
+
 const CARGANDO = { estado: 'cargando', datos: null } as const;
 
 @Component({
@@ -59,18 +65,37 @@ export class ColmenarComponent implements OnInit, OnDestroy {
   readonly anioActual = new Date().getFullYear();
   readonly anios: number[] = Array.from({ length: this.anioActual - COLMENAR_ANIO_INICIO + 1 }, (_, i) => this.anioActual - i);
 
-  readonly secciones: Seccion[] = [
-    { id: 'resumen', etiqueta: 'Resumen', icono: 'dashboard' },
-    { id: 'temperaturas', etiqueta: 'Temperaturas', icono: 'device_thermostat' },
-    { id: 'evolucion', etiqueta: 'Evolución térmica e hídrica', icono: 'show_chart' },
-    { id: 'precipitaciones', etiqueta: 'Precipitaciones', icono: 'water_drop' },
-    { id: 'extremos', etiqueta: 'Extremos térmicos', icono: 'local_fire_department' },
-    { id: 'extremos-hidricos', etiqueta: 'Extremos hídricos', icono: 'thunderstorm' },
-    { id: 'dias-lluvia', etiqueta: 'Días con lluvia', icono: 'grain' },
-    { id: 'episodios', etiqueta: 'Episodios cálidos', icono: 'wb_sunny' },
-    { id: 'enso', etiqueta: 'El Niño y La Niña', icono: 'waves' },
-    { id: 'comparar', etiqueta: 'Comparar años', icono: 'compare_arrows' }
+  /** El año elegido, sus extremos y la serie completa */
+  readonly grupos: GrupoSecciones[] = [
+    {
+      titulo: 'El año',
+      secciones: [
+        { id: 'resumen', etiqueta: 'Resumen', icono: 'dashboard' },
+        { id: 'temperaturas', etiqueta: 'Temperaturas', icono: 'device_thermostat' },
+        { id: 'precipitaciones', etiqueta: 'Precipitaciones', icono: 'water_drop' },
+        { id: 'dias-lluvia', etiqueta: 'Días con lluvia', icono: 'grain' }
+      ]
+    },
+    {
+      titulo: 'Extremos',
+      secciones: [
+        { id: 'extremos', etiqueta: 'Extremos térmicos', icono: 'local_fire_department' },
+        { id: 'extremos-hidricos', etiqueta: 'Extremos hídricos', icono: 'thunderstorm' },
+        { id: 'episodios', etiqueta: 'Episodios cálidos', icono: 'wb_sunny' }
+      ]
+    },
+    {
+      titulo: 'La serie',
+      secciones: [
+        { id: 'evolucion', etiqueta: 'Evolución térmica e hídrica', icono: 'show_chart' },
+        { id: 'enso', etiqueta: 'El Niño y La Niña', icono: 'waves' },
+        { id: 'comparar', etiqueta: 'Comparar años', icono: 'compare_arrows' }
+      ]
+    }
   ];
+
+  /** Todas las secciones en el orden de la navegación (flechas del teclado) */
+  readonly secciones: Seccion[] = this.grupos.flatMap(g => g.secciones);
 
   anio = this.anioActual;
   seccion: SeccionId = 'resumen';
@@ -157,13 +182,14 @@ export class ColmenarComponent implements OnInit, OnDestroy {
     ev.preventDefault();
   }
 
-  /** Navegación con flechas entre pestañas (patrón ARIA tablist). */
-  teclaPestania(ev: KeyboardEvent, i: number): void {
-    const delta = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0;
+  /** Navegación con flechas entre pestañas (patrón ARIA tablist; vertical en escritorio, horizontal en el teléfono). */
+  teclaPestania(ev: KeyboardEvent, id: SeccionId): void {
+    const delta = ev.key === 'ArrowRight' || ev.key === 'ArrowDown' ? 1 : ev.key === 'ArrowLeft' || ev.key === 'ArrowUp' ? -1 : 0;
     if (!delta) {
       return;
     }
     ev.preventDefault();
+    const i = this.secciones.findIndex(s => s.id === id);
     const sig = this.secciones[(i + delta + this.secciones.length) % this.secciones.length];
     this.irSeccion(sig.id);
     setTimeout(() => document.getElementById('tab-' + sig.id)?.focus());
@@ -197,5 +223,29 @@ export class ColmenarComponent implements OnInit, OnDestroy {
       partes.push(`${mesesLluvia}/12 meses completos de lluvia`);
     }
     return { texto: 'Año incompleto · ' + partes.join(' · '), completo };
+  }
+
+  /**
+   * Aviso único de año incompleto (antes cada tarjeta repetía su etiqueta): cuántos días hay y
+   * que las comparaciones usan sólo los meses completos. Cada cifra indica sus meses en el título.
+   */
+  get avisoIncompleto(): string | null {
+    const ext = this.extremos.datos?.resumen_anual;
+    const ll = this.lluvias.datos?.datos;
+    const c = this.completitud;
+    if (!c || c.completo) {
+      return null;
+    }
+    const estado = this.anio === this.anioActual ? 'está en curso' : 'está incompleto';
+    const partes: string[] = [];
+    if (ext) {
+      partes.push(`${ext.dias_registrados} de ${ext.dias_anio} días con registro`);
+    }
+    if (ll) {
+      const meses = ll.filter((m) => m.lluvia_completa).length;
+      partes.push(`${meses} ${meses === 1 ? 'mes completo' : 'meses completos'} de lluvia`);
+    }
+    return `${this.anio} ${estado}: ${partes.join(' y ')}. Las comparaciones con la normal usan sólo los meses ` +
+      'completos de cada variable; cada cifra indica sus meses. La clasificación anual aparece cuando el año está completo.';
   }
 }

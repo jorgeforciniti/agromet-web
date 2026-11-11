@@ -5,9 +5,9 @@
   user-select: none;
   -webkit-touch-callout: none;
   width: 100%;
-  max-width: 1280px;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 18px 18px 40px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -20,106 +20,59 @@
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 14px 20px;
-  padding: 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod) 6%, white), rgba(255, 255, 255, .99));
-  border: 1px solid color-mix(in srgb, var(--mod) 14%, var(--border));
-  border-radius: 20px;
-  box-shadow: var(--shadow-sm);
+  gap: 14px 24px;
 }
 
 .colmenar-head__texto {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   flex: 1 1 420px;
 }
 
-.colmenar-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mod) 20%, var(--border));
-  background: rgba(255, 255, 255, .82);
-  color: var(--brand-600);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .08em;
-}
-
-.colmenar-eyebrow mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
 .colmenar-title {
   margin: 0;
-  font-size: clamp(1.3rem, 2.6vw, 1.7rem);
-  font-weight: 900;
-  line-height: 1.1;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+  line-height: 1.05;
 }
 
 .colmenar-copy {
   margin: 0;
-  max-width: 62ch;
+  max-width: 64ch;
   color: var(--muted);
-  font-size: .94rem;
-  line-height: 1.42;
+  font-size: 1rem;
+  line-height: 1.45;
 }
 
-.colmenar-controles {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
+/* Año grande con flechas */
 .selector-anio {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.selector-anio__label {
-  font-size: .72rem;
-  font-weight: 800;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.selector-anio__fila {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  overflow: hidden;
+  gap: 2px;
 }
 
 .selector-anio select {
   appearance: none;
-  border: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: transparent;
-  font: inherit;
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1;
   color: var(--text);
-  padding: 6px 8px;
+  padding: 2px 6px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
-.selector-anio select:focus-visible,
-.selector-anio__flecha:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod) 35%, white);
-  outline-offset: -3px;
+.selector-anio select:hover {
+  border-color: var(--border);
+  background: var(--surface);
 }
 
 .selector-anio__flecha {
@@ -128,10 +81,15 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
   color: var(--brand-600);
   cursor: pointer;
+}
+
+.selector-anio__flecha:hover:not(:disabled) {
+  background: var(--brand-50);
 }
 
 .selector-anio__flecha:disabled {
@@ -139,61 +97,84 @@
   cursor: default;
 }
 
-.estado-anio {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: .78rem;
-  font-weight: 700;
-  color: #92400e;
-  background: color-mix(in srgb, var(--warning) 14%, white);
-  border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border));
-  text-align: right;
+.selector-anio select:focus-visible,
+.selector-anio__flecha:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mod) 45%, white);
+  outline-offset: 2px;
 }
 
-.estado-anio--completo {
-  color: var(--brand-600);
-  background: var(--brand-50);
-  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
-}
-
-.estado-anio mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-}
-
-/* ===== Pestañas ===== */
-.colmenar-tabs {
+/* Aviso único de año incompleto */
+.aviso-anio {
+  margin: 0;
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  padding: 2px 2px 6px;
-  -webkit-overflow-scrolling: touch;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warning) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, white);
+  color: #7c4a03;
+  font-size: .92rem;
+  line-height: 1.45;
+}
+
+.aviso-anio mat-icon {
+  flex: 0 0 auto;
+  color: #b45309;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+
+/* ===== Navegación lateral y panel ===== */
+.colmenar-cuerpo {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.colmenar-nav {
+  position: sticky;
+  top: calc(var(--header-h, 0px) + 12px);
+}
+
+.colmenar-nav__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.colmenar-nav__grupo {
+  margin: 12px 12px 4px;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.colmenar-nav__grupo:first-child {
+  margin-top: 0;
 }
 
 .colmenar-tab {
-  flex: 0 0 auto;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, .8);
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: .88rem;
-  font-weight: 700;
+  font-size: .92rem;
+  text-align: left;
   cursor: pointer;
-  transition: background .12s ease, border-color .12s ease;
 }
 
 .colmenar-tab mat-icon {
+  flex: 0 0 auto;
   font-size: 18px;
   width: 18px;
   height: 18px;
@@ -201,13 +182,16 @@
 }
 
 .colmenar-tab:hover {
-  background: #fff;
+  background: var(--surface);
+  border-color: var(--border);
 }
 
-.colmenar-tab--activa {
-  background: color-mix(in srgb, var(--mod) 14%, white);
-  border-color: color-mix(in srgb, var(--mod) 45%, var(--border));
+.colmenar-tab--activa,
+.colmenar-tab--activa:hover {
+  background: var(--brand-50);
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
   color: var(--brand-600);
+  font-weight: 700;
 }
 
 .colmenar-tab--activa mat-icon {
@@ -215,40 +199,71 @@
 }
 
 .colmenar-tab:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod) 35%, white);
-  outline-offset: 2px;
+  outline: 3px solid color-mix(in srgb, var(--mod) 45%, white);
+  outline-offset: 1px;
 }
 
 .colmenar-panel {
+  min-width: 0;
   min-height: 320px;
 }
 
 .colmenar-fuente {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: .78rem;
+  font-size: .8rem;
   line-height: 1.4;
+}
+
+/* En pantallas angostas la navegación pasa arriba, en una fila que se desliza */
+@media (max-width: 900px) {
+  /* minmax(0, 1fr): la fila de secciones, que no se corta, no debe ensanchar la columna */
+  .colmenar-cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .colmenar-nav {
+    position: static;
+    min-width: 0;
+    margin: 0 -18px;
+  }
+
+  .colmenar-nav__lista {
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 2px 18px 6px;
+    scrollbar-width: none;
+  }
+
+  .colmenar-nav__grupo {
+    display: none;
+  }
+
+  .colmenar-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    border-color: var(--border);
+    background: var(--surface);
+    border-radius: 999px;
+  }
 }
 
 @media (max-width: 640px) {
   .colmenar {
-    padding: 10px;
+    padding: 14px 12px 32px;
   }
 
-  .colmenar-head {
-    padding: 14px;
+  .colmenar-nav {
+    margin: 0 -12px;
   }
 
-  .colmenar-controles {
-    align-items: stretch;
-    width: 100%;
+  .colmenar-nav__lista {
+    padding: 2px 12px 6px;
   }
 
-  .selector-anio__fila {
-    justify-content: space-between;
-  }
-
-  .estado-anio {
-    text-align: left;
+  .selector-anio select {
+    font-size: 1.8rem;
   }
 }

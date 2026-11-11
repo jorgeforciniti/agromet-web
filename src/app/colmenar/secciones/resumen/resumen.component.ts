@@ -199,6 +199,21 @@ export class ResumenComponent implements OnChanges {
     });
   }
 
+  /** Período de una cifra para su título: «del año» o los meses completos usados («ene–sep») */
+  periodo(meses: number[], anual: boolean): string {
+    return anual ? 'del año' : listaMeses(meses);
+  }
+
+  /** Barra de lluvia: largo de lo observado y posición de la normal, sobre el mayor de los dos */
+  get barraLluvia(): { observado: number; normal: number } | null {
+    const ll = this.lluvia;
+    if (!ll || ll.normal === null || !ll.meses.length) {
+      return null;
+    }
+    const tope = Math.max(ll.total, ll.normal) || 1;
+    return { observado: (ll.total / tope) * 100, normal: (ll.normal / tope) * 100 };
+  }
+
   mesesTexto(meses: number[]): string {
     return meses.map((m) => MESES[m - 1].toLowerCase()).join(', ');
   }
