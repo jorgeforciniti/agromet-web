@@ -5,10 +5,10 @@ import { getAnalytics, provideAnalytics, ScreenTrackingService, UserTrackingServ
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
-import { medirVisitas } from './app/services/analytics.service';
+import { iniciarPostHog, ManejadorErrores, medirVisitas } from './app/services/analytics.service';
 import { environment } from './app/environments/environment';
 import { provideHttpClient } from '@angular/common/http';
-import { enableProdMode, LOCALE_ID } from '@angular/core';
+import { enableProdMode, ErrorHandler, LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 import * as L from 'leaflet';
@@ -28,6 +28,11 @@ L.Map.mergeOptions({
   wheelPxPerZoomLevel: 60
 });
 
+// Visitas, uso y errores con PostHog (ver analytics.service.ts).
+if (medirVisitas()) {
+  iniciarPostHog();
+}
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideHttpClient(),
@@ -42,5 +47,6 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideAnimations(),
     { provide: LOCALE_ID, useValue: 'es-AR' },
+    { provide: ErrorHandler, useClass: ManejadorErrores },
   ],
 }).catch(err => console.error(err));
