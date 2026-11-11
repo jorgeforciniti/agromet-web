@@ -12,6 +12,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
+| `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
 
 ## `normales.php`
@@ -159,3 +160,35 @@ pasar a la API de producción.
 
 Para instalarlo: copiarlo a `/services/pronosticos/` y probar `?area=3373&tipo=2`: tiene que devolver
 una lista (`[]` si no hay avisos vigentes), no un objeto con `error`.
+
+## `enso.php`
+
+`GET /services/enso.php` devuelve el índice RONI (Relative Oceanic Niño Index) de NOAA CPC, una
+temporada de 3 meses por valor desde 1950, y el estado del sistema de alerta de CPC (traducido) con
+la fecha de su última discusión y de la próxima. No usa la base de datos. Desde 2026 CPC clasifica El
+Niño y La Niña con el RONI en lugar del ONI. El sitio calcula las fases (±0,5 °C durante 5 temporadas
+seguidas) y la intensidad.
+
+**Se actualiza solo.** Una vez por día baja `RONI.ascii.txt` y la discusión diagnóstica de CPC y los
+guarda en `agromet-enso.json`, en la carpeta temporal de PHP (`sys_get_temp_dir()`). Si NOAA no
+responde, usa esa copia aunque esté vencida y, si no hay ninguna, la tabla fija del archivo
+(`$RONI_FIJO`, copiada el 11/11/2026). El campo `origen` dice de dónde salió (`noaa`, `cache` o
+`fijo`); con `fijo` la tarjeta de Estado actual lo aclara.
+
+A mano, y sólo si se quiere:
+
+- **Resumen en castellano** de la discusión vigente: agregarlo en `$RESUMENES` con la fecha de la
+  discusión (CPC publica el segundo jueves de cada mes). Si no hay resumen para la fecha vigente, el
+  sitio muestra sólo el estado de alerta.
+- **Renovar la tabla fija** de vez en cuando (pegar `RONI.ascii.txt` convertido y cambiar
+  `FIJO_ACTUALIZADO`). Sólo se usa si nunca se pudo bajar de NOAA.
+- Si CPC cambia el texto de la página, el estado queda con la última copia; si aparece un estado de
+  alerta nuevo sin traducir, se muestra en inglés (agregarlo a `$ALERTAS`).
+
+El servidor tiene que poder hacer pedidos HTTPS hacia afuera (cURL de PHP o `allow_url_fopen`), igual
+que `kp-gfz.php`.
+
+Para instalarlo: copiar el archivo a `/services/` y probar
+`https://agromet.eeaoc.gob.ar/services/enso.php`: tiene que traer `"origen":"noaa"` (o `cache` en la
+segunda consulta), `datos` desde 1950 y `estado.alerta` en castellano. Hasta que esté instalado, la
+tarjeta de Estado actual y la sección del Colmenar muestran un error con «Reintentar».

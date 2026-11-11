@@ -22,8 +22,9 @@ import { DiasLluviaComponent } from './secciones/dias-lluvia/dias-lluvia.compone
 import { ExtremosHidricosComponent } from './secciones/extremos-hidricos/extremos-hidricos.component';
 import { EpisodiosComponent } from './secciones/episodios/episodios.component';
 import { ComparacionComponent } from './secciones/comparacion/comparacion.component';
+import { EnsoComponent } from './secciones/enso/enso.component';
 
-type SeccionId = 'resumen' | 'temperaturas' | 'evolucion' | 'precipitaciones' | 'extremos' | 'extremos-hidricos' | 'dias-lluvia' | 'episodios' | 'comparar';
+type SeccionId = 'resumen' | 'temperaturas' | 'evolucion' | 'precipitaciones' | 'extremos' | 'extremos-hidricos' | 'dias-lluvia' | 'episodios' | 'enso' | 'comparar';
 
 interface Seccion {
   id: SeccionId;
@@ -47,7 +48,8 @@ const CARGANDO = { estado: 'cargando', datos: null } as const;
     ExtremosHidricosComponent,
     DiasLluviaComponent,
     EpisodiosComponent,
-    ComparacionComponent
+    ComparacionComponent,
+    EnsoComponent
   ],
   templateUrl: './colmenar.component.html',
   styleUrl: './colmenar.component.css'
@@ -66,6 +68,7 @@ export class ColmenarComponent implements OnInit, OnDestroy {
     { id: 'extremos-hidricos', etiqueta: 'Extremos hídricos', icono: 'thunderstorm' },
     { id: 'dias-lluvia', etiqueta: 'Días con lluvia', icono: 'grain' },
     { id: 'episodios', etiqueta: 'Episodios cálidos', icono: 'wb_sunny' },
+    { id: 'enso', etiqueta: 'El Niño y La Niña', icono: 'waves' },
     { id: 'comparar', etiqueta: 'Comparar años', icono: 'compare_arrows' }
   ];
 

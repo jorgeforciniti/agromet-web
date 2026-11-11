@@ -1,0 +1,50 @@
+<div class="enso">
+  <p *ngIf="error" class="enso__error" role="alert">
+    No se pudo obtener el estado de El Niño.
+    <button type="button" class="enso__btn" (click)="cargar()">Reintentar</button>
+  </p>
+
+  <p *ngIf="!enso && !error" class="enso__cargando" aria-busy="true">Cargando el índice ENSO…</p>
+
+  <ng-container *ngIf="enso && ultima as t">
+    <div class="enso__resumen">
+      <div class="enso__fase" [style.--fase]="FASE_ENSO[t.fase].color">
+        <span class="enso__etiqueta">Fase actual</span>
+        <strong>{{ textoFase }}</strong>
+        <span class="enso__valor">RONI {{ nombreTemporada(t) }}: {{ fmtRoni(t.roni) }}</span>
+        <span class="enso__prov" *ngIf="t.provisoria">En curso: todavía no cumple las 5 temporadas seguidas que pide
+          CPC para registrarlo como episodio.</span>
+      </div>
+
+      <div class="enso__texto">
+        <p class="enso__alerta">
+          <mat-icon aria-hidden="true">campaign</mat-icon>
+          <span>NOAA CPC: <strong>{{ enso.estado.alerta }}</strong><ng-container *ngIf="enso.estado.fecha_discusion">
+              ({{ enso.estado.fecha_discusion | date: 'd/M/yyyy' }})</ng-container></span>
+        </p>
+        <p *ngIf="enso.estado.resumen">{{ enso.estado.resumen }}</p>
+        <p class="enso__meta">
+          <ng-container *ngIf="enso.estado.proxima_discusion">Próximo informe de CPC:
+            {{ enso.estado.proxima_discusion | date: 'd/M/yyyy' }}. </ng-container>
+          <a [href]="enso.estado.url" target="_blank" rel="noopener">Discusión de CPC (en inglés)</a>
+        </p>
+        <a class="enso__link" routerLink="/estadisticas-historicas" [queryParams]="{ seccion: 'enso' }">
+          <mat-icon aria-hidden="true">query_stats</mat-icon>
+          Cómo fueron las lluvias y temperaturas en El Colmenar con El Niño y La Niña
+        </a>
+      </div>
+    </div>
+
+    <div class="enso__grafico-wrap">
+      <app-exportar-grafico nombre="enso-roni"></app-exportar-grafico>
+      <div class="enso__grafico" role="img"
+        [attr.aria-label]="'RONI de las últimas ' + datos.labels?.length + ' temporadas; arriba de +0,5 °C, valores de El Niño; abajo de −0,5 °C, de La Niña.'">
+        <canvas baseChart type="bar" [data]="datos" [options]="opciones"></canvas>
+      </div>
+      <p class="enso__nota">Media móvil de 3 meses de la anomalía relativa del Pacífico ecuatorial (Niño 3.4). Hay episodio
+        cuando el RONI pasa el umbral durante 5 temporadas seguidas.
+        <ng-container *ngIf="enso.origen === 'fijo'">Datos de NOAA al {{ enso.actualizado | date: 'd/M/yyyy' }}: no se pudo
+          consultar la última versión.</ng-container></p>
+    </div>
+  </ng-container>
+</div>

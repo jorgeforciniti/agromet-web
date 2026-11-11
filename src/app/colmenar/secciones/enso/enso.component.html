@@ -1,0 +1,130 @@
+<div class="panel">
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__titulo">El Niño y La Niña</h2>
+      <p class="panel__sub">Cómo fueron la lluvia y las temperaturas de El Colmenar según la fase del ENSO, desde
+        {{ anioInicio }}. Las fases salen del índice RONI de NOAA CPC.</p>
+      <app-como-se-lee>
+        <p>El ENSO (El Niño–Oscilación del Sur) es el calentamiento (El Niño) o enfriamiento (La Niña) del Pacífico
+          ecuatorial, que cambia la circulación de la atmósfera y, con ella, las lluvias y temperaturas de muchas regiones.</p>
+        <p><strong>El RONI</strong> (Índice Oceánico de El Niño Relativo, de NOAA CPC) es el índice con el que CPC define
+          las fases desde 2026. Es la anomalía de la temperatura del mar en la región Niño 3.4 del Pacífico central
+          (5° N–5° S, 120°–170° O) respecto de 1991–2020, menos la anomalía media de todo el mar tropical (20° N–20° S),
+          ajustada para que varíe tanto como la de Niño 3.4 sola y promediada en temporadas de 3 meses (por ejemplo, «NDJ» es noviembre–diciembre–enero). Al restar el trópico,
+          descuenta el calentamiento general de los océanos y mide sólo cuánto más cálido o frío está el Pacífico central
+          que el resto; por eso sus valores recientes son más bajos que los del ONI, el índice que se usaba antes.</p>
+        <p>Como hace CPC, hay El Niño cuando el RONI es de +0,5 °C o más durante al menos 5 temporadas seguidas, y La Niña
+          con −0,5 °C o menos. El resto es neutro. Un El Niño es fuerte si su pico llega a +1,5 °C y muy fuerte desde
+          +2,0 °C. Los últimos valores del RONI pueden corregirse hasta dos meses después de publicados.</p>
+        <p>Cada campaña se clasifica por la fase de noviembre–diciembre–enero del año en que empieza, cuando los eventos
+          suelen estar en su pico. Sólo entran las campañas con todos sus meses completos. La diferencia con los años neutros
+          es en porcentaje para la lluvia y en °C para las temperaturas.</p>
+        <p>El gráfico mes a mes clasifica cada mes con la temporada de 3 meses centrada en él. Son promedios: un año
+          El Niño no garantiza una campaña lluviosa, como muestra la dispersión entre campañas de la misma fase.</p>
+      </app-como-se-lee>
+    </div>
+  </div>
+
+  <div class="controles">
+    <label class="campo">Variable
+      <select [value]="variable.id" (change)="setVariable($any($event.target).value)">
+        <option *ngFor="let v of variables" [value]="v.id" [selected]="v.id === variable.id">{{ v.etiqueta }} ({{ v.unidad }})</option>
+      </select>
+    </label>
+    <label class="campo">Campaña
+      <select [value]="periodo.id" (change)="setPeriodo($any($event.target).value)">
+        <option *ngFor="let p of periodos" [value]="p.id" [selected]="p.id === periodo.id">{{ p.etiqueta }}</option>
+      </select>
+    </label>
+  </div>
+
+  <p class="enso-actual" *ngIf="temporadaActual as t">
+    <span class="fase-tag" [style.background]="FASE_ENSO[t.fase].color">{{ FASE_ENSO[t.fase].nombre }}</span>
+    Último RONI: {{ nombreTemporada(t) }}, {{ fmtSigno(t.roni, 2) }} °C<ng-container *ngIf="intensidadEnso(t.pico) as i">
+      (evento {{ i }}{{ t.provisoria ? ' en curso' : '' }})</ng-container>.
+    <ng-container *ngIf="enso?.estado?.alerta as a">CPC: {{ a }}.</ng-container>
+  </p>
+</div>
+
+<div class="panel" *ngIf="estado !== 'ok'">
+  <app-estado-carga [estado]="estado" [mensaje]="mensaje" fuente="la serie de El Colmenar y del índice ENSO"
+    mensajeVacio="No hay datos mensuales desde 1950." (reintentar)="cargar()"></app-estado-carga>
+</div>
+
+<ng-container *ngIf="estado === 'ok'">
+  <div class="panel">
+    <h3 class="panel__titulo panel__titulo--sm">{{ variable.etiqueta }} de {{ periodo.etiqueta | lowercase }} según la fase</h3>
+    <p class="panel__sub">Cada punto es una campaña ({{ campanias.length }} con datos completos). La línea gris es la mediana de
+      todas.</p>
+    <app-exportar-grafico nombre="colmenar-enso-campanias"></app-exportar-grafico>
+    <div class="grafico" role="img"
+      [attr.aria-label]="variable.etiqueta + ' de cada campaña según el RONI de noviembre a enero. Promedios por fase en la tabla.'">
+      <canvas baseChart type="scatter" [data]="datosDispersion" [options]="opcionesDispersion"></canvas>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Fase</th>
+            <th scope="col" class="num">Campañas</th>
+            <th scope="col" class="num">Media ({{ variable.unidad }})</th>
+            <th scope="col" class="num">Mediana ({{ variable.unidad }})</th>
+            <th scope="col" class="num">Diferencia con neutro ({{ unidadDif }})</th>
+            <th scope="col" class="num">Sobre la mediana general</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let g of grupos" [class.fila--sub]="g.id === 'nino-fuerte'">
+            <th scope="row">
+              <span class="fase-punto" [style.background]="g.id === 'nino-fuerte' ? FASE_ENSO.nino.color : FASE_ENSO[g.id].color"></span>
+              {{ g.nombre }}
+            </th>
+            <td class="num">{{ g.n }}</td>
+            <td class="num">{{ fmt(g.media, decimales) }}</td>
+            <td class="num">{{ fmt(g.mediana, decimales) }}</td>
+            <td class="num" [ngClass]="claseDif(g.difNeutro)">{{ g.id === 'neutro' ? '—' : fmtSigno(g.difNeutro, variable.tipo === 'suma' ? 0 : 1) }}</td>
+            <td class="num">{{ g.pctSobreMediana === null ? '—' : fmt(g.pctSobreMediana, 0) + ' %' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota" *ngIf="aniosNinoFuerte.length">Campañas con El Niño fuerte o muy fuerte: {{ aniosNinoFuerte.join(', ') }}.
+      Con pocas campañas por grupo, los promedios pueden cambiar mucho con un solo año.</p>
+  </div>
+
+  <div class="panel">
+    <h3 class="panel__titulo panel__titulo--sm">{{ variable.etiqueta }} media de cada mes según la fase</h3>
+    <p class="panel__sub">Promedio de los meses completos desde {{ anioInicio }}, clasificados por la temporada de 3 meses
+      centrada en cada uno.</p>
+    <app-exportar-grafico nombre="colmenar-enso-meses"></app-exportar-grafico>
+    <div class="grafico" role="img"
+      [attr.aria-label]="variable.etiqueta + ' media de cada mes en años La Niña, neutros y El Niño. Valores en la tabla.'">
+      <canvas baseChart type="bar" [data]="datosMeses" [options]="opcionesMeses"></canvas>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th scope="col">Mes</th>
+            <th scope="col" class="num" *ngFor="let f of FASES">{{ FASE_ENSO[f].nombre }} ({{ variable.unidad }})</th>
+            <th scope="col" class="num">La Niña − neutro ({{ unidadDif }})</th>
+            <th scope="col" class="num">El Niño − neutro ({{ unidadDif }})</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of filasMes">
+            <th scope="row">{{ MESES[m.mes - 1] }}</th>
+            <td class="num" *ngFor="let f of FASES" [title]="m.porFase[f].n + ' años'">{{ fmt(m.porFase[f].media, 1) }}
+              <small class="n">({{ m.porFase[f].n }})</small></td>
+            <td class="num" [ngClass]="claseDif(difMes(m, 'nina'))">{{ fmtSigno(difMes(m, 'nina'), variable.tipo === 'suma' ? 0 : 1) }}</td>
+            <td class="num" [ngClass]="claseDif(difMes(m, 'nino'))">{{ fmtSigno(difMes(m, 'nino'), variable.tipo === 'suma' ? 0 : 1) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota">Entre paréntesis, la cantidad de años de cada promedio. RONI: NOAA Climate Prediction Center<ng-container
+        *ngIf="enso"> (actualizado al {{ enso.actualizado | date: 'd/M/yyyy' }})</ng-container>.</p>
+  </div>
+</ng-container>

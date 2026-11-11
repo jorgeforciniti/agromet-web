@@ -1,0 +1,38 @@
+.enso-actual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: .9rem;
+  color: var(--text);
+}
+
+.fase-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.fase-punto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+/* «El Niño fuerte» es un subconjunto de El Niño */
+.tabla tr.fila--sub th {
+  padding-left: 28px;
+  font-weight: 600;
+}
+
+.tabla .n {
+  color: var(--muted);
+  font-size: .75rem;
+}

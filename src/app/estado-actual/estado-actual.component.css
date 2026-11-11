@@ -117,6 +117,11 @@
   --moduleColor: var(--mod-data);
 }
 
+/* El Niño: el rojo de la fase cálida */
+.section--enso {
+  --moduleColor: #dc2626;
+}
+
 .section--alertas .section-header {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--mod-alert) 7%, white), rgba(255, 255, 255, .98));

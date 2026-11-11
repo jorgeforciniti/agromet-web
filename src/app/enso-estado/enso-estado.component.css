@@ -1,0 +1,127 @@
+.enso {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 16px;
+  padding: 18px 20px 20px;
+}
+
+.enso__resumen {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.enso__fase {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--fase) 35%, var(--border));
+  border-left: 6px solid var(--fase);
+  background: color-mix(in srgb, var(--fase) 7%, white);
+}
+
+.enso__etiqueta {
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.enso__fase strong {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.enso__valor {
+  font-size: .9rem;
+  color: var(--text);
+}
+
+.enso__prov {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.enso__texto p {
+  margin: 0 0 8px;
+  font-size: .92rem;
+  color: var(--text);
+}
+
+.enso__alerta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.enso__alerta mat-icon {
+  color: var(--muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.enso__meta {
+  color: var(--muted) !important;
+  font-size: .84rem !important;
+}
+
+.enso__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  color: var(--brand-600, var(--brand));
+  text-decoration: none;
+}
+
+.enso__link:hover {
+  text-decoration: underline;
+}
+
+.enso__grafico-wrap {
+  position: relative;
+}
+
+.enso__grafico {
+  position: relative;
+  height: 220px;
+}
+
+.enso__nota {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.enso__error,
+.enso__cargando {
+  margin: 0;
+  color: var(--muted);
+}
+
+.enso__btn {
+  margin-left: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .enso {
+    padding: 14px;
+  }
+
+  .enso__resumen {
+    grid-template-columns: 1fr;
+  }
+}

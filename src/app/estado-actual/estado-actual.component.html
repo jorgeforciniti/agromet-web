@@ -4,6 +4,7 @@
   <nav class="quick-nav" aria-label="Ir a sección">
     <a href="#sec-alertas" (click)="scrollToSection($event, 'sec-alertas')">Alertas</a>
     <a href="#sec-datos" (click)="scrollToSection($event, 'sec-datos')">Datos y pronóstico</a>
+    <a href="#sec-enso" (click)="scrollToSection($event, 'sec-enso')">El Niño</a>
   </nav>
 
   <app-mis-estaciones></app-mis-estaciones>
@@ -41,6 +42,18 @@
     </div>
     } @placeholder {
     <div class="section-loading">Cargando datos meteorológicos...</div>
+    }
+  </section>
+
+  <section class="section section--enso" id="sec-enso">
+    <header class="section-header">
+      <div class="section-kicker">PERSPECTIVA CLIMÁTICA</div>
+      <h2 class="section-title">El Niño y La Niña</h2>
+    </header>
+    @defer (on viewport) {
+    <app-enso-estado></app-enso-estado>
+    } @placeholder {
+    <div class="section-loading">Cargando el estado de El Niño...</div>
     }
   </section>
 </div>
