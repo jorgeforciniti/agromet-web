@@ -126,8 +126,8 @@
   background-clip: padding-box;
 }
 
-.rain-table tbody tr:nth-child(odd) td { background: #f8fafc; }
-.rain-table tbody tr:nth-child(even) td { background: #eef2f7; }
+/* Filas blancas, sin alternar: el color de las celdas es el desvío respecto de lo normal */
+.rain-table tbody td { background: #fff; }
 
 .rain-table tbody tr:hover td {
   box-shadow: inset 0 0 0 9999px rgba(0,0,0,.04);

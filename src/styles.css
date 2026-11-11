@@ -730,8 +730,10 @@ table td {
 }
 
 /* Zebra suave (si querés mantenerlo) */
-.do-dialog .mat-mdc-table:not(.dlg-tabla) .mat-mdc-row:nth-child(odd)  .mat-mdc-cell{ background: #f3f4f6 !important; }
-.do-dialog .mat-mdc-table:not(.dlg-tabla) .mat-mdc-row:nth-child(even) .mat-mdc-cell{ background: #d4d4d4 !important; }
+/* Sin cebra en Lluvias por campaña (.rain-table): ahí el color de cada celda es el desvío
+   respecto de lo normal, y el gris de las filas se confundiría con él */
+.do-dialog .mat-mdc-table:not(.dlg-tabla):not(.rain-table) .mat-mdc-row:nth-child(odd)  .mat-mdc-cell{ background: #f3f4f6 !important; }
+.do-dialog .mat-mdc-table:not(.dlg-tabla):not(.rain-table) .mat-mdc-row:nth-child(even) .mat-mdc-cell{ background: #d4d4d4 !important; }
 
 /* Chart full width dentro de do-dialog */
 .do-dialog .chart-wrapper{ width: 100% !important; }
