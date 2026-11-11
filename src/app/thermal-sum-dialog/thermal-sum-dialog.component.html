@@ -81,7 +81,7 @@
     </div>
 
     <div class="table-wrapper tabla-fija" *ngIf="rows.length">
-      <table mat-table [dataSource]="rows" class="thermal-table">
+      <table mat-table [dataSource]="rows" class="thermal-table dlg-tabla">
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
           <td mat-cell *matCellDef="let row">{{ formatDisplayDate(row.date) }}</td>

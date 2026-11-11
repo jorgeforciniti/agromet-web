@@ -75,36 +75,6 @@
   border-spacing: 0;
 }
 
-.thermal-table th {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: #111827;
-  color: #fff;
-  font-weight: 900;
-}
-
-.thermal-table th,
-.thermal-table td {
-  padding: 9px 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.thermal-table td {
-  color: var(--text);
-  font-weight: 700;
-  background: rgba(255,255,255,.88);
-}
-
-.thermal-table tr:nth-child(even) td {
-  background: #f8fafc;
-}
-
-.thermal-table td.is-missing {
-  color: #6b7280;
-  font-style: italic;
-}
-
 @media (max-width: 980px) {
   .table-wrapper {
     min-height: 36vh;
@@ -124,12 +94,6 @@
 
   .thermal-table {
     min-width: 520px;
-  }
-
-  .thermal-table th,
-  .thermal-table td {
-    padding: 8px 10px;
-    font-size: .9rem;
   }
 }
 
