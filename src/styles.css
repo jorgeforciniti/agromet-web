@@ -766,6 +766,9 @@ table td {
   display:flex;
   flex-direction: column;
   gap: 12px;
+  /* Un texto largo (la ayuda del semáforo, con la bibliografía) no entraba: el título y el
+     botón quedan fijos y la lista desplaza */
+  max-height: 88vh;
 }
 
 /* Título con acento */
@@ -785,6 +788,21 @@ table td {
   color: rgba(17,24,39,.85);
   font-weight: 600;
   line-height: 1.35;
+}
+
+.cdk-overlay-pane.instr-dialog .instr-list{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Subtítulos dentro de la lista («Umbrales con …», «Bibliografía:») */
+.cdk-overlay-pane.instr-dialog .instr-list .instr-subtitulo{
+  margin-top: 10px;
+  margin-left: -1.2em;
+  list-style: none;
+  font-weight: 800;
 }
 
 .cdk-overlay-pane.instr-dialog .instr-actions{
