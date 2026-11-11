@@ -210,6 +210,9 @@ export class WeatherDashboardComponent implements OnInit {
 
   /** Calendario completo del período consultado (la API omite los días sin registro) */
   private fechasPeriodo: string[] = [];
+  /** Estación y período de la última consulta (el formulario puede cambiar después) */
+  estacionConsultada = '';
+  periodoConsultado = '';
   /** Posición en el eje de los días sin registro (franjas grises) y su descripción */
   indicesSinRegistro: number[] = [];
   textoFaltantes = '';
@@ -365,6 +368,9 @@ export class WeatherDashboardComponent implements OnInit {
     const desde = this.formatDate(desdeDate);
     const hasta = this.formatDate(hastaDate);
     recordarPeriodo('datos-localidad', desdeDate, hastaDate, this.periodoPorDefecto);
+    const dma = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    this.estacionConsultada = this.getStationName(station);
+    this.periodoConsultado = `${dma(desdeDate)} a ${dma(hastaDate)}`;
 
     try {
       // 3) Ahora paso strings '2025-04-01' y no objetos Date
@@ -682,7 +688,7 @@ export class WeatherDashboardComponent implements OnInit {
     const tabNames: { [key: string]: string } = {
       summary: 'Resumen',
       charts: 'Gráficos',
-      tables: 'Tablas'
+      tables: 'Tabla'
     };
     return tabNames[tabKey] || 'Otra pestaña';
   }

@@ -67,7 +67,7 @@
   <div *ngIf="!loading && summaryData" class="content-section">
 
     <!-- Tabs -->
-    <nav mat-tab-nav-bar [tabPanel]="tabPanel" class="tab-nav">
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel" class="tab-nav" mat-stretch-tabs="false" mat-align-tabs="start">
       <a mat-tab-link
          *ngFor="let tab of ['summary', 'charts', 'tables']"
          [active]="activeTab === tab"
@@ -81,116 +81,81 @@
 
         <!-- Resumen -->
         <ng-container *ngIf="activeTab === 'summary'">
-          <h2 class="station-title">
-            {{ getStationName(weatherForm.value.station) }}
-            ( {{ summaryData.cantidadRegistros }} registros )
-          </h2>
+          <h3 class="station-title">
+            {{ estacionConsultada }}
+            <small>{{ periodoConsultado }} · {{ summaryData.cantidadRegistros }} registros</small>
+          </h3>
 
-          <div class="summary-grid">
+          <div class="resumen-grupos">
 
-            <mat-card class="summary-card summary-card--temperature">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>thermostat</mat-icon>
-                  Temperaturas
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Máxima absoluta</span><span class="value">{{ summaryData.TempMaxAbs | number:'1.1-1' }}°C</span></div>
-                <div class="data-row"><span>Mínima absoluta</span><span class="value">{{ summaryData.TempMinAbs | number:'1.1-1' }}°C</span></div>
-                <div class="data-row"><span>Máxima media</span><span class="value">{{ summaryData.tempMaxMedia | number:'1.1-1' }}°C</span></div>
-                <div class="data-row"><span>Mínima media</span><span class="value">{{ summaryData.tempMinMedia | number:'1.1-1' }}°C</span></div>
-                <div class="data-row"><span>Amplitud térmica</span><span class="value">{{ summaryData.amplitudTermica | number:'1.1-1' }}°C</span></div>
-                <div class="data-row"><span>Días con heladas</span><span class="value">{{ summaryData.diasHelada | number:'1.0-0' }}</span></div>
-                <div class="data-row"><span>Horas con heladas</span><span class="value">{{ summaryData.horasHelada | number:'1.0-1' }}</span></div>
-                <div class="data-row"><span>Horas con T ≤ 18 °C</span><span class="value">{{ summaryData.horasTMenor18 | number:'1.0-1' }}</span></div>
-                <div class="data-row"><span>Horas con T ≥ 32 °C</span><span class="value">{{ summaryData.horasTMayor32 | number:'1.0-1' }}</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo">
+              <h4><mat-icon aria-hidden="true">thermostat</mat-icon>Temperatura</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Máxima absoluta</dt><dd>{{ summaryData.TempMaxAbs | number:'1.1-1' }} °C</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima absoluta</dt><dd>{{ summaryData.TempMinAbs | number:'1.1-1' }} °C</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima media</dt><dd>{{ summaryData.tempMaxMedia | number:'1.1-1' }} °C</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima media</dt><dd>{{ summaryData.tempMinMedia | number:'1.1-1' }} °C</dd></div>
+                <div class="resumen-grupo__fila"><dt>Amplitud térmica</dt><dd>{{ summaryData.amplitudTermica | number:'1.1-1' }} °C</dd></div>
+                <div class="resumen-grupo__fila"><dt>Días con heladas</dt><dd>{{ summaryData.diasHelada | number:'1.0-0' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas con heladas</dt><dd>{{ summaryData.horasHelada | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas con T ≤ 18 °C</dt><dd>{{ summaryData.horasTMenor18 | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas con T ≥ 32 °C</dt><dd>{{ summaryData.horasTMayor32 | number:'1.0-1' }}</dd></div>
+              </dl>
+            </section>
 
-            <mat-card class="summary-card summary-card--humidity">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>water_drop</mat-icon>
-                  Humedad relativa
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Máxima absoluta</span><span class="value">{{ summaryData.humedadMaxAbs | number:'1.0-0' }} %</span></div>
-                <div class="data-row"><span>Mínima absoluta</span><span class="value">{{ summaryData.humedadMinAbs | number:'1.0-0' }} %</span></div>
-                <div class="data-row"><span>Máxima media</span><span class="value">{{ summaryData.humedadMaxMedia | number:'1.0-0' }} %</span></div>
-                <div class="data-row"><span>Mínima media</span><span class="value">{{ summaryData.humedadMinMedia | number:'1.0-0' }} %</span></div>
-                <div class="data-row"><span>Amplitud hígrica</span><span class="value">{{ summaryData.amplitudHigrica | number:'1.0-0' }} %</span></div>
-                <div class="data-row"><span>Horas HR ≤ 20 %</span><span class="value">{{ summaryData.horasMenor20 | number:'1.0-1' }}</span></div>
-                <div class="data-row"><span>Horas HR ≤ 40 %</span><span class="value">{{ summaryData.horasMenor40 | number:'1.0-1' }}</span></div>
-                <div class="data-row"><span>Horas HR ≥ 80 %</span><span class="value">{{ summaryData.horasMayor80 | number:'1.0-1' }}</span></div>
-                <div class="data-row"><span>Horas HR ≥ 90 %</span><span class="value">{{ summaryData.horasMayor90 | number:'1.0-1' }}</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo">
+              <h4><mat-icon aria-hidden="true">water_drop</mat-icon>Humedad relativa</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Máxima absoluta</dt><dd>{{ summaryData.humedadMaxAbs | number:'1.0-0' }} %</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima absoluta</dt><dd>{{ summaryData.humedadMinAbs | number:'1.0-0' }} %</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima media</dt><dd>{{ summaryData.humedadMaxMedia | number:'1.0-0' }} %</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima media</dt><dd>{{ summaryData.humedadMinMedia | number:'1.0-0' }} %</dd></div>
+                <div class="resumen-grupo__fila"><dt>Amplitud hígrica</dt><dd>{{ summaryData.amplitudHigrica | number:'1.0-0' }} %</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≤ 20 %</dt><dd>{{ summaryData.horasMenor20 | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≤ 40 %</dt><dd>{{ summaryData.horasMenor40 | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≥ 80 %</dt><dd>{{ summaryData.horasMayor80 | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≥ 90 %</dt><dd>{{ summaryData.horasMayor90 | number:'1.0-1' }}</dd></div>
+              </dl>
+            </section>
 
-            <mat-card class="summary-card summary-card--rain summary-card--compact">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>umbrella</mat-icon>
-                  Precipitaciones
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Total acumulado</span><span class="value">{{ summaryData.lluvia | number:'1.1-1' }} mm</span></div>
-                <div class="data-row"><span>Máxima diaria</span><span class="value">{{ summaryData.lluviaMaxDiaria | number:'1.1-1' }} mm</span></div>
-                <div class="data-row"><span>Días de lluvia</span><span class="value">{{ summaryData.diasLluvia }}</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo">
+              <h4><mat-icon aria-hidden="true">umbrella</mat-icon>Lluvia</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Total acumulado</dt><dd>{{ summaryData.lluvia | number:'1.1-1' }} mm</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima diaria</dt><dd>{{ summaryData.lluviaMaxDiaria | number:'1.1-1' }} mm</dd></div>
+                <div class="resumen-grupo__fila"><dt>Días de lluvia</dt><dd>{{ summaryData.diasLluvia }}</dd></div>
+              </dl>
+            </section>
 
-            <mat-card class="summary-card summary-card--compact summary-card--wind">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>air</mat-icon>
-                  Viento
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Velocidad media</span><span class="value">{{ summaryData.vientoMedio | number:'1.1-1' }} km/h</span></div>
-                <div class="data-row"><span>Ráfaga máxima</span><span class="value">{{ summaryData.VientoMaximo | number:'1.1-1' }} km/h</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo">
+              <h4><mat-icon aria-hidden="true">air</mat-icon>Viento</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Velocidad media</dt><dd>{{ summaryData.vientoMedio | number:'1.1-1' }} km/h</dd></div>
+                <div class="resumen-grupo__fila"><dt>Ráfaga máxima</dt><dd>{{ summaryData.VientoMaximo | number:'1.1-1' }} km/h</dd></div>
+              </dl>
+            </section>
 
-            <mat-card class="summary-card summary-card--compact summary-card--radiation" *ngIf="hasRadiationSensor">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>wb_sunny</mat-icon>
-                  Radiación solar
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Media diaria</span><span class="value">{{ summaryData.radSolarMedia | number:'1.1-1' }} W/m²</span></div>
-                <div class="data-row"><span>Máxima registrada</span><span class="value">{{ summaryData.radSolarMax | number:'1.1-1' }} W/m²</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo" *ngIf="hasRadiationSensor">
+              <h4><mat-icon aria-hidden="true">wb_sunny</mat-icon>Radiación solar</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Media diaria</dt><dd>{{ summaryData.radSolarMedia | number:'1.1-1' }} W/m²</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima registrada</dt><dd>{{ summaryData.radSolarMax | number:'1.1-1' }} W/m²</dd></div>
+              </dl>
+            </section>
 
-            <mat-card class="summary-card summary-card--compact summary-card--leaf" *ngIf="hasLeafWetnessSensor">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>grain</mat-icon>
-                  Humedad foliar
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Total de horas</span><span class="value">{{ summaryData.horasHumedadHoja | number:'1.0-1' }} h</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo" *ngIf="hasLeafWetnessSensor">
+              <h4><mat-icon aria-hidden="true">grain</mat-icon>Hoja mojada</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Total de horas</dt><dd>{{ summaryData.horasHumedadHoja | number:'1.0-1' }} h</dd></div>
+              </dl>
+            </section>
 
-            <mat-card class="summary-card summary-card--compact summary-card--et" *ngIf="hasRadiationSensor">
-              <mat-card-header>
-                <mat-card-title>
-                  <mat-icon>water</mat-icon>
-                  Evapotranspiración
-                </mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <div class="data-row"><span>Total del período</span><span class="value">{{ summaryData.evapotranspiracion | number:'1.1-1' }} mm</span></div>
-              </mat-card-content>
-            </mat-card>
+            <section class="resumen-grupo" *ngIf="hasRadiationSensor">
+              <h4><mat-icon aria-hidden="true">water</mat-icon>Evapotranspiración</h4>
+              <dl>
+                <div class="resumen-grupo__fila"><dt>Total del período</dt><dd>{{ summaryData.evapotranspiracion | number:'1.1-1' }} mm</dd></div>
+              </dl>
+            </section>
 
           </div>
         </ng-container>
@@ -222,12 +187,12 @@
         <!-- Tablas -->
         <ng-container *ngIf="activeTab === 'tables'">
           <div class="table-header">
-            <h3>Datos diarios ( {{ diaryData.length }} registros )</h3>
+            <h3>Datos diarios <small>{{ diaryData.length }} días</small></h3>
           </div>
 
           <!-- OJO: sin custom-dark-table (ya no existe) -->
           <div class="table-wrapper tabla-fija">
-            <table mat-table [dataSource]="truncatedDiaryData" class="tabla-datos">
+            <table mat-table [dataSource]="truncatedDiaryData" class="tabla-datos dlg-tabla">
 
               <ng-container matColumnDef="fecha">
                 <th mat-header-cell *matHeaderCellDef>Fecha</th>
@@ -292,16 +257,16 @@
               No se pueden mostrar ni descargar más de 31 días: se muestran los últimos 31 del período.
             </div>
 
-            <div class="table-actions">
-              <button mat-flat-button color="accent" (click)="downloadCSV()">
-                <mat-icon>download</mat-icon>
-                Descargar archivo para Excel
-              </button>
-              <p class="table-hint">
-                El archivo CSV está separado por comas y se puede abrir con Excel.
-              </p>
-            </div>
+          </div>
 
+          <div class="table-actions">
+            <button mat-stroked-button type="button" (click)="downloadCSV()">
+              <mat-icon>download</mat-icon>
+              Descargar archivo para Excel
+            </button>
+            <p class="table-hint">
+              El archivo CSV está separado por comas y se puede abrir con Excel.
+            </p>
           </div>
         </ng-container>
 
@@ -312,9 +277,4 @@
   </div>
 
 </mat-dialog-content>
-
-
-
-
-
 

@@ -37,18 +37,6 @@
   margin-top: 6px;
 }
 
-.do-dialog ::ng-deep .mat-mdc-tab-link{
-  color: var(--muted) !important;
-  font-weight: 800;
-  opacity: 1 !important;
-}
-.do-dialog ::ng-deep .mat-mdc-tab-link.mdc-tab--active{
-  color: var(--text) !important;
-}
-.do-dialog ::ng-deep .mat-mdc-tab-header{
-  border-bottom: 1px solid var(--border) !important;
-}
-
 /* El panel debe ser flex para ocupar alto restante. Sin min-height:0: así puede crecer
    cuando hay lugar (gráfico) pero no se comprime por debajo de su contenido real
    cuando no lo hay (tabla larga), que es lo que causaba la superposición con el
@@ -66,110 +54,73 @@ mat-tab-nav-panel{
   display: flex;
   flex-direction: column;
 
-  margin-top: 12px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: var(--shadow-sm);
+  margin-top: 16px;
 }
 
 /* =========================
-   Summary cards
+   Resumen: grupos en columnas, sin tarjetas
    ========================= */
 .station-title{
-  margin: 2px 0 12px;
-  text-align: center;
-  color: rgba(79,121,50,.95);
-  font-weight: 900;
-}
-
-.summary-grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  padding: 0 0 18px;
-}
-.summary-card{
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
-}
-.summary-card mat-card-title{
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
   color: var(--text);
-  font-weight: 900;
 }
-.summary-card mat-icon{
-  color: rgba(79,121,50,.95);
-}
-.summary-card--compact{
-  align-self: start;
-}
-.summary-card--compact .mat-mdc-card-header{
-  padding-bottom: 4px;
-}
-.summary-card--compact .mat-mdc-card-content{
-  padding-top: 0;
-}
-.summary-card--compact .data-row{
-  padding: 7px 0;
+.station-title small{
+  margin-left: 8px;
+  font-family: var(--font-sans);
+  font-size: .85rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 
-@media (min-width: 1180px){
-  .summary-grid{
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-flow: row dense;
-    align-items: start;
-  }
-
-  .summary-card--temperature{
-    grid-column: 1;
-    grid-row: 1 / span 2;
-  }
-
-  .summary-card--humidity{
-    grid-column: 2;
-    grid-row: 1 / span 2;
-  }
-
-  .summary-card--rain{
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .summary-card--wind{
-    grid-column: 4;
-    grid-row: 1;
-  }
-
-  .summary-card--radiation{
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .summary-card--leaf{
-    grid-column: 4;
-    grid-row: 2;
-  }
-
-  .summary-card--et{
-    grid-column: 4;
-    grid-row: 3;
-  }
+.resumen-grupos{
+  columns: 3 240px;
+  column-gap: 32px;
+  padding-bottom: 8px;
 }
-
-.data-row{
+.resumen-grupo{
+  break-inside: avoid;
+  margin: 0 0 18px;
+}
+.resumen-grupo h4{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.resumen-grupo h4 mat-icon{
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  color: var(--brand);
+}
+.resumen-grupo dl{
+  margin: 0;
+}
+.resumen-grupo__fila{
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed rgba(0,0,0,.08);
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
-.data-row:last-child{ border-bottom: 0; }
-.data-row span{ color: var(--muted); }
-.data-row span.value{
-  color: rgba(79,121,50,.95);
-  font-weight: 900;
+.resumen-grupo__fila dt{
+  color: var(--muted);
+  font-size: .9rem;
+}
+.resumen-grupo__fila dd{
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* =========================
@@ -227,13 +178,32 @@ mat-tab-nav-panel{
     linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) 100% 0,
     linear-gradient(to right, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 0 0,
     linear-gradient(to left, rgba(15, 23, 42, .16), rgba(15, 23, 42, 0) 14px) 100% 0,
-    linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255, 255, 255, .99));
+    var(--surface);
   background-repeat: no-repeat;
   background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%, 100% 100%;
   background-attachment: local, local, scroll, scroll, local;
 }
 
-/* Título */
+.table-header h3{
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.table-header h3 small{
+  margin-left: 6px;
+  font-family: var(--font-sans);
+  font-size: .85rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.limit-message{
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
 .tabla-datos{
   width: 100% !important;
   min-width: 920px;
@@ -241,46 +211,6 @@ mat-tab-nav-panel{
   border-collapse: separate;
   border-spacing: 0;
   background: transparent;
-}
-
-/* Sticky header: MDC + legacy */
-.do-dialog ::ng-deep .tabla-datos .mat-mdc-header-row,
-.do-dialog ::ng-deep .tabla-datos tr.mat-header-row{
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 70 !important;
-}
-.do-dialog ::ng-deep .tabla-datos .mat-mdc-header-cell,
-.do-dialog ::ng-deep .tabla-datos th.mat-header-cell{
-  background: #111 !important;
-  color: #fff !important;
-  font-weight: 900 !important;
-  border-bottom: 1px solid rgba(255,255,255,.12) !important;
-  background-clip: padding-box !important;
-}
-
-/* Celdas */
-.do-dialog ::ng-deep .tabla-datos .mat-mdc-cell,
-.do-dialog ::ng-deep .tabla-datos td.mat-cell{
-  color: var(--text) !important;
-  border-bottom: 1px solid var(--border) !important;
-  background: transparent !important;
-}
-
-/* Zebra */
-.do-dialog ::ng-deep .tabla-datos .mat-mdc-row:nth-child(odd)  .mat-mdc-cell,
-.do-dialog ::ng-deep .tabla-datos tr.mat-row:nth-child(odd) td.mat-cell{
-  background: #f3f4f6 !important;
-}
-.do-dialog ::ng-deep .tabla-datos .mat-mdc-row:nth-child(even) .mat-mdc-cell,
-.do-dialog ::ng-deep .tabla-datos tr.mat-row:nth-child(even) td.mat-cell{
-  background: #e5e7eb !important;
-}
-
-/* Hover suave */
-.do-dialog ::ng-deep .tabla-datos .mat-mdc-row:hover .mat-mdc-cell,
-.do-dialog ::ng-deep .tabla-datos tr.mat-row:hover td.mat-cell{
-  box-shadow: inset 0 0 0 9999px rgba(0,0,0,.04);
 }
 
 /* Footer table */
@@ -301,7 +231,6 @@ mat-tab-nav-panel{
    Responsive
    ========================= */
 @media (max-width: 768px){
-  .tab-content{ padding: 12px; }
   .tabla-datos{ min-width: 860px; }
 }
 
