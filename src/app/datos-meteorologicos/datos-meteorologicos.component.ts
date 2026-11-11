@@ -17,6 +17,8 @@ interface Tarjeta {
   titulo: string;
   /** Aclaración junto al nombre (por ejemplo, que el resultado es una estimación) */
   nota?: string;
+  /** Ícono de Material que anticipa qué muestra la herramienta */
+  icono: string;
 }
 
 interface Grupo {
@@ -34,31 +36,31 @@ const GRUPOS: Grupo[] = [
     titulo: 'Hoy',
     descripcion: 'Datos en vivo de las estaciones.',
     tarjetas: [
-      { herramienta: 'tiempo-real', pregunta: '¿Qué marcan las estaciones ahora?', titulo: 'Datos en tiempo real' },
-      { herramienta: 'aplicar', pregunta: '¿Puedo aplicar hoy?', titulo: 'Condiciones para aplicar agroquímicos' }
+      { herramienta: 'tiempo-real', icono: 'sensors', pregunta: '¿Qué marcan las estaciones ahora?', titulo: 'Datos en tiempo real' },
+      { herramienta: 'aplicar', icono: 'agriculture', pregunta: '¿Puedo aplicar hoy?', titulo: 'Condiciones para aplicar agroquímicos' }
     ]
   },
   {
     titulo: 'Esta campaña',
     descripcion: 'Desde una fecha o por etapa del cultivo.',
     tarjetas: [
-      { herramienta: 'campania-lluvias', pregunta: '¿Cuánto llovió desde que empezó la campaña?', titulo: 'Lluvias por campaña' },
-      { herramienta: 'balance-hidrico', pregunta: '¿Cuánta agua tendría el suelo?', titulo: 'Balance hidrológico seriado',
+      { herramienta: 'campania-lluvias', icono: 'water_drop', pregunta: '¿Cuánto llovió desde que empezó la campaña?', titulo: 'Lluvias por campaña' },
+      { herramienta: 'balance-hidrico', icono: 'water', pregunta: '¿Cuánta agua tendría el suelo?', titulo: 'Balance hidrológico seriado',
         nota: 'Estimación teórica' },
-      { herramienta: 'fenologia', pregunta: '¿Cómo fue el tiempo en cada etapa del cultivo?', titulo: 'Meteorología por estadíos fenológicos' },
-      { herramienta: 'enfermedades', pregunta: '¿Hubo condiciones para enfermedades?', titulo: 'Condiciones para enfermedades' },
-      { herramienta: 'horas-frio', pregunta: '¿Cuántas horas de frío se acumularon?', titulo: 'Horas de frío' },
-      { herramienta: 'suma-termica', pregunta: '¿Cuántos grados-día lleva el cultivo?', titulo: 'Sumas térmicas' },
-      { herramienta: 'rinde-soja', pregunta: '¿Cuánto puede rendir la soja?', titulo: 'Estimador de rindes de soja' }
+      { herramienta: 'fenologia', icono: 'eco', pregunta: '¿Cómo fue el tiempo en cada etapa del cultivo?', titulo: 'Meteorología por estadíos fenológicos' },
+      { herramienta: 'enfermedades', icono: 'coronavirus', pregunta: '¿Hubo condiciones para enfermedades?', titulo: 'Condiciones para enfermedades' },
+      { herramienta: 'horas-frio', icono: 'ac_unit', pregunta: '¿Cuántas horas de frío se acumularon?', titulo: 'Horas de frío' },
+      { herramienta: 'suma-termica', icono: 'device_thermostat', pregunta: '¿Cuántos grados-día lleva el cultivo?', titulo: 'Sumas térmicas' },
+      { herramienta: 'rinde-soja', icono: 'grass', pregunta: '¿Cuánto puede rendir la soja?', titulo: 'Estimador de rindes de soja' }
     ]
   },
   {
     titulo: 'Otros años',
     descripcion: 'Series diarias y comparaciones.',
     tarjetas: [
-      { herramienta: 'datos-localidad', pregunta: '¿Qué registró la estación en un período?', titulo: 'Datos por localidad' },
-      { herramienta: 'comparar-anios', pregunta: '¿Este año viene distinto a otro?', titulo: 'Comparación entre años' },
-      { herramienta: 'comparar-localidades', pregunta: '¿Cómo se compara con otra localidad?', titulo: 'Comparación entre localidades' }
+      { herramienta: 'datos-localidad', icono: 'table_chart', pregunta: '¿Qué registró la estación en un período?', titulo: 'Datos por localidad' },
+      { herramienta: 'comparar-anios', icono: 'date_range', pregunta: '¿Este año viene distinto a otro?', titulo: 'Comparación entre años' },
+      { herramienta: 'comparar-localidades', icono: 'compare_arrows', pregunta: '¿Cómo se compara con otra localidad?', titulo: 'Comparación entre localidades' }
     ]
   }
 ];

@@ -30,6 +30,7 @@
       <ul class="dm-grupo__lista">
         <li *ngFor="let t of g.tarjetas">
           <button type="button" class="dm-pregunta" (click)="abrir(t)">
+            <span class="dm-pregunta__icono" aria-hidden="true"><mat-icon>{{ t.icono }}</mat-icon></span>
             <span class="dm-pregunta__texto">{{ t.pregunta }}</span>
             <span class="dm-pregunta__herramienta">
               {{ t.titulo }}<span class="dm-pregunta__nota" *ngIf="t.nota">{{ t.nota }}</span>

@@ -127,7 +127,9 @@
 .dm-pregunta {
   width: 100%;
   display: grid;
-  gap: 3px;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 3px;
   padding: 10px;
   border: 1px solid transparent;
   border-radius: 12px;
@@ -141,6 +143,34 @@
 .dm-pregunta:hover {
   background: var(--surface);
   border-color: var(--border);
+}
+
+/* Ícono de la herramienta: ocupa las dos líneas (pregunta y nombre) */
+.dm-pregunta__icono {
+  grid-row: 1 / span 2;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.dm-pregunta__icono mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.dm-pregunta:hover .dm-pregunta__icono {
+  background: var(--brand);
+  color: #fff;
+}
+
+.dm-pregunta__texto,
+.dm-pregunta__herramienta {
+  grid-column: 2;
 }
 
 .dm-pregunta:focus-visible {
