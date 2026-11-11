@@ -270,8 +270,16 @@ body {
   display: contents;
 }
 
-.dlg-campos {
+/* Lo que va en el <form> ocupa todo el ancho, salvo la fila del botón */
+.dlg-form > form > * {
   grid-column: 1 / -1;
+}
+
+.dlg-form > form > .dlg-acciones {
+  grid-column: 1;
+}
+
+.dlg-campos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
@@ -384,12 +392,9 @@ body {
     padding: 14px 12px 18px;
   }
 
-  .dlg-form {
-    padding: 12px;
-  }
-
   .dlg-campos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .dlg-campo--ancho {
@@ -398,6 +403,25 @@ body {
 
   .dlg-form {
     grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  /* Campos de a dos: menos relleno y un botón de calendario más chico para que la fecha
+     completa (dd/mm/aaaa) entre en media fila */
+  .dlg-form .mdc-text-field--outlined {
+    padding-left: 10px;
+    padding-right: 4px;
+  }
+
+  .dlg-form .mat-mdc-form-field-icon-suffix {
+    padding-left: 0;
+  }
+
+  .dlg-form .mat-datepicker-toggle .mat-mdc-icon-button {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
   }
 
   .dlg-acciones .dlg-calcular {
