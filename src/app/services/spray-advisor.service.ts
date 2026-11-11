@@ -83,8 +83,9 @@ interface MetodoRule {
  * - gustDeltaYellow/gustDeltaRed (ráfaga − viento medio, turbulencia): criterio propio, sin fuente.
  * - popRed/popYellow: pensados para probabilidad de lluvia de un pronóstico; con datos medidos
  *   cualquier lluvia registrada cuenta como probabilidad 1 (rojo).
- * - Inversión (inversionProbable): proxy propio (noche, viento medio < 5 km/h y HR ≥ 85 %), sin fuente;
- *   agrava el semáforo junto con ΔT < 2.
+ * - Inversión (inversionProbable): proxy propio (viento medio < 5 km/h y HR ≥ 85 %) dentro del horario
+ *   de INTA Pergamino (desde una hora antes de la puesta hasta una hora después de la salida del sol,
+ *   citado por AgroSpray, 2020); agrava el semáforo junto con ΔT < 2.
  */
 const RULES: Record<MetodoAplicacion, MetodoRule> = {
   MOSQUITO: {
@@ -164,7 +165,7 @@ export function describirUmbrales(metodo: MetodoAplicacion): string[] {
     `Ráfaga: verde hasta ${num(r.rafagaKmh.verde)} km/h, amarillo hasta ${num(r.rafagaKmh.amarillo)} km/h, rojo por encima (${fuenteViento[metodo]}).`,
   ];
   if (r.medioKmh) {
-    lineas.push(`Viento medio (techo): desde ${num(r.medioKmh.amarillo)} km/h, amarillo; más de ${num(r.medioKmh.rojo)} km/h, rojo (INTA EEA Oliveros; Queensland Government).`);
+    lineas.push(`Viento medio (techo): desde ${num(r.medioKmh.amarillo)} km/h, amarillo; más de ${num(r.medioKmh.rojo)} km/h, rojo (INTA EEA Oliveros; Queensland Government). AAPRESID, citada por AgroSpray, recomienda menos de 10 km/h.`);
   }
   lineas.push(
     `Ráfaga menos viento medio (turbulencia): desde ${num(r.gustDeltaYellow)} km/h, amarillo; desde ${num(r.gustDeltaRed)} km/h, rojo (criterio propio).`,
@@ -187,10 +188,15 @@ export const BIBLIOGRAFIA_APLICACION: string[] = [
   'INTA EEA Oliveros. Delta T como indicador del ambiente para pulverizar: 15 km/h es el viento máximo de buena práctica.',
   'INTA Pergamino. Caracterización del fenómeno de inversión térmica (Engormix): viento de 4,2 km/h o menos como indicador de inversión.',
   'Engormix. Conocer y manejar parámetros para reducir la deriva: viento de 5 a 15 km/h; con menos de 5 km/h, probable inversión.',
+  'AgroSpray (2020). Fitosanitarios: ¿cómo les influyen las condiciones climáticas? (agrospray.com.ar). Cita a AAPRESID: viento menor a 10 km/h, temperatura menor a 30 °C, humedad relativa mayor a 55 % y ΔT de 2 a 8 °C; y a INTA Pergamino: la inversión empieza una hora antes de la puesta del sol y termina una hora después de la salida.',
+  'AgroSpray (2026). El clima también se calibra: cómo tomar la decisión de pulverizar en la campaña 2026/27 (agrospray.com.ar). Viento de 4 a 9 km/h según distintas guías; ante sospecha de inversión, no pulverizar.',
   'Queensland Government. Minimising the impacts of spray drift: viento ideal de 3 a 15 km/h.',
   'NOAA SWPC. Space Weather Scales: escala de tormentas geomagnéticas (G1 desde Kp 5).',
   'Stull, R. (2011). Wet-bulb temperature from relative humidity and air temperature. Journal of Applied Meteorology and Climatology, 50: 2267-2269 (cálculo del ΔT).',
 ];
+
+/** La inversión empieza una hora antes de la puesta y termina una hora después de la salida del sol */
+const MARGEN_INVERSION_S = 3600;
 
 /** Argentina: UTC−3 todo el año. */
 const HUSO_ARGENTINA_MS = -3 * 3600 * 1000;
@@ -411,13 +417,14 @@ export class SprayAdvisorService {
   }
 
   /**
-   * Noche: antes de la salida o después de la puesta del sol (segundos Unix UTC). Sin salida y
+   * Horario con posible inversión: desde una hora antes de la puesta del sol hasta una hora después
+   * de la salida (INTA Pergamino, citado por AgroSpray, 2020), en segundos Unix UTC. Sin salida y
    * puesta no se puede saber: se devuelve false (ya no hay horario fijo). evaluarRegistro() las
    * calcula siempre con salidaPuestaSol().
    */
   isNightFromUnix(dtUtc: number, sunriseUtc?: number, sunsetUtc?: number): boolean {
     if (sunriseUtc == null || sunsetUtc == null) return false;
-    return dtUtc < sunriseUtc || dtUtc > sunsetUtc;
+    return dtUtc < sunriseUtc + MARGEN_INVERSION_S || dtUtc > sunsetUtc - MARGEN_INVERSION_S;
   }
 
   /**

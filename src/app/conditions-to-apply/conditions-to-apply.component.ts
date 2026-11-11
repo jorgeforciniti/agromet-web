@@ -606,7 +606,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   /**
    * Única evaluación de la vista: la usan la tabla y el mapa. Reglas en
    * SprayAdvisorService.evaluarRegistro (ráfaga como referencia, «Sin evaluar» si falta un dato,
-   * noche según salida y puesta del sol); acá se suman las razones por producto y gota.
+   * horario de inversión según salida y puesta del sol); acá se suman las razones por producto y gota.
    */
   private evaluarRegistro(reg: RegistroMeteo, kp: number | null): ResultadoEvaluacion {
     const r = this.advisor.evaluarRegistro(reg, {
@@ -898,7 +898,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       title: 'Inversión térmica',
       body: [
         'Aire estable: la nube puede viajar lejos sin dispersarse.',
-        'Se estima probable de noche (entre la puesta y la salida del sol en la estación) con viento medio menor a 5 km/h y HR de 85 % o más (criterio propio; INTA Pergamino toma un viento de 4,2 km/h o menos como indicador de inversión).',
+        'Se estima probable desde una hora antes de la puesta del sol hasta una hora después de la salida (INTA Pergamino, citado por AgroSpray, 2020), con viento medio menor a 5 km/h y HR de 85 % o más (criterio propio; INTA Pergamino toma un viento de 4,2 km/h o menos como indicador de inversión).',
         'Riesgo alto de deriva a larga distancia.'
       ]
     },
