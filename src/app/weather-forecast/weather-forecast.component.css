@@ -141,10 +141,8 @@
   border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
   background: rgba(255,255,255,.88);
   color: color-mix(in srgb, var(--brand) 72%, #475467);
-  font-size: .78rem;
-  font-weight: 900;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+  font-size: .84rem;
+  font-weight: 700;
 }
 
 .station-header {
@@ -163,7 +161,9 @@
   margin: 0;
   font: 900 1.12rem var(--font-sans);
   color: var(--text);
-  flex: 1 1 auto;
+  /* Base 0: un nombre largo se corta en el título en vez de pasar solo a otra línea */
+  flex: 1 1 0;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -219,6 +219,21 @@
   min-height: 72px;
 }
 
+/* Tiempo real: la temperatura es la cifra principal, a todo el ancho */
+.forecast-wrapper--realtime .metric:first-child {
+  grid-column: 1 / -1;
+  min-height: 0;
+  padding: 14px 10px 12px;
+}
+
+.forecast-wrapper--realtime .metric:first-child .value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 3rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
 .station-sun {
   display: flex;
   justify-content: space-between;
@@ -241,7 +256,6 @@
 
 .forecast-title span {
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .forecast-lead {
@@ -514,16 +528,20 @@
   background: transparent !important;
 }
 
+/* Los días en una fila arriba; debajo, el detalle cada 3 horas y el gráfico del día elegido.
+   Así entra junto al panel de tiempo real en Estado actual. */
 .forecast-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 460px) minmax(360px, 760px);
-  justify-content: center;
-  height: clamp(430px, 50vh, 560px);
-  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 1.5fr);
+  grid-template-rows: auto auto;
   grid-template-areas:
-    "week chart"
+    "week week"
     "hours chart";
   gap: 14px;
+}
+
+.forecast-grid .chart-card {
+  height: 300px;
 }
 
 .forecast-week { grid-area: week; min-width: 0; }

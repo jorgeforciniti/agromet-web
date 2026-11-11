@@ -51,7 +51,7 @@
 
         <div class="realtime-label"><mat-icon
             style="font-size: 16px; vertical-align: bottom; color:#c5f366">sensors</mat-icon>
-          <span>Datos en tiempo real de estaciones automáticas EEAOC</span>
+          <span>Ahora, en la estación automática</span>
         </div>
         <header class="station-header">
           <mat-icon class="station-icon">location_on</mat-icon>
@@ -63,7 +63,7 @@
           </h3>
 
           <!-- Selector -->
-          <mat-form-field appearance="outline" class="station-select">
+          <mat-form-field appearance="outline" class="station-select" *ngIf="conSelector">
             <mat-label>Selecciona estación</mat-label>
             <mat-select [(ngModel)]="selectedStation" (selectionChange)="selectStation($event.value)"
               [compareWith]="compareStations" [panelClass]="'full-screen-select'">

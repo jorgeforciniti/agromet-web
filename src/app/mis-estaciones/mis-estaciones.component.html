@@ -1,4 +1,4 @@
-<section class="mis-estaciones" aria-labelledby="mis-estaciones-titulo">
+<section *ngIf="!compacto; else versionCompacta" class="mis-estaciones" aria-labelledby="mis-estaciones-titulo">
   <header class="mis-estaciones__head">
     <h2 id="mis-estaciones-titulo" class="mis-estaciones__titulo">
       <span aria-hidden="true">★</span> Mis estaciones
@@ -6,25 +6,7 @@
     <a *ngIf="hayFavoritas" routerLink="/estaciones" class="mis-estaciones__admin">Administrar favoritas</a>
   </header>
 
-  <!-- Alertas propias (Mi cuenta) que se cumplen con el último dato medido -->
-  <ul *ngIf="disparadas.length" class="mis-estaciones__alertas" role="status">
-    <li *ngFor="let d of disparadas">
-      <mat-icon aria-hidden="true">notifications_active</mat-icon>
-      <span>
-        <strong>{{ nombreEstacion(d.alerta.estacion_id) }}:</strong>
-        {{ tipos[d.alerta.variable].texto | lowercase }} {{ d.alerta.umbral | number:'1.0-1' }} {{ tipos[d.alerta.variable].unidad }}
-        — medido {{ d.valor | number:'1.1-1' }} {{ tipos[d.alerta.variable].unidad }}
-      </span>
-      <a routerLink="/mi-cuenta" fragment="alertas">Ver</a>
-    </li>
-  </ul>
-
-  <!-- Primera vez con sesión: la cuenta no tiene favoritas pero este navegador sí -->
-  <div *ngIf="(ofrecerImportar$ | async) as n" class="mis-estaciones__importar" role="status">
-    <span>¿Agregar a tu cuenta {{ n === 1 ? 'la favorita' : 'las ' + n + ' favoritas' }} de este navegador?</span>
-    <button type="button" class="tarjeta__btn tarjeta__btn--principal" (click)="importar(true)">Agregar</button>
-    <button type="button" class="tarjeta__btn" (click)="importar(false)">No, gracias</button>
-  </div>
+  <ng-container *ngTemplateOutlet="avisos"></ng-container>
 
   <!-- Sin favoritas: una sola línea que explica cómo agregarlas -->
   <p *ngIf="!hayFavoritas" class="mis-estaciones__vacio">
@@ -91,3 +73,55 @@
     </li>
   </ul>
 </section>
+
+<!-- Alertas propias que se cumplen y oferta de pasar las favoritas a la cuenta (en las dos versiones) -->
+<ng-template #avisos>
+  <!-- Alertas propias (Mi cuenta) que se cumplen con el último dato medido -->
+  <ul *ngIf="disparadas.length" class="mis-estaciones__alertas" role="status">
+    <li *ngFor="let d of disparadas">
+      <mat-icon aria-hidden="true">notifications_active</mat-icon>
+      <span>
+        <strong>{{ nombreEstacion(d.alerta.estacion_id) }}:</strong>
+        {{ tipos[d.alerta.variable].texto | lowercase }} {{ d.alerta.umbral | number:'1.0-1' }} {{ tipos[d.alerta.variable].unidad }}
+        — medido {{ d.valor | number:'1.1-1' }} {{ tipos[d.alerta.variable].unidad }}
+      </span>
+      <a routerLink="/mi-cuenta" fragment="alertas">Ver</a>
+    </li>
+  </ul>
+
+  <!-- Primera vez con sesión: la cuenta no tiene favoritas pero este navegador sí -->
+  <div *ngIf="(ofrecerImportar$ | async) as n" class="mis-estaciones__importar" role="status">
+    <span>¿Agregar a tu cuenta {{ n === 1 ? 'la favorita' : 'las ' + n + ' favoritas' }} de este navegador?</span>
+    <button type="button" class="tarjeta__btn tarjeta__btn--principal" (click)="importar(true)">Agregar</button>
+    <button type="button" class="tarjeta__btn" (click)="importar(false)">No, gracias</button>
+  </div>
+</ng-template>
+
+<!-- Versión compacta (Estado actual): las favoritas como botones con su temperatura, para cambiar
+     la estación activa con un toque. La predeterminada y quitar quedan en la versión completa. -->
+<ng-template #versionCompacta>
+  <div class="mis-chips" role="group" aria-label="Mis estaciones favoritas">
+    <ng-container *ngTemplateOutlet="avisos"></ng-container>
+
+    <div class="mis-chips__fila">
+      <span class="mis-chips__titulo"><span aria-hidden="true">★</span> Favoritas</span>
+
+      <ng-container *ngIf="hayFavoritas && !error; else sinFavoritas">
+        <button *ngFor="let t of tarjetas" type="button" class="mis-chip" [class.mis-chip--activa]="t.activa"
+          [class.mis-chip--atrasada]="t.atrasada" [attr.aria-pressed]="t.activa" (click)="usar(t.id)"
+          [title]="t.ubicacion + (t.actualizado ? ' · ' + (t.atrasada ? 'último dato ' + (t.actualizado | date:'dd/MM HH:mm') : 'actualizado ' + (t.actualizado | date:'HH:mm')) : '')">
+          <span class="mis-chip__nombre">{{ t.nombre }}</span>
+          <span class="mis-chip__temp">{{ t.temp !== null ? (t.temp | number:'1.1-1') + ' °C' : '—' }}</span>
+        </button>
+        <a routerLink="/estaciones" class="mis-chips__admin">Administrar</a>
+      </ng-container>
+
+      <ng-template #sinFavoritas>
+        <span class="mis-chips__vacio" *ngIf="!error">
+          Marcá con ☆ tus estaciones en <a routerLink="/estaciones">Red de estaciones</a> para tenerlas a un toque.
+        </span>
+        <span class="mis-chips__vacio" *ngIf="error">No se pudieron cargar tus favoritas.</span>
+      </ng-template>
+    </div>
+  </div>
+</ng-template>

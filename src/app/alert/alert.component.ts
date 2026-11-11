@@ -143,6 +143,11 @@ export class AlertComponent implements OnInit {
   cargado = false;
   readonly periodos = PERIODOS;
 
+  /** Ya respondió el SMN y no hay alertas ni avisos a corto plazo vigentes */
+  get sinAvisos(): boolean {
+    return this.cargado && !this.eventos.length && !this.avisosCorto.length;
+  }
+
   constructor(
     private weatherService: WeatherService,
     private dialog: MatDialog

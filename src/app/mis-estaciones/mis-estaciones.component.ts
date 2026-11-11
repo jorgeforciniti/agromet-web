@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +37,9 @@ interface TarjetaEstacion {
   styleUrl: './mis-estaciones.component.css'
 })
 export class MisEstacionesComponent implements OnInit, OnDestroy {
+  /** true: sólo botones con el nombre y la temperatura, para cambiar la activa (Estado actual) */
+  @Input() compacto = false;
+
   tarjetas: TarjetaEstacion[] = [];
   /** Hay favoritas guardadas (aunque sus datos todavía no hayan llegado) */
   hayFavoritas = false;

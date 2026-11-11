@@ -1,11 +1,13 @@
 <div class="alert-container">
-  <div class="alert-section" *ngIf="smnAlertsByArea">
+  <!-- Sin alertas ni avisos: todo queda en una franja verde de una línea -->
+  <div class="alert-section" *ngIf="smnAlertsByArea" [class.alert-section--calma]="sinAvisos">
     <div class="alert-title-row">
-      <div class="alert-kicker">RIESGO METEOROLÓGICO</div>
       <h2 class="alert-title">
-        <mat-icon aria-hidden="true">warning_amber</mat-icon>
-        Alertas meteorológicas
-        <span class="alert-title__source">SMN</span>
+        <mat-icon aria-hidden="true">{{ sinAvisos ? 'check_circle' : (cargado ? 'warning_amber' : 'notifications_none') }}</mat-icon>
+        <ng-container *ngIf="sinAvisos; else conAvisos">
+          Sin alertas ni avisos del SMN para Tucumán y Valles Calchaquíes
+        </ng-container>
+        <ng-template #conAvisos>Alertas y avisos del SMN</ng-template>
       </h2>
       <div class="alert-updated" *ngIf="actualizado">
         Actualizado {{ actualizado | date:'dd/MM HH:mm' }} ·
@@ -64,13 +66,6 @@
         </div>
       </article>
     </div>
-
-    <ng-container *ngIf="cargado && !eventos.length && !avisosCorto.length">
-      <div class="no-alerts-message">
-        <mat-icon>check_circle</mat-icon>
-        <span><strong>Sin alertas vigentes.</strong> No hay eventos activos para Tucumán ni Valles Calchaquíes.</span>
-      </div>
-    </ng-container>
 
     <!-- Una tarjeta por evento y nivel: qué pasa, cuándo y dónde, y qué hacer -->
     <div class="eventos" *ngIf="eventos.length">

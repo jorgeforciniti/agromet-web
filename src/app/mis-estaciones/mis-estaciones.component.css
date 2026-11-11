@@ -277,3 +277,91 @@
   color: #9a3412;
   font-weight: 800;
 }
+
+/* ===== Versión compacta: favoritas como botones ===== */
+.mis-chips {
+  display: grid;
+  gap: 8px;
+}
+
+.mis-chips .mis-estaciones__alertas,
+.mis-chips .mis-estaciones__importar {
+  margin: 0;
+}
+
+.mis-chips__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.mis-chips__titulo {
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.mis-chips__titulo span {
+  color: #d4a017;
+}
+
+.mis-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.mis-chip:hover {
+  border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+}
+
+.mis-chip:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 55%, white);
+  outline-offset: 2px;
+}
+
+.mis-chip__nombre {
+  font-weight: 600;
+}
+
+.mis-chip__temp {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mis-chip--activa {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.mis-chip--activa .mis-chip__temp {
+  color: rgba(255, 255, 255, .85);
+}
+
+/* Último dato que no es de hoy: la temperatura no refleja el momento */
+.mis-chip--atrasada .mis-chip__temp {
+  font-style: italic;
+}
+
+.mis-chips__admin {
+  margin-left: 4px;
+  color: var(--brand-600);
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.mis-chips__vacio {
+  color: var(--muted);
+  font-size: .88rem;
+}

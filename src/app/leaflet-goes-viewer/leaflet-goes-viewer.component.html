@@ -1,5 +1,5 @@
 ﻿  <div class="viewer-container">
-    <h2 class="panel-title"><mat-icon>layers</mat-icon> Visor de capas meteorológicas</h2>
+    <h2 class="panel-title"><mat-icon>layers</mat-icon> La provincia ahora</h2>
     <!-- El componente se llama «GOES» por historia: ninguna capa usa imágenes GOES. Se deja el nombre (y la
          ruta) para no romper referencias. -->
     <app-como-se-lee>
@@ -19,18 +19,13 @@
         no la hora exacta de la imagen.</p>
     </app-como-se-lee>
 
-    <div class="map-toolbar">
-      <label class="map-toolbar__field">
-        <span>Capa</span>
-        <mat-form-field appearance="outline" class="select-wrapper" subscriptSizing="dynamic">
-          <mat-select [(ngModel)]="selectedLayer" (selectionChange)="setLayer($event.value)"
-            aria-label="Seleccioná una capa" title="Seleccioná una capa">
-            <mat-option *ngFor="let key of layerKeys" [value]="key">
-              {{ layers[key].name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </label>
+    <!-- Capas como botones: se ven todas y se cambia con un toque -->
+    <div class="map-capas" role="group" aria-label="Capa del mapa">
+      <button type="button" class="map-capa" *ngFor="let key of layerKeys"
+        [class.map-capa--activa]="selectedLayer === key" [attr.aria-pressed]="selectedLayer === key"
+        [title]="layers[key].name" (click)="selectedLayer = key; setLayer(key)">
+        {{ etiquetaCapa(key) }}
+      </button>
     </div>
 
     <div class="map-wrapper">

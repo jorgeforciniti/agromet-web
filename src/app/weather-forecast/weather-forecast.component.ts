@@ -76,6 +76,8 @@ function hhmm(d: Date): string {
 })
 export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() mode: 'realtime' | 'forecast' | 'full' = 'full';
+  /** false: la página ya tiene un selector de estación (la activa) y el panel no muestra el suyo */
+  @Input() conSelector = true;
   @Output() stationSelected = new EventEmitter<string>();
   @ViewChild('temperatureChart') temperatureChartCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -585,7 +587,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
       this.rtUpdated = leerFechaEstacion(this.selectedStation.fecha_I);
       this.rtHace = this.rtUpdated ? haceCuanto(this.rtUpdated) : '';
       this.rtEstado = estadoComunicacion(this.rtUpdated);
-      this.rtStationName = this.selectedStation.nombre || 'EstaciÃ³n desconocida';
+      this.rtStationName = this.selectedStation.nombre || 'Estación desconocida';
 
       this.getWeatherForecast(lat, lon);
       this.loadNowWeather(lat, lon);

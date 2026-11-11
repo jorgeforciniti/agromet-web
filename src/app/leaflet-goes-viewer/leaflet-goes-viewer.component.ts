@@ -1103,4 +1103,12 @@ export class LeafletGoesViewerComponent implements OnInit, OnDestroy {
   get layerKeys(): string[] {
     return Object.keys(this.layers);
   }
+
+  /** Nombre corto para el botón de la capa (el completo queda en el título) */
+  etiquetaCapa(key: string): string {
+    const nombre = this.layers[key]?.name ?? key;
+    if (nombre.startsWith('Temperatura')) return 'Temperatura';
+    if (nombre.startsWith('Incendios')) return 'Incendios';
+    return nombre;
+  }
 }

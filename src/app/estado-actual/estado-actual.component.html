@@ -1,59 +1,60 @@
-<div class="page-estado-actual">
-  <!-- Título de la página para lectores de pantalla; visualmente lo resuelven las dos secciones -->
-  <h1 class="cdk-visually-hidden">Estado actual</h1>
-  <nav class="quick-nav" aria-label="Ir a sección">
-    <a href="#sec-alertas" (click)="scrollToSection($event, 'sec-alertas')">Alertas</a>
-    <a href="#sec-datos" (click)="scrollToSection($event, 'sec-datos')">Datos y pronóstico</a>
-    <a href="#sec-enso" (click)="scrollToSection($event, 'sec-enso')">El Niño</a>
-  </nav>
+<div class="ea">
+  <header class="ea__intro">
+    <h1 class="ea__titulo">Estado actual</h1>
+    <nav class="ea__atajos" aria-label="Ir a sección">
+      <a href="#sec-ahora" (click)="scrollToSection($event, 'sec-ahora')">Ahora</a>
+      <a href="#sec-mapa" (click)="scrollToSection($event, 'sec-mapa')">Mapa</a>
+      <a href="#sec-enso" (click)="scrollToSection($event, 'sec-enso')">El Niño</a>
+    </nav>
+  </header>
 
-  <app-mis-estaciones></app-mis-estaciones>
-
-  <section class="section section--alertas" id="sec-alertas">
-    <header class="section-header">
-      <div class="section-kicker">QUÉ ESTÁ PASANDO AHORA</div>
-      <h2 class="section-title">Alertas y avisos del SMN</h2>
-    </header>
+  <!-- Alertas y avisos del SMN: una franja verde si no hay ninguno -->
+  <section class="ea-alertas" id="sec-alertas" aria-label="Alertas y avisos del SMN">
     @defer (on viewport) {
     <app-alert></app-alert>
     } @placeholder {
-    <div class="section-loading">Cargando alertas...</div>
+    <div class="ea-cargando">Cargando alertas…</div>
     }
   </section>
 
-  <section class="section section--datos" id="sec-datos">
-    <header class="section-header">
-      <div class="section-kicker">MONITOREO OPERATIVO</div>
-      <h2 class="section-title">Datos actuales y pronóstico</h2>
-    </header>
+  <!-- La estación elegida acá es la activa: la siguen los datos, el pronóstico y el mapa -->
+  <section class="ea-estacion" aria-label="Estación">
+    <mat-icon class="ea-estacion__icono" aria-hidden="true">location_on</mat-icon>
+    <div class="ea-estacion__texto">
+      <p class="ea-estacion__ayuda">Estación para los datos, el pronóstico y el mapa</p>
+      <p class="ea-estacion__lugar" *ngIf="lugar(activa$ | async) as l">{{ l }}</p>
+    </div>
+    <app-selector-estacion class="ea-estacion__selector" etiqueta="Estación" appearance="outline"
+      [estaciones]="estaciones" [ngModel]="activa$ | async" (cambio)="elegirEstacion($event)"></app-selector-estacion>
+    <!-- Favoritas a un toque: cambian la activa igual que el selector -->
+    <app-mis-estaciones class="ea-estacion__favoritas" [compacto]="true"></app-mis-estaciones>
+  </section>
+
+  <section class="ea-ahora" id="sec-ahora" aria-label="Datos actuales y pronóstico">
     @defer (on viewport) {
-    <div class="dash2-grid">
-      <div class="dash2-left">
-        <app-weather-forecast mode="realtime"></app-weather-forecast>
-      </div>
-
-      <div class="dash2-right">
-        <app-leaflet-goes-viewer></app-leaflet-goes-viewer>
-      </div>
-
-      <div class="dash2-forecast">
-        <app-weather-forecast mode="forecast"></app-weather-forecast>
-      </div>
+    <div class="ea-ahora__grilla">
+      <app-weather-forecast class="ea-ahora__tiempo-real" mode="realtime" [conSelector]="false"></app-weather-forecast>
+      <app-weather-forecast class="ea-ahora__pronostico" mode="forecast"></app-weather-forecast>
     </div>
     } @placeholder {
-    <div class="section-loading">Cargando datos meteorológicos...</div>
+    <div class="ea-cargando">Cargando datos y pronóstico…</div>
     }
   </section>
 
-  <section class="section section--enso" id="sec-enso">
-    <header class="section-header">
-      <div class="section-kicker">PERSPECTIVA CLIMÁTICA</div>
-      <h2 class="section-title">El Niño y La Niña</h2>
-    </header>
+  <section class="ea-mapa" id="sec-mapa" aria-label="Mapa de la provincia">
+    @defer (on viewport) {
+    <app-leaflet-goes-viewer></app-leaflet-goes-viewer>
+    } @placeholder {
+    <div class="ea-cargando">Cargando el mapa…</div>
+    }
+  </section>
+
+  <section class="ea-enso" id="sec-enso" aria-labelledby="ea-enso-titulo">
+    <h2 class="ea-seccion__titulo" id="ea-enso-titulo">El Niño y La Niña</h2>
     @defer (on viewport) {
     <app-enso-estado></app-enso-estado>
     } @placeholder {
-    <div class="section-loading">Cargando el estado de El Niño...</div>
+    <div class="ea-cargando">Cargando el estado de El Niño…</div>
     }
   </section>
 </div>

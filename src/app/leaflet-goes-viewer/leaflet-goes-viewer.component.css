@@ -19,6 +19,41 @@
 .panel-title mat-icon{ color: var(--mod-data); }
 
 /* Capa y base van arriba del mapa, fuera de él, para no taparlo */
+/* Capas como botones */
+.map-capas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.map-capa {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .88rem;
+  cursor: pointer;
+}
+
+.map-capa:hover {
+  border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+}
+
+.map-capa--activa {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  font-weight: 700;
+}
+
+.map-capa:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 55%, white);
+  outline-offset: 2px;
+}
+
 .map-toolbar {
   display: flex;
   flex-wrap: wrap;
