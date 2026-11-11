@@ -10,7 +10,7 @@ export interface WeatherStation {
   Localidad?: string;
   departamento?: string;
   provincia?: string;
-  /** 1 = Llanura Tucumana, 2 = Pedemonte Tucumano, 3 = Valles Intermontanos, 4 = Valles de Altura, 5 = Provincias Adyacentes */
+  /** 1 = Llanura Tucumana y zonas vecinas, 2 = Pedemonte Tucumano, 3 = Valles Intermontanos, 4 = Valles de Altura, 5 = Provincias Adyacentes */
   zona?: string;
   lat: string;
   lon: string;

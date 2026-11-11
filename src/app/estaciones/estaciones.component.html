@@ -1,56 +1,83 @@
-<div class="page-estaciones">
-  <header class="section-header">
-    <div class="section-kicker">RED PROVINCIAL</div>
-    <h1 class="section-title">Red de estaciones meteorológicas</h1>
-    <p class="section-summary" *ngIf="!loading">
-      {{ totalCount }} estaciones activas · {{ reportingTodayCount }} reportando hoy
+<div class="re">
+  <header class="re__intro">
+    <h1 class="re__titulo">Red de estaciones</h1>
+
+    <!-- Estado de la red: los mismos colores que los marcadores del mapa -->
+    <p class="re-resumen" *ngIf="!loading && !error" aria-live="polite">
+      <span class="re-resumen__total"><strong>{{ totalCount }}</strong> estaciones</span>
+      <span class="re-resumen__estado"><i class="re-punto re-punto--al-dia" aria-hidden="true"></i>{{ conteoEstados['al-dia'] }} al día</span>
+      <span class="re-resumen__estado"><i class="re-punto re-punto--atrasada" aria-hidden="true"></i>{{ conteoEstados['atrasada'] }} {{ conteoEstados['atrasada'] === 1 ? 'atrasada' : 'atrasadas' }}</span>
+      <span class="re-resumen__estado"><i class="re-punto re-punto--sin-datos-hoy" aria-hidden="true"></i>{{ conteoEstados['sin-datos-hoy'] }} sin datos hoy</span>
     </p>
-    <p class="section-hint">Marcá con ☆ tus estaciones favoritas: aparecen primero en las herramientas y en «Mis estaciones».</p>
+
     <app-como-se-lee>
       <p>La lista y el mapa muestran las estaciones automáticas habilitadas de la red EEAOC con su último dato:
         temperatura del aire (°C), humedad relativa (%), lluvia de hoy desde las 0 h (mm) y hora de la última
         medición. Si el último dato no es de hoy, en lugar de la hora figura la fecha (día/mes). Cada estación
         envía datos con su propio intervalo (por ejemplo, cada 15 o 30 minutos, según la estación).</p>
-      <p>Marcadores del mapa: rojo, estación al día (dato de la última hora); rojo atenuado, atrasada (más de 1 h
-        sin datos); gris, sin datos hoy. En azul, la estación seleccionada, y en dorado, las favoritas. La
-        referencia «Último dato» del mapa repite estos estados.</p>
+      <p>El punto de color de cada estación y los marcadores del mapa indican el estado del último dato: al día
+        (de la última hora), atrasada (más de 1 h sin datos) o sin datos hoy. En el mapa, en azul, la estación
+        seleccionada, y en dorado, las favoritas.</p>
+      <p>Al elegir una estación pasa a ser la activa: con ella arrancan las herramientas y Estado actual. Con ☆
+        se marca como favorita: aparece primero en las herramientas y en «Mis estaciones».</p>
       <p>Al ordenar por temperatura, humedad o lluvia, las estaciones que no reportaron hoy quedan al final: su
         último valor es viejo y no se compara con los actuales. Las lecturas fuera de rango físico (errores del
-        sensor) se muestran como «—».</p>
-      <p>«Reportando hoy» cuenta las estaciones con al menos un dato del día. Los datos se cargan al abrir la
-        página; para actualizarlos hay que recargarla.</p>
+        sensor) se muestran como «—». Los datos se cargan al abrir la página; para actualizarlos hay que
+        recargarla.</p>
     </app-como-se-lee>
-    <p class="fav-aviso" role="status" aria-live="polite">{{ avisoFavoritas }}</p>
   </header>
 
-  <!-- Lista compacta a la izquierda y mapa a la derecha; en pantallas angostas, mapa arriba -->
-  <div class="estaciones-layout">
-    <section class="estaciones-list" aria-label="Listado de estaciones">
-      <div class="estaciones-empty" *ngIf="error">{{ error }}</div>
+  <!-- Búsqueda y filtros -->
+  <div class="re-filtros" *ngIf="!error">
+    <label class="re-buscador">
+      <span class="material-icons" aria-hidden="true">search</span>
+      <input type="search" placeholder="Buscar estación o localidad" aria-label="Buscar estación o localidad"
+        [value]="busqueda" (input)="buscar($any($event.target).value)" maxlength="60" />
+    </label>
+    <div class="re-chips" role="group" aria-label="Filtrar la lista">
+      <button type="button" class="re-chip" [class.re-chip--activo]="filtro === 'todas'"
+        [attr.aria-pressed]="filtro === 'todas'" (click)="filtrar('todas')">Todas</button>
+      <button type="button" class="re-chip" [class.re-chip--activo]="filtro === 'favoritas'"
+        [attr.aria-pressed]="filtro === 'favoritas'" (click)="filtrar('favoritas')">★ Favoritas</button>
+      <button type="button" class="re-chip" *ngFor="let z of zonas" [class.re-chip--activo]="filtro === z.id"
+        [attr.aria-pressed]="filtro === z.id" (click)="filtrar(z.id)">{{ z.nombre }}</button>
+    </div>
+    <p class="re-aviso" role="status" aria-live="polite">{{ avisoFavoritas }}</p>
+  </div>
 
-      <div class="table-scroll-x tabla-fija" *ngIf="!error">
-        <table class="estaciones-table">
-          <thead>
-            <tr>
-              <!-- Un clic ordena por la columna; otro invierte el orden -->
-              <th scope="col" [attr.aria-sort]="ariaSort('nombre')">
-                <button type="button" class="orden" (click)="ordenarPor('nombre')">Estación</button></th>
-              <th scope="col" [attr.aria-sort]="ariaSort('temp')">
-                <button type="button" class="orden" (click)="ordenarPor('temp')"><abbr title="Temperatura del aire">°C</abbr></button></th>
-              <th scope="col" [attr.aria-sort]="ariaSort('hum')">
-                <button type="button" class="orden" (click)="ordenarPor('hum')"><abbr title="Humedad relativa">HR %</abbr></button></th>
-              <th scope="col" [attr.aria-sort]="ariaSort('rain')">
-                <button type="button" class="orden" (click)="ordenarPor('rain')"><abbr title="Lluvia de hoy">mm</abbr></button></th>
-              <th scope="col" [attr.aria-sort]="ariaSort('updated')">
-                <button type="button" class="orden" (click)="ordenarPor('updated')"><abbr title="Última medición">Hora</abbr></button></th>
+  <div class="re-cuerpo">
+    <!-- Lista: sigue el desplazamiento de la página, sin barra propia -->
+    <section class="re-lista" aria-label="Listado de estaciones">
+      <div class="re-vacio" *ngIf="error">{{ error }}</div>
+
+      <table class="re-tabla" *ngIf="!error">
+        <thead>
+          <tr>
+            <!-- Un clic ordena por la columna; otro invierte el orden -->
+            <th scope="col" [attr.aria-sort]="ariaSort('nombre')">
+              <button type="button" class="orden" (click)="ordenarPor('nombre')">Estación</button></th>
+            <th scope="col" class="num" [attr.aria-sort]="ariaSort('temp')">
+              <button type="button" class="orden" (click)="ordenarPor('temp')"><abbr title="Temperatura del aire">°C</abbr></button></th>
+            <th scope="col" class="num" [attr.aria-sort]="ariaSort('hum')">
+              <button type="button" class="orden" (click)="ordenarPor('hum')"><abbr title="Humedad relativa">HR %</abbr></button></th>
+            <th scope="col" class="num" [attr.aria-sort]="ariaSort('rain')">
+              <button type="button" class="orden" (click)="ordenarPor('rain')"><abbr title="Lluvia de hoy">mm</abbr></button></th>
+            <th scope="col" class="num" [attr.aria-sort]="ariaSort('updated')">
+              <button type="button" class="orden" (click)="ordenarPor('updated')"><abbr title="Última medición">Hora</abbr></button></th>
+          </tr>
+        </thead>
+
+        <ng-container *ngIf="!loading; else cargando">
+          <tbody *ngFor="let g of grupos">
+            <tr class="re-zona" *ngIf="g.titulo">
+              <th colspan="5" scope="colgroup">{{ g.titulo }}</th>
             </tr>
-          </thead>
-          <tbody *ngIf="!loading; else cargando">
-            <tr *ngFor="let s of stations" [id]="'estacion-' + s.Identificacion"
-              [class.selected]="s.Identificacion === selectedStationId"
+            <tr *ngFor="let s of g.filas" [id]="'estacion-' + s.Identificacion" class="re-fila"
+              [class.re-fila--elegida]="s.Identificacion === selectedStationId"
               (click)="selectStation(s.Identificacion, true)" (keydown.enter)="selectStation(s.Identificacion, true)"
               tabindex="0">
-              <td class="station-name">
+              <td class="re-nombre">
+                <i class="re-punto" [ngClass]="'re-punto--' + estadoFila(s)" [title]="estadoFila(s) === 'al-dia' ? 'Al día' : estadoFila(s) === 'atrasada' ? 'Atrasada' : 'Sin datos hoy'"></i>
                 <button type="button" class="fav-btn" [class.is-fav]="stationService.esFavorita(s.Identificacion)"
                   [attr.aria-pressed]="stationService.esFavorita(s.Identificacion)"
                   [attr.aria-label]="(stationService.esFavorita(s.Identificacion) ? 'Quitar ' : 'Agregar ') + s.nombre + (stationService.esFavorita(s.Identificacion) ? ' de favoritas' : ' a favoritas')"
@@ -58,39 +85,64 @@
                   (click)="alternarFavorita(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">
                   {{ stationService.esFavorita(s.Identificacion) ? '★' : '☆' }}
                 </button>
-                <button type="button" class="ficha-btn" title="Ver ficha de la estación"
-                  [attr.aria-label]="'Ver ficha de ' + s.nombre"
-                  (click)="abrirFicha(s.Identificacion, $event)" (keydown.enter)="$event.stopPropagation()">ⓘ</button>
-                <strong>{{ s.nombre }}</strong>
-                <span class="station-name__meta">
-                  {{ locationLabel(s) }}<ng-container *ngIf="zonaLabel(s.zona)"> · {{ zonaLabel(s.zona) }}</ng-container>
+                <span class="re-nombre__texto">
+                  <strong>{{ s.nombre }}</strong>
+                  <span>{{ locationLabel(s) }}</span>
                 </span>
               </td>
-              <td>{{ s.temp !== null ? (s.temp | number:'1.1-1') : '—' }}</td>
-              <td>{{ s.hum !== null ? (s.hum | number:'1.0-0') : '—' }}</td>
-              <td>{{ s.rain !== null ? (s.rain | number:'1.1-1') : '—' }}</td>
-              <td class="station-time" [title]="s.updated ? (s.updated | date:'dd/MM/yyyy HH:mm') : ''">
+              <td class="num">{{ s.temp !== null ? (s.temp | number:'1.1-1') : '—' }}</td>
+              <td class="num">{{ s.hum !== null ? (s.hum | number:'1.0-0') : '—' }}</td>
+              <td class="num">{{ s.rain !== null ? (s.rain | number:'1.1-1') : '—' }}</td>
+              <td class="num re-hora" [class.re-hora--atrasada]="estadoFila(s) !== 'al-dia'"
+                [title]="s.updated ? (s.updated | date:'dd/MM/yyyy HH:mm') : ''">
                 {{ horaLabel(s.updated) }}
               </td>
             </tr>
           </tbody>
-          <ng-template #cargando>
-            <tbody aria-hidden="true">
-              <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9]">
-                <td><span class="skeleton sk-cell" style="width:80%"></span></td>
-                <td><span class="skeleton sk-cell"></span></td>
-                <td><span class="skeleton sk-cell"></span></td>
-                <td><span class="skeleton sk-cell"></span></td>
-                <td><span class="skeleton sk-cell"></span></td>
-              </tr>
-            </tbody>
-          </ng-template>
-        </table>
-      </div>
+          <tbody *ngIf="!cantidadVisible">
+            <tr>
+              <td colspan="5" class="re-vacio">
+                No hay estaciones con ese filtro.
+                <button type="button" class="re-link" (click)="buscar(''); filtrar('todas')">Ver todas</button>
+              </td>
+            </tr>
+          </tbody>
+        </ng-container>
+        <ng-template #cargando>
+          <tbody aria-hidden="true">
+            <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9]">
+              <td><span class="skeleton sk-cell" style="width:80%"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+              <td><span class="skeleton sk-cell"></span></td>
+            </tr>
+          </tbody>
+        </ng-template>
+      </table>
     </section>
 
-    <div class="estaciones-map-wrapper">
-      <div id="estaciones-map"></div>
-    </div>
+    <!-- Mapa fijo al costado y, debajo, la estación elegida -->
+    <aside class="re-lateral">
+      <div class="re-mapa">
+        <div id="estaciones-map"></div>
+      </div>
+
+      <div class="re-elegida" *ngIf="seleccionada as e" aria-live="polite">
+        <div class="re-elegida__texto">
+          <strong>{{ e.nombre }}</strong>
+          <span>{{ locationLabel(e) }}<ng-container *ngIf="zonaLabel(e.zona)">, {{ zonaLabel(e.zona) }}</ng-container></span>
+          <span class="re-elegida__activa">Es la estación activa: con ella arrancan las herramientas.</span>
+        </div>
+        <div class="re-elegida__acciones">
+          <button type="button" class="re-boton re-boton--principal" (click)="abrirFicha(e.Identificacion)">Ver ficha</button>
+          <a class="re-boton" routerLink="/estado-actual">Ver estado actual</a>
+          <button type="button" class="re-boton" [attr.aria-pressed]="stationService.esFavorita(e.Identificacion)"
+            (click)="alternarFavorita(e.Identificacion)">
+            {{ stationService.esFavorita(e.Identificacion) ? '★ Favorita' : '☆ Agregar a favoritas' }}
+          </button>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>

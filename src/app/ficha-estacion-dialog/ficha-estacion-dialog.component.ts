@@ -15,7 +15,7 @@ import { Herramienta } from '../shared/enlace-consulta';
 import { estadoComunicacion, EstadoComunicacion, leerFechaEstacion, textoActualizado } from '../shared/estado-estacion';
 
 const ZONAS: Record<string, string> = {
-  '1': 'Llanura Tucumana',
+  '1': 'Llanura Tucumana y zonas vecinas',
   '2': 'Pedemonte Tucumano',
   '3': 'Valles Intermontanos',
   '4': 'Valles de Altura',

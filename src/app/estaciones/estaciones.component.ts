@@ -15,6 +15,7 @@ import { leyendaEstados } from '../maps/leyenda-estados';
 import { agregarMapaBase, cargarProvincias } from '../maps/mapa-base';
 import { escaparHtml, popupEstacion } from '../maps/popup';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { RouterLink } from '@angular/router';
 
 /** Columnas por las que se puede ordenar la lista (D1 del informe de mejoras) */
 export type ColumnaOrden = 'nombre' | 'temp' | 'hum' | 'rain' | 'updated';
@@ -27,18 +28,39 @@ interface StationRow extends WeatherStation {
 }
 
 const ZONA_LABELS: Record<string, string> = {
-  '1': 'Llanura Tucumana',
+  '1': 'Llanura Tucumana y zonas vecinas',
   '2': 'Pedemonte Tucumano',
   '3': 'Valles Intermontanos',
   '4': 'Valles de Altura',
   '5': 'Provincias Adyacentes'
 };
 
+/** Nombre corto de la zona para los botones de filtro */
+const ZONA_CORTA: Record<string, string> = {
+  '1': 'Llanura',
+  '2': 'Pedemonte',
+  '5': 'Provincias adyacentes'
+};
+
+/** Filtro de la lista: todas, sólo favoritas o una zona */
+export type FiltroLista = 'todas' | 'favoritas' | '1' | '2' | '3' | '4' | '5';
+
+/** Estaciones de una zona (ordenadas por nombre) o, si se ordena por un valor, todas juntas */
+interface GrupoEstaciones {
+  titulo: string;
+  filas: StationRow[];
+}
+
+/** Minúsculas y sin tildes, para que «tafi» encuentre «Tafí» */
+function normalizar(texto: string): string {
+  return texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
 
 @Component({
   selector: 'app-estaciones',
   standalone: true,
-  imports: [CommonModule, ComoSeLeeComponent],
+  imports: [CommonModule, ComoSeLeeComponent, RouterLink],
   templateUrl: './estaciones.component.html',
   styleUrl: './estaciones.component.css'
 })
@@ -52,6 +74,14 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   error: string | null = null;
   selectedStationId: string | null = null;
+
+  /** Búsqueda y filtro de la lista */
+  busqueda = '';
+  filtro: FiltroLista = 'todas';
+  /** Lo que se muestra: por zona si se ordena por nombre; si no, un solo grupo con el orden elegido */
+  grupos: GrupoEstaciones[] = [];
+  /** Zonas que tienen estaciones, para los botones de filtro */
+  zonas: { id: FiltroLista; nombre: string }[] = [];
 
   private map: L.Map | undefined;
   private markers = new Map<string, L.Marker>();
@@ -93,13 +123,19 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     // Al iniciar o cerrar sesión cambia el juego de favoritas: se repintan marcadores y popups
-    this.subFavoritas = this.stationService.favoritas$.subscribe(() => this.actualizarMarcadores());
+    this.subFavoritas = this.stationService.favoritas$.subscribe(() => {
+      this.actualizarMarcadores();
+      if (this.filtro === 'favoritas') this.armarGrupos();
+    });
 
     this.weatherService.getStationsAll().subscribe({
       next: (stations) => {
         this.stations = stations
           .filter(s => (s.habilitada ?? 0) > 0)
           .map(s => this.toRow(s));
+        this.zonas = Object.entries(ZONA_LABELS)
+          .filter(([id]) => this.stations.some(s => s.zona === id))
+          .map(([id, nombre]) => ({ id: id as FiltroLista, nombre: ZONA_CORTA[id] ?? nombre }));
         this.aplicarOrden();
         this.loading = false;
         this.renderMarkers();
@@ -117,6 +153,58 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get totalCount(): number {
     return this.stations.length;
+  }
+
+  /** Cuántas estaciones hay en cada estado de comunicación (resumen de arriba) */
+  get conteoEstados(): Record<EstadoComunicacion, number> {
+    const conteo: Record<EstadoComunicacion, number> = { 'al-dia': 0, 'atrasada': 0, 'sin-datos-hoy': 0 };
+    for (const s of this.stations) conteo[estadoComunicacion(s.updated)]++;
+    return conteo;
+  }
+
+  estadoFila(s: StationRow): EstadoComunicacion {
+    return estadoComunicacion(s.updated);
+  }
+
+  /** Estación elegida en la lista o el mapa (panel bajo el mapa) */
+  get seleccionada(): StationRow | undefined {
+    return this.stations.find(s => s.Identificacion === this.selectedStationId);
+  }
+
+  get cantidadVisible(): number {
+    return this.grupos.reduce((n, g) => n + g.filas.length, 0);
+  }
+
+  buscar(texto: string): void {
+    this.busqueda = texto;
+    this.armarGrupos();
+  }
+
+  filtrar(filtro: FiltroLista): void {
+    this.filtro = filtro;
+    this.armarGrupos();
+  }
+
+  /** Aplica búsqueda y filtro y, si se ordena por nombre, agrupa por zona. */
+  private armarGrupos(): void {
+    const q = normalizar(this.busqueda);
+    const filas = this.stations.filter(s => {
+      if (this.filtro === 'favoritas' && !this.stationService.esFavorita(s.Identificacion)) return false;
+      if (this.filtro !== 'todas' && this.filtro !== 'favoritas' && s.zona !== this.filtro) return false;
+      return !q || normalizar([s.nombre, s.Localidad, s.departamento, s.provincia, s.Identificacion].join(' ')).includes(q);
+    });
+
+    if (this.orden.columna !== 'nombre') {
+      this.grupos = filas.length ? [{ titulo: '', filas }] : [];
+      return;
+    }
+    const claves = [...Object.keys(ZONA_LABELS), ''];
+    this.grupos = claves
+      .map(clave => ({
+        titulo: clave ? ZONA_LABELS[clave] : 'Otras estaciones',
+        filas: filas.filter(s => (ZONA_LABELS[s.zona ?? ''] ? s.zona : '') === clave)
+      }))
+      .filter(g => g.filas.length);
   }
 
   /** Solo un conteo, no compara valores entre estaciones con distinta antigüedad de dato. */
@@ -325,6 +413,7 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (va === null || vb === null) return va === vb ? 0 : va === null ? 1 : -1;
       return signo * (va - vb) || (a.nombre || '').localeCompare(b.nombre || '');
     });
+    this.armarGrupos();
   }
 
   /** Estrella de la lista o del popup. */
@@ -381,15 +470,14 @@ export class EstacionesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** Desplaza sólo el contenedor de la lista (no la página) para que la fila quede visible. */
+  /** La lista ya no tiene desplazamiento propio: se desplaza la página hasta la fila si no se ve. */
   private mostrarFila(id: string): void {
     const fila = document.getElementById('estacion-' + id);
-    const lista = fila?.closest('.tabla-fija') as HTMLElement | null;
-    if (!fila || !lista || lista.scrollHeight <= lista.clientHeight) return;
-    const encabezado = lista.querySelector('thead')?.offsetHeight ?? 0;
-    const top = fila.offsetTop - encabezado;
-    if (top < lista.scrollTop || fila.offsetTop + fila.offsetHeight > lista.scrollTop + lista.clientHeight) {
-      lista.scrollTo({ top: Math.max(0, top - 8), behavior: 'smooth' });
+    if (!fila) return;
+    const encabezado = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
+    const r = fila.getBoundingClientRect();
+    if (r.top < encabezado + 40 || r.bottom > window.innerHeight) {
+      fila.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 }
