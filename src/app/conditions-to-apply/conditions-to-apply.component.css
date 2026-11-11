@@ -1530,3 +1530,10 @@ mat-form-field.date-field{ width: 100%; }
   font-size: .9rem;
   font-weight: 400;
 }
+
+/* Subtítulos dentro de la ayuda («Umbrales con …», «Bibliografía:») */
+.instr-subtitulo {
+  margin-top: 10px;
+  list-style: none;
+  font-weight: 700;
+}

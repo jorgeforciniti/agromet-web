@@ -12,19 +12,25 @@
           prioridad, y nunca es mejor que el peor criterio individual: ráfaga, diferencia entre ráfaga y viento medio,
           ΔT, lluvia, inversión probable, Kp y, con dron o avión, satélites. Cualquier lluvia registrada pone la fila en
           rojo.</p>
-        <p>Viento: el techo se compara con la ráfaga y el piso con el viento medio. Con viento medio menor a 3 km/h hay
+        <p>Viento: el piso se compara con el viento medio y el techo con la ráfaga. Con viento medio menor a 3 km/h hay
           calma y riesgo de inversión (rojo). En aplicación terrestre la ráfaga es verde hasta 20 km/h, amarillo hasta
-          25 y rojo por encima; los demás métodos tienen sus propios límites. ΔT (guía GRDC de Australia): de 2 a 8 °C
-          es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; más de 10 o menos de 1 °C, no aplicar.</p>
+          25 y rojo por encima, y además un viento medio de 15 km/h o más da amarillo y de más de 20 km/h, rojo. Con
+          dron la ráfaga es verde hasta 13 km/h; los demás métodos tienen sus propios límites (ver la «i» del
+          semáforo). ΔT (GRDC, 2025): de 2 a 8 °C es adecuado; de 8 a 10 o de 1 a 2 °C, precaución; de 10 a 12 °C,
+          sólo con gota gruesa o muy gruesa; más de 12 o menos de 1 °C, no aplicar.</p>
         <p>Si falta un dato del registro (temperatura, humedad, viento medio, ráfaga o lluvia) o es inválido, esa fila
           o ese punto del mapa queda «Sin evaluar», en gris: nunca se evalúa con valores supuestos.</p>
         <p>La inversión no se mide: se estima como probable de noche (entre la puesta y la salida del sol, calculadas
           para la fecha y la ubicación de cada estación) con viento medio menor a 5 km/h y humedad de 85 % o más. El producto
-          y el tamaño de gota no cambian el semáforo: sólo agregan razones y recomendaciones al seleccionar una fila.</p>
+          no cambia el semáforo y el tamaño de gota sólo lo cambia con ΔT de 10 a 12 °C; los dos agregan razones y
+          recomendaciones al seleccionar una fila.</p>
         <p>El Kp es el del intervalo de 3 h de cada registro: de NOAA para la última semana y de GFZ Potsdam para
           fechas anteriores. Si no hay Kp para la fecha, se usa el último publicado y se aclara debajo de la tabla.</p>
         <p>El mapa usa la misma evaluación que la tabla, con el último registro de cada estación y el último Kp, y
           muestra sólo las estaciones con datos de las últimas 2 horas.</p>
+        <p>La etiqueta del producto tiene prioridad sobre estos criterios. Las fuentes de cada umbral (GRDC, INTA,
+          APVMA, Agriculture Victoria, Queensland Government, NOAA) y los criterios propios se listan en la «i» del
+          semáforo.</p>
       </app-como-se-lee>
     </app-encabezado-dialogo>
 
@@ -240,7 +246,7 @@
             </th>
 
             <th class="num">
-              Deriva
+              Riesgo deriva
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('DERIVA', $event)"
                 (keydown.enter)="openInfo('DERIVA', $event)"
@@ -249,7 +255,7 @@
             </th>
 
             <th class="num">
-              Efic.
+              Riesgo eficacia
               <button type="button" class="info-circle-btn th-info"
                 (click)="openInfo('EFICACIA', $event)"
                 (keydown.enter)="openInfo('EFICACIA', $event)"
@@ -366,7 +372,7 @@
       <h3 class="instr-title">{{ infoTitle }}</h3>
 
       <ul class="instr-list">
-        <li *ngFor="let line of infoBody">{{ line }}</li>
+        <li *ngFor="let line of infoBody" [class.instr-subtitulo]="line.endsWith(':')">{{ line }}</li>
       </ul>
 
       <div class="instr-actions">

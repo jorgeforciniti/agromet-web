@@ -48,6 +48,8 @@ interface MetodoRule {
   calmaKmh: { rojo: number; amarillo: number };
   /** Techo de viento: se compara con la RÁFAGA (verde hasta `verde`, amarillo hasta `amarillo`, después rojo) */
   rafagaKmh: { verde: number; amarillo: number };
+  /** Techo del VIENTO MEDIO (amarillo desde `amarillo`, rojo por encima de `rojo`); sin él sólo cuenta la ráfaga */
+  medioKmh?: { amarillo: number; rojo: number };
   deltaT: ThresholdRule;
   gustDeltaYellow: number;
   gustDeltaRed: number;
@@ -67,10 +69,17 @@ interface MetodoRule {
  *   menos de 3 km/h de viento medio hay riesgo de inversión y dirección impredecible (rojo). La ráfaga
  *   suele ser 1,5 a 2 veces el viento medio, por eso los techos de ráfaga son más altos que los rangos
  *   de viento medio de las guías: terrestre (MOSQUITO) verde hasta 20 km/h, rojo con más de 25.
- *   DRON (buenas prácticas UAS, 5–16 km/h de viento medio), AVION, MANUAL y AIRBLAST: mismos criterios,
- *   adaptados por método; son propuestas propias, a validar con la experiencia de la Sección.
- * - deltaT: GRDC: 2–8 °C adecuado, 8–10 °C marginal (amarillo), más de 10 °C no aplicar (rojo),
- *   menos de 2 °C riesgo de inversión y deriva (amarillo; menos de 1 °C, rojo).
+ *   DRON: Agriculture Victoria permite aplicar con dron entre 3 y 13 km/h si la etiqueta no dice otra
+ *   cosa; ráfaga verde hasta 13 km/h y amarillo hasta 16. AVION: la instrucción estándar de APVMA
+ *   (Australia) pide de 3 a 20 km/h. MANUAL y AIRBLAST: criterios propios, sin fuente, a validar con
+ *   la experiencia de la Sección.
+ * - Techo del viento medio en terrestre (MOSQUITO): INTA EEA Oliveros y las guías dan 15 km/h como
+ *   máximo de buena práctica; desde 15 km/h amarillo y con más de 20 km/h rojo (ajuste de noviembre
+ *   de 2026, aprobado por el usuario a partir de esas fuentes).
+ * - deltaT: GRDC: 2–8 °C adecuado, 8–10 °C marginal (amarillo), menos de 2 °C riesgo de inversión y
+ *   deriva (amarillo; menos de 1 °C, rojo, criterio propio). GRDC (Practical tips for spraying, 2025):
+ *   de 10 a 12 °C sólo con gota muy gruesa o mayor y nunca por encima de 12 °C; acá, de 10 a 12 °C es
+ *   amarillo con gota gruesa o muy gruesa y rojo con gota media o más fina; más de 12 °C, rojo.
  * - gustDeltaYellow/gustDeltaRed (ráfaga − viento medio, turbulencia): criterio propio, sin fuente.
  * - popRed/popYellow: pensados para probabilidad de lluvia de un pronóstico; con datos medidos
  *   cualquier lluvia registrada cuenta como probabilidad 1 (rojo).
@@ -81,6 +90,7 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
   MOSQUITO: {
     calmaKmh: { rojo: 3, amarillo: 5 },
     rafagaKmh: { verde: 20, amarillo: 25 },
+    medioKmh: { amarillo: 15, rojo: 20 },
     deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 8,
     gustDeltaRed: 15,
@@ -99,9 +109,9 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.3,
   },
   DRON: {
-    // Buenas prácticas UAS (5–16 km/h de viento medio) + inversión = evitar
+    // Agriculture Victoria: de 3 a 13 km/h si la etiqueta no dice otra cosa + inversión = evitar
     calmaKmh: { rojo: 3, amarillo: 5 },
-    rafagaKmh: { verde: 16, amarillo: 20 },
+    rafagaKmh: { verde: 13, amarillo: 16 },
     deltaT: { green: [2, 8], yellow: [[1, 2], [8, 10]], red: [[0, 1], [10, 999]] },
     gustDeltaYellow: 6,
     gustDeltaRed: 10,
@@ -130,6 +140,57 @@ const RULES: Record<MetodoAplicacion, MetodoRule> = {
     popYellow: 0.3,
   },
 };
+
+/** Número con coma decimal, sin decimales si es entero */
+const num = (n: number) => String(n).replace('.', ',');
+
+/**
+ * Umbrales del método en palabras, para la ayuda del semáforo. Salen de RULES: si cambia una
+ * regla, cambia el texto.
+ */
+export function describirUmbrales(metodo: MetodoAplicacion): string[] {
+  const r = RULES[metodo];
+  const fuenteViento: Record<MetodoAplicacion, string> = {
+    MOSQUITO: 'INTA EEA Oliveros; Queensland Government',
+    MANUAL: 'criterio propio',
+    DRON: 'Agriculture Victoria',
+    AVION: 'APVMA',
+    AIRBLAST: 'criterio propio',
+  };
+  const lineas = [
+    `Viento medio (calma): menos de ${num(r.calmaKmh.rojo)} km/h, rojo` +
+      (r.calmaKmh.amarillo > r.calmaKmh.rojo ? `; menos de ${num(r.calmaKmh.amarillo)} km/h, amarillo` : '') +
+      ' (INTA Pergamino; Engormix).',
+    `Ráfaga: verde hasta ${num(r.rafagaKmh.verde)} km/h, amarillo hasta ${num(r.rafagaKmh.amarillo)} km/h, rojo por encima (${fuenteViento[metodo]}).`,
+  ];
+  if (r.medioKmh) {
+    lineas.push(`Viento medio (techo): desde ${num(r.medioKmh.amarillo)} km/h, amarillo; más de ${num(r.medioKmh.rojo)} km/h, rojo (INTA EEA Oliveros; Queensland Government).`);
+  }
+  lineas.push(
+    `Ráfaga menos viento medio (turbulencia): desde ${num(r.gustDeltaYellow)} km/h, amarillo; desde ${num(r.gustDeltaRed)} km/h, rojo (criterio propio).`,
+    'ΔT: verde de 2 a 8 °C; amarillo de 1 a 2 °C y de 8 a 10 °C; de 10 a 12 °C, amarillo con gota gruesa o muy gruesa y rojo con gota más fina; más de 12 °C, rojo (GRDC, 2025). Menos de 1 °C, rojo (criterio propio).',
+    `Inversión probable: ${r.inversion.forceRed ? 'rojo' : 'amarillo'} (criterio propio; ver «Inversión»).`,
+    'Lluvia registrada: cualquier cantidad, rojo (criterio propio).',
+    'Kp: desde 4, amarillo; desde 5, rojo (NOAA SWPC: con Kp 5 empieza la tormenta geomagnética G1).',
+  );
+  if (metodo === 'DRON' || metodo === 'AVION') {
+    lineas.push('Satélites: menos de 12, amarillo; menos de 8, rojo (criterio propio).');
+  }
+  return lineas;
+}
+
+/** Bibliografía de los criterios, para la ayuda del semáforo */
+export const BIBLIOGRAFIA_APLICACION: string[] = [
+  'APVMA (Australian Pesticides and Veterinary Medicines Authority). Instrucciones estándar de etiqueta para aplicación aérea: viento de 3 a 20 km/h.',
+  'Agriculture Victoria. Drone or remotely piloted aircraft spraying: sin indicación de la etiqueta, aplicar con viento de más de 3 y menos de 13 km/h.',
+  'GRDC (2025). Practical tips for spraying (fact sheet, revisión de enero de 2025). Grains Research and Development Corporation, Australia: ΔT de 2 a 8 °C; de 10 a 12 °C sólo con gota muy gruesa o mayor; no aplicar con más de 12 °C ni con inversión.',
+  'INTA EEA Oliveros. Delta T como indicador del ambiente para pulverizar: 15 km/h es el viento máximo de buena práctica.',
+  'INTA Pergamino. Caracterización del fenómeno de inversión térmica (Engormix): viento de 4,2 km/h o menos como indicador de inversión.',
+  'Engormix. Conocer y manejar parámetros para reducir la deriva: viento de 5 a 15 km/h; con menos de 5 km/h, probable inversión.',
+  'Queensland Government. Minimising the impacts of spray drift: viento ideal de 3 a 15 km/h.',
+  'NOAA SWPC. Space Weather Scales: escala de tormentas geomagnéticas (G1 desde Kp 5).',
+  'Stull, R. (2011). Wet-bulb temperature from relative humidity and air temperature. Journal of Applied Meteorology and Climatology, 50: 2267-2269 (cálculo del ΔT).',
+];
 
 /** Argentina: UTC−3 todo el año. */
 const HUSO_ARGENTINA_MS = -3 * 3600 * 1000;
@@ -161,6 +222,8 @@ export interface ContextoEvaluacion {
   /** Kp del momento del registro; null o undefined = no se considera */
   kpIndex?: number | null;
   sats?: number;
+  /** Gota gruesa o muy gruesa: con ΔT de 10 a 12 °C el semáforo queda en amarillo y no en rojo */
+  gotaGruesa?: boolean;
 }
 
 /** evaluacion = null: «Sin evaluar» por los datos faltantes o inválidos que lista faltantes. */
@@ -402,7 +465,7 @@ export class SprayAdvisorService {
       ctx.metodo,
       ctx.cultivo,
       ctx.prioridad,
-      { kpIndex: ctx.kpIndex ?? undefined, sats: ctx.sats }
+      { kpIndex: ctx.kpIndex ?? undefined, sats: ctx.sats, gotaGruesa: ctx.gotaGruesa }
     );
     return { evaluacion, faltantes };
   }
@@ -435,7 +498,7 @@ export class SprayAdvisorService {
     metodo: MetodoAplicacion,
     cultivo: Cultivo,
     prioridad: Prioridad,
-    extras?: { kpIndex?: number; sats?: number }
+    extras?: { kpIndex?: number; sats?: number; gotaGruesa?: boolean }
   ): EvaluacionAplicacion {
     const rules = RULES[metodo];
     const windKmh = meteo.windMs * 3.6;
@@ -452,8 +515,13 @@ export class SprayAdvisorService {
     // Piso de calma con el viento medio; techo con la ráfaga
     const lCalma: Semaforo = windKmh < rules.calmaKmh.rojo ? 'ROJO' : windKmh < rules.calmaKmh.amarillo ? 'AMARILLO' : 'VERDE';
     const lTecho: Semaforo = refKmh > rules.rafagaKmh.amarillo ? 'ROJO' : refKmh > rules.rafagaKmh.verde ? 'AMARILLO' : 'VERDE';
-    const lWind = worst(lCalma, lTecho);
-    const lDT = evalThreshold(dT, rules.deltaT);
+    const medio = rules.medioKmh;
+    const lMedio: Semaforo = !medio ? 'VERDE' : windKmh > medio.rojo ? 'ROJO' : windKmh >= medio.amarillo ? 'AMARILLO' : 'VERDE';
+    const lWind = worst(lCalma, worst(lTecho, lMedio));
+    let lDT = evalThreshold(dT, rules.deltaT);
+    // GRDC: de 10 a 12 °C sólo con gota muy gruesa o mayor
+    const dtConGotaGruesa = lDT === 'ROJO' && dT > 10 && dT <= 12 && !!extras?.gotaGruesa;
+    if (dtConGotaGruesa) lDT = 'AMARILLO';
 
     let lGust: Semaforo = 'VERDE';
     if (gustKmh != null) {
@@ -549,8 +617,11 @@ export class SprayAdvisorService {
     if (lInv !== 'VERDE') push(razones, 'Riesgo de inversión/atmósfera estable.');
     if (lCalma !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(0)} km/h: calma (${lCalma}).`);
     if (lTecho !== 'VERDE') push(razones, `${gustKmh != null ? 'Ráfaga' : 'Viento'} ${refKmh.toFixed(0)} km/h (${lTecho}).`);
+    if (lMedio !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(0)} km/h: por encima de 15 km/h (${lMedio}).`);
     if (lGust !== 'VERDE' && gustKmh != null) push(razones, `Ráfaga ${(gustKmh - windKmh).toFixed(0)} km/h sobre el viento medio (${lGust}).`);
-    if (lDT !== 'VERDE') push(razones, `ΔT ${dT.toFixed(1)} °C (${lDT}) → evaporación/deriva.`);
+    if (lDT !== 'VERDE') push(razones, dtConGotaGruesa
+      ? `ΔT ${dT.toFixed(1)} °C (AMARILLO): entre 10 y 12 °C sólo se aplica con gota gruesa o muy gruesa.`
+      : `ΔT ${dT.toFixed(1)} °C (${lDT}) → evaporación/deriva.`);
     if (lRain !== 'VERDE') push(razones, `Prob. precipitación ${(pop * 100).toFixed(0)}% (${lRain}).`);
     if (lKp !== 'VERDE') push(razones, `Kp ${kp} (${lKp}) → posible degradación GNSS/compás.`);
     if (lSats !== 'VERDE') push(razones, `Satélites ${sats} (${lSats}) → precisión GNSS baja.`);

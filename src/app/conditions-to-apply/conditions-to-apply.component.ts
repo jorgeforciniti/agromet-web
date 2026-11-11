@@ -37,7 +37,9 @@ import {
   EvaluacionAplicacion,
   RegistroMeteo,
   ResultadoEvaluacion,
-  Semaforo
+  Semaforo,
+  BIBLIOGRAFIA_APLICACION,
+  describirUmbrales
 } from '../services/spray-advisor.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
@@ -234,8 +236,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
     semaforo: 'Resumen global (deriva + eficacia + restricciones).',
     delta_t: 'ΔT (Delta T): potencial de evaporación de la gota.',
     inversion: 'Inversión térmica: atmósfera estable → aumenta deriva a larga distancia.',
-    deriva: 'Score de deriva (más alto = peor).',
-    eficacia: 'Score de eficacia (más alto = mejor).',
+    deriva: 'Riesgo de deriva, de 0 a 100 (más alto, peor).',
+    eficacia: 'Riesgo de baja eficacia, de 0 a 100 (más alto, peor).',
     viento: 'Viento y ráfagas: principal factor de deriva.',
     direccion: 'Dirección del viento: si sopla hacia zonas sensibles, no aplicar.',
     lluvia: 'Lluvia: riesgo de lavado y pérdida de eficacia.',
@@ -336,7 +338,11 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   if (!item) return;
 
   this.infoTitle = item.title;
-  this.infoBody = item.body;
+  // El semáforo agrega los umbrales del método elegido y la bibliografía
+  this.infoBody = key === 'SEMAFORO'
+    ? [...item.body, `Umbrales con ${this.etiqueta(this.metodo)}:`, ...describirUmbrales(this.metodo),
+      'Bibliografía:', ...BIBLIOGRAFIA_APLICACION]
+    : item.body;
 
   this.infoRef = this.dialog.open(this.infoDialogTpl, {
     panelClass: 'instr-dialog',
@@ -608,7 +614,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       cultivo: this.cultivo,
       prioridad: this.prioridad,
       kpIndex: kp,
-      sats: this.usarGnssEnDecision() ? this.sats : undefined
+      sats: this.usarGnssEnDecision() ? this.sats : undefined,
+      gotaGruesa: this.tamGota === 'GRUESA' || this.tamGota === 'MUY_GRUESA'
     });
     if (!r.evaluacion) return r;
     return {
@@ -847,7 +854,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       title: 'Tamaño de gota',
       body: [
         'Más fina: mejor cobertura pero mayor deriva/evaporación.',
-        'Más gruesa: menos deriva pero puede bajar cobertura.'
+        'Más gruesa: menos deriva pero puede bajar cobertura.',
+        'Con ΔT de 10 a 12 °C, la gota gruesa o muy gruesa deja el semáforo en amarillo; con gota media o más fina, rojo (GRDC, 2025).'
       ]
     },
 
@@ -868,29 +876,54 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       ]
     },
 
-    SEMAFORO: { title: 'Semáforo', body: ['VERDE: aplicar · AMARILLO: precaución · ROJO: no aplicar', 'SIN EVALUAR (gris): falta o es inválido algún dato; no se evalúa con valores supuestos.'] },
+    SEMAFORO: {
+      title: 'Semáforo',
+      body: [
+        'Verde: aplicar. Amarillo: precaución. Rojo: no aplicar. Sin evaluar (gris): falta o es inválido algún dato; no se evalúa con valores supuestos.',
+        'Se combinan los dos riesgos según la prioridad (deriva / eficacia): Seguridad 80 / 20, Equilibrado 60 / 40, Eficacia 40 / 60. En citrus pesa un poco más la deriva y en granos, la eficacia. Resultado: menos de 35, verde; de 35 a 65, amarillo; más de 65, rojo (criterio propio).',
+        'Nunca es mejor que el peor criterio individual: si alguno de los de abajo da amarillo o rojo, el semáforo queda por lo menos de ese color.',
+        'La etiqueta del producto tiene prioridad sobre estos criterios.'
+      ]
+    },
     DELTA_T: {
       title: 'ΔT (Delta T)',
       body: [
         'Indicador del potencial de evaporación de la gota.',
         'ΔT alto: aumenta evaporación → más deriva y menor depósito.',
-        'Guía GRDC: 2–8 adecuado; 8–10 y 1–2 precaución; más de 10 o menos de 1, no aplicar.'
+        'GRDC (2025): de 2 a 8 °C, adecuado; de 8 a 10 °C y de 1 a 2 °C, precaución; de 10 a 12 °C, sólo con gota gruesa o muy gruesa; más de 12 °C, no aplicar. Menos de 1 °C, no aplicar (criterio propio).',
+        'Se calcula con la temperatura de bulbo húmedo de Stull (2011).'
       ]
     },
     INVERSION: {
       title: 'Inversión térmica',
       body: [
         'Aire estable: la nube puede viajar lejos sin dispersarse.',
-        'Se estima probable de noche (entre la puesta y la salida del sol en la estación) con viento medio menor a 5 km/h y HR de 85 % o más.',
+        'Se estima probable de noche (entre la puesta y la salida del sol en la estación) con viento medio menor a 5 km/h y HR de 85 % o más (criterio propio; INTA Pergamino toma un viento de 4,2 km/h o menos como indicador de inversión).',
         'Riesgo alto de deriva a larga distancia.'
       ]
     },
-    DERIVA: { title: 'Deriva (score)', body: ['Más alto = peor. Resume riesgo por viento/ráfagas/ΔT/inversión.'] },
-    EFICACIA: { title: 'Eficacia (score)', body: ['Más alto = peor. Resume riesgo de baja eficacia por condiciones.'] },
+    DERIVA: {
+      title: 'Riesgo de deriva',
+      body: [
+        'Riesgo de que el producto se desvíe fuera del lote, de 0 a 100: más alto, peor.',
+        'Cada criterio se califica verde (20 puntos), amarillo (55) o rojo (85) y se pondera: viento (calma o ráfaga alta) 35 %, inversión térmica probable 30 %, ráfaga por encima del viento medio (turbulencia) 20 % y ΔT 15 %.',
+        'Menos de 35, bajo; de 35 a 65, medio; más de 65, alto. En la práctica va de 20 (todo verde) a 85 (todo rojo).',
+        'Pesos y rangos: criterio propio. Los umbrales de cada criterio y sus fuentes están en la ayuda del semáforo.'
+      ]
+    },
+    EFICACIA: {
+      title: 'Riesgo de baja eficacia',
+      body: [
+        'Riesgo de que el producto no llegue al blanco o no actúe bien, de 0 a 100: más alto, peor.',
+        'Pondera la lluvia (lavado) 45 %, el ΔT (evaporación de la gota) 30 % y el viento 25 %, con la misma escala de 20, 55 y 85 puntos por criterio.',
+        'Menos de 35, bajo; de 35 a 65, medio; más de 65, alto.',
+        'Pesos y rangos: criterio propio. Los umbrales de cada criterio y sus fuentes están en la ayuda del semáforo.'
+      ]
+    },
     DIRECCION: { title: 'Dirección', body: ['Si sopla hacia zonas sensibles, evitar aplicar.'] },
     LLUVIA: { title: 'Lluvia', body: ['Riesgo de lavado y pérdida de eficacia según rainfastness.'] },
 
-    SCORES: { title: 'Riesgos (scores)', body: ['0–34 bajo · 35–65 medio · >65 alto'] },
+    SCORES: { title: 'Riesgos', body: ['Menos de 35, bajo; de 35 a 65, medio; más de 65, alto.'] },
     FORECAST_HELP: {
       title: 'Cómo leer la tabla',
       body: [
