@@ -14,32 +14,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 16px;
+  padding: 20px 24px 0;
   box-sizing: border-box;
-}
-
-/* BotÃƒÂ³n cerrar Ã¢â‚¬â€œ mismo patrÃƒÂ³n que dialogs */
-.do-close {
-  position: absolute;
-  /* A la altura de la etiqueta y fuera de la franja de la barra de desplazamiento */
-  right: calc(31px + env(safe-area-inset-right));
-  top: calc(16px + env(safe-area-inset-top));
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.92);
-  color: var(--text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: var(--shadow-sm);
-  z-index: 100;
-}
-
-.do-close:hover {
-  background: rgba(17, 24, 39, .04);
 }
 
 /* Contenido */
@@ -63,17 +39,7 @@
   position: static;
   top: 0;
   z-index: 30;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-}
-
-/* TÃƒÂ­tulo */
-.titulo {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: var(--text);
+  background: var(--surface);
 }
 
 /* Selects con tokens */
@@ -330,7 +296,6 @@
   box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
 }
 
-
 /* =============================
    Responsive (REAL)
    ============================= */
@@ -346,6 +311,9 @@
 }
 
 @media (max-width: 620px) {
+  .container {
+    padding: 14px 12px 0;
+  }
 
   /* 1) NO crees scroll anidado en la tabla */
   .tabla-wrapper{
@@ -370,10 +338,6 @@
   .viewer-container{
     -webkit-overflow-scrolling: auto;  /* <- iOS fix clÃƒÂ¡sico para sticky */
   }
-}
-.do-close:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
-  outline-offset: 2px;
 }
 
 /* Encabezados de columnas numéricas alineados con sus valores (td.derecha) */
