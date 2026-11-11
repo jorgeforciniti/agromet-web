@@ -966,16 +966,16 @@ table td {
   display: none;
 }
 
-/* Resumen de cuatro cifras sobre un gráfico (charts/resumen-series.ts): una línea por serie */
+/* Resumen de cuatro cifras sobre un gráfico (charts/resumen-series.ts): una línea por serie,
+   con las cifras en Barlow y las etiquetas en minúscula, como el resumen de los diálogos */
 .resumen-grafico {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin: 0 0 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, .88);
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   font-size: .88rem;
 }
 
@@ -983,12 +983,12 @@ table td {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 2px 16px;
+  gap: 2px 18px;
 }
 
 .resumen-grafico dt {
   min-width: 140px;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -1002,16 +1002,28 @@ table td {
 
 .resumen-grafico dd {
   margin: 0;
-  font-weight: 800;
   color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .resumen-grafico dd span {
+  margin-right: 2px;
   color: var(--muted);
-  font-size: .74rem;
-  font-weight: 800;
-  letter-spacing: .03em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: .8rem;
+  font-weight: 500;
+}
+
+/* Comparación con la normal: texto, no cifra destacada. Sin color por signo: estar sobre la
+   normal es bueno en lluvia y malo en temperatura máxima, según la variable. */
+.resumen-grafico .resumen-grafico__normal {
+  font-family: var(--font-sans);
+  font-size: .86rem;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 /* Texto sólo para lectores de pantalla. Angular Material carga esta clase recién cuando
