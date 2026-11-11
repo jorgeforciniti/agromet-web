@@ -501,8 +501,8 @@
 
 /* ===== Resumen: contexto en una línea y cuatro indicadores ===== */
 
+/* Línea de contexto sobre el resumen (estación, cultivo y período) */
 .summary-contexto {
-  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
