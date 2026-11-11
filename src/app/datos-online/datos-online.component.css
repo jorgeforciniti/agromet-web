@@ -44,14 +44,14 @@
 
 /* Selects con tokens */
 .variable-selector select {
-  appearance: none;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
-  color: var(--text);
+  min-height: 40px;
+  padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 10px 12px;
-  font-weight: 700;
-  outline: none;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
 }
 
 .variable-selector select:focus {
@@ -76,11 +76,10 @@
 /* Map y chart cards */
 .map-column,
 .chart-column {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
   min-height: 0;
 }
 
@@ -97,10 +96,7 @@
   min-height: 240px;
   height: clamp(240px, 38vh, 430px);
   /* en vez de max-height */
-  background: rgba(17, 24, 39, .02);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
+  padding: 4px 0 0;
 }
 
 .chart-column {
@@ -112,8 +108,9 @@
 
 .chart-column h3 {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
   color: var(--text);
 }
 
@@ -123,10 +120,12 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(17, 24, 39, .03);
-  border: 1px solid var(--border);
+}
+
+.variable-selector label {
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 600;
 }
 
 .variable-selector.is-disabled {
@@ -192,8 +191,8 @@
 
 .tabla-wrapper {
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  border-radius: 12px;
+  background: var(--surface);
   overflow: visible;
   max-height: none;
   margin-bottom: 2px;
@@ -220,80 +219,16 @@
 }
 
 .tabla-datos {
-  width: 100%;
   min-width: 820px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-/* HEADER STICKY: fijo cuando llega arriba del scroll principal */
-.tabla-datos thead th {
-  position: sticky;
-  top: 0;
-  /* <- clave */
-  z-index: 50;
-  /* por encima de filas */
-  background: #111;
-  /* negro */
-  color: #fff;
-  /* letras blancas */
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
-  padding: 10px;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, .18);
-}
-
-.tabla-datos td {
-  padding: 10px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  background: transparent;
-  /* <- clave */
-  background-clip: padding-box;
-}
-
-.tabla-datos tbody tr:nth-child(odd) td {
-  background: #f3f4f6;
-}
-
-.tabla-datos tbody tr:nth-child(even) td {
-  background: #d4d4d4;
-}
-
-.tabla-datos thead tr {
-  background: #252525;
-}
-
-.tabla-datos td {
-  background-clip: padding-box;
-}
-
-.tabla-datos tbody tr:hover td {
-  box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, .04);
 }
 
 .derecha {
   text-align: right;
 }
 
-.do-dialog .mat-mdc-dialog-content {
-  height: 100% !important;
-  max-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 0 !important;
-  overflow: auto !important;
-  overflow-x: hidden !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  scrollbar-gutter: stable;
-}
-
-.do-dialog .mat-mdc-dialog-surface {
-  border-radius: 24px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
-  overflow: hidden !important;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
+/* Fecha y hora del último dato en una sola línea */
+.tabla-datos td:nth-child(3) {
+  white-space: nowrap;
 }
 
 /* =============================

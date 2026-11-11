@@ -39,7 +39,7 @@
         </ng-template>
 
         <div class="variable-selector" [class.is-disabled]="!selectedStationId">
-          <label for="varSelect"><strong>Variable:</strong></label>
+          <label for="varSelect">Variable</label>
 
           <select id="varSelect" [(ngModel)]="selectedVariable" (change)="actualizarGrafico(); actualizarEtiquetas()"
             [disabled]="!selectedStationId">
@@ -65,7 +65,7 @@
         </p>
 
         <div class="selector-text" *ngIf="selectedStationId">
-          Clic sobre una estación en el mapa para ver su gráfico.
+          Tocá otra estación en el mapa para cambiar el gráfico.
         </div>
       </div>
     </div>
@@ -79,17 +79,17 @@
     </div>
     <div class="tabla-wrapper">
       <div class="tabla-scroll-x tabla-fija">
-        <table *ngIf="!loading && !error" class="tabla-datos">
+        <table *ngIf="!loading && !error" class="tabla-datos dlg-tabla">
           <thead>
             <tr>
               <th>ID</th>
               <th>Nombre</th>
               <th>Fecha</th>
-              <th>Temp. (°C)</th>
-              <th>Humedad (%)</th>
-              <th>Precip. (mm)</th>
-              <th>V. Medio (km/h)</th>
-              <th>Ráfaga (km/h)</th>
+              <th class="derecha">Temp. (°C)</th>
+              <th class="derecha">Humedad (%)</th>
+              <th class="derecha">Lluvia del día (mm)</th>
+              <th class="derecha">Viento medio (km/h)</th>
+              <th class="derecha">Ráfaga (km/h)</th>
             </tr>
           </thead>
           <tbody>
