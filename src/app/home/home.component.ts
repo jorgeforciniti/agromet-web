@@ -1,19 +1,22 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 import { BienvenidaComponent } from '../bienvenida/bienvenida.component';
-import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
+import { MisEstacionesComponent } from '../mis-estaciones/mis-estaciones.component';
 
-type SummaryItem = {
-  title: string;
-  eyebrow?: string;
-  subtitle: string;
-  icon: string;
-  colorVar: string;
-  actionLabel: string;
-  route: string;
+type Acceso = {
+  titulo: string;
+  descripcion: string;
+  icono: string;
+  color: string;
+  ruta: string;
+};
+
+type GrupoAccesos = {
+  titulo: string;
+  accesos: Acceso[];
 };
 
 @Component({
@@ -22,75 +25,67 @@ type SummaryItem = {
   imports: [
     CommonModule,
     MatIconModule,
+    RouterLink,
     BienvenidaComponent,
-    ScrollRevealDirective
+    MisEstacionesComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
-  constructor(private router: Router) { }
-
-  readonly summaryCards: SummaryItem[] = [
+  /** Accesos a las secciones, agrupados según para qué se usan. */
+  readonly grupos: GrupoAccesos[] = [
     {
-      title: 'Estado actual',
-      eyebrow: 'AHORA',
-      subtitle: 'Alertas vigentes del SMN, datos en tiempo real, mapa operativo y pronóstico en un solo lugar.',
-      icon: 'warning_amber',
-      colorVar: 'var(--mod-alert)',
-      actionLabel: 'Ver estado actual',
-      route: '/estado-actual'
+      titulo: 'Para hoy',
+      accesos: [
+        {
+          titulo: 'Estado actual',
+          descripcion: 'Avisos vigentes del SMN, datos de cada estación en tiempo real y pronóstico.',
+          icono: 'warning_amber',
+          color: 'var(--mod-alert)',
+          ruta: '/estado-actual'
+        },
+        {
+          titulo: 'Mapas',
+          descripcion: 'Lluvias, temperaturas y heladas sobre el mapa de la provincia.',
+          icono: 'map',
+          color: 'var(--mod-maps)',
+          ruta: '/mapas'
+        }
+      ]
     },
     {
-      title: 'Mapas interactivos',
-      eyebrow: 'HERRAMIENTAS',
-      subtitle: 'Capas y visualización geoespacial de lluvias, temperaturas y heladas.',
-      icon: 'map',
-      colorVar: 'var(--mod-maps)',
-      actionLabel: 'Ver mapas',
-      route: '/mapas'
-    },
-    {
-      title: 'Datos y estadísticas',
-      eyebrow: 'SERIES Y ANÁLISIS',
-      subtitle: 'Series históricas, comparaciones entre años o localidades y herramientas de cálculo agronómico.',
-      icon: 'query_stats',
-      colorVar: 'var(--mod-stats)',
-      actionLabel: 'Explorar',
-      route: '/datos'
-    },
-    {
-      title: 'Estadísticas históricas',
-      eyebrow: 'DATOS CLIMÁTICOS',
-      subtitle: 'Evolución, extremos, episodios y comparaciones entre años para la estación El Colmenar.',
-      icon: 'history',
-      colorVar: 'var(--mod-sat)',
-      actionLabel: 'Explorar',
-      route: '/estadisticas-historicas'
-    },
-    {
-      title: 'Informes agrometeorológicos',
-      subtitle: 'Boletines, reportes y publicaciones técnicas.',
-      icon: 'description',
-      colorVar: 'var(--mod-reports)',
-      actionLabel: 'Explorar',
-      route: '/informes'
-    },
-    {
-      title: 'Red de estaciones',
-      eyebrow: 'COBERTURA',
-      subtitle: 'Ubicación y estado de todas las estaciones automáticas de la red.',
-      icon: 'sensors',
-      colorVar: 'var(--info)',
-      actionLabel: 'Ver red',
-      route: '/estaciones'
+      titulo: 'Para analizar',
+      accesos: [
+        {
+          titulo: 'Datos y estadísticas',
+          descripcion: 'Series históricas, comparaciones entre años o localidades y cálculos agronómicos.',
+          icono: 'query_stats',
+          color: 'var(--mod-stats)',
+          ruta: '/datos'
+        },
+        {
+          titulo: 'Estadísticas históricas',
+          descripcion: 'Evolución, extremos y episodios climáticos de la estación El Colmenar.',
+          icono: 'history',
+          color: 'var(--mod-sat)',
+          ruta: '/estadisticas-historicas'
+        },
+        {
+          titulo: 'Informes',
+          descripcion: 'Boletines, reportes y publicaciones técnicas de la Sección.',
+          icono: 'description',
+          color: 'var(--mod-reports)',
+          ruta: '/informes'
+        },
+        {
+          titulo: 'Red de estaciones',
+          descripcion: 'Dónde está cada estación automática y qué mide.',
+          icono: 'sensors',
+          color: 'var(--info)',
+          ruta: '/estaciones'
+        }
+      ]
     }
   ];
-
-  readonly featuredSummary: SummaryItem = this.summaryCards[0];
-  readonly quickSummaries: SummaryItem[] = this.summaryCards.slice(1);
-
-  goTo(route: string): void {
-    this.router.navigate([route]);
-  }
 }

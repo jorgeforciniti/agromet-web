@@ -9,15 +9,39 @@ import {
   WeatherStation
 } from '../services/weather.service';
 import { StationService } from '../services/station.service';
-import { MisEstacionesComponent } from '../mis-estaciones/mis-estaciones.component';
-import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
-import { CountUpDirective } from '../directives/count-up.directive';
 
 interface FrostSummary {
   count: number;
   lowest: number;
   lowestStation: string;
 }
+
+/** Una estación ubicada en la franja de su zona según la temperatura actual. */
+interface PuntoRed {
+  indice: number;
+  nombre: string;
+  temp: number;
+  x: number;
+  carril: number;
+  color: string;
+}
+
+interface FranjaZona {
+  etiqueta: string;
+  puntos: PuntoRed[];
+}
+
+/** Orden de las franjas: de los valles de altura a la llanura, y después el resto. */
+const ORDEN_ZONAS = ['4', '3', '2', '1', '5'];
+
+/** Escala de color de temperatura (°C → color) para los puntos de la red. */
+const ESCALA_TEMP: [number, string][] = [
+  [0, '#3b6fb6'],
+  [10, '#7fb0d6'],
+  [18, '#e9c84b'],
+  [26, '#f08a4b'],
+  [34, '#c2410c']
+];
 
 const ZONA_LABELS: Record<string, string> = {
   '1': 'Llanura Tucumana',
@@ -33,12 +57,9 @@ const ZONA_LABELS: Record<string, string> = {
   standalone: true,
   imports: [
     CommonModule,
-    MisEstacionesComponent,
     MatDialogModule,
     MatIconModule,
-    RouterModule,
-    ScrollRevealDirective,
-    CountUpDirective
+    RouterModule
   ],
   templateUrl: './bienvenida.component.html',
   styleUrl: './bienvenida.component.css'
@@ -54,6 +75,11 @@ export class BienvenidaComponent implements OnInit {
   currentStationIndex = 0;
   currentStation: WeatherStation | null = null;
   uvIndex: number | null = null;
+
+  franjas: FranjaZona[] = [];
+  escala: number[] = [];
+  masFria: WeatherStation | null = null;
+  masCalida: WeatherStation | null = null;
 
   constructor(
     private dialog: MatDialog,
@@ -96,6 +122,8 @@ export class BienvenidaComponent implements OnInit {
           return;
         }
 
+        this.armarFranjas();
+
         // El carrusel arranca en la estación activa (predeterminada o última usada)
         const defaultIndex = this.stations.findIndex(s => s.Identificacion === this.stationService.activa);
         this.currentStationIndex = defaultIndex >= 0 ? defaultIndex : 0;
@@ -105,6 +133,89 @@ export class BienvenidaComponent implements OnInit {
         this.loadingConditions = false;
       }
     });
+  }
+
+  /**
+   * Agrupa las estaciones con temperatura por zona y les asigna una posición horizontal
+   * en una escala común. Cuando dos puntos quedan muy juntos se apilan en otro carril
+   * para que no se tapen.
+   */
+  private armarFranjas(): void {
+    const conTemp = this.stations
+      .map((s, indice) => ({ s, indice, temp: parseFloat(s.temp_af ?? '') }))
+      .filter(p => !isNaN(p.temp));
+
+    if (!conTemp.length) {
+      this.franjas = [];
+      this.escala = [];
+      return;
+    }
+
+    const temps = conTemp.map(p => p.temp);
+    let min = Math.floor(Math.min(...temps) / 5) * 5;
+    let max = Math.ceil(Math.max(...temps) / 5) * 5;
+    if (max - min < 10) max = min + 10;
+    this.escala = [];
+    for (let t = min; t <= max; t += 5) this.escala.push(t);
+
+    const fria = conTemp.reduce((a, b) => (b.temp < a.temp ? b : a));
+    const calida = conTemp.reduce((a, b) => (b.temp > a.temp ? b : a));
+    this.masFria = fria.s;
+    this.masCalida = calida.s;
+
+    const claves = [...ORDEN_ZONAS, ''];
+    this.franjas = claves
+      .map(clave => {
+        const grupo = conTemp
+          .filter(p => (ORDEN_ZONAS.includes(p.s.zona ?? '') ? p.s.zona : '') === clave)
+          .sort((a, b) => a.temp - b.temp);
+
+        const ultimoX: number[] = [];
+        const puntos = grupo.map(p => {
+          const x = ((p.temp - min) / (max - min)) * 100;
+          let carril = ultimoX.findIndex(ux => x - ux > 2.2);
+          if (carril < 0) carril = ultimoX.length < 3 ? ultimoX.length : 0;
+          ultimoX[carril] = x;
+          return { indice: p.indice, nombre: p.s.nombre, temp: p.temp, x, carril, color: this.colorTemp(p.temp) };
+        });
+
+        return { etiqueta: clave ? ZONA_LABELS[clave] : 'Otras estaciones', puntos };
+      })
+      .filter(f => f.puntos.length);
+  }
+
+  private colorTemp(temp: number): string {
+    if (temp <= ESCALA_TEMP[0][0]) return ESCALA_TEMP[0][1];
+    for (let i = 1; i < ESCALA_TEMP.length; i++) {
+      const [t1, c1] = ESCALA_TEMP[i];
+      if (temp <= t1) {
+        const [t0, c0] = ESCALA_TEMP[i - 1];
+        return this.mezclar(c0, c1, (temp - t0) / (t1 - t0));
+      }
+    }
+    return ESCALA_TEMP[ESCALA_TEMP.length - 1][1];
+  }
+
+  private mezclar(a: string, b: string, f: number): string {
+    const ca = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16));
+    const cb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
+    return '#' + ca.map((v, i) => Math.round(v + (cb[i] - v) * f).toString(16).padStart(2, '0')).join('');
+  }
+
+  seleccionar(indice: number): void {
+    this.currentStationIndex = indice;
+    this.selectCurrentStation();
+  }
+
+  /** Hora de la última lectura (de fecha_I, "AAAA-MM-DD HH:MM:SS"). */
+  get horaLectura(): string | null {
+    const m = (this.currentStation?.fecha_I ?? '').match(/\d{2}:\d{2}/);
+    return m ? m[0] : null;
+  }
+
+  formatoTemp(temp: number | string | undefined): string {
+    const v = typeof temp === 'number' ? temp : parseFloat(temp ?? '');
+    return isNaN(v) ? '—' : v.toLocaleString('es-AR', { maximumFractionDigits: 1 });
   }
 
   private hasPlausibleReadings(station: WeatherStation): boolean {

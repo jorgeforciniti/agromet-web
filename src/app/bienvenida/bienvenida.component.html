@@ -1,110 +1,117 @@
-<div class="bienvenida-wrapper">
-  <div class="hero">
-    <div class="hero-intro">
-      <div class="hero-eyebrow">MONITOREO AGROMETEOROLÓGICO</div>
-      <h1 class="hero-title">Agrometeorología en tiempo real para Tucumán y el NOA</h1>
-      <p class="hero-subtext">Información climática de Tucumán para una agricultura más eficiente y mejor seguimiento
-        territorial.</p>
-      <button type="button" class="btn btn--accent hero-more" (click)="openDialog()">Saber más sobre la sección</button>
-    </div>
-
-    <div class="hero-cards">
-      <div class="hero-card hero-card--conditions" [appScrollReveal]="0">
-        <div class="hero-card__head">
-          <mat-icon>thermostat</mat-icon>
-          <span>Condiciones actuales</span>
-        </div>
-
-        <ng-container *ngIf="!loadingConditions && currentStation; else conditionsPlaceholder">
-          <div class="conditions-location">
-            <button type="button" class="conditions-nav tap-feedback" (click)="previousStation()"
-              [disabled]="stations.length < 2" aria-label="Estación anterior">
-              <mat-icon>chevron_left</mat-icon>
-            </button>
-
-            <div class="conditions-location__text">
-              <strong class="conditions-station-name" [title]="currentStation.nombre">{{ currentStation.nombre }}</strong>
-              <span [title]="locationLabel(currentStation)">
-                {{ locationLabel(currentStation) }}<ng-container *ngIf="zonaLabel(currentStation.zona)"> · {{ zonaLabel(currentStation.zona) }}</ng-container>
-              </span>
-            </div>
-
-            <button type="button" class="conditions-nav tap-feedback" (click)="nextStation()"
-              [disabled]="stations.length < 2" aria-label="Estación siguiente">
-              <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
-
-          <div class="conditions-grid">
-            <div class="conditions-metric">
-              <mat-icon>thermostat</mat-icon>
-              <span class="value">{{ currentTemp !== null ? (currentTemp + ' °C') : '—' }}</span>
-              <span class="label">Temperatura</span>
-            </div>
-            <div class="conditions-metric">
-              <mat-icon>water_drop</mat-icon>
-              <span class="value">{{ currentHumidity !== null ? (currentHumidity + ' %') : '—' }}</span>
-              <span class="label">Humedad</span>
-            </div>
-            <div class="conditions-metric">
-              <mat-icon>air</mat-icon>
-              <span class="value">{{ currentWindSpeed !== null ? (currentWindSpeed + ' km/h ' + (currentStation.direc || '')) : '—' }}</span>
-              <span class="label">Viento</span>
-            </div>
-            <div class="conditions-metric">
-              <mat-icon>wb_sunny</mat-icon>
-              <span class="value">{{ loadingUv ? '…' : (uvIndex !== null ? (uvIndex | number:'1.1-1') : '—') }}</span>
-              <span class="label">Índice UV</span>
-            </div>
-          </div>
-        </ng-container>
-        <ng-template #conditionsPlaceholder>
-          <div class="hero-card__sk-group" aria-hidden="true" aria-busy="true">
-            <div class="hero-card__skeleton hero-card__skeleton--value"></div>
-            <div class="hero-card__skeleton hero-card__skeleton--compare"></div>
-          </div>
-        </ng-template>
-
-        <a class="hero-card__link tap-feedback" routerLink="/estado-actual" (click)="goToCurrentStation()">
-          Ver estado actual <mat-icon>arrow_outward</mat-icon>
-        </a>
-      </div>
-
-      <button type="button" class="hero-card hero-card--frost tap-feedback" [appScrollReveal]="80"
-        [class.hero-card--frost-active]="!loadingFrost && frostSummary && frostSummary.count > 0"
-        (click)="openFrostMapDialog()">
-        <div class="hero-card__head">
-          <mat-icon>ac_unit</mat-icon>
-          <span>Heladas</span>
-        </div>
-
-        <ng-container *ngIf="!loadingFrost && frostSummary; else frostPlaceholder">
-          <ng-container *ngIf="frostSummary!.count > 0; else sinHeladas">
-            <div class="hero-card__value"><span [appCountUp]="frostSummary!.count" countUpSuffix=" estaciones bajo cero"></span></div>
-            <div class="hero-card__compare">Mínima: {{ frostSummary!.lowest }} °C en {{ frostSummary!.lowestStation }}</div>
-          </ng-container>
-          <ng-template #sinHeladas>
-            <div class="hero-card__value">Sin heladas registradas</div>
-            <div class="hero-card__compare">Ninguna estación bajo 0 °C en las últimas 24 h</div>
-          </ng-template>
-        </ng-container>
-        <ng-template #frostPlaceholder>
-          <div class="hero-card__sk-group" *ngIf="loadingFrost" aria-hidden="true" aria-busy="true">
-            <div class="hero-card__skeleton hero-card__skeleton--value"></div>
-            <div class="hero-card__skeleton hero-card__skeleton--compare"></div>
-          </div>
-        </ng-template>
-
-        <span class="hero-card__link">Ver mapa de heladas <mat-icon>arrow_outward</mat-icon></span>
-      </button>
-    </div>
-  </div>
-
-  <div class="hero-alert" *ngIf="alertText" role="status">
+<div class="bienvenida">
+  <div class="aviso-smn" *ngIf="alertText" role="status">
     <mat-icon>warning_amber</mat-icon>
     <span>{{ alertText }}</span>
     <a routerLink="/estado-actual">Ver detalle</a>
   </div>
 
-  <app-mis-estaciones class="bienvenida-mis-estaciones"></app-mis-estaciones>
+  <section class="hero" aria-labelledby="hero-titulo">
+    <header class="hero-cabecera">
+      <p class="hero-seccion">Sección Agrometeorología de la EEAOC</p>
+      <button type="button" class="hero-saber-mas" (click)="openDialog()">Saber más sobre la Sección</button>
+    </header>
+
+    <div class="hero-cuerpo">
+      <div class="red">
+        <h1 id="hero-titulo" class="hero-titulo">Cómo está Tucumán ahora, estación por estación</h1>
+
+        <p class="hero-resumen" *ngIf="!loadingConditions && masFria && masCalida; else resumenCargando">
+          {{ stations.length }} estaciones informaron hoy. La más fría es {{ masFria.nombre }}, con
+          {{ formatoTemp(masFria.temp_af) }}&nbsp;°C, y la más cálida, {{ masCalida.nombre }}, con
+          {{ formatoTemp(masCalida.temp_af) }}&nbsp;°C.
+        </p>
+        <ng-template #resumenCargando>
+          <p class="hero-resumen hero-resumen--cargando" *ngIf="loadingConditions">Leyendo las estaciones de la red…</p>
+        </ng-template>
+
+        <div class="franjas" *ngIf="franjas.length" role="group" aria-label="Temperatura actual por zona">
+          <div class="franja" *ngFor="let f of franjas">
+            <span class="franja-zona">{{ f.etiqueta }}</span>
+            <div class="franja-pista">
+              <button type="button" class="punto" *ngFor="let p of f.puntos"
+                [class.punto--activo]="p.indice === currentStationIndex"
+                [style.left.%]="p.x" [style.--carril]="p.carril" [style.background]="p.color"
+                [title]="p.nombre + ': ' + formatoTemp(p.temp) + ' °C'"
+                [attr.aria-label]="p.nombre + ', ' + formatoTemp(p.temp) + ' grados'"
+                [attr.aria-pressed]="p.indice === currentStationIndex"
+                tabindex="-1" (click)="seleccionar(p.indice)"></button>
+            </div>
+          </div>
+
+          <div class="franja franja--escala" aria-hidden="true">
+            <span class="franja-zona"></span>
+            <div class="franja-pista">
+              <span class="escala-marca" *ngFor="let t of escala; let i = index"
+                [style.left.%]="(i / (escala.length - 1)) * 100">{{ t }} °C</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="heladas" *ngIf="!loadingFrost && frostSummary"
+          [class.heladas--activa]="frostSummary.count > 0" (click)="openFrostMapDialog()">
+          <mat-icon>ac_unit</mat-icon>
+          <span *ngIf="frostSummary.count > 0">
+            Heladas en las últimas 24 h: {{ frostSummary.count }}
+            {{ frostSummary.count === 1 ? 'estación bajo' : 'estaciones bajo' }} 0 °C. La mínima fue de
+            {{ formatoTemp(frostSummary.lowest) }}&nbsp;°C en {{ frostSummary.lowestStation }}.
+          </span>
+          <span *ngIf="frostSummary.count === 0">Sin heladas en las últimas 24 h: ninguna estación bajó de 0 °C.</span>
+          <span class="heladas-accion">Ver mapa de heladas</span>
+        </button>
+      </div>
+
+      <aside class="estacion" aria-live="polite" aria-label="Estación seleccionada">
+        <ng-container *ngIf="!loadingConditions && currentStation; else estacionCargando">
+          <div class="estacion-nav">
+            <button type="button" class="estacion-flecha" (click)="previousStation()"
+              [disabled]="stations.length < 2" aria-label="Estación anterior">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <div class="estacion-nombre">
+              <strong [title]="currentStation.nombre">{{ currentStation.nombre }}</strong>
+              <span [title]="locationLabel(currentStation)">{{ locationLabel(currentStation) }}</span>
+            </div>
+            <button type="button" class="estacion-flecha" (click)="nextStation()"
+              [disabled]="stations.length < 2" aria-label="Estación siguiente">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <p class="estacion-temp">
+            {{ currentTemp !== null ? formatoTemp(currentTemp) : '—' }}<small> °C</small>
+          </p>
+          <p class="estacion-lectura" *ngIf="horaLectura">Lectura de las {{ horaLectura }}</p>
+
+          <dl class="estacion-datos">
+            <div>
+              <dt>Humedad</dt>
+              <dd>{{ currentHumidity !== null ? (currentHumidity + ' %') : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Viento</dt>
+              <dd>{{ currentWindSpeed !== null ? (currentWindSpeed + ' km/h ' + (currentStation.direc || '')) : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Índice UV</dt>
+              <dd>{{ loadingUv ? '…' : (uvIndex !== null ? (uvIndex | number:'1.1-1') : '—') }}</dd>
+            </div>
+          </dl>
+
+          <a class="estacion-enlace" routerLink="/estado-actual" (click)="goToCurrentStation()">
+            Ver el estado actual de esta estación
+          </a>
+        </ng-container>
+
+        <ng-template #estacionCargando>
+          <div class="estacion-esqueleto" *ngIf="loadingConditions" aria-busy="true">
+            <span></span><span></span><span></span>
+          </div>
+          <p class="estacion-vacia" *ngIf="!loadingConditions">
+            No se pudieron leer las estaciones. Probá recargar la página o entrá a
+            <a routerLink="/estado-actual">Estado actual</a>.
+          </p>
+        </ng-template>
+      </aside>
+    </div>
+  </section>
 </div>

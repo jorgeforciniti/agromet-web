@@ -1,61 +1,22 @@
 <div class="home">
-  <section class="hero">
-    <app-bienvenida></app-bienvenida>
-  </section>
+  <app-bienvenida></app-bienvenida>
 
-  <section class="summary" aria-label="Estado actual y accesos rápidos">
-    <div class="summary-shell">
-      <article class="summary-feature tap-feedback" [appScrollReveal]="0" [style.--moduleColor]="featuredSummary.colorVar"
-        (click)="goTo(featuredSummary.route)" (keydown.enter)="goTo(featuredSummary.route)"
-        (keydown.space)="goTo(featuredSummary.route); $event.preventDefault()" role="button" tabindex="0">
-        <div class="summary-feature__glow" aria-hidden="true"></div>
-        <div class="summary-feature__eyebrow">{{ featuredSummary.eyebrow }}</div>
+  <app-mis-estaciones class="home-mis-estaciones"></app-mis-estaciones>
 
-        <div class="summary-feature__head">
-          <div class="summary-icon summary-icon--feature">
-            <mat-icon>{{ featuredSummary.icon }}</mat-icon>
-          </div>
-
-          <div>
-            <h2 class="summary-feature__title">{{ featuredSummary.title }}</h2>
-            <p class="summary-feature__copy">{{ featuredSummary.subtitle }}</p>
-          </div>
-        </div>
-        <div class="summary-feature__status">
-          <strong>Seguimiento operativo</strong>
-          <span>Acceso rápido a avisos vigentes, condiciones críticas y alertas por zona.</span>
-        </div>
-
-        <button type="button" class="summary-action summary-action--feature"
-          (click)="$event.stopPropagation(); goTo(featuredSummary.route)">
-          {{ featuredSummary.actionLabel }}
-          <mat-icon>arrow_outward</mat-icon>
-        </button>
-      </article>
-
-      <div class="summary-grid summary-grid--quick">
-        <article class="summary-card tap-feedback" *ngFor="let s of quickSummaries; let i = index"
-          [appScrollReveal]="i * 60" [style.--moduleColor]="s.colorVar"
-          (click)="goTo(s.route)" (keydown.enter)="goTo(s.route)"
-          (keydown.space)="goTo(s.route); $event.preventDefault()" role="button" tabindex="0">
-          <div class="summary-left">
-            <div class="summary-icon">
-              <mat-icon>{{ s.icon }}</mat-icon>
-            </div>
-
-            <div class="summary-text">
-              <div class="summary-eyebrow">{{ s.eyebrow }}</div>
-              <div class="summary-title">{{ s.title }}</div>
-              <div class="summary-subtitle">{{ s.subtitle }}</div>
-            </div>
-          </div>
-
-          <button type="button" class="summary-action" (click)="$event.stopPropagation(); goTo(s.route)">
-            {{ s.actionLabel }}
-            <mat-icon>arrow_outward</mat-icon>
-          </button>
-        </article>
-      </div>
-    </div>
-  </section>
+  <nav class="accesos" aria-label="Secciones del sitio">
+    <section class="grupo" *ngFor="let g of grupos">
+      <h2 class="grupo-titulo">{{ g.titulo }}</h2>
+      <ul class="grupo-lista">
+        <li *ngFor="let a of g.accesos">
+          <a class="acceso" [routerLink]="a.ruta" [style.--color]="a.color">
+            <mat-icon class="acceso-icono" aria-hidden="true">{{ a.icono }}</mat-icon>
+            <span class="acceso-texto">
+              <strong>{{ a.titulo }}</strong>
+              <span>{{ a.descripcion }}</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </section>
+  </nav>
 </div>
