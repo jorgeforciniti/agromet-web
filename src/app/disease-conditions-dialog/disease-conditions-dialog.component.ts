@@ -628,7 +628,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
       { tone: 'very-high', label: 'Muy alto / positivo' },
       { tone: 'high', label: 'Alto' },
       { tone: 'moderate', label: 'Moderado' },
-      { tone: 'mild', label: 'Ligero / transicion' },
+      { tone: 'mild', label: 'Ligero / transición' },
       { tone: 'low', label: 'Bajo / no apto' }
     ];
 

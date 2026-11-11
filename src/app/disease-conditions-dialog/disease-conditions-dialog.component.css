@@ -98,25 +98,27 @@
   outline-offset: 2px;
 }
 
+/* Conteo por calificación: tarjeta neutra con un punto del color de la clase */
 .bucket-card {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
 }
 
-.bucket-card span {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--muted);
-  font-size: .8rem;
-  font-weight: 700;
+.bucket-card::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tono);
 }
 
 .bucket-card strong {
   color: var(--text);
-  font-size: .96rem;
-  font-weight: 900;
+  font-size: .92rem;
+  font-weight: 600;
 }
 
 .disease-note,
@@ -157,30 +159,15 @@
   gap: 10px;
 }
 
-.bucket-card[data-tone='low'] strong,
-.disease-table tr[data-tone='low'] .classification {
-  color: #475569;
-}
-
-.bucket-card[data-tone='mild'] strong,
-.disease-table tr[data-tone='mild'] .classification {
-  color: #a16207;
-}
-
-.bucket-card[data-tone='moderate'] strong,
-.disease-table tr[data-tone='moderate'] .classification {
-  color: #1d4ed8;
-}
-
-.bucket-card[data-tone='high'] strong,
-.disease-table tr[data-tone='high'] .classification {
-  color: #b45309;
-}
-
-.bucket-card[data-tone='very-high'] strong,
-.disease-table tr[data-tone='very-high'] .classification {
-  color: #b91c1c;
-}
+/* Una escala por calificación: el color fuerte para el punto y la franja, y un tono claro con
+   texto oscuro para la etiqueta (antes la fila entera iba pintada con colores saturados).
+   Con el prefijo del diálogo: este CSS no tiene encapsulación. */
+.disease-dialog [data-tone='low'] { --tono: #2e7d32; --tono-claro: #e7f4e8; --tono-texto: #1b5e20; }
+.disease-dialog [data-tone='mild'] { --tono: #c9a400; --tono-claro: #fbf5d2; --tono-texto: #6b5600; }
+.disease-dialog [data-tone='moderate'] { --tono: #e08a00; --tono-claro: #fdebd0; --tono-texto: #8a4b00; }
+.disease-dialog [data-tone='high'] { --tono: #d32f2f; --tono-claro: #fde3e1; --tono-texto: #a01818; }
+.disease-dialog [data-tone='very-high'] { --tono: #7a0000; --tono-claro: #f3d3d3; --tono-texto: #6a0000; }
+.disease-dialog [data-tone='none'] { --tono: #94a3b8; --tono-claro: #f1f5f9; --tono-texto: #475569; }
 
 .table-wrapper {
   /* Scroll horizontal propio (no vertical: el diálogo entero sigue siendo el único
@@ -207,127 +194,34 @@
 }
 
 .disease-table {
-  width: 100%;
   min-width: 720px;
-  border-collapse: separate;
-  border-spacing: 0;
 }
 
-.disease-table th {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: #111827;
-  color: #fff;
-  font-weight: 900;
-}
-
-.disease-table th,
-.disease-table td {
-  padding: 9px 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.disease-table td {
-  color: var(--text);
-  font-weight: 700;
-  background: rgba(255,255,255,.88);
-}
-
-.disease-table tr:nth-child(even) td {
-  background: #f8fafc;
-}
-
-.bucket-card[data-tone='low'] {
-  background: #59f34e;
-  border-color: #1f6f1b;
-}
-
-.bucket-card[data-tone='mild'] {
-  background: #ffef14;
-  border-color: #8c7a00;
-}
-
-.bucket-card[data-tone='moderate'] {
-  background: #ffad33;
-  border-color: #9a5600;
-}
-
-.bucket-card[data-tone='high'],
-.bucket-card[data-tone='high'] {
-  background: #ff1e10;
-  border-color: #8b120a;
-}
-
-.bucket-card[data-tone='very-high'] {
-  background: #770000;
-  border-color: #430000;
-}
-
-.bucket-card[data-tone='low'] span,
-.bucket-card[data-tone='low'] strong,
-.bucket-card[data-tone='mild'] span,
-.bucket-card[data-tone='mild'] strong,
-.bucket-card[data-tone='moderate'] span,
-.bucket-card[data-tone='moderate'] strong {
-  color: #111827;
-}
-
-.bucket-card[data-tone='high'] span,
-.bucket-card[data-tone='high'] strong,
-.bucket-card[data-tone='very-high'] span,
-.bucket-card[data-tone='very-high'] strong {
-  color: #ffffff;
-}
-
-.disease-table tr[data-tone='low'] td {
-  background: #59f34e !important;
-  color: #111827;
-}
-
-.disease-table tr[data-tone='mild'] td {
-  background: #ffef14 !important;
-  color: #111827;
-}
-
-.disease-table tr[data-tone='moderate'] td {
-  background: #ffad33 !important;
-  color: #111827;
-}
-
-.disease-table tr[data-tone='high'] td,
-.disease-table tr[data-tone='high'] td {
-  background: #ff1e10 !important;
-  color: #ffffff;
-}
-
-.disease-table tr[data-tone='very-high'] td {
-  background: #770000 !important;
-  color: #ffffff;
+/* Franja del color de la calificación al comienzo de cada fila */
+.disease-table.dlg-tabla tbody td:first-child {
+  box-shadow: inset 4px 0 0 var(--tono, transparent);
 }
 
 /* Día del período sin ningún registro */
-.disease-table tr[data-tone='none'] td {
-  background: repeating-linear-gradient(135deg, #f1f5f9 0 8px, #e2e8f0 8px 16px) !important;
-  color: #64748b;
+.disease-table.dlg-tabla tr[data-tone='none'] td {
+  color: var(--muted);
 }
 
 .disease-table tr[data-tone='none'] .classification {
-  color: #475569;
   font-style: italic;
 }
 
-/* Día con menos registros de los esperados: marca legible sobre cualquier color de fila */
+/* Día con menos registros de los esperados */
 .dia-incompleto {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 7px;
-  border: 1px dashed #111827;
+  border: 1px dashed var(--muted);
   border-radius: 999px;
-  background: #fff;
-  color: #111827;
+  background: var(--surface);
+  color: var(--muted);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.5;
   white-space: nowrap;
   cursor: help;
@@ -339,13 +233,12 @@
   margin-left: 4px;
 }
 
-.disease-table th.align-right,
-.disease-table td.align-right {
+.disease-table.dlg-tabla th.align-right,
+.disease-table.dlg-tabla td.align-right {
   text-align: right;
 }
 
 .classification {
-  font-weight: 900;
   text-align: center;
   vertical-align: middle;
 }
@@ -354,49 +247,20 @@
   text-align: center;
 }
 
+.disease-table.dlg-tabla .classification-col {
+  text-align: center;
+}
+
 .classification-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 108px;
-  min-height: 32px;
-  padding: 4px 12px;
-  margin-inline: auto;
+  display: inline-block;
+  min-width: 96px;
+  padding: 2px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, .18);
-  font-weight: 900;
-  letter-spacing: .01em;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
-}
-
-.classification-badge[data-tone='low'] {
-  background: rgba(255,255,255,.66);
-  color: #14532d;
-  border-color: rgba(20, 83, 45, .24);
-}
-
-.classification-badge[data-tone='mild'] {
-  background: rgba(255,255,255,.5);
-  color: #713f12;
-  border-color: rgba(113, 63, 18, .25);
-}
-
-.classification-badge[data-tone='moderate'] {
-  background: rgba(255,255,255,.46);
-  color: #9a3412;
-  border-color: rgba(154, 52, 18, .25);
-}
-
-.classification-badge[data-tone='high'] {
-  background: rgba(119, 0, 0, .14);
-  color: #fff7ed;
-  border-color: rgba(255, 255, 255, .26);
-}
-
-.classification-badge[data-tone='very-high'] {
-  background: rgba(255, 255, 255, .12);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, .24);
+  background: var(--tono-claro);
+  color: var(--tono-texto);
+  font-size: .82rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 @media (max-width: 980px) {
@@ -406,8 +270,10 @@
 }
 
 @media (max-width: 720px) {
+  /* Los conteos son cortos: de a dos por fila */
   .disease-buckets {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .table-wrapper {
