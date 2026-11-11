@@ -4,35 +4,6 @@
    ========================================= */
 
 /* =========================
-   Dialog sizing / scroll
-   ========================= */
-.do-dialog .mat-mdc-dialog-surface {
-  width: min(1200px, 96vw) !important;
-  max-width: 96vw !important;
-  height: 92vh !important;
-  max-height: 92vh !important;
-  min-height: 92vh !important;
-  overflow: hidden !important;
-  border-radius: 24px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99)) !important;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
-}
-
-.do-dialog .mat-mdc-dialog-content {
-  height: 100% !important;
-  max-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 0 !important;
-  overflow: auto !important;
-  overflow-x: auto !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  scrollbar-gutter: stable;
-}
-
-/* =========================
    Layout base
    ========================= */
 .dashboard-container{
@@ -40,94 +11,8 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
   color: var(--text);
-  /* !important: la regla global .do-dialog .mat-mdc-dialog-content pone padding 0 */
-  padding: 16px !important;
   box-sizing: border-box;
-}
-
-.dialog-header{
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--mod-data) 12%, var(--border));
-}
-
-/* Título */
-.titulo{
-  margin: 0 0 10px 0;
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: var(--text);
-  padding-right: 56px;
-}
-
-/* Botón cerrar */
-.close-btn{
-  position: absolute;
-  /* Arriba a la derecha, a la altura de la etiqueta, como en el resto de los dialogs */
-  right: env(safe-area-inset-right);
-  top: env(safe-area-inset-top);
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.92);
-  color: var(--text);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  z-index: 100;
-}
-.close-btn mat-icon,
-.close-btn .mat-icon{ color: var(--text) !important; }
-.close-btn:hover{ background: rgba(17,24,39,.04); }
-
-/* =========================
-   Form
-   ========================= */
-.form-grid{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: flex-start;
-  margin: 10px 0 12px;
-}
-mat-form-field{ width: 300px; }
-
-/* Material MDC: labels e inputs visibles (tema claro) */
-.do-dialog ::ng-deep .mat-mdc-form-field .mdc-floating-label{
-  color: var(--muted) !important;
-  font-weight: 700;
-}
-.do-dialog ::ng-deep .mat-mdc-form-field .mdc-text-field__input{
-  color: rgba(17,24,39,.92) !important;
-  font-weight: 700;
-  caret-color: rgba(79,121,50,.95);
-}
-.do-dialog ::ng-deep .mat-mdc-form-field input::placeholder{
-  color: rgba(17,24,39,.55) !important;
-}
-.do-dialog ::ng-deep .mat-mdc-form-field input.mat-mdc-input-element{
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
-  opacity: 1 !important;
-}
-.do-dialog ::ng-deep .mat-mdc-form-field .mdc-notched-outline__leading,
-.do-dialog ::ng-deep .mat-mdc-form-field .mdc-notched-outline__notch,
-.do-dialog ::ng-deep .mat-mdc-form-field .mdc-notched-outline__trailing{
-  border-color: var(--border) !important;
-}
-.do-dialog ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
-.do-dialog ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
-.do-dialog ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing{
-  border-color: rgba(79,121,50,.60) !important;
 }
 
 /* =========================
@@ -416,13 +301,8 @@ mat-tab-nav-panel{
    Responsive
    ========================= */
 @media (max-width: 768px){
-  mat-form-field{ width: 100%; }
   .tab-content{ padding: 12px; }
   .tabla-datos{ min-width: 860px; }
-}
-.close-btn:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod-data) 18%, white);
-  outline-offset: 2px;
 }
 
 /* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */

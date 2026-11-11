@@ -1,72 +1,61 @@
-﻿<mat-dialog-content class="dashboard-container">
+﻿<mat-dialog-content class="dashboard-container dlg-cuerpo">
 
-  <!-- Header -->
-  <div class="dialog-header">
-    <div class="dialogo-texto">
-      <div class="dialogo-titulo">
-        <h2 class="titulo">Datos meteorológicos por localidad</h2>
-        <span class="app-dialog-eyebrow">CONSULTA DETALLADA</span>
-      </div>
-      <!-- Pregunta para la Sección: las horas del resumen (heladas, umbrales de temperatura y de humedad), ¿se calculan con la duración de cada registro?
-           «Días de lluvia»: la consulta que pasaron (COUNT(CASE WHEN lluvia > 0.3 ...) AS registrosLluvia) cuenta registros;
-           ¿el resumen cuenta días con algún registro > 0,3 mm o días con lluvia diaria > 0,3 mm? -->
-      <app-como-se-lee>
-        <p>Resume los datos de la estación elegida entre las dos fechas indicadas: extremos y medias de temperatura
-          y humedad, horas por encima o por debajo de distintos umbrales, lluvia y viento y, si la estación tiene
-          los sensores, radiación solar, evapotranspiración y horas de hoja mojada (el sensor informa de 0, seca, a 15, mojada, y se toma
-          como mojada desde 10).</p>
-        <p>«Días con heladas» son los días con mínima de 0 °C o menos. La lluvia diaria corresponde al día
-          pluviométrico, de las 9 h a las 9 h del día siguiente, y «Días de lluvia» son los días en que la estación
-          registró lluvia; las mediciones de 0,3 mm o menos no cuentan, porque pueden ser rocío.</p>
-        <p>La evapotranspiración (ETo) la calcula la consola de la estación Davis con la ecuación de Penman
-          modificada que usa CIMIS (Universidad de California), cada hora, a partir de temperatura, humedad,
-          viento y radiación solar; el total del día es la suma de las horas.</p>
-        <p>En Gráficos, cada punto es un valor diario. La línea punteada del mismo color es la normal de la
-          estación, cuando la tiene; la lluvia normal se muestra como promedio diario (la normal del mes dividida
-          por sus días). Cada estación tiene normales de un período distinto, que se indica debajo del gráfico
-          cuando está disponible.</p>
-        <p>Los días sin registro quedan como huecos con una franja gris y se enumeran debajo del gráfico. Los totales
-          y conteos se calculan con los registros disponibles, así que con datos faltantes pueden quedar por debajo
-          del valor real. La tabla muestra como máximo los últimos 31 días del período.</p>
-      </app-como-se-lee>
-    </div>
-
-    <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
+  <!-- Pregunta para la Sección: las horas del resumen (heladas, umbrales de temperatura y de humedad), ¿se calculan con la duración de cada registro?
+       «Días de lluvia»: la consulta que pasaron (COUNT(CASE WHEN lluvia > 0.3 ...) AS registrosLluvia) cuenta registros;
+       ¿el resumen cuenta días con algún registro > 0,3 mm o días con lluvia diaria > 0,3 mm? -->
+  <app-encabezado-dialogo titulo="Datos por localidad"
+    bajada="Extremos y medias, horas por umbral, lluvia, viento, radiación y evapotranspiración de una estación entre dos fechas, con gráficos y tabla diaria."
+    (cerrar)="close()">
+    <app-como-se-lee>
+      <p>Resume los datos de la estación elegida entre las dos fechas indicadas: extremos y medias de temperatura
+        y humedad, horas por encima o por debajo de distintos umbrales, lluvia y viento y, si la estación tiene
+        los sensores, radiación solar, evapotranspiración y horas de hoja mojada (el sensor informa de 0, seca, a 15, mojada, y se toma
+        como mojada desde 10).</p>
+      <p>«Días con heladas» son los días con mínima de 0 °C o menos. La lluvia diaria corresponde al día
+        pluviométrico, de las 9 h a las 9 h del día siguiente, y «Días de lluvia» son los días en que la estación
+        registró lluvia; las mediciones de 0,3 mm o menos no cuentan, porque pueden ser rocío.</p>
+      <p>La evapotranspiración (ETo) la calcula la consola de la estación Davis con la ecuación de Penman
+        modificada que usa CIMIS (Universidad de California), cada hora, a partir de temperatura, humedad,
+        viento y radiación solar; el total del día es la suma de las horas.</p>
+      <p>En Gráficos, cada punto es un valor diario. La línea punteada del mismo color es la normal de la
+        estación, cuando la tiene; la lluvia normal se muestra como promedio diario (la normal del mes dividida
+        por sus días). Cada estación tiene normales de un período distinto, que se indica debajo del gráfico
+        cuando está disponible.</p>
+      <p>Los días sin registro quedan como huecos con una franja gris y se enumeran debajo del gráfico. Los totales
+        y conteos se calculan con los registros disponibles, así que con datos faltantes pueden quedar por debajo
+        del valor real. La tabla muestra como máximo los últimos 31 días del período.</p>
+    </app-como-se-lee>
+  </app-encabezado-dialogo>
 
   <!-- Formulario de búsqueda -->
-  <form [formGroup]="weatherForm" (ngSubmit)="loadData()" class="search-form">
-    <div class="form-grid">
+  <div class="dlg-form">
+    <form [formGroup]="weatherForm" (ngSubmit)="loadData()">
+      <div class="dlg-campos">
+        <app-selector-estacion appearance="outline" class="dlg-campo--ancho" formControlName="station" etiqueta="Estación" required
+          (cambio)="onStationChange()"
+          [estaciones]="stations"></app-selector-estacion>
 
-      <app-selector-estacion formControlName="station" etiqueta="Estación meteorológica" appearance="outline" required
-        (cambio)="onStationChange()"
-        [estaciones]="stations"></app-selector-estacion>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Desde</mat-label>
+          <input matInput [matDatepicker]="pickerInicio" formControlName="desde" placeholder="dd/mm/aaaa">
+          <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+          <mat-datepicker #pickerInicio panelClass="do-datepicker"></mat-datepicker>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha inicial</mat-label>
-        <input matInput [matDatepicker]="pickerInicio" formControlName="desde" placeholder="dd/mm/aaaa">
-        <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
-        <mat-datepicker #pickerInicio panelClass="do-datepicker"></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Fecha final</mat-label>
-        <input matInput [matDatepicker]="pickerFin" formControlName="hasta" placeholder="dd/mm/aaaa">
-        <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
-        <mat-datepicker #pickerFin panelClass="do-datepicker"></mat-datepicker>
-      </mat-form-field>
-
-      <button mat-raised-button color="primary" type="submit"
-              class="search-button"
-              [disabled]="loading || !weatherForm.valid">
-        <mat-icon>search</mat-icon>
-        {{ loading ? 'CARGANDO...' : 'BUSCAR DATOS' }}
-      </button>
-    </div>
-  </form>
-  <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Hasta</mat-label>
+          <input matInput [matDatepicker]="pickerFin" formControlName="hasta" placeholder="dd/mm/aaaa">
+          <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFin panelClass="do-datepicker"></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="dlg-acciones">
+        <button mat-raised-button color="primary" type="submit" class="dlg-calcular"
+          [disabled]="loading || !weatherForm.valid">{{ loading ? 'Cargando…' : 'Ver datos' }}</button>
+      </div>
+    </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
+  </div>
 
   <!-- Error -->
   <div *ngIf="errorMessage" class="error-message mat-elevation-z2">
