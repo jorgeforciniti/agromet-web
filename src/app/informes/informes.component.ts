@@ -6,7 +6,6 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, debounceTime, filter, map, switchMap, catchError, of, tap } from 'rxjs';
 import { DatosService, FiltroInformes, Informe, InformesResponse } from '../services/datos.service';
-import { ScrollRevealDirective } from '../directives/scroll-reveal.directive';
 
 type InformeDialogInput = Partial<Informe> & {
   nombreOriginal?: string;
@@ -22,6 +21,15 @@ interface CategoryMeta {
   color: string;
 }
 
+/** Informes de un tema en la vista sin filtros (los más recientes de cada uno) */
+interface TemaInformes {
+  categoria: string;
+  titulo: string;
+  informes: Informe[];
+}
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
 const POR_PAGINA = 20;
 
 @Component({
@@ -30,8 +38,7 @@ const POR_PAGINA = 20;
   imports: [
     CommonModule,
     MatDialogModule,
-    MatIconModule,
-    ScrollRevealDirective
+    MatIconModule
   ],
   templateUrl: './informes.component.html',
   styleUrls: ['./informes.component.css']
@@ -42,6 +49,8 @@ export class InformesComponent implements OnInit {
   private readonly router = inject(Router);
 
   informes: Informe[] = [];
+  /** Vista sin filtros: los informes agrupados por tema */
+  temas: TemaInformes[] = [];
 
   tiposInformes = [
     { value: '', viewValue: 'Todos' },
@@ -116,12 +125,14 @@ export class InformesComponent implements OnInit {
       if (!resp) {
         this.error = true;
         this.informes = [];
+        this.temas = [];
         this.total = 0;
         this.siguiente = null;
         return;
       }
       this.modo = resp.modo;
       this.informes = resp.data;
+      this.temas = this.armarTemas();
       this.total = resp.total;
       this.siguiente = resp.siguiente;
       this.anios = resp.anios;
@@ -143,16 +154,51 @@ export class InformesComponent implements OnInit {
     return !!(this.selectedCategoria || this.anio || this.busqueda);
   }
 
+  /**
+   * Sin filtros, la API trae los últimos de cada tema: se agrupan por tema, en el orden en que
+   * aparecen (el primero es el del informe más reciente).
+   */
+  private armarTemas(): TemaInformes[] {
+    const temas: TemaInformes[] = [];
+    for (const informe of this.informes) {
+      let tema = temas.find(t => t.categoria === informe.categoria);
+      if (!tema) {
+        const tipo = this.tiposInformes.find(t => t.value === informe.categoria);
+        tema = { categoria: informe.categoria, titulo: tipo?.viewValue ?? this.categoriaLabel(informe.categoria), informes: [] };
+        temas.push(tema);
+      }
+      tema.informes.push(informe);
+    }
+    return temas;
+  }
+
+  get vistaPorTemas(): boolean {
+    return this.modo === 'resumen' && !this.hayFiltros;
+  }
+
+  /** "2026-11-06" → "6 nov 2026" */
+  fecha(iso: string): string {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+    return m ? `${Number(m[3])} ${MESES[Number(m[2]) - 1]} ${m[1]}` : iso;
+  }
+
+  /** Los títulos cargados todo en mayúsculas («HELADAS AGOSTO 2026») se muestran en minúscula. */
+  tituloInforme(titulo: string): string {
+    const t = (titulo ?? '').trim();
+    if (!/[A-ZÁÉÍÓÚÑ]/.test(t) || t !== t.toUpperCase()) return t;
+    const minusculas = t.toLocaleLowerCase('es-AR');
+    return minusculas.charAt(0).toLocaleUpperCase('es-AR') + minusculas.slice(1);
+  }
+
   get titulo(): string {
-    if (!this.hayFiltros) return 'Informes y publicaciones recientes';
+    if (!this.hayFiltros) return 'Informes';
     const tipo = this.tiposInformes.find(t => t.value === this.selectedCategoria);
-    const partes = [this.selectedCategoria && tipo ? tipo.viewValue : 'Informes y publicaciones'];
-    if (this.anio) partes.push(this.anio);
-    return partes.join(' · ');
+    const base = this.selectedCategoria && tipo ? tipo.viewValue : 'Informes y publicaciones';
+    return this.anio ? `${base} de ${this.anio}` : base;
   }
 
   get resumenResultados(): string {
-    if (this.modo === 'resumen') return 'Los 3 más recientes de cada tema';
+    if (this.modo === 'resumen') return 'Los más recientes de cada tema';
     const n = this.total;
     if (n === 0) return '';
     const base = n === 1 ? '1 informe' : `${n.toLocaleString('es-AR')} informes`;

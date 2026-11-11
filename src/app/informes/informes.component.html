@@ -1,28 +1,26 @@
-<section class="informes-section">
-  <div class="informes-wrapper">
-    <div class="informes-head">
-      <div class="informes-eyebrow">BIBLIOTECA TÉCNICA</div>
-      <h1 class="informes-title">{{ titulo }}</h1>
-      <p class="informes-copy">Explorá boletines, reportes y documentos técnicos de cualquier fecha: filtrá por tema y
-        año, o buscá por título.</p>
-    </div>
+<section class="inf">
+  <header class="inf__intro">
+    <h1 class="inf__titulo">{{ titulo }}</h1>
+    <p class="inf__bajada">Boletines, informes de lluvias y heladas y publicaciones técnicas de la Sección.</p>
+  </header>
 
-    <div class="filters" role="group" aria-label="Filtrar por tipo de informe">
-      <button *ngFor="let tipo of tiposInformes" type="button" class="filter-chip"
-        [class.filter-chip--active]="selectedCategoria === tipo.value" [style.--chipColor]="chipColor(tipo.value)"
+  <div class="inf-filtros">
+    <div class="inf-temas" role="group" aria-label="Filtrar por tema">
+      <button *ngFor="let tipo of tiposInformes" type="button" class="inf-tema"
+        [class.inf-tema--activo]="selectedCategoria === tipo.value"
         [attr.aria-pressed]="selectedCategoria === tipo.value" (click)="selectCategoria(tipo.value)">
         {{ tipo.viewValue }}
       </button>
     </div>
 
-    <div class="buscador">
-      <label class="buscador__campo">
+    <div class="inf-buscador">
+      <label class="inf-buscador__campo">
         <mat-icon aria-hidden="true">search</mat-icon>
         <input type="search" placeholder="Buscar por título" aria-label="Buscar informes por título"
           [value]="textoBusqueda" (input)="buscar($any($event.target).value)" maxlength="100" />
       </label>
 
-      <label class="buscador__anio">
+      <label class="inf-buscador__anio">
         <span>Año</span>
         <select aria-label="Filtrar por año" [value]="anio" (change)="selectAnio($any($event.target).value)">
           <option value="">Todos</option>
@@ -30,54 +28,75 @@
         </select>
       </label>
 
-      <button *ngIf="hayFiltros" type="button" class="buscador__limpiar" (click)="limpiarFiltros()">
+      <button *ngIf="hayFiltros" type="button" class="inf-buscador__limpiar" (click)="limpiarFiltros()">
         Quitar filtros
       </button>
     </div>
+  </div>
 
-    <p class="informes-resultados" *ngIf="!loading && !error && informes.length" aria-live="polite">
-      {{ resumenResultados }}
-    </p>
+  <p class="inf-resultados" *ngIf="!loading && !error && informes.length" aria-live="polite">
+    {{ resumenResultados }}
+  </p>
 
-    <ul class="informes-list" *ngIf="loading" aria-hidden="true" aria-busy="true">
-      <li class="informe-row" *ngFor="let i of [0,1,2,3,4,5]">
-        <span class="skeleton sk-badge"></span>
-        <span class="informe-row__main">
-          <span class="skeleton sk-informe-title"></span>
-          <span class="skeleton sk-informe-date"></span>
-        </span>
-        <span class="skeleton sk-informe-action"></span>
-      </li>
-    </ul>
+  <!-- Cargando -->
+  <ul class="inf-lista" *ngIf="loading" aria-hidden="true" aria-busy="true">
+    <li *ngFor="let i of [0,1,2,3,4,5]" class="inf-esqueleto">
+      <span class="sk sk--fecha"></span>
+      <span class="sk sk--titulo"></span>
+    </li>
+  </ul>
 
-    <ul class="informes-list" *ngIf="!loading && informes.length; else sinInformes">
-      <li class="informe-row tap-feedback" [appScrollReveal]="0" *ngFor="let informe of informes">
-        <span class="informe-badge" [style.--chipColor]="chipColor(informe.categoria)">
-          {{ categoriaLabel(informe.categoria) }}
-        </span>
-
-        <button type="button" class="informe-row__main" (click)="openDialog(informe)">
-          <h3 class="informe-row__title" [title]="informe.titulo">{{ informe.titulo }}</h3>
-          <span class="informe-row__date">{{ informe.creado }}</span>
-        </button>
-
-        <button type="button" class="informe-row__action" (click)="openDialog(informe)">
-          Ver PDF
-          <mat-icon>arrow_outward</mat-icon>
-        </button>
-      </li>
-    </ul>
-
-    <div class="informes-mas" *ngIf="!loading && hayMas">
-      <button type="button" class="informes-mas__boton" (click)="cargarMas()" [disabled]="cargandoMas">
-        {{ cargandoMas ? 'Cargando…' : 'Cargar más' }}
-      </button>
+  <ng-container *ngIf="!loading && informes.length; else sinInformes">
+    <!-- Sin filtros: los más recientes de cada tema -->
+    <div class="inf-temas-grilla" *ngIf="vistaPorTemas; else listaPlana">
+      <section class="inf-bloque" *ngFor="let t of temas; let ti = index" [attr.aria-labelledby]="'inf-tema-' + ti">
+        <header class="inf-bloque__cabeza">
+          <h2 class="inf-bloque__titulo" [id]="'inf-tema-' + ti">
+            <i class="inf-bloque__marca" [style.background]="chipColor(t.categoria)" aria-hidden="true"></i>{{ t.titulo }}
+          </h2>
+          <button type="button" class="inf-bloque__todos" (click)="selectCategoria(t.categoria)">Ver todos</button>
+        </header>
+        <ul class="inf-lista">
+          <li *ngFor="let informe of t.informes">
+            <ng-container *ngTemplateOutlet="fila; context: { $implicit: informe, conTema: false }"></ng-container>
+          </li>
+        </ul>
+      </section>
     </div>
 
-    <ng-template #sinInformes>
-      <p class="informes-empty" *ngIf="!loading && error">No se pudieron cargar los informes. Probá de nuevo en
-        unos minutos.</p>
-      <p class="informes-empty" *ngIf="!loading && !error">No hay informes para estos filtros.</p>
+    <!-- Con filtros o búsqueda: una lista por fecha -->
+    <ng-template #listaPlana>
+      <ul class="inf-lista inf-lista--plana">
+        <li *ngFor="let informe of informes">
+          <ng-container *ngTemplateOutlet="fila; context: { $implicit: informe, conTema: !selectedCategoria }"></ng-container>
+        </li>
+      </ul>
     </ng-template>
+  </ng-container>
+
+  <div class="inf-mas" *ngIf="!loading && hayMas">
+    <button type="button" class="inf-mas__boton" (click)="cargarMas()" [disabled]="cargandoMas">
+      {{ cargandoMas ? 'Cargando…' : 'Cargar más informes' }}
+    </button>
   </div>
+
+  <ng-template #fila let-informe let-conTema="conTema">
+    <button type="button" class="inf-fila" (click)="openDialog(informe)" [title]="informe.titulo">
+      <time class="inf-fila__fecha" [attr.datetime]="informe.creado">{{ fecha(informe.creado) }}</time>
+      <span class="inf-fila__texto">
+        <span class="inf-fila__titulo">{{ tituloInforme(informe.titulo) }}</span>
+        <span class="inf-fila__tema" *ngIf="conTema">
+          <i [style.background]="chipColor(informe.categoria)" aria-hidden="true"></i>{{ categoriaLabel(informe.categoria) }}
+        </span>
+      </span>
+      <mat-icon class="inf-fila__pdf" aria-label="Abrir PDF">picture_as_pdf</mat-icon>
+    </button>
+  </ng-template>
+
+  <ng-template #sinInformes>
+    <p class="inf-vacio" *ngIf="!loading && error">No se pudieron cargar los informes. Probá de nuevo en
+      unos minutos.</p>
+    <p class="inf-vacio" *ngIf="!loading && !error">No hay informes para estos filtros. Probá con otro año o
+      <button type="button" class="inf-vacio__accion" (click)="limpiarFiltros()">quitá los filtros</button>.</p>
+  </ng-template>
 </section>
