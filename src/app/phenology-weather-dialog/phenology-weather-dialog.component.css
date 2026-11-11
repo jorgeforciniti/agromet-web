@@ -3,27 +3,6 @@
   color: var(--text);
 }
 
-:host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
-  width: min(1400px, 97vw) !important;
-  max-width: 97vw !important;
-  height: 95vh !important;
-  max-height: 95vh !important;
-  overflow: hidden !important;
-  border-radius: 24px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99)) !important;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
-}
-
-:host ::ng-deep .do-dialog .mat-mdc-dialog-content {
-  height: 100% !important;
-  max-height: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: auto !important;
-  overflow-x: auto !important;
-  background: transparent !important;
-}
-
 .phenology-dialog {
   padding: 0;
   margin: 0;
@@ -32,113 +11,22 @@
 .phenology-shell {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   height: 100%;
   min-height: 0;
-  padding: 16px;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--mod-stats) 14%, transparent), transparent 28%),
-    linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99));
 }
 
-.dialog-header {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
-}
-
-/* El texto ocupa todo el ancho que deja el botón de cerrar */
-.dialog-header__texto {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Título y etiqueta en una sola línea */
-.dialog-header__titulo {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  margin-bottom: 4px;
-}
-
-.dialog-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
-  background: rgba(255,255,255,.92);
-  color: color-mix(in srgb, var(--mod-stats) 66%, #46505c);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .08em;
-}
-
-.titulo {
-  margin: 0;
-  font-size: 1.3rem;
-  line-height: 1.08;
-  font-weight: 900;
-  color: var(--text);
-}
-
-.dialog-lead {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.4;
-  font-size: .94rem;
-}
-
-.close-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.92);
-  color: var(--text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: var(--shadow-sm);
-}
-
-.close-btn:hover {
-  background: rgba(17, 24, 39, .04);
-}
-
-.close-btn:focus-visible,
-.search-button:focus-visible,
 .kc-toggle:focus-within {
   outline: 3px solid color-mix(in srgb, var(--mod-stats) 18%, white);
   outline-offset: 2px;
 }
 
-.phenology-form,
 .phenology-note,
 .phenology-error,
-.phenology-summary,
 .chart-card,
 .table-wrapper {
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
-  border-radius: 18px;
-  background: rgba(255,255,255,.88);
-  box-shadow: var(--shadow-sm);
-}
-
-.phenology-form {
-  padding: 14px;
-}
-
-.phenology-grid {
-  display: grid;
-  grid-template-columns: minmax(240px, 1.35fr) minmax(170px, .8fr) minmax(280px, 1.25fr) minmax(180px, .8fr);
-  gap: 10px;
-  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
 }
 
 .kc-toggle {
@@ -149,25 +37,15 @@
   padding: 0 14px;
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
-  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.95));
+  background: var(--surface);
   color: var(--text);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .kc-toggle input {
   width: 18px;
   height: 18px;
   accent-color: color-mix(in srgb, var(--mod-stats) 80%, #2563eb);
-}
-
-.search-button {
-  min-height: 52px;
-  border-radius: 12px;
-  font-weight: 800;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
 .stage-editor {
@@ -247,43 +125,8 @@
   border-color: #fecdd3;
 }
 
-/* Resumen en una franja: contexto arriba y los cuatro indicadores en línea, separados por
-   divisores (antes eran tarjetas que ocupaban mucho alto) */
-.phenology-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 0;
-  padding: 10px 4px;
-}
-
-.summary-card {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 0 14px;
-}
-
-.summary-card + .summary-card {
-  border-left: 1px solid color-mix(in srgb, var(--mod-stats) 14%, var(--border));
-}
-
-.summary-card--warn strong {
+.summary-card--warn dd {
   color: #b91c1c;
-}
-
-.summary-card span {
-  display: block;
-  margin-bottom: 2px;
-  color: var(--muted);
-  font-size: .72rem;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.summary-card strong {
-  color: var(--text);
-  font-size: .96rem;
-  font-weight: 900;
 }
 
 .chart-grid {
@@ -368,38 +211,7 @@
   color: #b91c1c !important;
 }
 
-:host ::ng-deep .mat-mdc-form-field {
-  width: 100%;
-}
-
-:host ::ng-deep .mat-mdc-form-field .mdc-floating-label {
-  color: rgba(17,24,39,.70) !important;
-  font-weight: 700;
-}
-
-:host ::ng-deep .mat-mdc-form-field .mdc-text-field__input,
-:host ::ng-deep .mat-mdc-form-field select {
-  color: rgba(17,24,39,.92) !important;
-  -webkit-text-fill-color: rgba(17,24,39,.92) !important;
-  font-weight: 700;
-}
-
-:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-}
-
-:host ::ng-deep .mat-mdc-text-field-wrapper {
-  min-height: 52px !important;
-}
-
-:host ::ng-deep .mat-mdc-form-field-infix {
-  min-height: 52px !important;
-  padding-top: 14px !important;
-  padding-bottom: 10px !important;
-}
-
 @media (max-width: 1100px) {
-  .phenology-grid,
   .chart-grid,
   .stage-editor {
     grid-template-columns: 1fr 1fr;
@@ -407,46 +219,11 @@
 }
 
 @media (max-width: 720px) {
-  :host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
-    width: 96vw !important;
-    max-width: 96vw !important;
-    height: 96vh !important;
-    max-height: 96vh !important;
-    border-radius: 18px !important;
-  }
-
-  .phenology-shell {
-    gap: 10px;
-    padding: 10px;
-  }
-
-  .dialog-header {
-    gap: 10px;
-    padding-bottom: 8px;
-  }
-
-  .dialog-eyebrow {
-    min-height: 22px;
-    padding: 0 8px;
-    font-size: .64rem;
-  }
-
-  .titulo {
-    font-size: 1.1rem;
-  }
-
-  .dialog-lead {
-    font-size: .9rem;
-    line-height: 1.32;
-  }
-
-  .phenology-grid,
   .chart-grid,
   .stage-editor {
     grid-template-columns: 1fr;
   }
 
-  .phenology-form,
   .chart-card {
     padding: 10px;
   }
@@ -459,8 +236,6 @@
     min-width: 980px;
   }
 }
-
-/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
 
 /* Etapa y Período son texto; el resto, valores. */
 .phenology-table th:nth-child(n+3),
@@ -516,18 +291,17 @@
   font-weight: 600;
 }
 
-.summary-card--parcial strong {
+.summary-card--parcial dd {
   color: #7c5a1e;
 }
 
-/* Cobertura de datos por estadío */
-/* (con .summary-card strong delante para ganarle a su color por defecto) */
+/* (con .summary-card dd delante para ganarle a su color por defecto) */
 .cobertura--ok,
-.summary-card strong.cobertura--ok { color: #166534; font-weight: 800; }
+.summary-card dd.cobertura--ok { color: #166534; font-weight: 800; }
 .cobertura--media,
-.summary-card strong.cobertura--media { color: #b45309; font-weight: 800; }
+.summary-card dd.cobertura--media { color: #b45309; font-weight: 800; }
 .cobertura--baja,
-.summary-card strong.cobertura--baja { color: #b91c1c; font-weight: 800; }
+.summary-card dd.cobertura--baja { color: #b91c1c; font-weight: 800; }
 
 .faltantes-detalle {
   display: block;
@@ -755,8 +529,7 @@
   align-items: baseline;
   gap: 4px 14px;
   margin: 0;
-  padding: 0 14px 8px;
-  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 10%, var(--border));
+  padding: 0;
   color: var(--muted);
   font-size: .9rem;
   font-weight: 600;
@@ -772,10 +545,6 @@
   content: "·";
   margin-right: 14px;
   color: var(--border);
-}
-
-.summary-card strong {
-  font-size: 1.05rem;
 }
 
 /* ===== Tabla por etapa ===== */
@@ -826,16 +595,6 @@
 
   .summary-contexto span + span::before {
     margin-right: 8px;
-  }
-
-  /* En el teléfono, los indicadores de a dos por fila y sin divisores */
-  .summary-card {
-    flex: 1 1 40%;
-    padding: 0 10px;
-  }
-
-  .summary-card + .summary-card {
-    border-left: 0;
   }
 
   .phenology-table {

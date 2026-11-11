@@ -28,6 +28,7 @@ import { StationService } from '../services/station.service';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
@@ -162,7 +163,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    CopiarEnlaceComponent,
+    EncabezadoDialogoComponent, CopiarEnlaceComponent,
     ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,

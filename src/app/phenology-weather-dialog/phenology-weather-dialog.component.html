@@ -1,118 +1,106 @@
 <mat-dialog-content class="phenology-dialog">
-  <div class="phenology-shell">
-    <div class="dialog-header">
-      <div class="dialog-header__texto">
-        <div class="dialog-header__titulo">
-          <h2 class="titulo">Meteorología por estadíos fenológicos</h2>
-          <span class="dialog-eyebrow">CONSULTA FENOLÓGICA</span>
+  <div class="phenology-shell dlg-cuerpo">
+    <!-- Pregunta para la Sección: las duraciones de los hitos sugeridos (soja: R1 a 45 días de la siembra,
+         R5 a 80, R6 a 95, cosecha a 135; maíz: período crítico a 55, madurez a 120, cosecha a 150; caña:
+         brotación a 30 días de la emergencia, macollaje a 60, gran crecimiento a 120, maduración a 240,
+         cosecha a 320) no tienen fuente en el código. ¿Son valores locales o se toman de otra referencia? -->
+    <!-- Pregunta para la Sección: validar con la Sección Fruticultura/Citrus de la EEAOC las etapas de
+         cítricos (brotación, cuaje y caída fisiológica, crecimiento del fruto, maduración, cosecha), sus
+         fechas sugeridas (brotación el 1/9; cuaje a 60 días, crecimiento del fruto a 120, maduración a
+         195, cosecha a 240, nueva brotación a 365) y los Kc (0,70 / 0,68 / 0,65 / 0,68 / 0,70, de FAO-56
+         cuadro 12 para 70 % de cobertura sin cobertura de suelo). ¿Conviene distinguir limón de naranja
+         o usar los valores con malezas (0,75 / 0,70 / 0,75)? -->
+    <app-encabezado-dialogo titulo="Meteorología por estadíos fenológicos"
+      bajada="Lluvia, demanda hídrica (ETo × Kc), horas de hoja mojada, radiación y temperaturas extremas de cada etapa del cultivo, entre las fechas de sus hitos."
+      (cerrar)="close()">
+      <app-como-se-lee>
+        <p>Cada etapa va de un hito al siguiente: empieza el día del hito y termina el día anterior al hito
+          que sigue. Al cambiar la fecha de referencia (siembra, emergencia o, en los cítricos, el inicio de
+          la brotación), las demás se sugieren con la duración típica del cultivo y se pueden corregir a
+          mano. Los cítricos son perennes: el ciclo va de una brotación de primavera a la siguiente.</p>
+        <p>Para cada etapa se suman la lluvia, la ETo y las horas de hoja mojada de la estación, y se promedian
+          la radiación solar y las temperaturas máxima y mínima. También se cuentan los días con máxima de
+          35 °C o más y con mínima de 0 °C o menos.</p>
+        <p>La ETo la calcula la consola de la estación (Davis Vantage Pro2) con la ecuación de Penman
+          modificada tal como la usa CIMIS, el servicio de riego de California (Pruitt y Doorenbos, 1977, con
+          la función de viento de la Universidad de California en Davis). Se calcula cada hora con la
+          temperatura, la humedad, el viento medio y la radiación solar, y la ETo del día es la suma de las
+          horarias. Un día con ETo y radiación en 0 a la vez es una falla del sensor y se toma como día sin
+          dato.</p>
+        <p>La demanda hídrica es la ETo de cada día multiplicada por el Kc de la etapa. Los Kc propuestos son
+          los de FAO-56 (Allen et al., 1998, cuadro 12): cada etapa toma el valor inicial, medio o final del
+          cultivo y, en las etapas de transición, el promedio entre los dos; en los cítricos, los de una
+          plantación con 70 % de cobertura y sin malezas. Se pueden cambiar. Sin «Aplicar Kc», la demanda es la ETo. El balance simple
+          es lluvia menos demanda: no considera el agua del suelo, el escurrimiento ni la lluvia que no
+          infiltra (para eso está el balance hidrológico seriado).</p>
+        <p>En el gráfico por etapa, las líneas punteadas son la lluvia y la demanda normales de la estación en
+          las mismas fechas. Los días sin datos se marcan en gris y los totales afectados llevan «≥». Si la
+          estación tiene normales, «Completar con la normal» llena la lluvia y la ETo que faltan con la normal
+          diaria de ese mes; esos tramos se dibujan punteados.</p>
+      </app-como-se-lee>
+    </app-encabezado-dialogo>
+
+    <div class="dlg-form">
+      <form [formGroup]="form" (ngSubmit)="calculate()">
+        <div class="dlg-campos">
+          <app-selector-estacion appearance="outline" class="dlg-campo--ancho" formControlName="station" etiqueta="Estación"
+            [estaciones]="stations"></app-selector-estacion>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Cultivo</mat-label>
+            <select matNativeControl formControlName="crop">
+              <option *ngFor="let crop of cropPresets" [value]="crop.key">{{ crop.label }}</option>
+            </select>
+          </mat-form-field>
+
+          <label class="kc-toggle dlg-campo--ancho">
+            <input type="checkbox" formControlName="applyKc">
+            <span>Aplicar Kc a la ETo para estimar demanda hídrica</span>
+          </label>
         </div>
-        <p class="dialog-lead">
-          Reorganiza la serie diaria según hitos fenológicos del lote y resume lluvia, ETo,
-          demanda hídrica ajustada con Kc, humectación foliar, radiación y extremos térmicos.
+
+        <!-- Hitos en orden: fecha de cada uno y, entre un hito y el siguiente, la etapa con su Kc -->
+        <ol class="hitos">
+          <ng-container *ngFor="let idx of [0,1,2,3,4,5]">
+            <li class="hito" *ngIf="showMilestone(idx)" [class.hito--ancla]="idx === anclaActual">
+              <div class="hito__nombre">
+                <span class="hito__num" aria-hidden="true">{{ idx + 1 }}</span>
+                <label [for]="'hito-' + idx">{{ milestoneLabel(idx) }}</label>
+                <span class="hito__chip hito__chip--ancla" *ngIf="idx === anclaActual">Referencia</span>
+                <span class="hito__chip" *ngIf="sugeridos.has(idx)" title="Calculada desde la fecha de referencia; podés cambiarla">Sugerida</span>
+              </div>
+
+              <mat-form-field class="hito__fecha" appearance="outline" subscriptSizing="dynamic">
+                <input [id]="'hito-' + idx" matInput [matDatepicker]="picker" [formControlName]="'m' + (idx + 1)" placeholder="dd/mm/aaaa">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+
+              <div class="hito__etapa" *ngIf="showKc(idx)">
+                <span class="hito__etapa-texto">
+                  Etapa hasta {{ milestoneLabel(idx + 1) }}
+                  <strong>{{ diasEtapa(idx) ?? '—' }} días</strong>
+                </span>
+                <label class="hito__kc" [class.is-off]="!form.get('applyKc')?.value">
+                  <span>Kc</span>
+                  <input type="number" min="0" step="0.01" [formControlName]="'kc' + (idx + 1)"
+                    [attr.aria-label]="'Kc de la etapa hasta ' + milestoneLabel(idx + 1)">
+                </label>
+              </div>
+            </li>
+          </ng-container>
+        </ol>
+        <p class="hitos__ayuda">
+          <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
+          Al cambiar la fecha de <strong>{{ milestoneLabel(anclaActual) }}</strong> se sugieren las demás según la
+          duración típica del cultivo. Podés ajustar cualquiera.
         </p>
-        <!-- Pregunta para la Sección: las duraciones de los hitos sugeridos (soja: R1 a 45 días de la siembra,
-             R5 a 80, R6 a 95, cosecha a 135; maíz: período crítico a 55, madurez a 120, cosecha a 150; caña:
-             brotación a 30 días de la emergencia, macollaje a 60, gran crecimiento a 120, maduración a 240,
-             cosecha a 320) no tienen fuente en el código. ¿Son valores locales o se toman de otra referencia? -->
-        <!-- Pregunta para la Sección: validar con la Sección Fruticultura/Citrus de la EEAOC las etapas de
-             cítricos (brotación, cuaje y caída fisiológica, crecimiento del fruto, maduración, cosecha), sus
-             fechas sugeridas (brotación el 1/9; cuaje a 60 días, crecimiento del fruto a 120, maduración a
-             195, cosecha a 240, nueva brotación a 365) y los Kc (0,70 / 0,68 / 0,65 / 0,68 / 0,70, de FAO-56
-             cuadro 12 para 70 % de cobertura sin cobertura de suelo). ¿Conviene distinguir limón de naranja
-             o usar los valores con malezas (0,75 / 0,70 / 0,75)? -->
-        <app-como-se-lee>
-          <p>Cada etapa va de un hito al siguiente: empieza el día del hito y termina el día anterior al hito
-            que sigue. Al cambiar la fecha de referencia (siembra, emergencia o, en los cítricos, el inicio de
-            la brotación), las demás se sugieren con la duración típica del cultivo y se pueden corregir a
-            mano. Los cítricos son perennes: el ciclo va de una brotación de primavera a la siguiente.</p>
-          <p>Para cada etapa se suman la lluvia, la ETo y las horas de hoja mojada de la estación, y se promedian
-            la radiación solar y las temperaturas máxima y mínima. También se cuentan los días con máxima de
-            35 °C o más y con mínima de 0 °C o menos.</p>
-          <p>La ETo la calcula la consola de la estación (Davis Vantage Pro2) con la ecuación de Penman
-            modificada tal como la usa CIMIS, el servicio de riego de California (Pruitt y Doorenbos, 1977, con
-            la función de viento de la Universidad de California en Davis). Se calcula cada hora con la
-            temperatura, la humedad, el viento medio y la radiación solar, y la ETo del día es la suma de las
-            horarias. Un día con ETo y radiación en 0 a la vez es una falla del sensor y se toma como día sin
-            dato.</p>
-          <p>La demanda hídrica es la ETo de cada día multiplicada por el Kc de la etapa. Los Kc propuestos son
-            los de FAO-56 (Allen et al., 1998, cuadro 12): cada etapa toma el valor inicial, medio o final del
-            cultivo y, en las etapas de transición, el promedio entre los dos; en los cítricos, los de una
-            plantación con 70 % de cobertura y sin malezas. Se pueden cambiar. Sin «Aplicar Kc», la demanda es la ETo. El balance simple
-            es lluvia menos demanda: no considera el agua del suelo, el escurrimiento ni la lluvia que no
-            infiltra (para eso está el balance hidrológico seriado).</p>
-          <p>En el gráfico por etapa, las líneas punteadas son la lluvia y la demanda normales de la estación en
-            las mismas fechas. Los días sin datos se marcan en gris y los totales afectados llevan «≥». Si la
-            estación tiene normales, «Completar con la normal» llena la lluvia y la ETo que faltan con la normal
-            diaria de ese mes; esos tramos se dibujan punteados.</p>
-        </app-como-se-lee>
-      </div>
-
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
-        <mat-icon>close</mat-icon>
-      </button>
+        <div class="dlg-acciones">
+          <button mat-raised-button color="primary" class="dlg-calcular" type="submit" [disabled]="isLoading">{{ isLoading ? 'Calculando…' : 'Calcular' }}</button>
+        </div>
+      </form>
+      <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
     </div>
-
-    <form [formGroup]="form" (ngSubmit)="calculate()" class="phenology-form">
-      <div class="phenology-grid">
-        <app-selector-estacion formControlName="station" etiqueta="Estación"
-          [estaciones]="stations"></app-selector-estacion>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Cultivo</mat-label>
-          <select matNativeControl formControlName="crop">
-            <option *ngFor="let crop of cropPresets" [value]="crop.key">{{ crop.label }}</option>
-          </select>
-        </mat-form-field>
-
-        <label class="kc-toggle">
-          <input type="checkbox" formControlName="applyKc">
-          <span>Aplicar Kc a la ETo para estimar demanda hídrica</span>
-        </label>
-
-        <button mat-raised-button color="primary" class="search-button" type="submit" [disabled]="isLoading">
-          <mat-icon>query_stats</mat-icon>
-          Analizar campaña
-        </button>
-      </div>
-
-      <!-- Hitos en orden: fecha de cada uno y, entre un hito y el siguiente, la etapa con su Kc -->
-      <ol class="hitos">
-        <ng-container *ngFor="let idx of [0,1,2,3,4,5]">
-          <li class="hito" *ngIf="showMilestone(idx)" [class.hito--ancla]="idx === anclaActual">
-            <div class="hito__nombre">
-              <span class="hito__num" aria-hidden="true">{{ idx + 1 }}</span>
-              <label [for]="'hito-' + idx">{{ milestoneLabel(idx) }}</label>
-              <span class="hito__chip hito__chip--ancla" *ngIf="idx === anclaActual">Referencia</span>
-              <span class="hito__chip" *ngIf="sugeridos.has(idx)" title="Calculada desde la fecha de referencia; podés cambiarla">Sugerida</span>
-            </div>
-
-            <mat-form-field class="hito__fecha" appearance="outline" subscriptSizing="dynamic">
-              <input [id]="'hito-' + idx" matInput [matDatepicker]="picker" [formControlName]="'m' + (idx + 1)" placeholder="dd/mm/aaaa">
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
-
-            <div class="hito__etapa" *ngIf="showKc(idx)">
-              <span class="hito__etapa-texto">
-                Etapa hasta {{ milestoneLabel(idx + 1) }}
-                <strong>{{ diasEtapa(idx) ?? '—' }} días</strong>
-              </span>
-              <label class="hito__kc" [class.is-off]="!form.get('applyKc')?.value">
-                <span>Kc</span>
-                <input type="number" min="0" step="0.01" [formControlName]="'kc' + (idx + 1)"
-                  [attr.aria-label]="'Kc de la etapa hasta ' + milestoneLabel(idx + 1)">
-              </label>
-            </div>
-          </li>
-        </ng-container>
-      </ol>
-      <p class="hitos__ayuda">
-        <mat-icon aria-hidden="true">tips_and_updates</mat-icon>
-        Al cambiar la fecha de <strong>{{ milestoneLabel(anclaActual) }}</strong> se sugieren las demás según la
-        duración típica del cultivo. Podés ajustar cualquiera.
-      </p>
-    </form>
-    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
 
     <div class="phenology-error" *ngIf="loadError">
@@ -142,34 +130,36 @@
       </label>
     </div>
 
-    <div class="phenology-summary" *ngIf="totals">
+    <ng-container *ngIf="totals">
       <p class="summary-contexto">
         <strong>{{ totals.stationName }}</strong>
         <span>{{ totals.cropLabel }}</span>
         <span>{{ formatDisplayDate(totals.start) }} a {{ formatDisplayDate(totals.end) }}</span>
       </p>
-      <div class="summary-card">
-        <span>Lluvia acumulada</span>
-        <strong>{{ totals.lluviaParcial ? '≥ ' : '' }}{{ totals.rain | number:'1.1-1' }} mm</strong>
-      </div>
-      <div class="summary-card">
-        <span>Demanda ET x Kc</span>
-        <strong>{{ totals.demandaParcial ? '≥ ' : '' }}{{ totals.demand | number:'1.1-1' }} mm</strong>
-      </div>
-      <div class="summary-card" [class.summary-card--warn]="totals.balance < 0"
-        [class.summary-card--parcial]="totals.lluviaParcial || totals.demandaParcial"
-        [title]="totals.lluviaParcial || totals.demandaParcial ? 'Calculado con días sin datos' : ''">
-        <span>Balance simple</span>
-        <strong>{{ totals.balance | number:'1.1-1' }} mm{{ totals.lluviaParcial || totals.demandaParcial ? ' *' : '' }}</strong>
-      </div>
-      <div class="summary-card">
-        <span>Días con datos</span>
-        <strong [class]="claseCobertura(totals.totalDays ? (totals.validDays / totals.totalDays) * 100 : 0)">
-          {{ totals.validDays }} / {{ totals.totalDays }}
-        </strong>
-        <small *ngIf="totals.estimados">{{ totals.estimados }} estimados con la normal</small>
-      </div>
-    </div>
+      <dl class="dlg-resumen">
+        <div class="dlg-resumen__dato summary-card">
+          <dt>Lluvia acumulada</dt>
+          <dd>{{ totals.lluviaParcial ? '≥ ' : '' }}{{ totals.rain | number:'1.1-1' }} mm</dd>
+        </div>
+        <div class="dlg-resumen__dato summary-card">
+          <dt>Demanda ET x Kc</dt>
+          <dd>{{ totals.demandaParcial ? '≥ ' : '' }}{{ totals.demand | number:'1.1-1' }} mm</dd>
+        </div>
+        <div class="dlg-resumen__dato summary-card" [class.summary-card--warn]="totals.balance < 0"
+          [class.summary-card--parcial]="totals.lluviaParcial || totals.demandaParcial"
+          [title]="totals.lluviaParcial || totals.demandaParcial ? 'Calculado con días sin datos' : ''">
+          <dt>Balance simple</dt>
+          <dd>{{ totals.balance | number:'1.1-1' }} mm{{ totals.lluviaParcial || totals.demandaParcial ? ' *' : '' }}</dd>
+        </div>
+        <div class="dlg-resumen__dato summary-card">
+          <dt>Días con datos</dt>
+          <dd [class]="claseCobertura(totals.totalDays ? (totals.validDays / totals.totalDays) * 100 : 0)">
+            {{ totals.validDays }} / {{ totals.totalDays }}
+          </dd>
+          <small *ngIf="totals.estimados">{{ totals.estimados }} estimados con la normal</small>
+        </div>
+      </dl>
+    </ng-container>
 
     <div class="chart-grid" *ngIf="summaries.length">
       <section class="chart-card">
