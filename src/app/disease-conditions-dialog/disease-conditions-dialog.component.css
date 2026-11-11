@@ -3,27 +3,6 @@
   color: var(--text);
 }
 
-:host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
-  width: min(1120px, 95vw) !important;
-  max-width: 95vw !important;
-  height: 92vh !important;
-  max-height: 92vh !important;
-  overflow: hidden !important;
-  border-radius: 24px !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99)) !important;
-  box-shadow: 0 28px 60px rgba(15, 23, 42, .18) !important;
-}
-
-:host ::ng-deep .do-dialog .mat-mdc-dialog-content {
-  height: 100% !important;
-  max-height: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: auto !important;
-  overflow-x: auto !important;
-  background: transparent !important;
-}
-
 .disease-dialog {
   padding: 0;
   margin: 0;
@@ -32,7 +11,6 @@
 .disease-shell {
   display: flex;
   flex-direction: column;
-  gap: 12px;
   /* min-height (no height fijo): así crece con el contenido real en vez de comprimir
      la tabla al espacio que sobra, y es el diálogo entero (mat-mdc-dialog-content,
      que ya tiene overflow:auto) el que scrollea cuando no entra todo.
@@ -43,126 +21,16 @@
      propio min-height. */
   flex-shrink: 0;
   min-height: 100%;
-  padding: 16px 16px 22px;
   box-sizing: border-box;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--mod-stats) 14%, transparent), transparent 28%),
-    linear-gradient(180deg, color-mix(in srgb, var(--mod-stats) 5%, white), rgba(255,255,255,.99));
 }
 
-.dialog-header {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
-}
-
-/* El texto ocupa todo el ancho que deja el botón de cerrar */
-.dialog-header__texto {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Título y etiqueta en una sola línea */
-.dialog-header__titulo {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  margin-bottom: 4px;
-}
-
-.dialog-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 18%, var(--border));
-  background: rgba(255,255,255,.92);
-  color: color-mix(in srgb, var(--mod-stats) 66%, #46505c);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .08em;
-}
-
-.titulo {
-  margin: 0;
-  font-size: 1.3rem;
-  line-height: 1.08;
-  font-weight: 900;
-  color: var(--text);
-}
-
-.dialog-lead {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.4;
-  font-size: .94rem;
-}
-
-.close-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.92);
-  color: var(--text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  box-shadow: var(--shadow-sm);
-}
-
-.close-btn:hover {
-  background: rgba(17, 24, 39, .04);
-}
-
-.close-btn:focus-visible,
-.native-field select:focus-visible,
-.native-field input:focus-visible,
-.search-button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--mod-stats) 18%, white);
-  outline-offset: 2px;
-}
-
-.disease-form,
-.disease-summary,
 .table-wrapper,
 .disease-note,
 .disease-error,
 .bucket-card {
-  border: 1px solid color-mix(in srgb, var(--mod-stats) 12%, var(--border));
-  border-radius: 18px;
-  background: rgba(255,255,255,.88);
-  box-shadow: var(--shadow-sm);
-}
-
-.disease-form {
-  padding: 14px;
-}
-
-.native-grid {
-  display: grid;
-  /* Mínimos que suman menos que el diálogo: con los anteriores (~1030 px) el formulario
-     desbordaba y el contenido se corría hacia la izquierda al tocar "Consultar" */
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.35fr) minmax(150px, .8fr) minmax(150px, .8fr) minmax(140px, .7fr);
-  gap: 10px;
-  align-items: end;
-}
-
-.native-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.native-field label {
-  color: var(--text);
-  font-size: .82rem;
-  font-weight: 800;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
 }
 
 .info-dot {
@@ -193,7 +61,6 @@
   border-color: color-mix(in srgb, var(--mod-stats) 50%, var(--border));
 }
 
-/* En pantallas táctiles, más área para tocarla */
 @media (pointer: coarse) {
   .info-dot {
     width: 28px;
@@ -228,105 +95,6 @@
 .info-dot:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--mod-stats) 35%, white);
   outline-offset: 2px;
-}
-
-
-.native-field input[type="date"] {
-  color-scheme: light;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-  font-family: inherit;
-  background: #ffffff !important;
-  border-color: #b8c7aa !important;
-  caret-color: #111827;
-}
-
-.native-field input[type="date"]::-webkit-datetime-edit,
-.native-field input[type="date"]::-webkit-datetime-edit-text,
-.native-field input[type="date"]::-webkit-datetime-edit-month-field,
-.native-field input[type="date"]::-webkit-datetime-edit-day-field,
-.native-field input[type="date"]::-webkit-datetime-edit-year-field {
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-}
-
-.native-field input[type="date"]::-webkit-date-and-time-value {
-  text-align: left;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-}
-
-.native-field input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: .9;
-  cursor: pointer;
-  filter: contrast(1.1) saturate(.2);
-}
-
-.native-field input[type="date"]:hover {
-  border-color: #8ea26f !important;
-}
-
-.native-field input[type="date"]:focus {
-  border-color: #6f8c58 !important;
-  box-shadow: 0 0 0 3px rgba(111, 140, 88, .16);
-}
-
-.native-field input[type="date"]:valid {
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-}
-.search-button {
-  min-height: 52px;
-  border-radius: 12px;
-  font-weight: 800;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* Resumen de la consulta: una franja con los datos en línea (dt arriba, dd abajo) */
-.disease-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 0;
-  margin: 0;
-  padding: 10px 4px;
-}
-
-.disease-summary__item {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 0 14px;
-}
-
-.disease-summary__item + .disease-summary__item {
-  border-left: 1px solid color-mix(in srgb, var(--mod-stats) 14%, var(--border));
-}
-
-.disease-summary__item--ancho {
-  flex-grow: 2;
-}
-
-.disease-summary dt {
-  margin-bottom: 2px;
-  color: var(--muted);
-  font-size: .72rem;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.disease-summary dd {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  color: var(--text);
-  font-size: .94rem;
-  font-weight: 900;
-  line-height: 1.3;
 }
 
 .bucket-card {
@@ -631,90 +399,14 @@
 }
 
 @media (max-width: 980px) {
-  .native-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .table-wrapper {
     min-height: 40vh;
   }
 }
 
 @media (max-width: 720px) {
-  :host ::ng-deep .do-dialog .mat-mdc-dialog-surface {
-    width: 96vw !important;
-    max-width: 96vw !important;
-    height: 96vh !important;
-    max-height: 96vh !important;
-    border-radius: 18px !important;
-  }
-
-  .disease-shell {
-    gap: 10px;
-    padding: 10px;
-  }
-
-  .dialog-header {
-    gap: 10px;
-    padding-bottom: 8px;
-  }
-
-  .dialog-eyebrow {
-    min-height: 22px;
-    padding: 0 8px;
-    font-size: .64rem;
-  }
-
-  .titulo {
-    font-size: 1.14rem;
-  }
-
-  .dialog-lead {
-    font-size: .92rem;
-  }
-
-  .native-grid,
   .disease-buckets {
     grid-template-columns: 1fr;
-  }
-
-  /* En el teléfono los datos van de a dos por fila, sin separadores verticales */
-  .disease-summary__item {
-    flex: 1 1 45%;
-    padding: 0 10px;
-  }
-
-  .disease-summary__item + .disease-summary__item {
-    border-left: 0;
-  }
-
-  .disease-summary__item--ancho {
-    flex-basis: 100%;
-  }
-
-  .disease-form {
-    padding: 10px;
-  }
-
-  
-.native-field input[type="date"] {
-  color-scheme: light;
-}
-
-.native-field input[type="date"]::-webkit-datetime-edit,
-.native-field input[type="date"]::-webkit-datetime-edit-text,
-.native-field input[type="date"]::-webkit-datetime-edit-month-field,
-.native-field input[type="date"]::-webkit-datetime-edit-day-field,
-.native-field input[type="date"]::-webkit-datetime-edit-year-field {
-  color: #111827;
-}
-
-.native-field input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: .9;
-  cursor: pointer;
-}
-.search-button {
-    width: 100%;
   }
 
   .table-wrapper {
@@ -722,3 +414,20 @@
   }
 }
 
+/* La enfermedad y su «i» ocupan más lugar en el resumen */
+.dlg-resumen__dato--ancho {
+  flex-grow: 2;
+}
+
+.dlg-resumen__dato--ancho dd {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 600px) {
+  .dlg-resumen__dato--ancho {
+    flex-basis: 100%;
+  }
+}

@@ -22,6 +22,7 @@ import { DiseaseApiRecord, WeatherService, WeatherStation } from '../services/we
 import { ESTACION_INICIAL, StationService } from '../services/station.service';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 
 interface DiseaseOption {
   code: number;
@@ -154,7 +155,7 @@ class DiseaseDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    ComoSeLeeComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,
