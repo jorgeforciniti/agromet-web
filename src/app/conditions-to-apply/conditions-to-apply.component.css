@@ -1469,8 +1469,15 @@ mat-form-field.date-field{ width: 100%; }
   background: color-mix(in srgb, var(--brand) 10%, white);
 }
 
+/* Al pasar el mouse, la fila se pinta tenue con el color de su semáforo (sin la sombra gris de
+   la regla anterior, que lo apagaba y tapaba la franja) */
 .tabla-datos.dlg-tabla tbody tr:hover > td {
-  background: color-mix(in srgb, var(--brand) 5%, white);
+  background: color-mix(in srgb, var(--tono-claro, #eeeeee) 75%, white);
+  box-shadow: none;
+}
+
+.tabla-datos.dlg-tabla tbody tr:hover > td:first-child {
+  box-shadow: inset 4px 0 0 var(--tono, transparent);
 }
 
 /* Cabecera clara: le gana a las reglas anteriores que la pintaban de negro */
