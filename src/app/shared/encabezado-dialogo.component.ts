@@ -74,7 +74,7 @@ import { MatIconModule } from '@angular/material/icon';
       place-items: center;
       width: 40px;
       height: 40px;
-      margin: -4px -4px 0 0;
+      margin-top: -4px;
       border: 1px solid var(--border);
       border-radius: 50%;
       background: var(--surface);
