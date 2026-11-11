@@ -25,6 +25,7 @@ import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace
 import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { evaluarDia } from '../shared/registros-diarios';
 import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
 
@@ -92,7 +93,7 @@ class ChillDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    ComoSeLeeComponent, AvisoCalidadComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoCalidadComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,

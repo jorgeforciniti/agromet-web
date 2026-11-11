@@ -1,85 +1,73 @@
 <mat-dialog-content class="chill-dialog">
-  <div class="chill-shell">
-    <div class="dialog-header">
-      <div class="dialogo-texto">
-        <div class="dialogo-titulo">
-          <h2 class="titulo">Calculador de horas de frío</h2>
-          <span class="dialog-eyebrow">ANÁLISIS TÉRMICO</span>
+  <div class="chill-shell dlg-cuerpo">
+    <app-encabezado-dialogo titulo="Horas de frío"
+      bajada="Horas por día con temperatura igual o menor a la base elegida, contadas con los registros de la estación."
+      (cerrar)="close()">
+      <app-como-se-lee>
+        <p>Se cuentan los registros de cada día con temperatura igual o menor a la base térmica. Cada registro
+          vale lo que dura su intervalo: 15 minutos, 30 minutos o 1 hora, según la estación.</p>
+        <p>Las unidades Utah (Richardson et al., 1974) ponderan cada hora: suman entre 1,5 y 12,4 °C (1 unidad
+          entre 2,5 y 9,1 °C) y restan por encima de 16 °C, porque el calor revierte parte del frío acumulado.</p>
+        <p>Un día con datos insuficientes se informa sin cálculo y no suma al total.</p>
+      </app-como-se-lee>
+    </app-encabezado-dialogo>
+
+    <div class="dlg-form">
+      <form [formGroup]="form" (ngSubmit)="calculate()">
+        <div class="dlg-campos">
+          <app-selector-estacion appearance="outline" class="dlg-campo--ancho" formControlName="station" etiqueta="Estación"
+            [estaciones]="stations"></app-selector-estacion>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Base térmica</mat-label>
+            <select matNativeControl formControlName="base">
+              <option *ngFor="let base of bases" [value]="base">{{ base }} °C</option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Desde</mat-label>
+            <input matInput [matDatepicker]="fromPicker" formControlName="from">
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Hasta</mat-label>
+            <input matInput [matDatepicker]="toPicker" formControlName="to">
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+          </mat-form-field>
         </div>
-        <p class="dialog-lead">
-          Suma diaria de horas con temperatura del aire igual o menor al umbral elegido,
-          usando registros horarios de la estación seleccionada.
-        </p>
-        <app-como-se-lee>
-          <p>Se cuentan los registros de cada día con temperatura igual o menor a la base térmica. Cada registro
-            vale lo que dura su intervalo: 15 minutos, 30 minutos o 1 hora, según la estación.</p>
-          <p>Las unidades Utah (Richardson et al., 1974) ponderan cada hora: suman entre 1,5 y 12,4 °C (1 unidad
-            entre 2,5 y 9,1 °C) y restan por encima de 16 °C, porque el calor revierte parte del frío acumulado.</p>
-          <p>Un día con datos insuficientes se informa sin cálculo y no suma al total.</p>
-        </app-como-se-lee>
-      </div>
-
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
-        <mat-icon>close</mat-icon>
-      </button>
+        <div class="dlg-acciones">
+          <button mat-raised-button color="primary" class="dlg-calcular" type="submit" [disabled]="isLoading">{{ isLoading ? 'Calculando…' : 'Calcular' }}</button>
+        </div>
+      </form>
+      <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="calculate()" class="chill-form">
-      <div class="chill-grid">
-        <app-selector-estacion formControlName="station" etiqueta="Estación"
-          [estaciones]="stations"></app-selector-estacion>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Base térmica</mat-label>
-          <select matNativeControl formControlName="base">
-            <option *ngFor="let base of bases" [value]="base">{{ base }} °C</option>
-          </select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Desde</mat-label>
-          <input matInput [matDatepicker]="fromPicker" formControlName="from">
-          <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-          <mat-datepicker #fromPicker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Hasta</mat-label>
-          <input matInput [matDatepicker]="toPicker" formControlName="to">
-          <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-          <mat-datepicker #toPicker></mat-datepicker>
-        </mat-form-field>
-
-        <button mat-raised-button color="primary" class="search-button" type="submit" [disabled]="isLoading">
-          <mat-icon>ac_unit</mat-icon>
-          Calcular
-        </button>
+    <dl class="dlg-resumen" *ngIf="rows.length">
+      <div class="dlg-resumen__dato">
+        <dt>Estación</dt>
+        <dd>{{ stationLabel(form.get('station')?.value) }}</dd>
       </div>
-    </form>
-    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
-
-    <div class="chill-summary" *ngIf="rows.length">
-      <div class="chill-summary__card">
-        <span>Estación</span>
-        <strong>{{ stationLabel(form.get('station')?.value) }}</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Base térmica</dt>
+        <dd>{{ form.get('base')?.value }} °C</dd>
       </div>
-      <div class="chill-summary__card">
-        <span>Base térmica</span>
-        <strong>{{ form.get('base')?.value }} °C</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Total acumulado</dt>
+        <dd>{{ totalHours | number:'1.1-1' }} h</dd>
       </div>
-      <div class="chill-summary__card">
-        <span>Total acumulado</span>
-        <strong>{{ totalHours | number:'1.1-1' }} h</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Unidades Utah</dt>
+        <dd>{{ totalUtah | number:'1.1-1' }}</dd>
       </div>
-      <div class="chill-summary__card">
-        <span>Unidades Utah</span>
-        <strong>{{ totalUtah | number:'1.1-1' }}</strong>
+      <div class="dlg-resumen__dato">
+        <dt>Días válidos</dt>
+        <dd>{{ validDays }} / {{ rows.length }}</dd>
       </div>
-      <div class="chill-summary__card">
-        <span>Días válidos</span>
-        <strong>{{ validDays }} / {{ rows.length }}</strong>
-      </div>
-    </div>
+    </dl>
 
     <app-aviso-calidad *ngIf="rows.length" [validos]="validDays" [total]="rows.length"></app-aviso-calidad>
 
