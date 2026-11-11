@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { armarEnlace, consultaDe, leerNumero } from '../shared/enlace-consulta';
 
 /** Campo del formulario ↔ parámetro del enlace */
@@ -25,7 +26,7 @@ interface YieldBreakdown {
   selector: 'app-soy-yield-dialog',
   standalone: true,
   imports: [
-    CommonModule,
+    EncabezadoDialogoComponent, CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatFormFieldModule,
