@@ -1,87 +1,78 @@
 <mat-dialog-content class="comparison-dialog">
-  <div class="scroll-container">
-    <div class="dialog-header">
-      <div class="dialogo-texto">
-        <div class="dialogo-titulo">
-          <h2 class="titulo">Comparar períodos entre años</h2>
-          <span class="dialog-eyebrow">COMPARATIVA HISTÓRICA</span>
+  <div class="scroll-container dlg-cuerpo">
+    <app-encabezado-dialogo titulo="Comparación entre años"
+      bajada="La misma variable y la misma estación en un período y en las mismas fechas de otro año."
+      (cerrar)="close()">
+      <app-como-se-lee>
+        <p>Se grafica la variable elegida en el período seleccionado y en las mismas fechas del año de
+          comparación, para la misma estación: cada día se compara con el mismo día del otro año. El 29 de
+          febrero queda sin dato si el año comparado no es bisiesto.</p>
+        <p>En formato decádico (1–10, 11–20 y 21 a fin de mes) o mensual, la lluvia, la evapotranspiración y
+          las horas de hoja mojada se suman; el resto se promedia. La humedad relativa es el promedio de la
+          máxima y la mínima de cada día.</p>
+        <p>La línea gris punteada es la normal mensual de la estación, cuando la tiene; en formato diario, la
+          lluvia normal es la del mes repartida en partes iguales entre sus días. El resumen sobre el gráfico
+          da la máxima, la mínima, el total o el promedio y la comparación con la normal (en % para las
+          variables que se suman). En temperatura mínima se marcan 0 °C, −2 °C y 22 °C; en máxima, 35 °C. Cada
+          estación tiene normales de un período distinto, que se indica debajo del gráfico cuando está
+          disponible.</p>
+        <p>Los días sin dato quedan como hueco con una franja gris. Una década o un mes con días faltantes se
+          calcula con los días que tienen dato y se ve más claro (barras) o con punto hueco (líneas): una suma
+          incompleta puede quedar por debajo del valor real.</p>
+      </app-como-se-lee>
+    </app-encabezado-dialogo>
+
+    <div class="dlg-form">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="dlg-campos">
+          <app-selector-estacion appearance="outline" class="dlg-campo--ancho" formControlName="estacion" etiqueta="Estación"
+            [estaciones]="stations"></app-selector-estacion>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Desde</mat-label>
+            <input matInput [matDatepicker]="dp1" formControlName="fechaDesde">
+            <mat-datepicker-toggle matSuffix [for]="dp1"></mat-datepicker-toggle>
+            <mat-datepicker #dp1></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Hasta</mat-label>
+            <input matInput [matDatepicker]="dp2" formControlName="fechaHasta">
+            <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+            <mat-datepicker #dp2></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Año de comparación</mat-label>
+            <select matNativeControl formControlName="compYear">
+              <option *ngFor="let y of comparisonYears" [value]="y">
+                {{ y }}
+              </option>
+            </select>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic" appearance="outline">
+            <mat-label>Formato</mat-label>
+            <select matNativeControl formControlName="formato">
+              <option value="diario">Diario</option>
+              <option value="decadico">Decádico</option>
+              <option value="mensual">Mensual</option>
+            </select>
+          </mat-form-field>
         </div>
-        <app-como-se-lee>
-          <p>Se grafica la variable elegida en el período seleccionado y en las mismas fechas del año de
-            comparación, para la misma estación: cada día se compara con el mismo día del otro año. El 29 de
-            febrero queda sin dato si el año comparado no es bisiesto.</p>
-          <p>En formato decádico (1–10, 11–20 y 21 a fin de mes) o mensual, la lluvia, la evapotranspiración y
-            las horas de hoja mojada se suman; el resto se promedia. La humedad relativa es el promedio de la
-            máxima y la mínima de cada día.</p>
-          <p>La línea gris punteada es la normal mensual de la estación, cuando la tiene; en formato diario, la
-            lluvia normal es la del mes repartida en partes iguales entre sus días. El resumen sobre el gráfico
-            da la máxima, la mínima, el total o el promedio y la comparación con la normal (en % para las
-            variables que se suman). En temperatura mínima se marcan 0 °C, −2 °C y 22 °C; en máxima, 35 °C. Cada
-            estación tiene normales de un período distinto, que se indica debajo del gráfico cuando está
-            disponible.</p>
-          <p>Los días sin dato quedan como hueco con una franja gris. Una década o un mes con días faltantes se
-            calcula con los días que tienen dato y se ve más claro (barras) o con punto hueco (líneas): una suma
-            incompleta puede quedar por debajo del valor real.</p>
-        </app-como-se-lee>
-      </div>
 
-      <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar diálogo">
-        <mat-icon>close</mat-icon>
-      </button>
+        <mat-radio-group formControlName="variable" class="vars-grid">
+          <mat-radio-button *ngFor="let v of variables" [value]="v.key" class="radio-option">
+            <span class="radio-label">{{ v.label }}</span>
+          </mat-radio-button>
+        </mat-radio-group>
+
+        <div class="dlg-acciones">
+          <button mat-raised-button color="primary" type="submit" class="dlg-calcular" [disabled]="isLoading">Comparar</button>
+        </div>
+      </form>
+      <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
     </div>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-section">
-      <div class="form-grid-compact">
-        <app-selector-estacion formControlName="estacion" etiqueta="Estación"
-          [estaciones]="stations"></app-selector-estacion>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Desde</mat-label>
-          <input matInput [matDatepicker]="dp1" formControlName="fechaDesde">
-          <mat-datepicker-toggle matSuffix [for]="dp1"></mat-datepicker-toggle>
-          <mat-datepicker #dp1></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Hasta</mat-label>
-          <input matInput [matDatepicker]="dp2" formControlName="fechaHasta">
-          <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
-          <mat-datepicker #dp2></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Año de comparación</mat-label>
-          <select matNativeControl formControlName="compYear">
-            <option *ngFor="let y of comparisonYears" [value]="y">
-              {{ y }}
-            </option>
-          </select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Formato</mat-label>
-          <select matNativeControl formControlName="formato">
-            <option value="diario">Diario</option>
-            <option value="decadico">Decádico</option>
-            <option value="mensual">Mensual</option>
-          </select>
-        </mat-form-field>
-      </div>
-
-      <mat-radio-group formControlName="variable" class="vars-grid">
-        <mat-radio-button *ngFor="let v of variables" [value]="v.key" class="radio-option">
-          <span class="radio-label">{{ v.label }}</span>
-        </mat-radio-button>
-      </mat-radio-group>
-
-      <div class="actions">
-        <button mat-raised-button color="primary" type="submit" class="search-button" [disabled]="isLoading">
-          <mat-icon>search</mat-icon>
-          Comparar
-        </button>
-      </div>
-    </form>
-    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
 
     <div class="chart-section">
       <!-- Resumen de cuatro cifras por serie (charts/resumen-series.ts) -->

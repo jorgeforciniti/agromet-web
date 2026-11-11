@@ -33,6 +33,7 @@ import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
+import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 import { RangoFechas, periodoRecordado, recordarPeriodo } from '../shared/periodo-recordado';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
@@ -40,6 +41,7 @@ import { ChartData, ChartDataset } from 'chart.js';
 import { ValidationErrors, AbstractControl } from '@angular/forms';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { Injectable } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 
@@ -93,7 +95,7 @@ const MY_DATE_FORMATS = {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    ExportarGraficoComponent,
+    EncabezadoDialogoComponent, MatButtonModule, ExportarGraficoComponent,
     ComoSeLeeComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
