@@ -237,6 +237,8 @@
   }
 }
 
+/* Columnas numéricas alineadas a la derecha (formato común de tablas de datos) */
+
 /* Etapa y Período son texto; el resto, valores. */
 .phenology-table th:nth-child(n+3),
 .phenology-table td:nth-child(n+3) {
@@ -295,6 +297,7 @@
   color: #7c5a1e;
 }
 
+/* Cobertura de datos por estadío */
 /* (con .summary-card dd delante para ganarle a su color por defecto) */
 .cobertura--ok,
 .summary-card dd.cobertura--ok { color: #166534; font-weight: 800; }

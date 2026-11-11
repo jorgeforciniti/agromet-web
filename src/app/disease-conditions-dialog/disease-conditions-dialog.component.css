@@ -61,6 +61,7 @@
   border-color: color-mix(in srgb, var(--mod-stats) 50%, var(--border));
 }
 
+/* En pantallas táctiles, más área para tocarla */
 @media (pointer: coarse) {
   .info-dot {
     width: 28px;
