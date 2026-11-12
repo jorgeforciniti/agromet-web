@@ -9,6 +9,7 @@ import {
   WeatherStation
 } from '../services/weather.service';
 import { StationService } from '../services/station.service';
+import { estadoComunicacion, leerFechaEstacion } from '../shared/estado-estacion';
 
 interface FrostSummary {
   count: number;
@@ -80,6 +81,9 @@ export class BienvenidaComponent implements OnInit {
   escala: number[] = [];
   masFria: WeatherStation | null = null;
   masCalida: WeatherStation | null = null;
+  /** Estaciones del gráfico (dato de la última hora) y las que informaron hoy pero están atrasadas */
+  alDia = 0;
+  atrasadas = 0;
 
   constructor(
     private dialog: MatDialog,
@@ -138,35 +142,42 @@ export class BienvenidaComponent implements OnInit {
   /**
    * Agrupa las estaciones con temperatura por zona y les asigna una posición horizontal
    * en una escala común. Cuando dos puntos quedan muy juntos se apilan en otro carril
-   * para que no se tapen.
+   * para que no se tapen. Sólo entran las que tienen dato de la última hora (ver
+   * shared/estado-estacion.ts): una lectura de la madrugada no se compara con las del mediodía.
+   * Las atrasadas siguen en el carrusel, con la hora de su lectura.
    */
   private armarFranjas(): void {
+    const ahora = new Date();
     const conTemp = this.stations
       .map((s, indice) => ({ s, indice, temp: parseFloat(s.temp_af ?? '') }))
       .filter(p => !isNaN(p.temp));
+    const recientes = conTemp.filter(p => estadoComunicacion(leerFechaEstacion(p.s.fecha_I), ahora) === 'al-dia');
+    this.alDia = recientes.length;
+    this.atrasadas = conTemp.length - recientes.length;
+    this.masFria = this.masCalida = null;
 
-    if (!conTemp.length) {
+    if (!recientes.length) {
       this.franjas = [];
       this.escala = [];
       return;
     }
 
-    const temps = conTemp.map(p => p.temp);
+    const temps = recientes.map(p => p.temp);
     let min = Math.floor(Math.min(...temps) / 5) * 5;
     let max = Math.ceil(Math.max(...temps) / 5) * 5;
     if (max - min < 10) max = min + 10;
     this.escala = [];
     for (let t = min; t <= max; t += 5) this.escala.push(t);
 
-    const fria = conTemp.reduce((a, b) => (b.temp < a.temp ? b : a));
-    const calida = conTemp.reduce((a, b) => (b.temp > a.temp ? b : a));
+    const fria = recientes.reduce((a, b) => (b.temp < a.temp ? b : a));
+    const calida = recientes.reduce((a, b) => (b.temp > a.temp ? b : a));
     this.masFria = fria.s;
     this.masCalida = calida.s;
 
     const claves = [...ORDEN_ZONAS, ''];
     this.franjas = claves
       .map(clave => {
-        const grupo = conTemp
+        const grupo = recientes
           .filter(p => (ORDEN_ZONAS.includes(p.s.zona ?? '') ? p.s.zona : '') === clave)
           .sort((a, b) => a.temp - b.temp);
 

@@ -16,12 +16,16 @@
         <h1 id="hero-titulo" class="hero-titulo">Cómo está Tucumán ahora, estación por estación</h1>
 
         <p class="hero-resumen" *ngIf="!loadingConditions && masFria && masCalida; else resumenCargando">
-          {{ stations.length }} estaciones informaron hoy. La más fría es {{ masFria.nombre }}, con
-          {{ formatoTemp(masFria.temp_af) }}&nbsp;°C, y la más cálida, {{ masCalida.nombre }}, con
+          {{ alDia }} {{ alDia === 1 ? 'estación tiene' : 'estaciones tienen' }} datos de la última hora. La más fría es
+          {{ masFria.nombre }}, con {{ formatoTemp(masFria.temp_af) }}&nbsp;°C, y la más cálida, {{ masCalida.nombre }}, con
           {{ formatoTemp(masCalida.temp_af) }}&nbsp;°C.
+          <ng-container *ngIf="atrasadas">No se {{ atrasadas === 1 ? 'muestra 1 estación' : 'muestran ' + atrasadas + ' estaciones' }}
+            con el último dato de hace más de una hora.</ng-container>
         </p>
         <ng-template #resumenCargando>
           <p class="hero-resumen hero-resumen--cargando" *ngIf="loadingConditions">Leyendo las estaciones de la red…</p>
+          <p class="hero-resumen" *ngIf="!loadingConditions && stations.length">Ninguna estación tiene datos de la última
+            hora. Podés ver la última lectura de cada una en la tarjeta.</p>
         </ng-template>
 
         <div class="franjas" *ngIf="franjas.length" role="group" aria-label="Temperatura actual por zona">
