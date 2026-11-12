@@ -1,0 +1,123 @@
+<mat-dialog-content class="resumen-dialog dlg-cuerpo">
+  <app-encabezado-dialogo titulo="Resumen diario de la red"
+    bajada="Máxima, mínima, lluvia y demás valores del día en todas las estaciones, agrupadas por zona."
+    (cerrar)="close()">
+    <app-como-se-lee>
+      <p>Son los valores diarios que calcula cada estación con sus registros: temperatura máxima y mínima,
+        lluvia de 0 a 24 h, humedad relativa máxima y mínima, viento medio y ráfaga máxima, radiación solar
+        media, evapotranspiración y horas de hoja mojada.</p>
+      <p>El día en curso se va completando con cada registro, así que sus valores son parciales. Un «—» indica
+        que la estación no tiene datos de ese día, que el valor no es válido o que no tiene ese sensor.</p>
+    </app-como-se-lee>
+  </app-encabezado-dialogo>
+
+  <div class="dlg-form">
+    <form (ngSubmit)="consultar()">
+      <div class="dlg-campos">
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Fecha</mat-label>
+          <input matInput [matDatepicker]="picker" [(ngModel)]="fecha" name="fecha" [max]="hoy" required>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Zona</mat-label>
+          <select matNativeControl [(ngModel)]="zona" name="zona" (ngModelChange)="filtrar()">
+            <option value="">Todas</option>
+            <option *ngFor="let z of zonas" [value]="z.id">{{ z.nombre }}</option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic" appearance="outline" class="dlg-campo--ancho">
+          <mat-label>Buscar estación</mat-label>
+          <input matInput [(ngModel)]="busqueda" name="busqueda" (ngModelChange)="filtrar()" placeholder="Famaillá"
+            autocomplete="off">
+        </mat-form-field>
+      </div>
+      <div class="dlg-acciones">
+        <button mat-raised-button class="dlg-calcular" type="submit" [disabled]="cargando">
+          {{ cargando ? 'Consultando…' : 'Consultar' }}
+        </button>
+      </div>
+    </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
+  </div>
+
+  <mat-progress-bar *ngIf="cargando" mode="indeterminate"></mat-progress-bar>
+
+  <p class="resumen-error" *ngIf="error" role="alert">
+    <mat-icon aria-hidden="true">error</mat-icon>{{ error }}
+  </p>
+
+  <ng-container *ngIf="fechaMostrada && !error">
+    <dl class="dlg-resumen">
+      <div class="dlg-resumen__dato">
+        <dt>Estaciones con datos</dt>
+        <dd>{{ conDatos }} <small>de {{ filas.length }}</small></dd>
+      </div>
+      <div class="dlg-resumen__dato" *ngIf="extremo('tmax', true) as e">
+        <dt>Máxima más alta</dt>
+        <dd>{{ v(e.valor) }} °C <small>{{ e.nombre }}</small></dd>
+      </div>
+      <div class="dlg-resumen__dato" *ngIf="extremo('tmin', false) as e">
+        <dt>Mínima más baja</dt>
+        <dd>{{ v(e.valor) }} °C <small>{{ e.nombre }}</small></dd>
+      </div>
+      <div class="dlg-resumen__dato" *ngIf="extremo('lluvia', true) as e">
+        <dt>Más lluvia</dt>
+        <dd>{{ v(e.valor) }} mm <small>{{ e.valor > 0 ? e.nombre : '' }}</small></dd>
+      </div>
+    </dl>
+
+    <p class="resumen-aviso" *ngIf="esHoy">
+      <mat-icon aria-hidden="true">schedule</mat-icon>
+      Día en curso: los valores son parciales y se actualizan con cada registro.
+    </p>
+
+    <p class="resumen-vacio" *ngIf="!grupos.length">Ninguna estación coincide con la búsqueda.</p>
+
+    <table class="dlg-tabla resumen-tabla" *ngIf="grupos.length"
+      [attr.aria-label]="'Resumen del ' + fechaTexto + ' por estación'">
+      <thead>
+        <tr>
+          <th scope="col">Estación</th>
+          <th scope="col" class="num">Máx. <span>°C</span></th>
+          <th scope="col" class="num">Mín. <span>°C</span></th>
+          <th scope="col" class="num">Lluvia <span>mm</span></th>
+          <th scope="col" class="num">HR máx. / mín. <span>%</span></th>
+          <th scope="col" class="num">Viento medio / máx. <span>km/h</span></th>
+          <th scope="col" class="num">Radiación <span>W/m²</span></th>
+          <th scope="col" class="num">ET <span>mm</span></th>
+          <th scope="col" class="num">Hoja mojada <span>h</span></th>
+        </tr>
+      </thead>
+      <tbody *ngFor="let g of grupos">
+        <tr class="resumen-zona">
+          <th colspan="9" scope="colgroup">{{ g.titulo }} <span>· {{ g.filas.length }}</span></th>
+        </tr>
+        <tr *ngFor="let f of g.filas; trackBy: trackFila" [class.sin-fila]="!f.valores">
+          <th scope="row" class="resumen-estacion">
+            {{ f.nombre }}
+            <span>{{ f.lugar }}</span>
+          </th>
+          <ng-container *ngIf="f.valores as x; else sinDatos">
+            <td class="num" data-etiqueta="Máx." data-unidad="°C" [class.sin-dato]="x.tmax === null">{{ v(x.tmax) }}</td>
+            <td class="num" data-etiqueta="Mín." data-unidad="°C" [class.sin-dato]="x.tmin === null">{{ v(x.tmin) }}</td>
+            <td class="num" data-etiqueta="Lluvia" data-unidad="mm" [class.sin-dato]="x.lluvia === null">{{ v(x.lluvia) }}</td>
+            <td class="num" data-etiqueta="HR" data-unidad="%" [class.sin-dato]="x.hrMax === null && x.hrMin === null">{{ par(x.hrMax, x.hrMin, 0) }}</td>
+            <td class="num" data-etiqueta="Viento" data-unidad="km/h" [class.sin-dato]="x.vientoMedio === null && x.vientoMax === null">{{ par(x.vientoMedio, x.vientoMax) }}</td>
+            <td class="num" data-etiqueta="Radiación" data-unidad="W/m²" [class.sin-dato]="x.radiacion === null">{{ v(x.radiacion, 0) }}</td>
+            <td class="num" data-etiqueta="ET" data-unidad="mm" [class.sin-dato]="x.et === null">{{ v(x.et) }}</td>
+            <td class="num" data-etiqueta="Hoja" data-unidad="h" [class.sin-dato]="x.hoja === null">{{ v(x.hoja) }}</td>
+          </ng-container>
+          <ng-template #sinDatos>
+            <td colspan="8" class="sin-dato resumen-sin-fila">Sin datos de este día</td>
+          </ng-template>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="resumen-pie">{{ fuente }} · Datos del {{ fechaTexto }}.</p>
+  </ng-container>
+</mat-dialog-content>

@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+.resumen-dialog {
+  margin: 0;
+}
+
+.resumen-error,
+.resumen-aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: .9rem;
+  line-height: 1.4;
+}
+
+.resumen-error mat-icon,
+.resumen-aviso mat-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.resumen-error {
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #991b1b;
+}
+
+.resumen-aviso {
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, white);
+  background: color-mix(in srgb, var(--warning) 10%, white);
+  color: #7a5200;
+}
+
+.resumen-vacio,
+.resumen-pie {
+  margin: 0;
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+/* Tabla: nombre de la estación ancho, cifras a la derecha; la unidad va en una línea aparte */
+.resumen-tabla thead th span {
+  display: block;
+  font-weight: 400;
+}
+
+.dlg-tabla.dlg-tabla .resumen-zona th {
+  padding-top: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.resumen-zona span {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: .82rem;
+  font-weight: 400;
+}
+
+/* La fila de la zona no cuenta para alternar: las estaciones arrancan en blanco */
+.dlg-tabla.dlg-tabla tbody tr:nth-child(even) > * {
+  background: var(--surface);
+}
+
+.dlg-tabla.dlg-tabla tbody tr:nth-child(odd):not(.resumen-zona) > * {
+  background: #f4f5f7;
+}
+
+.dlg-tabla.dlg-tabla .resumen-estacion {
+  min-width: 180px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.resumen-estacion span {
+  display: block;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 400;
+}
+
+.dlg-tabla.dlg-tabla .resumen-sin-fila {
+  text-align: left;
+}
+
+/* Celular: cada estación es una tarjeta con sus valores en una grilla (dos columnas a 375 px); el
+   encabezado de la tabla se oculta y cada valor lleva su etiqueta (data-etiqueta) */
+@media (max-width: 760px) {
+  .resumen-tabla,
+  .resumen-tabla tbody,
+  .resumen-tabla tr {
+    display: block;
+  }
+
+  .resumen-tabla thead {
+    display: none;
+  }
+
+  .resumen-tabla tr:not(.resumen-zona) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .dlg-tabla.dlg-tabla.resumen-tabla tr > * {
+    display: block;
+    padding: 3px 6px 3px 0;
+    border: 0;
+    min-width: 0;
+    background: transparent;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .dlg-tabla.dlg-tabla .resumen-estacion,
+  .dlg-tabla.dlg-tabla .resumen-sin-fila {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-bottom: 6px;
+  }
+
+  .resumen-tabla td[data-etiqueta]::before {
+    content: attr(data-etiqueta) " ";
+    color: var(--muted);
+    font-style: normal;
+  }
+
+  .resumen-tabla td:not(.sin-dato)[data-unidad]::after {
+    content: " " attr(data-unidad);
+    color: var(--muted);
+  }
+
+  .dlg-tabla.dlg-tabla.resumen-tabla .resumen-zona th {
+    padding-top: 14px;
+  }
+}
