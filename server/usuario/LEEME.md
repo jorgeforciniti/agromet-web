@@ -12,6 +12,10 @@ y `allow_url_fopen` activo (no usa curl).
 | `DB_USUARIOS` | Base donde se crean las tablas nuevas. Puede ser `estaciones` u otra; el usuario de MySQL de `conecta_mysql.php` necesita permisos ahí. |
 | `DB_ESTACIONES` / `TABLA_ESTACIONES` | Base y tabla de estaciones (para validar los identificadores). |
 
+`HERRAMIENTAS` tiene que coincidir con `Herramienta` de `src/app/shared/enlace-consulta.ts`: al sumar
+una herramienta en /datos (por ejemplo `resumen-diario`), volver a subir `config.php` o no se van a poder
+guardar sus consultas.
+
 `conecta_mysql.php` no se modifica: se incluye igual que en `/services/` (con `$db`), y cualquier texto
 que imprima se descarta para no romper las respuestas JSON.
 

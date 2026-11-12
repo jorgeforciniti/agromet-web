@@ -11,6 +11,7 @@ export type Consulta = Record<string, string>;
 export type Herramienta =
   | 'datos-localidad'
   | 'tiempo-real'
+  | 'resumen-diario'
   | 'campania-lluvias'
   | 'aplicar'
   | 'comparar-anios'
@@ -26,6 +27,7 @@ export type Herramienta =
 export const NOMBRE_HERRAMIENTA: Record<Herramienta, string> = {
   'datos-localidad': 'Datos por localidad',
   'tiempo-real': 'Datos en tiempo real',
+  'resumen-diario': 'Resumen diario de la red',
   'campania-lluvias': 'Lluvias por campaña',
   'aplicar': 'Condiciones para aplicar',
   'comparar-anios': 'Comparación entre años',

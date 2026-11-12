@@ -37,6 +37,7 @@ const GRUPOS: Grupo[] = [
     descripcion: 'Datos en vivo de las estaciones.',
     tarjetas: [
       { herramienta: 'tiempo-real', icono: 'sensors', pregunta: '¿Qué marcan las estaciones ahora?', titulo: 'Datos en tiempo real' },
+      { herramienta: 'resumen-diario', icono: 'view_list', pregunta: '¿Cómo vino el día en cada estación?', titulo: 'Resumen diario de la red' },
       { herramienta: 'aplicar', icono: 'agriculture', pregunta: '¿Puedo aplicar hoy?', titulo: 'Condiciones para aplicar agroquímicos' }
     ]
   },
@@ -110,6 +111,7 @@ export class DatosMeteorologicosComponent implements OnInit {
   private readonly abrirPorEnlace: Record<Herramienta, (c: Consulta) => Promise<void>> = {
     'datos-localidad': c => this.openDatosxLocalidad(c),
     'tiempo-real': c => this.openDatosOnline(c),
+    'resumen-diario': c => this.openResumenDiario(c),
     'campania-lluvias': c => this.openRainDialog(c),
     'aplicar': c => this.openConditionsDialog(c),
     'comparar-anios': c => this.openComparisonByYear(c),
@@ -241,6 +243,21 @@ export class DatosMeteorologicosComponent implements OnInit {
       data: { consulta },
       width: 'min(980px, 94vw)',
       maxWidth: '94vw',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
+    });
+  }
+
+  async openResumenDiario(consulta: Consulta = {}): Promise<void> {
+    const { ResumenDiarioDialogComponent } = await import('../resumen-diario-dialog/resumen-diario-dialog.component');
+
+    this.dialog.open(ResumenDiarioDialogComponent, {
+      data: { consulta },
+      width: 'min(1180px, 95vw)',
+      maxWidth: '95vw',
       height: '92vh',
       maxHeight: '92vh',
       panelClass: 'do-dialog',
