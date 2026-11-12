@@ -11,6 +11,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `lluvia-periodo.php` | Mapa de lluvias diarias: lluvia de 0 a 24 h o de 9 a 9 h y cantidad de registros por estación | `estaciones`, `datos_estaciones` |
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
+| `resumen-diario.php` | Resumen diario de la red (/datos): máxima, mínima, lluvia, humedad, viento, radiación y demás valores de un día en todas las estaciones | `estaciones`, `datos_diarios` |
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
@@ -108,6 +109,27 @@ Igual, antes de instalarlo, revisar el `EXPLAIN` de la consulta (está en el arc
 Para instalarlo: copiar el archivo a `/services/` (reemplaza al anterior; guardar una copia como
 `datos-temperatura.php.ant`) y probar
 `https://agromet.eeaoc.gob.ar/services/datos-temperatura.php?desde=<día 1>&hasta=<hoy>`.
+
+## `resumen-diario.php`
+
+`GET /services/resumen-diario.php?fecha=AAAA-MM-DD` devuelve, por estación habilitada que tenga la
+fila de ese día en `datos_diarios`, las mismas columnas que `datos-diarios.php` da para una estación
+(`temp_max`, `temp_min`, `HR_max`, `HR_min`, `rr_24`, `presion_media_24`, `viento_medio`,
+`viento_max`, `rad_solar_media`, `rad_solar_max`, `et`, `hum_hoja_hs`). La fila del día en curso se
+va completando durante el día. No modifica datos.
+
+Es una sola consulta por fecha (`WHERE fecha = ?`, una fila por estación). Si no está instalado o
+falla, el diálogo pide `datos-diarios.php` estación por estación (unos 40 pedidos), así que funciona
+igual, pero más lento.
+
+Para instalarlo:
+
+1. Confirmar que las columnas de `datos_diarios` se llaman así (`SHOW COLUMNS FROM datos_diarios`).
+   Si alguna se llama distinto, corregir `COLUMNAS` en el archivo.
+2. Medir el tiempo real de la consulta (con el `EXPLAIN` no alcanza; ver `datos-alerta.php`):
+   tiene que usar el índice de `fecha` y responder en menos de un segundo.
+3. Copiar el archivo a `/services/` y probar
+   `https://agromet.eeaoc.gob.ar/services/resumen-diario.php?fecha=<hoy>`.
 
 ## `kp-gfz.php`
 
