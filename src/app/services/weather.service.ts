@@ -253,6 +253,29 @@ export interface LluviaPeriodoResponse {
   estaciones: LluviaPeriodoEstacion[];
 }
 
+/** Valores de un día de una estación (datos_diarios; los mismos campos que datos-diarios.php) */
+export interface RegistroDiario {
+  temp_max?: number | string | null;
+  temp_min?: number | string | null;
+  HR_max?: number | string | null;
+  HR_min?: number | string | null;
+  rr_24?: number | string | null;
+  presion_media_24?: number | string | null;
+  viento_medio?: number | string | null;
+  viento_max?: number | string | null;
+  rad_solar_media?: number | string | null;
+  rad_solar_max?: number | string | null;
+  et?: number | string | null;
+  hum_hoja_hs?: number | string | null;
+}
+
+/** Respuesta de resumen-diario.php: un día en todas las estaciones habilitadas */
+export interface ResumenDiarioResponse {
+  status: string;
+  fecha: string;
+  data: (RegistroDiario & { identificacion: string })[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -314,6 +337,11 @@ export class WeatherService {
   getWeatherDataDiary<TDiary>(desde: string, hasta: string, estacion: string): Observable<WeatherDataApiResponse<TDiary>> {
     const url = this.stationsUrl + `datos-diarios.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
     return this.http.get<WeatherDataApiResponse<TDiary>>(url);
+  }
+
+  /** Un día en todas las estaciones (server/servicios/resumen-diario.php) */
+  getResumenDiario(fecha: string): Observable<ResumenDiarioResponse> {
+    return this.http.get<ResumenDiarioResponse>(this.stationsUrl + 'resumen-diario.php', { params: { fecha } });
   }
 
   getWeatherDataHourly<THourly>(fecha: string, estacion: string): Observable<WeatherDataApiResponse<THourly>> {
