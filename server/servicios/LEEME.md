@@ -118,6 +118,8 @@ fila de ese día en `datos_diarios`, las mismas columnas que `datos-diarios.php`
 `viento_max`, `rad_solar_media`, `rad_solar_max`, `et`, `hum_hoja_hs`). La fila del día en curso se
 va completando durante el día. No modifica datos.
 
+Está instalado y probado en el servidor (noviembre de 2026: 36 estaciones, responde en unos 0,03 s).
+
 Es una sola consulta por fecha (`WHERE fecha = ?`, una fila por estación). Si no está instalado o
 falla, el diálogo pide `datos-diarios.php` estación por estación (unos 40 pedidos), así que funciona
 igual, pero más lento.
