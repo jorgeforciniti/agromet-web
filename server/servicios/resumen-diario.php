@@ -26,10 +26,13 @@ date_default_timezone_set('America/Argentina/Tucuman');
 $db = "estaciones";
 require_once 'conecta_mysql.php'; // define $conexion
 
-// Columnas numéricas que se devuelven (las mismas que datos-diarios.php)
+// Columnas de datos_diarios => nombre en la respuesta (el mismo que usa datos-diarios.php; en la
+// tabla la humedad es hr_max/hr_min, en minúscula)
 const COLUMNAS = [
-    'temp_max', 'temp_min', 'HR_max', 'HR_min', 'rr_24', 'presion_media_24',
-    'viento_medio', 'viento_max', 'rad_solar_media', 'rad_solar_max', 'et', 'hum_hoja_hs'
+    'temp_max' => 'temp_max', 'temp_min' => 'temp_min', 'hr_max' => 'HR_max', 'hr_min' => 'HR_min',
+    'rr_24' => 'rr_24', 'presion_media_24' => 'presion_media_24', 'viento_medio' => 'viento_medio',
+    'viento_max' => 'viento_max', 'rad_solar_media' => 'rad_solar_media', 'rad_solar_max' => 'rad_solar_max',
+    'et' => 'et', 'hum_hoja_hs' => 'hum_hoja_hs'
 ];
 
 function errorJson($codigo, $msg) {
@@ -47,7 +50,11 @@ if (!$conexion) errorJson(500, 'Error de conexión a la base de datos.');
 $conexion->set_charset('utf8mb4');
 
 // 3) Una fila por estación (filtra por fecha: usa el índice de fecha de datos_diarios)
-$sql = "SELECT d.identificacion, d." . implode(', d.', COLUMNAS) . "
+$campos = [];
+foreach (COLUMNAS as $columna => $nombre) {
+    $campos[] = "d.$columna AS $nombre";
+}
+$sql = "SELECT d.identificacion, " . implode(', ', $campos) . "
     FROM datos_diarios d
     JOIN estaciones e ON e.identificacion = d.identificacion
     WHERE e.habilitada >= 1 AND d.fecha = ?";
@@ -62,7 +69,7 @@ $res = $stmt->get_result();
 $data = [];
 while ($row = $res->fetch_assoc()) {
     $fila = ['identificacion' => (string)$row['identificacion']];
-    foreach (COLUMNAS as $c) {
+    foreach (COLUMNAS as $c) {   // $c: nombre en la respuesta (el alias del SELECT)
         $fila[$c] = $row[$c] !== null ? (float)$row[$c] : null;
     }
     $data[] = $fila;

@@ -124,8 +124,8 @@ igual, pero más lento.
 
 Para instalarlo:
 
-1. Confirmar que las columnas de `datos_diarios` se llaman así (`SHOW COLUMNS FROM datos_diarios`).
-   Si alguna se llama distinto, corregir `COLUMNAS` en el archivo.
+1. Las columnas de `datos_diarios` se revisaron en noviembre de 2026 (`SHOW COLUMNS`); en la tabla la
+   humedad es `hr_max`/`hr_min` y la respuesta la devuelve como `HR_max`/`HR_min` (ver `COLUMNAS`).
 2. Medir el tiempo real de la consulta (con el `EXPLAIN` no alcanza; ver `datos-alerta.php`):
    tiene que usar el índice de `fecha` y responder en menos de un segundo.
 3. Copiar el archivo a `/services/` y probar
