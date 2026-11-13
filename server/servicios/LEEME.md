@@ -315,3 +315,10 @@ Para instalarlo: copiar el archivo a `/services/` y probar
 `https://agromet.eeaoc.gob.ar/services/enso.php`: tiene que traer `"origen":"noaa"` (o `cache` en la
 segunda consulta), `datos` desde 1950 y `estado.alerta` en castellano. Hasta que esté instalado, la
 tarjeta de Estado actual y la sección del Colmenar muestran un error con «Reintentar».
+
+## `sql/correcciones_ubicacion_estaciones.sql`
+
+No se sube a `/services/`: se ejecuta una vez en la base de `conecta_mysql.php` (por ejemplo desde
+phpMyAdmin). Corrige las coordenadas redondeadas de El Colmenar y El Colmenar (2) en `estaciones`.
+Al final quedan comentados, para completar, los casos que todavía hay que confirmar (Leales,
+Los Altos, Ingas, Frías, Don Vicente, El Guayal y la altura de Chaguaral Oeste).
