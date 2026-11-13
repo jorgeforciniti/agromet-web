@@ -9,7 +9,8 @@
  *   hasta: null si el sensor sigue de baja. Variables: temperatura, humedad, viento, lluvia,
  *   radiacion, presion, hoja.
  *
- * Si la tabla todavía no existe, devuelve la lista vacía: el sitio funciona igual, sin depurar.
+ * Si no puede leer la tabla, devuelve la lista vacía (el sitio funciona igual, sin depurar) y un
+ * `aviso` con el número de error de MySQL.
  */
 
 header('Access-Control-Allow-Origin: *');
@@ -32,12 +33,17 @@ if (!$conexion) errorJson(500, 'Error de conexión a la base de datos.');
 $conexion->set_charset('utf8mb4');
 
 $data = [];
+$aviso = null;
 try {
     $res = @$conexion->query("SELECT identificacion, variable, desde, hasta, motivo FROM sensores_baja ORDER BY identificacion, variable, desde");
 } catch (Throwable $e) {
     $res = false; // con mysqli en modo estricto, la tabla inexistente lanza una excepción
 }
-if ($res !== false) {
+if ($res === false) {
+    // El sitio sigue sin depurar, pero queda dicho por qué (1146: falta la tabla; 1142: falta el
+    // permiso SELECT del usuario de conecta_mysql.php)
+    $aviso = 'No se pudo leer sensores_baja (MySQL ' . $conexion->errno . ').';
+} else {
     while ($f = $res->fetch_assoc()) {
         $data[] = [
             'estacion' => (string)$f['identificacion'],
@@ -49,5 +55,7 @@ if ($res !== false) {
     }
 }
 
-echo json_encode(['status' => 'success', 'data' => $data], JSON_UNESCAPED_UNICODE);
+$respuesta = ['status' => 'success', 'data' => $data];
+if ($aviso !== null) $respuesta['aviso'] = $aviso;
+echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
 $conexion->close();
