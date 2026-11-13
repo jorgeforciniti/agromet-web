@@ -115,7 +115,8 @@ interface WeatherSummaryRecord {
   evapotranspiracion: number;
   lluvia: number;
   lluviaMaxDiaria: number;
-  diasLluvia: number;
+  /** Puede faltar: sensor de lluvia dado de baja en el período (depuración de datos) */
+  diasLluvia?: number;
   vientoMedio: number;
   VientoMaximo: number;
   radSolarMedia: number;
