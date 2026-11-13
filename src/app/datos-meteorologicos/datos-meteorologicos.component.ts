@@ -38,7 +38,8 @@ const GRUPOS: Grupo[] = [
     tarjetas: [
       { herramienta: 'tiempo-real', icono: 'sensors', pregunta: '¿Qué marcan las estaciones ahora?', titulo: 'Datos en tiempo real' },
       { herramienta: 'resumen-diario', icono: 'view_list', pregunta: '¿Cómo vino el día en cada estación?', titulo: 'Resumen diario de la red' },
-      { herramienta: 'aplicar', icono: 'agriculture', pregunta: '¿Puedo aplicar hoy?', titulo: 'Condiciones para aplicar agroquímicos' }
+      { herramienta: 'aplicar', icono: 'agriculture', pregunta: '¿Puedo aplicar hoy?', titulo: 'Condiciones para aplicar agroquímicos' },
+      { herramienta: 'peligro-incendios', icono: 'local_fire_department', pregunta: '¿Hay peligro de incendios?', titulo: 'Índice de peligro de incendios (FWI)' }
     ]
   },
   {
@@ -112,6 +113,7 @@ export class DatosMeteorologicosComponent implements OnInit {
     'datos-localidad': c => this.openDatosxLocalidad(c),
     'tiempo-real': c => this.openDatosOnline(c),
     'resumen-diario': c => this.openResumenDiario(c),
+    'peligro-incendios': c => this.openPeligroIncendios(c),
     'campania-lluvias': c => this.openRainDialog(c),
     'aplicar': c => this.openConditionsDialog(c),
     'comparar-anios': c => this.openComparisonByYear(c),
@@ -257,6 +259,21 @@ export class DatosMeteorologicosComponent implements OnInit {
     this.dialog.open(ResumenDiarioDialogComponent, {
       data: { consulta },
       width: 'min(1180px, 95vw)',
+      maxWidth: '95vw',
+      height: '92vh',
+      maxHeight: '92vh',
+      panelClass: 'do-dialog',
+      autoFocus: false,
+      restoreFocus: false
+    });
+  }
+
+  async openPeligroIncendios(consulta: Consulta = {}): Promise<void> {
+    const { PeligroIncendiosDialogComponent } = await import('../peligro-incendios-dialog/peligro-incendios-dialog.component');
+
+    this.dialog.open(PeligroIncendiosDialogComponent, {
+      data: { consulta },
+      width: 'min(1240px, 95vw)',
       maxWidth: '95vw',
       height: '92vh',
       maxHeight: '92vh',

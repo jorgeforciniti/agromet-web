@@ -12,6 +12,7 @@ export type Herramienta =
   | 'datos-localidad'
   | 'tiempo-real'
   | 'resumen-diario'
+  | 'peligro-incendios'
   | 'campania-lluvias'
   | 'aplicar'
   | 'comparar-anios'
@@ -28,6 +29,7 @@ export const NOMBRE_HERRAMIENTA: Record<Herramienta, string> = {
   'datos-localidad': 'Datos por localidad',
   'tiempo-real': 'Datos en tiempo real',
   'resumen-diario': 'Resumen diario de la red',
+  'peligro-incendios': 'Peligro de incendios',
   'campania-lluvias': 'Lluvias por campaña',
   'aplicar': 'Condiciones para aplicar',
   'comparar-anios': 'Comparación entre años',
