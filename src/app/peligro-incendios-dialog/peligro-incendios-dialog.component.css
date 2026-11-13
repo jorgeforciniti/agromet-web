@@ -1,0 +1,263 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+.fwi-dialog {
+  margin: 0;
+}
+
+.fwi-aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, white);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning) 10%, white);
+  color: #7a5200;
+  font-size: .9rem;
+  line-height: 1.4;
+}
+
+.fwi-aviso--error {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #991b1b;
+}
+
+.fwi-aviso mat-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.fwi-enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.fwi-vacio,
+.fwi-pie {
+  margin: 0;
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+/* Leyenda de las clases de peligro: una franja de colores con el FWI desde el que empieza cada una */
+.fwi-clases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fwi-clases li {
+  flex: 1 1 90px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.fwi-clases span {
+  font-weight: 400;
+  opacity: .85;
+}
+
+.fwi-conteo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fwi-conteo span,
+.fwi-chip {
+  display: inline-block;
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: .82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Tabla */
+.fwi-tabla thead th span {
+  display: block;
+  font-weight: 400;
+}
+
+.dlg-tabla.dlg-tabla .fwi-zona th {
+  padding-top: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.fwi-zona span {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: .82rem;
+  font-weight: 400;
+}
+
+/* La fila de la zona no cuenta para alternar: las estaciones arrancan en blanco */
+.dlg-tabla.dlg-tabla tbody tr:nth-child(even) > * {
+  background: var(--surface);
+}
+
+.dlg-tabla.dlg-tabla tbody tr:nth-child(odd):not(.fwi-zona) > * {
+  background: #f4f5f7;
+}
+
+.dlg-tabla.dlg-tabla tbody tr.fwi-elegida > * {
+  background: color-mix(in srgb, var(--brand) 8%, white);
+}
+
+.dlg-tabla.dlg-tabla .fwi-estacion {
+  min-width: 180px;
+  max-width: 280px;
+  text-align: left;
+}
+
+.fwi-estacion span {
+  display: block;
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 400;
+}
+
+.fwi-estacion .fwi-nota {
+  margin-top: 2px;
+  font-size: .75rem;
+  font-style: italic;
+}
+
+.dlg-tabla.dlg-tabla .fwi-valor {
+  font-weight: 700;
+}
+
+/* Valor estimado (faltaba el dato): cursiva con asterisco */
+.dlg-tabla.dlg-tabla .fwi-est {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.fwi-est::after {
+  content: "*";
+}
+
+.dlg-tabla.dlg-tabla .fwi-sin-fila {
+  text-align: left;
+}
+
+/* Gráfico de evolución */
+/* minmax(0, 1fr): el canvas no puede ensanchar la columna al achicar la ventana */
+.fwi-evolucion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.fwi-evolucion__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fwi-evolucion h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.fwi-evolucion mat-form-field {
+  width: min(260px, 100%);
+}
+
+.fwi-grafico {
+  position: relative;
+  height: 320px;
+}
+
+/* Celular: cada estación es una tarjeta con sus valores en una grilla; el encabezado de la tabla
+   se oculta y cada valor lleva su etiqueta (data-etiqueta) */
+@media (max-width: 760px) {
+  .fwi-tabla,
+  .fwi-tabla tbody,
+  .fwi-tabla tr {
+    display: block;
+  }
+
+  .fwi-tabla thead {
+    display: none;
+  }
+
+  .fwi-tabla tr:not(.fwi-zona) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .dlg-tabla.dlg-tabla.fwi-tabla tr > * {
+    display: block;
+    padding: 3px 6px 3px 0;
+    border: 0;
+    min-width: 0;
+    max-width: none;
+    background: transparent;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .dlg-tabla.dlg-tabla .fwi-estacion,
+  .dlg-tabla.dlg-tabla .fwi-sin-fila {
+    grid-column: 1 / -1;
+    padding-bottom: 6px;
+  }
+
+  .fwi-tabla td[data-etiqueta]::before {
+    content: attr(data-etiqueta) " ";
+    color: var(--muted);
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  .fwi-tabla td.fwi-est[data-unidad]::after {
+    content: " " attr(data-unidad) "*";
+  }
+
+  .fwi-tabla td:not(.fwi-est)[data-unidad]::after {
+    content: " " attr(data-unidad);
+    color: var(--muted);
+  }
+
+  .dlg-tabla.dlg-tabla .fwi-peligro {
+    grid-column: span 2;
+  }
+
+  .fwi-grafico {
+    height: 260px;
+  }
+}

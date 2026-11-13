@@ -276,6 +276,42 @@ export interface ResumenDiarioResponse {
   data: (RegistroDiario & { identificacion: string })[];
 }
 
+/** Cómo se estimó cada valor que faltaba en incendio-fwi.php (ver el encabezado del PHP) */
+export type EstimadoFwi = Partial<Record<'temp' | 'hr' | 'viento' | 'lluvia' | 'codigos', string>>;
+
+/** Valores del mediodía y componentes del FWI de un día (tabla fwi_diario; null: sin cálculo) */
+export interface DiaFwi {
+  temp: number | null;
+  hr: number | null;
+  /** Viento llevado a 10 m (km/h) */
+  viento: number | null;
+  /** Lluvia de 12 a 12 h (mm) */
+  lluvia: number | null;
+  ffmc: number | null;
+  dmc: number | null;
+  dc: number | null;
+  isi: number | null;
+  bui: number | null;
+  fwi: number | null;
+  estimado: EstimadoFwi;
+  diasSinDatos: number;
+}
+
+/** Respuesta común de incendio-fwi.php */
+interface RespuestaFwi<T> {
+  status: string;
+  /** Primer día del cálculo */
+  inicio: string;
+  /** Último día calculado (null: todavía no calculó nada) */
+  calculadoHasta: string | null;
+  /** Días que faltan calcular hasta hoy */
+  pendientes: number | null;
+  data: T[];
+}
+
+export type FwiDiaResponse = RespuestaFwi<DiaFwi & { identificacion: string }> & { fecha: string };
+export type FwiSerieResponse = RespuestaFwi<DiaFwi & { fecha: string }> & { estacion: string };
+
 @Injectable({
   providedIn: 'root'
 })
@@ -342,6 +378,16 @@ export class WeatherService {
   /** Un día en todas las estaciones (server/servicios/resumen-diario.php) */
   getResumenDiario(fecha: string): Observable<ResumenDiarioResponse> {
     return this.http.get<ResumenDiarioResponse>(this.stationsUrl + 'resumen-diario.php', { params: { fecha } });
+  }
+
+  /** Índice de peligro de incendios (FWI) de un día en todas las estaciones (incendio-fwi.php) */
+  getFwiDia(fecha: string): Observable<FwiDiaResponse> {
+    return this.http.get<FwiDiaResponse>(this.stationsUrl + 'incendio-fwi.php', { params: { fecha } });
+  }
+
+  /** Serie diaria del FWI de una estación */
+  getFwiSerie(estacion: string, desde: string, hasta: string): Observable<FwiSerieResponse> {
+    return this.http.get<FwiSerieResponse>(this.stationsUrl + 'incendio-fwi.php', { params: { estacion, desde, hasta } });
   }
 
   getWeatherDataHourly<THourly>(fecha: string, estacion: string): Observable<WeatherDataApiResponse<THourly>> {

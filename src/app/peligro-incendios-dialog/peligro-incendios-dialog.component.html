@@ -1,0 +1,172 @@
+<mat-dialog-content class="fwi-dialog dlg-cuerpo">
+  <app-encabezado-dialogo titulo="Peligro de incendios"
+    bajada="Índice meteorológico de peligro de incendios forestales (FWI) del sistema canadiense en cada estación."
+    (cerrar)="close()">
+    <app-como-se-lee>
+      <p>El FWI estima la intensidad que tendría un incendio con el tiempo de los últimos días. Se calcula con la
+        temperatura, la humedad relativa y el viento de las 12 h y con la lluvia de 12 a 12 h, según la guía de
+        campo del sistema canadiense ajustada al hemisferio sur (Plan Nacional de Manejo del Fuego, 1998). El
+        viento se lleva a 10 m de altura (los anemómetros de la red están a 3 m).</p>
+      <p>Tiene seis componentes. FFMC, DMC y DC son códigos de humedad del pasto y la hojarasca, del mantillo y de
+        las capas profundas del suelo: cuanto más altos, más secos. ISI es la velocidad de propagación, BUI el
+        combustible disponible y FWI la intensidad. Cada día parte de los valores del día anterior, por eso una
+        lluvia baja el índice de golpe y la sequía lo sube de a poco.</p>
+      <p>Cuando falta un dato, se estima como pide la guía: con el registro más cercano a las 12 h, con las
+        estaciones vecinas o con el día anterior y el siguiente. Esos valores van en cursiva y con un asterisco.
+        Las clases de peligro son provisorias (cortes del sistema europeo EFFIS) hasta tener las propias de la
+        región. El índice sólo tiene en cuenta el tiempo: no considera el tipo de vegetación ni el relieve.</p>
+    </app-como-se-lee>
+  </app-encabezado-dialogo>
+
+  <div class="dlg-form">
+    <form (ngSubmit)="consultar()">
+      <div class="dlg-campos">
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Fecha</mat-label>
+          <input matInput [matDatepicker]="picker" [(ngModel)]="fecha" name="fecha" [max]="maxFecha" required>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Zona</mat-label>
+          <select matNativeControl [(ngModel)]="zona" name="zona" (ngModelChange)="filtrar()">
+            <option value="">Todas</option>
+            <option *ngFor="let z of zonas" [value]="z.id">{{ z.nombre }}</option>
+          </select>
+        </mat-form-field>
+
+        <mat-form-field subscriptSizing="dynamic" appearance="outline" class="dlg-campo--ancho">
+          <mat-label>Buscar estación</mat-label>
+          <input matInput [(ngModel)]="busqueda" name="busqueda" (ngModelChange)="filtrar()" placeholder="Famaillá"
+            autocomplete="off">
+        </mat-form-field>
+      </div>
+      <div class="dlg-acciones">
+        <button mat-raised-button class="dlg-calcular" type="submit" [disabled]="cargando">
+          {{ cargando ? 'Calculando…' : 'Consultar' }}
+        </button>
+      </div>
+    </form>
+    <app-copiar-enlace [enlace]="enlaceConsulta"></app-copiar-enlace>
+  </div>
+
+  <mat-progress-bar *ngIf="cargando" mode="indeterminate"></mat-progress-bar>
+
+  <p class="fwi-aviso fwi-aviso--error" *ngIf="error" role="alert">
+    <mat-icon aria-hidden="true">error</mat-icon>{{ error }}
+  </p>
+
+  <ng-container *ngIf="fechaMostrada && !error">
+    <p class="fwi-aviso" *ngIf="pendientes > 0">
+      <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+      <span>El cálculo se está completando (va hasta el {{ textoFecha(calculadoHasta) }}; faltan {{ pendientes }}
+        días). <button type="button" class="fwi-enlace" (click)="consultar()">Seguir calculando</button></span>
+    </p>
+
+    <ul class="fwi-clases" aria-label="Clases de peligro (provisorias)">
+      <li *ngFor="let c of clases" [style.background]="c.color" [style.color]="c.texto">
+        {{ c.nombre }} <span>{{ v(c.desde, c.desde % 1 ? 1 : 0) }}+</span>
+      </li>
+    </ul>
+
+    <dl class="dlg-resumen">
+      <div class="dlg-resumen__dato">
+        <dt>Estaciones con índice</dt>
+        <dd>{{ conDatos }} <small>de {{ filas.length }}</small></dd>
+      </div>
+      <div class="dlg-resumen__dato" *ngIf="maximo as m">
+        <dt>FWI más alto</dt>
+        <dd>{{ v(m.dia!.fwi) }} <small>{{ m.nombre }} · {{ m.clase?.nombre }}</small></dd>
+      </div>
+      <div class="dlg-resumen__dato" *ngIf="conteoClases.length">
+        <dt>Por clase</dt>
+        <dd class="fwi-conteo">
+          <span *ngFor="let c of conteoClases" [style.background]="c.clase.color" [style.color]="c.clase.texto"
+            [title]="c.clase.nombre">{{ c.cantidad }}</span>
+        </dd>
+      </div>
+    </dl>
+
+    <p class="fwi-vacio" *ngIf="!conDatos">
+      No hay índice calculado para el {{ fechaTexto }}<ng-container *ngIf="fechaMostrada < inicio">: el cálculo
+        empieza el {{ textoFecha(inicio) }}</ng-container>.
+    </p>
+    <p class="fwi-vacio" *ngIf="conDatos && !grupos.length">Ninguna estación coincide con la búsqueda.</p>
+
+    <table class="dlg-tabla fwi-tabla" *ngIf="conDatos && grupos.length"
+      [attr.aria-label]="'Peligro de incendios del ' + fechaTexto + ' por estación'">
+      <thead>
+        <tr>
+          <th scope="col">Estación</th>
+          <th scope="col">Peligro</th>
+          <th scope="col" class="num">FWI</th>
+          <th scope="col" class="num">ISI</th>
+          <th scope="col" class="num">BUI</th>
+          <th scope="col" class="num">FFMC</th>
+          <th scope="col" class="num">DMC</th>
+          <th scope="col" class="num">DC</th>
+          <th scope="col" class="num">Temp. 12 h <span>°C</span></th>
+          <th scope="col" class="num">HR 12 h <span>%</span></th>
+          <th scope="col" class="num">Viento <span>km/h</span></th>
+          <th scope="col" class="num">Lluvia <span>mm</span></th>
+        </tr>
+      </thead>
+      <tbody *ngFor="let g of grupos">
+        <tr class="fwi-zona">
+          <th colspan="12" scope="colgroup">{{ g.titulo }} <span>· {{ g.filas.length }}</span></th>
+        </tr>
+        <tr *ngFor="let f of g.filas; trackBy: trackFila" [class.fwi-elegida]="f.id === estacionSerie">
+          <th scope="row" class="fwi-estacion">
+            <button type="button" class="fwi-enlace" (click)="verEvolucion(f)"
+              [attr.aria-label]="'Ver la evolución de ' + f.nombre">{{ f.nombre }}</button>
+            <span>{{ f.lugar }}</span>
+            <span class="fwi-nota" *ngIf="estimaciones(f) as e">* {{ e }}.</span>
+          </th>
+          <ng-container *ngIf="f.dia?.fwi !== null && f.dia?.fwi !== undefined && f.dia as d; else sinDatos">
+            <td class="fwi-peligro" data-etiqueta="Peligro">
+              <span class="fwi-chip" [style.background]="f.clase!.color" [style.color]="f.clase!.texto">{{ f.clase!.nombre }}</span>
+            </td>
+            <td class="num fwi-valor" data-etiqueta="FWI">{{ v(d.fwi) }}</td>
+            <td class="num" data-etiqueta="ISI">{{ v(d.isi) }}</td>
+            <td class="num" data-etiqueta="BUI">{{ v(d.bui) }}</td>
+            <td class="num" data-etiqueta="FFMC">{{ v(d.ffmc) }}</td>
+            <td class="num" data-etiqueta="DMC">{{ v(d.dmc) }}</td>
+            <td class="num" data-etiqueta="DC">{{ v(d.dc) }}</td>
+            <td class="num" data-etiqueta="Temp." data-unidad="°C" [class.fwi-est]="estimado(f, 'temp')">{{ v(d.temp) }}</td>
+            <td class="num" data-etiqueta="HR" data-unidad="%" [class.fwi-est]="estimado(f, 'hr')">{{ v(d.hr, 0) }}</td>
+            <td class="num" data-etiqueta="Viento" data-unidad="km/h" [class.fwi-est]="estimado(f, 'viento')">{{ v(d.viento) }}</td>
+            <td class="num" data-etiqueta="Lluvia" data-unidad="mm" [class.fwi-est]="estimado(f, 'lluvia')">{{ v(d.lluvia) }}</td>
+          </ng-container>
+          <ng-template #sinDatos>
+            <td colspan="11" class="sin-dato fwi-sin-fila">
+              {{ f.dia && f.dia.diasSinDatos > 0 ? 'Sin índice: la estación lleva ' + f.dia.diasSinDatos + ' días sin datos' : 'Sin índice de este día' }}
+            </td>
+          </ng-template>
+        </tr>
+      </tbody>
+    </table>
+
+    <section class="fwi-evolucion" id="fwi-evolucion" aria-labelledby="fwi-evolucion-titulo" *ngIf="conDatos">
+      <div class="fwi-evolucion__cabecera">
+        <h3 id="fwi-evolucion-titulo">Evolución de los últimos 90 días</h3>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Estación</mat-label>
+          <select matNativeControl [(ngModel)]="estacionSerie" name="estacionSerie" (ngModelChange)="cargarSerie()">
+            <option *ngFor="let s of estaciones" [value]="s.Identificacion">{{ s.nombre }}</option>
+          </select>
+        </mat-form-field>
+      </div>
+      <mat-progress-bar *ngIf="cargandoSerie" mode="indeterminate"></mat-progress-bar>
+      <p class="fwi-vacio" *ngIf="!cargandoSerie && serieVacia">{{ nombreSerie }} no tiene índice calculado en este
+        período.</p>
+      <div class="fwi-grafico" *ngIf="!serieVacia">
+        <app-exportar-grafico [nombre]="'peligro-incendios-' + nombreSerie"></app-exportar-grafico>
+        <canvas baseChart [data]="serieData" [options]="serieOptions" [plugins]="pluginsSerie" type="bar"
+          [attr.aria-label]="'FWI y lluvia de ' + nombreSerie + ' en los últimos 90 días'" role="img"></canvas>
+      </div>
+    </section>
+
+    <p class="fwi-pie">{{ fuente }} · Índice del {{ fechaTexto }}. Clases de peligro provisorias.</p>
+  </ng-container>
+</mat-dialog-content>
