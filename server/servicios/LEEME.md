@@ -200,6 +200,11 @@ Para instalarlo:
 Para volver a calcular todo (por ejemplo, si cambia el método o `INICIO`): `TRUNCATE fwi_diario` y
 repetir el paso 5.
 
+Si responde «Error al preparar el guardado del índice de incendios (MySQL N)»: 1142 es que el usuario
+de `conecta_mysql.php` no tiene permiso de `INSERT` o `DELETE` en `fwi_diario` (por ejemplo,
+`GRANT SELECT, INSERT, DELETE ON estaciones.fwi_diario TO '<usuario>'@'localhost';`), 1146 que no
+existe la tabla y 1054 que una columna no coincide con el SQL de arriba.
+
 ## `kp-gfz.php`
 
 Proxy del índice Kp de GFZ Potsdam (`https://kp.gfz.de/app/json/`), que no permite CORS.

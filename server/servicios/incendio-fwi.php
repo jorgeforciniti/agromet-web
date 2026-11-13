@@ -347,7 +347,9 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
     $stmt = $conexion->prepare("REPLACE INTO fwi_diario
         (identificacion, fecha, temp, hr, viento, lluvia, ffmc, dmc, dc, isi, bui, fwi, estimado, dias_sin_datos, calculado)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if (!$stmt) errorJson(500, 'Error al preparar el guardado del índice de incendios (¿existe la tabla fwi_diario?).');
+    // El número de error de MySQL ayuda a instalarlo: 1142 = falta permiso de INSERT o DELETE en
+    // fwi_diario, 1146 = no existe la tabla, 1054 = una columna no coincide con el SQL del LEEME
+    if (!$stmt) errorJson(500, 'Error al preparar el guardado del índice de incendios (MySQL ' . $conexion->errno . ').');
 
     foreach ($estaciones as $id => $e) {
         $previo = isset($previos[$id]) ? $previos[$id] : null;
@@ -436,7 +438,7 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
         $fila[] = $diasSinDatos;
         $fila[] = $ahora;
         $stmt->bind_param('ssddddddddddsis', ...$fila);
-        if (!$stmt->execute()) errorJson(500, 'Error al guardar el índice de incendios.');
+        if (!$stmt->execute()) errorJson(500, 'Error al guardar el índice de incendios (MySQL ' . $stmt->errno . ').');
     }
     $stmt->close();
 }
