@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Secciones públicas del sitio. Si se agrega una, sumarla acá y en app.routes.ts -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://agromet.eeaoc.gob.ar/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/estado-actual</loc><changefreq>hourly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/mapas</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/datos</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/informes</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/estadisticas-historicas</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/estaciones</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://agromet.eeaoc.gob.ar/privacidad</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+</urlset>

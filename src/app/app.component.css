@@ -27,6 +27,11 @@
   padding: 20px;
   background: var(--bg);
   transition: margin-top 0.2s ease;
+  /* Ocupa al menos el resto de la pantalla: así el aviso y el pie quedan abajo desde el primer
+     pintado y no "saltan" cuando termina de cargar la sección (Cumulative Layout Shift). */
+  min-height: calc(100vh - var(--header-h, 168px));
+  min-height: calc(100dvh - var(--header-h, 168px));
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {

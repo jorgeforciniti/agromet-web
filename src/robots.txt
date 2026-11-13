@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin
+Disallow: /auth
+Disallow: /mi-cuenta
+Disallow: /solicitudes
+Disallow: /mis-solicitudes
+Disallow: /services/
+
+Sitemap: https://agromet.eeaoc.gob.ar/sitemap.xml
