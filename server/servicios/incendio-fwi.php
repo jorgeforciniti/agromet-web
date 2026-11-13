@@ -21,6 +21,10 @@
  *   - Factores de duración del día del DMC y del DC corridos 6 meses (hemisferio sur).
  *   - Cada día parte de los códigos del día anterior. Se arranca en INICIO con FFMC 85, DMC 6 y DC 15.
  *
+ * Sensores dados de baja (tabla `sensores_baja`, se cargan en /admin): sus valores se descartan y se
+ * estiman como si faltaran; en `estimado` el motivo lleva el prefijo 'baja:' (por ejemplo
+ * 'baja:vecinas'). Tampoco se usan para estimar a las vecinas.
+ *
  * Observaciones faltantes (la guía pide no saltear días y estimar el dato), en este orden:
  *   1. el registro más cercano a las 12 h entre las 11 y las 13 h ('hora' si está a más de 15 min);
  *   2. el promedio de las estaciones vecinas (misma zona, a menos de VECINAS_KM y VECINAS_DESNIVEL)
@@ -322,6 +326,37 @@ function promedio($valores) {
     return count($valores) ? array_sum($valores) / count($valores) : null;
 }
 
+/**
+ * Variables dadas de baja ese día: [id => [variable => true]] con los nombres de VARIABLES y 'lluvia'.
+ * Si la tabla sensores_baja todavía no existe, no descarta nada.
+ */
+function bajasDelDia($conexion, $fecha) {
+    $nombres = ['temperatura' => 'temp', 'humedad' => 'hr', 'viento' => 'viento', 'lluvia' => 'lluvia'];
+    $bajas = [];
+    try {
+        $res = @$conexion->query("SELECT identificacion, variable FROM sensores_baja
+            WHERE desde <= '$fecha' AND (hasta IS NULL OR hasta >= '$fecha')");
+    } catch (Throwable $e) {
+        $res = false;
+    }
+    if ($res === false) return $bajas;
+    while ($f = $res->fetch_assoc()) {
+        if (isset($nombres[$f['variable']])) $bajas[(string)$f['identificacion']][$nombres[$f['variable']]] = true;
+    }
+    return $bajas;
+}
+
+/** Saca de las lecturas y de la lluvia los valores de los sensores dados de baja */
+function descartarBajas(&$lecturas, &$lluvias, $bajas) {
+    foreach ($bajas as $id => $variables) {
+        foreach (array_keys($variables) as $v) {
+            if ($v === 'lluvia') unset($lluvias[$id]);
+            else unset($lecturas[$id][$v]);
+        }
+        if (isset($lecturas[$id]) && !$lecturas[$id]) unset($lecturas[$id]);
+    }
+}
+
 /** Filas de fwi_diario de un día: [id => fila] */
 function filasDelDia($conexion, $fecha) {
     $res = consultar($conexion, "SELECT * FROM fwi_diario WHERE fecha = '$fecha'");
@@ -340,6 +375,8 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
     $previos = filasDelDia($conexion, $ayer);
     $hoy = lecturasMediodia($conexion, $fecha);
     $lluvias = lluviaDelDia($conexion, $fecha, $estaciones);
+    $bajas = bajasDelDia($conexion, $fecha);
+    descartarBajas($hoy, $lluvias, $bajas);
     $siguiente = null; // lecturas del día siguiente, sólo si hacen falta
     $mes = (int)substr($fecha, 5, 2);
     $ahora = date('Y-m-d H:i:s');
@@ -373,7 +410,11 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
             }
             $anterior = $previo && $previo[$v] !== null ? (float)$previo[$v] : null;
             if ($anterior !== null && $manana <= $ultimoCalculable) {
-                if ($siguiente === null) $siguiente = lecturasMediodia($conexion, $manana);
+                if ($siguiente === null) {
+                    $siguiente = lecturasMediodia($conexion, $manana);
+                    $sinLluvia = [];
+                    descartarBajas($siguiente, $sinLluvia, bajasDelDia($conexion, $manana));
+                }
                 if (isset($siguiente[$id][$v])) {
                     $valores[$v] = ($anterior + $siguiente[$id][$v]['valor']) / 2;
                     $estimado[$v] = 'interpolado';
@@ -401,6 +442,10 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
                 $valores['lluvia'] = 0.0;
                 $estimado['lluvia'] = 'sin-dato';
             }
+        }
+
+        foreach (array_keys(isset($bajas[$id]) ? $bajas[$id] : []) as $v) {
+            $estimado[$v] = 'baja:' . (isset($estimado[$v]) ? $estimado[$v] : 'sin-dato');
         }
 
         // Días seguidos sin registros propios del mediodía
@@ -449,35 +494,78 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
  */
 function actualizar($conexion) {
     $ultimoCalculable = (int)date('G') >= HORA_CALCULO ? date('Y-m-d') : date('Y-m-d', strtotime('-1 day'));
-    $res = consultar($conexion, "SELECT MAX(fecha) AS ultimo, MAX(calculado) AS calculado FROM fwi_diario");
-    $f = $res->fetch_assoc();
-    $ultimo = $f['ultimo'];
 
+    // Un cálculo por vez: si otro pedido ya está calculando, se responde con lo que hay
+    $lock = consultar($conexion, "SELECT GET_LOCK('agromet_fwi', 0) AS ok")->fetch_assoc();
+    $calcula = (int)$lock['ok'] === 1;
+
+    // Si cambiaron los sensores dados de baja, se borra lo calculado desde la fecha afectada y se
+    // vuelve a calcular (de a DIAS_POR_PEDIDO por pedido, como la primera vez)
+    if ($calcula) {
+        $recalcularDesde = cambiosEnBajas($conexion);
+        if ($recalcularDesde !== null) {
+            consultar($conexion, "DELETE FROM fwi_diario WHERE fecha >= '" . max(INICIO, $recalcularDesde) . "'");
+        }
+    }
+
+    $f = consultar($conexion, "SELECT MAX(fecha) AS ultimo, MAX(calculado) AS calculado FROM fwi_diario")->fetch_assoc();
+    $ultimo = $f['ultimo'];
     $reciente = $f['calculado'] && strtotime($f['calculado']) > time() - MINUTOS_ENTRE_RECALCULOS * 60;
     if ($ultimo === null) {
         $desde = INICIO;
     } elseif ($ultimo >= $ultimoCalculable && $reciente) {
-        return [$ultimo, 0];
+        $calcula = false;
+        $desde = null;
     } else {
         $siguiente = date('Y-m-d', strtotime("$ultimo +1 day"));
         $recalcular = date('Y-m-d', strtotime("$ultimoCalculable -" . RECALCULAR_DIAS . " day"));
         $desde = max(INICIO, min($siguiente, $recalcular));
     }
 
-    // Un cálculo por vez: si otro pedido ya está calculando, se responde con lo que hay
-    $lock = consultar($conexion, "SELECT GET_LOCK('agromet_fwi', 0) AS ok")->fetch_assoc();
-    if ((int)$lock['ok'] === 1) {
+    if ($calcula) {
         $estaciones = leerEstaciones($conexion);
         for ($i = 0, $d = $desde; $i < DIAS_POR_PEDIDO && $d <= $ultimoCalculable; $i++) {
             calcularDia($conexion, $d, $estaciones, $ultimoCalculable);
             $ultimo = max((string)$ultimo, $d);
             $d = date('Y-m-d', strtotime("$d +1 day"));
         }
-        consultar($conexion, "SELECT RELEASE_LOCK('agromet_fwi')");
     }
+    if ((int)$lock['ok'] === 1) consultar($conexion, "SELECT RELEASE_LOCK('agromet_fwi')");
+
     $pendientes = $ultimo === null ? null
         : max(0, (int)round((strtotime($ultimoCalculable) - strtotime($ultimo)) / 86400));
     return [$ultimo, $pendientes];
+}
+
+/**
+ * Fecha desde la que hay que recalcular porque cambiaron los sensores dados de baja, o null. Compara
+ * la tabla con lo que vio la última vez (cantidad de filas y último cambio, guardados en
+ * agromet-fwi-bajas.json de la carpeta temporal de PHP): una baja nueva se recalcula desde su
+ * fecha; una editada o borrada, desde INICIO (no se sabe qué fechas tenía antes).
+ */
+function cambiosEnBajas($conexion) {
+    try {
+        $res = @$conexion->query("SELECT COUNT(*) AS n, MAX(creado) AS creado, MAX(modificado) AS modificado,
+            MIN(desde) AS desde FROM sensores_baja");
+    } catch (Throwable $e) {
+        $res = false;
+    }
+    if ($res === false) return null; // todavía no existe la tabla
+    $actual = $res->fetch_assoc();
+    $actual = ['n' => (int)$actual['n'], 'creado' => (string)$actual['creado'],
+        'modificado' => (string)$actual['modificado'], 'desde' => (string)$actual['desde']];
+
+    $archivo = sys_get_temp_dir() . '/agromet-fwi-bajas.json';
+    $previo = is_file($archivo) ? json_decode((string)@file_get_contents($archivo), true) : null;
+    if ($previo == $actual) return null;
+    @file_put_contents($archivo, json_encode($actual));
+
+    if (!is_array($previo)) return $actual['n'] > 0 ? $actual['desde'] : null;
+    if ($actual['n'] < $previo['n'] || $actual['modificado'] !== $previo['modificado']) return INICIO;
+    $res = consultar($conexion, "SELECT MIN(desde) AS desde FROM sensores_baja WHERE creado > '"
+        . $conexion->real_escape_string($previo['creado']) . "'");
+    $nuevas = $res->fetch_assoc();
+    return $nuevas['desde'] !== null ? $nuevas['desde'] : INICIO;
 }
 
 // ---------------------------------------------------------------------------------------------
