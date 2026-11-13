@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { SensoresBajaService } from './sensores-baja.service';
+import {
+  CAMPOS_ACTUALES, CAMPOS_ALERTA, CAMPOS_DIARIOS, CAMPOS_HELADAS, CAMPOS_LLUVIA_PERIODO, CAMPOS_REGISTRO, CAMPOS_RESUMEN,
+  CAMPOS_TEMPERATURA_PERIODO, Depurador, inicioDeMes
+} from '../shared/depuracion';
+import { fechaIso } from '../shared/enlace-consulta';
 
 export interface WeatherStation {
   id?: string;
@@ -325,7 +331,43 @@ export class WeatherService {
   // misma API key ya usada en leaflet-goes-viewer.component.ts.
   private openWeatherMapApiKey = 'ea2faa440ccc747a20a042317dadac3f';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private sensoresBaja: SensoresBajaService) { }
+
+  /**
+   * Depuración de datos (shared/depuracion.ts): todo dato de las estaciones automáticas pasa por
+   * acá y pierde los valores de los sensores dados de baja en /admin (y la radiación de las
+   * estaciones sin ese sensor). Las secciones los ven como «sin dato». Las lluvias de la red de
+   * pluviómetros (datos-campania.php, lluvias-estacion.php) son otras estaciones y no se tocan.
+   */
+  private depurado<T>(fuente: Observable<T>, limpiar: (r: T, d: Depurador) => T): Observable<T> {
+    return forkJoin([fuente, this.sensoresBaja.depurador()]).pipe(map(([r, d]) => limpiar(r, d)));
+  }
+
+  /** Filas de una respuesta {data: [...]}, limpiadas una por una */
+  private limpiarFilas<R extends { data?: unknown[] }>(r: R, limpiar: (f: object) => object): R {
+    return Array.isArray(r?.data) ? { ...r, data: r.data.map(f => limpiar(f as object)) } : r;
+  }
+
+  /** Último registro de cada estación: el día de fecha_I (y el mes, para la lluvia del mes) */
+  private limpiarActual<T extends object>(e: T, d: Depurador, id: string, fechaI: string | undefined): T {
+    const dia = (fechaI ?? '').slice(0, 10) || fechaIso(new Date());
+    const limpio = d.limpiar(e, id, dia, dia, CAMPOS_ACTUALES);
+    return d.limpiar(limpio, id, inicioDeMes(dia), dia, { lluvia: ['rr_mes'] });
+  }
+
+  private limpiarEstaciones(lista: WeatherStation[], d: Depurador): WeatherStation[] {
+    return Array.isArray(lista) ? lista.map(e => this.limpiarActual(e, d, e.Identificacion, e.fecha_I)) : lista;
+  }
+
+  /** Identificación de la fila (datos-alerta.php y datos-heladas.php la llaman identificacion) */
+  private idDeFila(f: object): string | number | undefined {
+    return (f as { identificacion?: string | number }).identificacion;
+  }
+
+  /** Fecha de la fila (registros y valores diarios) */
+  private fechaDeFila(f: object): string {
+    return String((f as { fecha?: string }).fecha ?? '');
+  }
 
   getOpenWeatherForecast(lat: number, lon: number): Observable<OpenWeatherForecastResponse> {
     return this.http.get<OpenWeatherForecastResponse>(this.serviciosSinCorsUrl + `forecast.php`, { params: { lat, lon } });
@@ -342,15 +384,21 @@ export class WeatherService {
   }
 
   getStations(): Observable<WeatherStation[]> {
-    return this.http.get<WeatherStation[]>(this.stationsUrl + 'estaciones.php?habilitada=2');
+    return this.depurado(this.http.get<WeatherStation[]>(this.stationsUrl + 'estaciones.php?habilitada=2'),
+      (r, d) => this.limpiarEstaciones(r, d));
   }
 
+  /** Sin rango: desde las 12 h de ayer hasta ahora */
   getAlerts<TAlert = WeatherAlertStation>(): Observable<StationsApiResponse<TAlert>> {
-    return this.http.get<StationsApiResponse<TAlert>>(this.stationsUrl + 'datos-alerta.php');
+    const hoy = new Date();
+    const ayer = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 1);
+    return this.depurado(this.http.get<StationsApiResponse<TAlert>>(this.stationsUrl + 'datos-alerta.php'),
+      (r, d) => this.limpiarFilas(r, f => d.limpiar(f, this.idDeFila(f), fechaIso(ayer), fechaIso(hoy), CAMPOS_ALERTA)));
   }
 
   getRains<TRain = WeatherAlertStation>(desde: string, hasta: string): Observable<StationsApiResponse<TRain>> {
-    return this.http.get<StationsApiResponse<TRain>>(this.stationsUrl + `datos-alerta.php?desde=${desde}&hasta=${hasta}`);
+    return this.depurado(this.http.get<StationsApiResponse<TRain>>(this.stationsUrl + `datos-alerta.php?desde=${desde}&hasta=${hasta}`),
+      (r, d) => this.limpiarFilas(r, f => d.limpiar(f, this.idDeFila(f), desde, hasta, CAMPOS_ALERTA)));
   }
 
   /**
@@ -358,26 +406,41 @@ export class WeatherService {
    * consulta que «Lluvias 9 a 9» de /admin). dia: de 0 a 24 h o día pluviométrico de 9 a 9 h.
    */
   getLluviaPeriodo(desde: string, hasta: string, dia: DiaLluvia): Observable<LluviaPeriodoResponse> {
-    return this.http.get<LluviaPeriodoResponse>(this.stationsUrl + `lluvia-periodo.php?desde=${desde}&hasta=${hasta}&dia=${dia}`);
+    // El día pluviométrico de la primera fecha empieza a las 9 h del día anterior
+    const previo = new Date(`${desde}T12:00:00`);
+    previo.setDate(previo.getDate() - 1);
+    const inicio = dia === 'pluviometrico' ? fechaIso(previo) : desde;
+    return this.depurado(
+      this.http.get<LluviaPeriodoResponse>(this.stationsUrl + `lluvia-periodo.php?desde=${desde}&hasta=${hasta}&dia=${dia}`),
+      (r, d) => Array.isArray(r?.estaciones)
+        ? { ...r, estaciones: r.estaciones.map(e => d.limpiar(e, e.id, inicio, hasta, CAMPOS_LLUVIA_PERIODO)) }
+        : r);
   }
 
   getStationsAll(): Observable<WeatherStation[]> {
-    return this.http.get<WeatherStation[]>(this.stationsUrl + 'estaciones.php');
+    return this.depurado(this.http.get<WeatherStation[]>(this.stationsUrl + 'estaciones.php'),
+      (r, d) => this.limpiarEstaciones(r, d));
   }
 
   getWeatherDataResumen<TResumen>(desde: string, hasta: string, estacion: string): Observable<WeatherDataApiResponse<TResumen>> {
     const url = this.stationsUrl + `datos-resumen.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
-    return this.http.get<WeatherDataApiResponse<TResumen>>(url);
+    return this.depurado(this.http.get<WeatherDataApiResponse<TResumen>>(url),
+      (r, d) => this.limpiarFilas(r, f => d.limpiar(f, estacion, desde, hasta, CAMPOS_RESUMEN)));
   }
 
   getWeatherDataDiary<TDiary>(desde: string, hasta: string, estacion: string): Observable<WeatherDataApiResponse<TDiary>> {
     const url = this.stationsUrl + `datos-diarios.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
-    return this.http.get<WeatherDataApiResponse<TDiary>>(url);
+    return this.depurado(this.http.get<WeatherDataApiResponse<TDiary>>(url),
+      (r, d) => this.limpiarFilas(r, f => {
+        const dia = this.fechaDeFila(f);
+        return dia ? d.limpiar(f, estacion, dia, dia, CAMPOS_DIARIOS) : f;
+      }));
   }
 
   /** Un día en todas las estaciones (server/servicios/resumen-diario.php) */
   getResumenDiario(fecha: string): Observable<ResumenDiarioResponse> {
-    return this.http.get<ResumenDiarioResponse>(this.stationsUrl + 'resumen-diario.php', { params: { fecha } });
+    return this.depurado(this.http.get<ResumenDiarioResponse>(this.stationsUrl + 'resumen-diario.php', { params: { fecha } }),
+      (r, d) => this.limpiarFilas(r, f => d.limpiar(f, this.idDeFila(f), fecha, fecha, CAMPOS_DIARIOS)));
   }
 
   /** Índice de peligro de incendios (FWI) de un día en todas las estaciones (incendio-fwi.php) */
@@ -392,12 +455,17 @@ export class WeatherService {
 
   getWeatherDataHourly<THourly>(fecha: string, estacion: string): Observable<WeatherDataApiResponse<THourly>> {
     const url = this.stationsUrl + `datos-24hs.php?fecha=${fecha}&estacion=${estacion}`;
-    return this.http.get<WeatherDataApiResponse<THourly>>(url);
+    return this.depurado(this.http.get<WeatherDataApiResponse<THourly>>(url),
+      (r, d) => this.limpiarFilas(r, f => d.limpiar(f, estacion, fecha, fecha, CAMPOS_REGISTRO)));
   }
 
   getDiseaseData<TDisease = DiseaseApiRecord>(desde: string, hasta: string, estacion: string): Observable<StatusDataApiResponse<TDisease>> {
     const url = this.stationsUrl + `datos-enfermedades.php?desde=${desde}&hasta=${hasta}&estacion=${estacion}`;
-    return this.http.get<StatusDataApiResponse<TDisease>>(url);
+    return this.depurado(this.http.get<StatusDataApiResponse<TDisease>>(url),
+      (r, d) => this.limpiarFilas(r, f => {
+        const dia = this.fechaDeFila(f);
+        return dia ? d.limpiar(f, estacion, dia, dia, CAMPOS_REGISTRO) : f;
+      }));
   }
 
   getSmnAlertByArea(area: number): Observable<SmnAlertByAreaResponse> {
@@ -435,14 +503,18 @@ export class WeatherService {
     return this.http.get<StatusDataApiResponse<TCurrent>>(url);
   }
 
+  /** datos-temperatura.php no trae el id de la estación: se busca por el nombre */
   getTMinMax<TRecord = TminMaxRecord>(desde: string, hasta: string): Observable<StatusDataApiResponse<TRecord>> {
     const url = this.stationsUrl + `datos-temperatura.php?desde=${desde}&hasta=${hasta}`;
-    return this.http.get<StatusDataApiResponse<TRecord>>(url);
+    return this.depurado(this.http.get<StatusDataApiResponse<TRecord>>(url),
+      (r, d) => this.limpiarFilas(r, f =>
+        d.limpiar(f, d.idDe((f as { nombre?: string }).nombre), desde, hasta, CAMPOS_TEMPERATURA_PERIODO)));
   }
 
   getHeladas<THelada = unknown>(desde: string, hasta: string): Observable<WeatherDataApiResponse<THelada>> {
     const url = this.stationsUrl + `datos-heladas.php?desde=${desde}&hasta=${hasta}`;
-    return this.http.get<WeatherDataApiResponse<THelada>>(url);
+    return this.depurado(this.http.get<WeatherDataApiResponse<THelada>>(url),
+      (r, d) => this.limpiarFilas(r, f => d.limpiar(f, this.idDeFila(f), desde, hasta, CAMPOS_HELADAS)));
   }
 
 }

@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { SensoresBajaService } from './sensores-baja.service';
+import { CAMPOS_ACTUALES, inicioDeMes } from '../shared/depuracion';
+import { fechaIso } from '../shared/enlace-consulta';
 
 export interface Estacion {
   identificacion: number;
@@ -30,10 +33,16 @@ interface ApiResponse {
 export class DatosOnlineService {
   private apiUrl = 'https://agromet.eeaoc.gob.ar/services/datos-online.php';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sensoresBaja: SensoresBajaService) {}
 
+  /** Sin los valores de los sensores dados de baja (depuración de datos, como en WeatherService) */
   getEstaciones(): Observable<Estacion[]> {
-    return this.http.get<ApiResponse>(this.apiUrl)
-      .pipe(map(response => response.data));
+    return forkJoin([this.http.get<ApiResponse>(this.apiUrl), this.sensoresBaja.depurador()]).pipe(
+      map(([response, d]) => (response.data ?? []).map(e => {
+        const dia = (e.fecha_i ?? '').slice(0, 10) || fechaIso(new Date());
+        const limpio = d.limpiar(e, e.identificacion, dia, dia, CAMPOS_ACTUALES);
+        return d.limpiar(limpio, e.identificacion, inicioDeMes(dia), dia, { lluvia: ['rr_mes'] });
+      }))
+    );
   }
 }

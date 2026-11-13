@@ -273,6 +273,8 @@ export class MapFrostComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.heladasData.forEach(d => {
       if (!d.lat || !d.lon) return; // Saltar datos inválidos
+      // Sin mínima: sensor de temperatura dado de baja en el período (depuración de datos)
+      if (d.minAbs === undefined || d.minAbs === null) return;
 
       const color = this.getColor(d.minAbs);
       const lat = Number(d.lat);
