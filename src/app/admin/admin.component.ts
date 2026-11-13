@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AdminApiService, InformeCargado, LluviaEstacion9a9, Lluvias9a9 } from '../services/admin-api.service';
 import { fechaIso } from '../shared/enlace-consulta';
 import { CATEGORIAS_INFORME, nombreCategoria, sugerirDesdeArchivo } from './categorias';
@@ -23,7 +24,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, AdminPublicadosComponent,
+  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, MatDialogModule, AdminPublicadosComponent,
     AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent,
     AdminColmenarComponent],
   templateUrl: './admin.component.html',
@@ -31,6 +32,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
 })
 export class AdminComponent implements OnInit {
   private readonly api = inject(AdminApiService);
+  private readonly dialog = inject(MatDialog);
 
   @ViewChild(AdminPublicadosComponent) private publicados?: AdminPublicadosComponent;
 
@@ -194,6 +196,20 @@ export class AdminComponent implements OnInit {
     if (nueva > this.hoy) return;
     this.fecha9a9 = nueva;
     this.consultar9a9();
+  }
+
+  /** Lluvia de la estación registro por registro, con sus vecinas (para evaluar el pluviómetro) */
+  async verDistribucion(e: LluviaEstacion9a9): Promise<void> {
+    if (!this.lluvias) return;
+    const { LluviaDistribucionDialogComponent } = await import('./lluvias/lluvia-distribucion-dialog.component');
+    this.dialog.open(LluviaDistribucionDialogComponent, {
+      data: { id: e.id, nombre: e.nombre, desde: this.lluvias.desde, hasta: this.lluvias.hasta },
+      width: 'min(1100px, 95vw)',
+      maxWidth: '95vw',
+      maxHeight: '92vh',
+      panelClass: 'do-dialog',
+      autoFocus: false
+    });
   }
 
   ordenarPor(campo: Orden9a9): void {

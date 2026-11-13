@@ -1,0 +1,61 @@
+<mat-dialog-content class="ldi dlg-cuerpo">
+  <app-encabezado-dialogo [titulo]="'Distribución de la lluvia · ' + datos.nombre"
+    [bajada]="'Del ' + diaMes(datos.desde) + ' a las 9 h al ' + diaMes(datos.hasta) + ' a las 9 h, registro por registro, con el acumulado de las estaciones vecinas.'"
+    (cerrar)="close()"></app-encabezado-dialogo>
+
+  <mat-progress-bar *ngIf="cargando" mode="indeterminate"></mat-progress-bar>
+  <p class="ldi-aviso ldi-aviso--error" *ngIf="error" role="alert">{{ error }}</p>
+
+  <ng-container *ngIf="!cargando && !error && estacion">
+    <div class="ldi-senal" [ngClass]="'ldi-senal--' + senal" role="status">
+      <strong>{{ textoSenal[senal].titulo }}</strong>
+      <span>{{ textoSenal[senal].detalle }}</span>
+      <small>Señal orientativa (criterio propio): mirá el gráfico antes de dar de baja la lluvia.</small>
+    </div>
+
+    <dl class="dlg-resumen">
+      <div class="dlg-resumen__dato">
+        <dt>Total</dt>
+        <dd>{{ mm(estacion.total) }} mm <small *ngIf="medianaVecinas !== null">vecinas {{ mm(medianaVecinas) }} mm</small></dd>
+      </div>
+      <div class="dlg-resumen__dato">
+        <dt>Registros con lluvia</dt>
+        <dd>{{ registrosConLluvia }} <small>{{ vuelcosSueltos }} de un solo vuelco (0,25 mm)</small></dd>
+      </div>
+      <div class="dlg-resumen__dato">
+        <dt>Máximo en un registro</dt>
+        <dd>{{ mm(maxRegistro, 2) }} mm</dd>
+      </div>
+      <div class="dlg-resumen__dato">
+        <dt>Llovió</dt>
+        <dd class="ldi-chico">{{ momento(primeraLluvia) }} a {{ momento(ultimaLluvia) }}</dd>
+      </div>
+      <div class="dlg-resumen__dato" *ngIf="cola > 0">
+        <dt>Después de las vecinas</dt>
+        <dd>{{ mm(cola) }} mm <small>en {{ mm(colaHoras) }} h, más de 1 h después de que pararon</small></dd>
+      </div>
+      <div class="dlg-resumen__dato">
+        <dt>Horas con registros</dt>
+        <dd>{{ mm(horasCubiertas, 2) }} <small>de 24</small></dd>
+      </div>
+    </dl>
+
+    <div class="ldi-grafico" *ngIf="estacion.registros.size">
+      <app-exportar-grafico [nombre]="'lluvia-9a9-' + datos.nombre"></app-exportar-grafico>
+      <canvas baseChart [data]="grafico" [options]="opciones" type="bar"
+        [attr.aria-label]="'Lluvia de ' + datos.nombre + ' por registro y acumulada, con sus vecinas'" role="img"></canvas>
+    </div>
+
+    <details class="ldi-guia">
+      <summary>Cómo leer el gráfico</summary>
+      <ul>
+        <li><strong>Buenas condiciones:</strong> las barras se concentran cuando llueve y la línea acumulada sube junto con
+          las de las vecinas, hasta un total parecido.</li>
+        <li><strong>Semitapado:</strong> muchas barras chicas y parejas (un vuelco de 0,25 mm) que siguen horas después de
+          que las vecinas dejaron de subir; la acumulada sube en escalera y termina más abajo o más tarde.</li>
+        <li><strong>Tapado:</strong> la línea de la estación queda plana mientras las de las vecinas suben.</li>
+        <li>Un hueco en las barras es un registro que no llegó: no es lo mismo que 0 mm.</li>
+      </ul>
+    </details>
+  </ng-container>
+</mat-dialog-content>

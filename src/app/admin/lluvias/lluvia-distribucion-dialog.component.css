@@ -1,0 +1,70 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+.ldi {
+  margin: 0;
+}
+
+.ldi-aviso--error {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #991b1b;
+}
+
+/* Señal orientativa: verde, ámbar o rojo según el estado del pluviómetro */
+.ldi-senal {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-left-width: 5px;
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: .9rem;
+  line-height: 1.4;
+}
+
+.ldi-senal small {
+  color: var(--muted);
+}
+
+.ldi-senal--normal { border-left-color: #2b8a3e; }
+.ldi-senal--semitapado,
+.ldi-senal--aislada { border-left-color: #f08c00; background: #fff8e6; }
+.ldi-senal--tapado { border-left-color: #c92a2a; background: #fff1f2; }
+
+.ldi-chico {
+  font-size: 1rem !important;
+}
+
+.ldi-grafico {
+  position: relative;
+  height: 340px;
+}
+
+.ldi-guia {
+  font-size: .88rem;
+  color: var(--muted);
+}
+
+.ldi-guia summary {
+  color: var(--brand);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ldi-guia ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 600px) {
+  .ldi-grafico {
+    height: 280px;
+  }
+}

@@ -150,6 +150,7 @@
                       <mat-icon *ngIf="orden === 'horas'">{{ ordenDesc ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
                     </button>
                   </th>
+                  <th scope="col"><span class="adm-oculto">Distribución</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -159,12 +160,19 @@
                   <td>{{ e.nombre }}</td>
                   <td class="num">{{ e.mm === null ? '—' : (e.mm | number:'1.1-1':'es-AR') }}</td>
                   <td class="num">{{ e.horas | number:'1.0-2':'es-AR' }}</td>
+                  <td class="adm-celda-accion">
+                    <button type="button" class="adm-btn-sec adm-btn-chico" *ngIf="e.mm !== null" (click)="verDistribucion(e)"
+                      [attr.aria-label]="'Ver la distribución de la lluvia de ' + e.nombre" title="Distribución de la lluvia">
+                      <mat-icon>bar_chart</mat-icon>Distribución
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p class="adm-nota">Las filas resaltadas tienen menos de 24 horas de datos; "—" indica que la estación no
-            tiene registros en el período.</p>
+            tiene registros en el período. «Distribución» muestra la lluvia registro por registro junto a las estaciones
+            vecinas, para ver si el pluviómetro está tapado o semitapado.</p>
         </ng-container>
       </div>
     </mat-tab>

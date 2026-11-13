@@ -455,3 +455,29 @@
     justify-content: center;
   }
 }
+
+/* Lluvias 9 a 9: botón de distribución en cada fila */
+.adm-celda-accion {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.adm-btn-sec.adm-btn-chico {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: .8rem;
+}
+
+.adm-btn-chico mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.adm-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
