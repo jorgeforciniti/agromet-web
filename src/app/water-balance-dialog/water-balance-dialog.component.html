@@ -118,6 +118,7 @@
         <span>Por falta de datos en los meses previos, el balance arranca el {{ fechaCorta(resultado.reinicio) }} con
           {{ opcionesCalculadas?.almacenajeInicial }} mm: las primeras décadas pueden estar menos estabilizadas.</span>
       </div>
+      <app-aviso-bajas [consulta]="consultaBajas"></app-aviso-bajas>
 
       <section class="bhs-grafico">
         <div class="bhs-grafico__head">

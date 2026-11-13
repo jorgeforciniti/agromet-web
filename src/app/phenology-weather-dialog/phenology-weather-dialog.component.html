@@ -129,6 +129,7 @@
         <span>Completar con la normal</span>
       </label>
     </div>
+    <app-aviso-bajas *ngIf="totals" [consulta]="consultaBajas"></app-aviso-bajas>
 
     <ng-container *ngIf="totals">
       <p class="summary-contexto">

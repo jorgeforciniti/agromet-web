@@ -212,6 +212,9 @@
       </div>
     </div>
 
+    <app-aviso-bajas *ngIf="weatherData && weatherData.length" [consulta]="consultaBajas"
+      [variables]="['temperatura', 'humedad', 'viento', 'lluvia']"></app-aviso-bajas>
+
     <!-- TABLA -->
     <div class="table-scroll tabla-fija" *ngIf="weatherData && weatherData.length">
       <table class="tabla-datos dlg-tabla">

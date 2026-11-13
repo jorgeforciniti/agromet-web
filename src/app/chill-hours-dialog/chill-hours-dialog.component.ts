@@ -28,6 +28,7 @@ import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { evaluarDia } from '../shared/registros-diarios';
 import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 
 interface HourlyColdRecord {
   hora: string;
@@ -93,7 +94,7 @@ class ChillDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoCalidadComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoCalidadComponent, AvisoBajasComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,
@@ -126,6 +127,8 @@ export class ChillHoursDialogComponent implements OnInit {
   totalHours = 0;
   totalUtah = 0;
   validDays = 0;
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
 
   readonly bases = [7, 10];
   readonly data: Record<string, unknown>;
@@ -215,6 +218,7 @@ export class ChillHoursDialogComponent implements OnInit {
     recordarPeriodo('horas-frio', fromDate, toDate, this.periodoPorDefecto);
 
     const dates = this.buildDateRange(fromDate, toDate);
+    this.consultaBajas = { estacion: station, desde: dates[0], hasta: dates[dates.length - 1] };
 
     this.isLoading = true;
 

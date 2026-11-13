@@ -18,6 +18,7 @@ import { fechaIso, fechasDelPeriodo, pluginFranjasSinDatos, porFecha } from '../
 import { WeatherService, WeatherStation } from '../services/weather.service';
 import { StationService } from '../services/station.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
@@ -56,7 +57,7 @@ const COLOR_ALMACENAJE = '#5c940d';
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    EncabezadoDialogoComponent, CopiarEnlaceComponent,
+    EncabezadoDialogoComponent, CopiarEnlaceComponent, AvisoBajasComponent,
     ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,
@@ -96,6 +97,8 @@ export class WaterBalanceDialogComponent implements OnInit {
   private ultimosDatos: { registros: Map<string, object>; fechas: string[]; desde: Date } | null = null;
   isLoading = false;
   loadError = '';
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
 
   readonly data: Record<string, unknown>;
   readonly favoritas$ = inject(StationService).favoritas$;
@@ -225,6 +228,7 @@ export class WaterBalanceDialogComponent implements OnInit {
     const inicioCalculo = inicioDelCalculo(desde, opciones);
 
     this.isLoading = true;
+    this.consultaBajas = { estacion: station, desde: fechaIso(inicioCalculo), hasta: fechaIso(hasta) };
     this.weatherService.getWeatherDataDiary<{ fecha: string }>(fechaIso(inicioCalculo), fechaIso(hasta), station).subscribe({
       next: resp => {
         const registros = porFecha(resp.data ?? []);

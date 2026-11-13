@@ -105,6 +105,7 @@
     <div class="criterios" id="criterios-enfermedad" *ngIf="rows.length && criteriosVisibles">
       <p *ngFor="let linea of criteriosLineas(appliedDisease)">{{ linea }}</p>
     </div>
+    <app-aviso-bajas *ngIf="rows.length" [consulta]="consultaBajas"></app-aviso-bajas>
 
 
     <div class="disease-error" *ngIf="loadError">

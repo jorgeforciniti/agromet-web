@@ -70,6 +70,7 @@
     </dl>
 
     <app-aviso-calidad *ngIf="rows.length" [validos]="validDays" [total]="rows.length"></app-aviso-calidad>
+    <app-aviso-bajas *ngIf="rows.length" [consulta]="consultaBajas" [variables]="['temperatura']"></app-aviso-bajas>
 
     <div class="chill-error" *ngIf="loadError">
       <mat-icon>error</mat-icon>

@@ -86,6 +86,8 @@
         </div>
       </dl>
 
+      <app-aviso-bajas *ngIf="lineChartData.datasets.length || barChartData.datasets.length"
+        [consulta]="consultaBajas"></app-aviso-bajas>
       <div class="chart-container" *ngIf="lineChartData.datasets.length">
         <app-exportar-grafico nombre="comparacion-localidades" [maxFilas]="31"></app-exportar-grafico>
         <canvas baseChart [data]="lineChartData" [options]="chartOptions" [plugins]="pluginsGrafico"

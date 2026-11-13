@@ -30,6 +30,7 @@ import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 import { armarEnlace, consultaDe, leerFecha, leerNumero } from '../shared/enlace-consulta';
 
 
@@ -163,7 +164,7 @@ class PhenologyDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    EncabezadoDialogoComponent, CopiarEnlaceComponent,
+    EncabezadoDialogoComponent, CopiarEnlaceComponent, AvisoBajasComponent,
     ComoSeLeeComponent,
     ExportarGraficoComponent,
     SelectorEstacionComponent,
@@ -356,6 +357,8 @@ export class PhenologyWeatherDialogComponent implements OnInit {
   stations: WeatherStation[] = [];
   isLoading = false;
   loadError = '';
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
   summaries: StageSummary[] = [];
   totals: TotalsSummary | null = null;
   stageChartData: ChartData<'bar', number[], string | string[]> = { labels: [], datasets: [] };
@@ -525,6 +528,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     }
 
     this.isLoading = true;
+    this.consultaBajas = { estacion: station, desde: this.formatApiDate(overallStart), hasta: this.formatApiDate(overallEnd) };
 
     forkJoin({
       daily: this.weatherService.getWeatherDataDiary<PhenologyDailyRecord>(

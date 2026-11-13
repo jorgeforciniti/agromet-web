@@ -154,6 +154,7 @@ import { ValorPipe } from '../pipes/valor.pipe';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 
 @Component({
   selector: 'app-weather-dashboard',
@@ -161,7 +162,7 @@ import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.compone
   styleUrls: ['./weather-dashboard.component.css'],
   standalone: true,
   imports: [
-    EncabezadoDialogoComponent, ComoSeLeeComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoBajasComponent,
     ExportarGraficoComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
@@ -213,6 +214,8 @@ export class WeatherDashboardComponent implements OnInit {
   /** Estación y período de la última consulta (el formulario puede cambiar después) */
   estacionConsultada = '';
   periodoConsultado = '';
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
   /** Posición en el eje de los días sin registro (franjas grises) y su descripción */
   indicesSinRegistro: number[] = [];
   textoFaltantes = '';
@@ -371,6 +374,7 @@ export class WeatherDashboardComponent implements OnInit {
     const dma = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     this.estacionConsultada = this.getStationName(station);
     this.periodoConsultado = `${dma(desdeDate)} a ${dma(hastaDate)}`;
+    this.consultaBajas = { estacion: station, desde, hasta };
 
     try {
       // 3) Ahora paso strings '2025-04-01' y no objetos Date

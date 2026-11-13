@@ -77,6 +77,7 @@
     </nav>
 
     <mat-tab-nav-panel #tabPanel>
+      <app-aviso-bajas [consulta]="consultaBajas"></app-aviso-bajas>
       <div class="tab-content">
 
         <!-- Resumen -->
@@ -91,69 +92,69 @@
             <section class="resumen-grupo">
               <h4><mat-icon aria-hidden="true">thermostat</mat-icon>Temperatura</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Máxima absoluta</dt><dd>{{ summaryData.TempMaxAbs | number:'1.1-1' }} °C</dd></div>
-                <div class="resumen-grupo__fila"><dt>Mínima absoluta</dt><dd>{{ summaryData.TempMinAbs | number:'1.1-1' }} °C</dd></div>
-                <div class="resumen-grupo__fila"><dt>Máxima media</dt><dd>{{ summaryData.tempMaxMedia | number:'1.1-1' }} °C</dd></div>
-                <div class="resumen-grupo__fila"><dt>Mínima media</dt><dd>{{ summaryData.tempMinMedia | number:'1.1-1' }} °C</dd></div>
-                <div class="resumen-grupo__fila"><dt>Amplitud térmica</dt><dd>{{ summaryData.amplitudTermica | number:'1.1-1' }} °C</dd></div>
-                <div class="resumen-grupo__fila"><dt>Días con heladas</dt><dd>{{ summaryData.diasHelada | number:'1.0-0' }}</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas con heladas</dt><dd>{{ summaryData.horasHelada | number:'1.0-1' }}</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas con T ≤ 18 °C</dt><dd>{{ summaryData.horasTMenor18 | number:'1.0-1' }}</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas con T ≥ 32 °C</dt><dd>{{ summaryData.horasTMayor32 | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima absoluta</dt><dd>{{ summaryData.TempMaxAbs != null ? (summaryData.TempMaxAbs | number:'1.1-1') + ' °C' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima absoluta</dt><dd>{{ summaryData.TempMinAbs != null ? (summaryData.TempMinAbs | number:'1.1-1') + ' °C' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima media</dt><dd>{{ summaryData.tempMaxMedia != null ? (summaryData.tempMaxMedia | number:'1.1-1') + ' °C' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima media</dt><dd>{{ summaryData.tempMinMedia != null ? (summaryData.tempMinMedia | number:'1.1-1') + ' °C' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Amplitud térmica</dt><dd>{{ summaryData.amplitudTermica != null ? (summaryData.amplitudTermica | number:'1.1-1') + ' °C' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Días con heladas</dt><dd>{{ summaryData.diasHelada != null ? (summaryData.diasHelada | number:'1.0-0') : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas con heladas</dt><dd>{{ summaryData.horasHelada != null ? (summaryData.horasHelada | number:'1.0-1') : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas con T ≤ 18 °C</dt><dd>{{ summaryData.horasTMenor18 != null ? (summaryData.horasTMenor18 | number:'1.0-1') : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas con T ≥ 32 °C</dt><dd>{{ summaryData.horasTMayor32 != null ? (summaryData.horasTMayor32 | number:'1.0-1') : '—' }}</dd></div>
               </dl>
             </section>
 
             <section class="resumen-grupo">
               <h4><mat-icon aria-hidden="true">water_drop</mat-icon>Humedad relativa</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Máxima absoluta</dt><dd>{{ summaryData.humedadMaxAbs | number:'1.0-0' }} %</dd></div>
-                <div class="resumen-grupo__fila"><dt>Mínima absoluta</dt><dd>{{ summaryData.humedadMinAbs | number:'1.0-0' }} %</dd></div>
-                <div class="resumen-grupo__fila"><dt>Máxima media</dt><dd>{{ summaryData.humedadMaxMedia | number:'1.0-0' }} %</dd></div>
-                <div class="resumen-grupo__fila"><dt>Mínima media</dt><dd>{{ summaryData.humedadMinMedia | number:'1.0-0' }} %</dd></div>
-                <div class="resumen-grupo__fila"><dt>Amplitud hígrica</dt><dd>{{ summaryData.amplitudHigrica | number:'1.0-0' }} %</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas HR ≤ 20 %</dt><dd>{{ summaryData.horasMenor20 | number:'1.0-1' }}</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas HR ≤ 40 %</dt><dd>{{ summaryData.horasMenor40 | number:'1.0-1' }}</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas HR ≥ 80 %</dt><dd>{{ summaryData.horasMayor80 | number:'1.0-1' }}</dd></div>
-                <div class="resumen-grupo__fila"><dt>Horas HR ≥ 90 %</dt><dd>{{ summaryData.horasMayor90 | number:'1.0-1' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima absoluta</dt><dd>{{ summaryData.humedadMaxAbs != null ? (summaryData.humedadMaxAbs | number:'1.0-0') + ' %' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima absoluta</dt><dd>{{ summaryData.humedadMinAbs != null ? (summaryData.humedadMinAbs | number:'1.0-0') + ' %' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima media</dt><dd>{{ summaryData.humedadMaxMedia != null ? (summaryData.humedadMaxMedia | number:'1.0-0') + ' %' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Mínima media</dt><dd>{{ summaryData.humedadMinMedia != null ? (summaryData.humedadMinMedia | number:'1.0-0') + ' %' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Amplitud hígrica</dt><dd>{{ summaryData.amplitudHigrica != null ? (summaryData.amplitudHigrica | number:'1.0-0') + ' %' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≤ 20 %</dt><dd>{{ summaryData.horasMenor20 != null ? (summaryData.horasMenor20 | number:'1.0-1') : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≤ 40 %</dt><dd>{{ summaryData.horasMenor40 != null ? (summaryData.horasMenor40 | number:'1.0-1') : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≥ 80 %</dt><dd>{{ summaryData.horasMayor80 != null ? (summaryData.horasMayor80 | number:'1.0-1') : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Horas HR ≥ 90 %</dt><dd>{{ summaryData.horasMayor90 != null ? (summaryData.horasMayor90 | number:'1.0-1') : '—' }}</dd></div>
               </dl>
             </section>
 
             <section class="resumen-grupo">
               <h4><mat-icon aria-hidden="true">umbrella</mat-icon>Lluvia</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Total acumulado</dt><dd>{{ summaryData.lluvia | number:'1.1-1' }} mm</dd></div>
-                <div class="resumen-grupo__fila"><dt>Máxima diaria</dt><dd>{{ summaryData.lluviaMaxDiaria | number:'1.1-1' }} mm</dd></div>
-                <div class="resumen-grupo__fila"><dt>Días de lluvia</dt><dd>{{ summaryData.diasLluvia }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Total acumulado</dt><dd>{{ summaryData.lluvia != null ? (summaryData.lluvia | number:'1.1-1') + ' mm' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima diaria</dt><dd>{{ summaryData.lluviaMaxDiaria != null ? (summaryData.lluviaMaxDiaria | number:'1.1-1') + ' mm' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Días de lluvia</dt><dd>{{ summaryData.diasLluvia ?? '—' }}</dd></div>
               </dl>
             </section>
 
             <section class="resumen-grupo">
               <h4><mat-icon aria-hidden="true">air</mat-icon>Viento</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Velocidad media</dt><dd>{{ summaryData.vientoMedio | number:'1.1-1' }} km/h</dd></div>
-                <div class="resumen-grupo__fila"><dt>Ráfaga máxima</dt><dd>{{ summaryData.VientoMaximo | number:'1.1-1' }} km/h</dd></div>
+                <div class="resumen-grupo__fila"><dt>Velocidad media</dt><dd>{{ summaryData.vientoMedio != null ? (summaryData.vientoMedio | number:'1.1-1') + ' km/h' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Ráfaga máxima</dt><dd>{{ summaryData.VientoMaximo != null ? (summaryData.VientoMaximo | number:'1.1-1') + ' km/h' : '—' }}</dd></div>
               </dl>
             </section>
 
             <section class="resumen-grupo" *ngIf="hasRadiationSensor">
               <h4><mat-icon aria-hidden="true">wb_sunny</mat-icon>Radiación solar</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Media diaria</dt><dd>{{ summaryData.radSolarMedia | number:'1.1-1' }} W/m²</dd></div>
-                <div class="resumen-grupo__fila"><dt>Máxima registrada</dt><dd>{{ summaryData.radSolarMax | number:'1.1-1' }} W/m²</dd></div>
+                <div class="resumen-grupo__fila"><dt>Media diaria</dt><dd>{{ summaryData.radSolarMedia != null ? (summaryData.radSolarMedia | number:'1.1-1') + ' W/m²' : '—' }}</dd></div>
+                <div class="resumen-grupo__fila"><dt>Máxima registrada</dt><dd>{{ summaryData.radSolarMax != null ? (summaryData.radSolarMax | number:'1.1-1') + ' W/m²' : '—' }}</dd></div>
               </dl>
             </section>
 
             <section class="resumen-grupo" *ngIf="hasLeafWetnessSensor">
               <h4><mat-icon aria-hidden="true">grain</mat-icon>Hoja mojada</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Total de horas</dt><dd>{{ summaryData.horasHumedadHoja | number:'1.0-1' }} h</dd></div>
+                <div class="resumen-grupo__fila"><dt>Total de horas</dt><dd>{{ summaryData.horasHumedadHoja != null ? (summaryData.horasHumedadHoja | number:'1.0-1') + ' h' : '—' }}</dd></div>
               </dl>
             </section>
 
             <section class="resumen-grupo" *ngIf="hasRadiationSensor">
               <h4><mat-icon aria-hidden="true">water</mat-icon>Evapotranspiración</h4>
               <dl>
-                <div class="resumen-grupo__fila"><dt>Total del período</dt><dd>{{ summaryData.evapotranspiracion | number:'1.1-1' }} mm</dd></div>
+                <div class="resumen-grupo__fila"><dt>Total del período</dt><dd>{{ summaryData.evapotranspiracion != null ? (summaryData.evapotranspiracion | number:'1.1-1') + ' mm' : '—' }}</dd></div>
               </dl>
             </section>
 

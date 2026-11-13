@@ -45,6 +45,7 @@ import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
 import { armarEnlace, consultaDe, fechaIso, leerFecha, leerNumero } from '../shared/enlace-consulta';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 
 // ===== Formato fechas dd/MM/yyyy =====
 export const MY_DATE_FORMATS = {
@@ -131,7 +132,7 @@ type InfoKey =
   selector: 'app-conditions-to-apply',
   standalone: true,
   imports: [
-    EncabezadoDialogoComponent, GruposEstacionesPipe,
+    EncabezadoDialogoComponent, GruposEstacionesPipe, AvisoBajasComponent,
     CommonModule,
     ValorPipe,
     FormsModule,
@@ -178,6 +179,8 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   private weatherDataRaw: HourlyWeatherRow[] = [];
   /** Fecha (yyyy-MM-dd) de weatherDataRaw */
   private ymdDatos = '';
+  /** Estación y día consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | null = null;
   selectedRow: WeatherData | null = null;
 
   // ===== parámetros (como app) =====
@@ -536,6 +539,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
       next: (resp) => {
         this.weatherDataRaw = resp.data || [];
         this.ymdDatos = ymd;
+        this.consultaBajas = { estacion: this.selectedStation, desde: ymd, hasta: ymd };
         this.recalcTableFromRaw();
 
         const estacion = this.estaciones.find(e => e.identificacion === this.selectedStation);

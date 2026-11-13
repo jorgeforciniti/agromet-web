@@ -29,6 +29,7 @@ import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.compone
 import { evaluarDia } from '../shared/registros-diarios';
 import { gradosDia, MetodoGradosDia } from '../shared/grados-dia';
 import { AvisoCalidadComponent } from '../shared/aviso-calidad.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 
 /** Tope de la máxima en los grados-día (corte horizontal) */
 const TOPE_GRADOS_DIA = 30;
@@ -87,7 +88,7 @@ class ThermalDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoCalidadComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoCalidadComponent, AvisoBajasComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,
@@ -119,6 +120,8 @@ export class ThermalSumDialogComponent implements OnInit {
   loadError = '';
   totalThermalSum = 0;
   validDays = 0;
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
 
   readonly baseOptions = [0, 5, 10, 12, 12.5, 15, 18];
   readonly metodos: { valor: MetodoGradosDia; texto: string }[] = [
@@ -215,6 +218,7 @@ export class ThermalSumDialogComponent implements OnInit {
     this.isLoading = true;
     const fromApi = this.formatApiDate(fromDate);
     const toApi = this.formatApiDate(toDate);
+    this.consultaBajas = { estacion: station, desde: fromApi, hasta: toApi };
 
     forkJoin({
       daily: this.weatherService.getWeatherDataDiary<ThermalDayRecord>(fromApi, toApi, station),

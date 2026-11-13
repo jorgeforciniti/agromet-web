@@ -23,6 +23,7 @@ import { ESTACION_INICIAL, StationService } from '../services/station.service';
 import { SelectorEstacionComponent } from '../shared/selector-estacion.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
 import { EncabezadoDialogoComponent } from '../shared/encabezado-dialogo.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 
 interface DiseaseOption {
   code: number;
@@ -155,7 +156,7 @@ class DiseaseDateAdapter extends NativeDateAdapter {
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [
-    EncabezadoDialogoComponent, ComoSeLeeComponent,
+    EncabezadoDialogoComponent, ComoSeLeeComponent, AvisoBajasComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,
@@ -192,6 +193,8 @@ export class DiseaseConditionsDialogComponent implements OnInit {
   summaryItems: SummaryItem[] = [];
   loadError = '';
   isLoading = false;
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
   /** Panel con los criterios de la enfermedad (lo abre la «i»; el title no se ve en celulares) */
   criteriosVisibles = false;
   readonly diseaseGroups = DISEASE_GROUPS;
@@ -296,6 +299,7 @@ export class DiseaseConditionsDialogComponent implements OnInit {
     recordarPeriodo('enfermedades', fromDate, toDate, this.periodoPorDefecto);
 
     this.isLoading = true;
+    this.consultaBajas = { estacion: String(station), desde: this.formatApiDate(fromDate), hasta: this.formatApiDate(toDate) };
     this.weatherService.getDiseaseData<DiseaseApiRecord>(
       this.formatApiDate(fromDate),
       this.formatApiDate(toDate),

@@ -44,6 +44,7 @@ import { Injectable } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ExportarGraficoComponent } from '../shared/exportar-grafico.component';
+import { AvisoBajasComponent, ConsultaBajas } from '../shared/aviso-bajas.component';
 
 @Injectable()
 export class CustomDateAdapter extends NativeDateAdapter {
@@ -96,7 +97,7 @@ const MY_DATE_FORMATS = {
   encapsulation: ViewEncapsulation.None,
   imports: [
     EncabezadoDialogoComponent, MatButtonModule, ExportarGraficoComponent,
-    ComoSeLeeComponent,
+    ComoSeLeeComponent, AvisoBajasComponent,
     CopiarEnlaceComponent,
     SelectorEstacionComponent,
     CommonModule,
@@ -138,6 +139,8 @@ export class ComparisonByYearComponent implements OnInit {
   periodoNormales = '';
   readonly pluginsGrafico = [pluginFranjasSinDatos(() => this.indicesSinRegistro)];
   isLoading = false;
+  /** Estación y período consultados, para el aviso de sensores dados de baja */
+  consultaBajas: ConsultaBajas | ConsultaBajas[] | null = null;
 
   /** Variable del gráfico actual: decide las líneas de referencia (helada, 35 °C) */
   private variableGraficada = '';
@@ -313,6 +316,10 @@ export class ComparisonByYearComponent implements OnInit {
       return `${year}-${month}-${day}`;
     };
 
+    this.consultaBajas = [
+      { estacion, desde: formatDate(dFrom), hasta: formatDate(dTo) },
+      { estacion, desde: formatDate(cFrom), hasta: formatDate(cTo) }
+    ];
     forkJoin({
       base: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(dFrom), formatDate(dTo), estacion),
       comp: this.weatherService.getWeatherDataDiary<WeatherRecord>(formatDate(cFrom), formatDate(cTo), estacion),
