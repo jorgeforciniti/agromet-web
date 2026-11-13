@@ -58,6 +58,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON estaciones.sensores_baja TO '<usuario de
 GRANT SELECT ON estaciones.sensores_baja TO 'invitado'@'%';
 ```
 
+La pestaña **Control de datos** (`control_datos.php`) propone qué dar de baja: compara cada estación
+con sus vecinas en `datos_diarios` (sólo lectura, la misma que ya tiene `conecta_admin.php` sobre
+`estaciones`). Con 31 días son unas 1.300 filas por el índice de fecha; responde en menos de un
+segundo. El botón «Dar de baja…» de cada alerta abre la pestaña de sensores con los datos precargados.
+
 Cada alta, cambio o borrado queda anotado en `sensores.log` (fecha, email y qué cambió), que no se
 puede leer desde afuera. Si falta la tabla o el permiso, la pestaña lo dice.
 
@@ -91,4 +96,5 @@ Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer 
 | `lluvias9a9.php` | Lluvia de 9 a 9 de todas las estaciones habilitadas. |
 | `comunicaciones.php` | Quién reporta (últimas tramas recibidas por estación) y los últimos 150 eventos de `comunicaciones`. |
 | `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela. |
+| `control_datos.php` | Control de datos: revisa `datos_diarios` de los últimos 7 a 31 días y propone sensores que parecen fallar (humedad que cae a 1-3 %, anemómetro trabado, pluviómetro sin registro, temperatura lejos de las vecinas, etc.). Sólo lee; las reglas están en el encabezado del archivo. |
 | `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. |
