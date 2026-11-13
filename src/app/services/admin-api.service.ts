@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
+import { VariableSensor } from '../shared/depuracion';
 
 /** API de administración (server/admin/api, instalada en /services/admin). */
 export const API_ADMIN = '/services/admin';
@@ -98,6 +99,32 @@ export interface ControlEstaciones {
   historial: PedidoEstacion[];
 }
 
+/** Sensor dado de baja (depuración de datos; tabla estaciones.sensores_baja) */
+export interface BajaSensor {
+  id: number;
+  estacion: string;
+  nombre: string | null;
+  variable: VariableSensor;
+  /** AAAA-MM-DD */
+  desde: string;
+  /** AAAA-MM-DD; null: sigue de baja */
+  hasta: string | null;
+  motivo: string;
+  cargado_por: string;
+  creado: string;
+}
+
+export interface SensoresBaja {
+  estaciones: { id: string; nombre: string }[];
+  bajas: BajaSensor[];
+}
+
+export interface DatosBaja {
+  desde: string;
+  hasta: string | null;
+  motivo: string;
+}
+
 interface RespuestaApi {
   ok: boolean;
   error?: string;
@@ -155,6 +182,23 @@ export class AdminApiService {
 
   cancelarComando(id: number): Promise<string> {
     return this.pedir<{ mensaje: string }>('POST', 'comandos.php', { accion: 'cancelar', id }).then(r => r.mensaje);
+  }
+
+  sensoresBaja(): Promise<SensoresBaja> {
+    return this.pedir<SensoresBaja>('GET', 'sensores_baja.php');
+  }
+
+  /** Devuelve el mensaje para mostrar */
+  darDeBaja(datos: DatosBaja & { estacion: string; variable: VariableSensor }): Promise<string> {
+    return this.pedir<{ mensaje: string }>('POST', 'sensores_baja.php', { accion: 'crear', ...datos }).then(r => r.mensaje);
+  }
+
+  editarBaja(id: number, datos: DatosBaja): Promise<string> {
+    return this.pedir<{ mensaje: string }>('POST', 'sensores_baja.php', { accion: 'editar', id, ...datos }).then(r => r.mensaje);
+  }
+
+  borrarBaja(id: number): Promise<string> {
+    return this.pedir<{ mensaje: string }>('POST', 'sensores_baja.php', { accion: 'borrar', id }).then(r => r.mensaje);
   }
 
   private async pedir<T>(metodo: 'GET' | 'POST', archivo: string, cuerpo?: unknown, params?: HttpParams): Promise<T> {

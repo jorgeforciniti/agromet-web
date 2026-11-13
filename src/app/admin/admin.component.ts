@@ -9,6 +9,7 @@ import { fechaIso } from '../shared/enlace-consulta';
 import { CATEGORIAS_INFORME, nombreCategoria, sugerirDesdeArchivo } from './categorias';
 import { AdminComunicacionesComponent } from './estaciones/admin-comunicaciones.component';
 import { AdminControlComponent } from './estaciones/admin-control.component';
+import { AdminSensoresComponent } from './estaciones/admin-sensores.component';
 import { AdminPublicadosComponent } from './publicados/admin-publicados.component';
 
 const MAX_MB = 30;
@@ -20,7 +21,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
   selector: 'app-admin',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, AdminPublicadosComponent,
-    AdminComunicacionesComponent, AdminControlComponent],
+    AdminComunicacionesComponent, AdminControlComponent, AdminSensoresComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
