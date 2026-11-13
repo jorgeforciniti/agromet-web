@@ -27,7 +27,8 @@
  *
  * Observaciones faltantes (la guía pide no saltear días y estimar el dato), en este orden:
  *   1. el registro más cercano a las 12 h entre las 11 y las 13 h ('hora' si está a más de 15 min);
- *   2. el promedio de las estaciones vecinas (misma zona, a menos de VECINAS_KM y VECINAS_DESNIVEL)
+ *   2. el promedio de las estaciones vecinas (a menos de VECINAS_KM y VECINAS_DESNIVEL, sin importar
+ *      la zona: el límite entre zonas no separa el tiempo de estaciones a pocos km)
  *      que sí lo tienen ('vecinas');
  *   3. el promedio del día anterior y del siguiente ('interpolado');
  *   4. el valor del día anterior ('anterior').
@@ -60,6 +61,11 @@ const RECALCULAR_DIAS = 2;
 const MINUTOS_ENTRE_RECALCULOS = 30;
 const MAX_DIAS_SIN_DATOS = 10;
 const MAX_DIAS_SERIE = 400;
+/**
+ * Versión del método. Al cambiarla (por ejemplo, otra regla de vecinas), el primer pedido borra
+ * fwi_diario y lo vuelve a calcular desde INICIO. 2: vecinas de cualquier zona.
+ */
+const VERSION_CALCULO = 2;
 /** Anemómetro a 3 m: la guía suma 35 % para llevar el viento a 10 m */
 const FACTOR_VIENTO = 1.35;
 /** Parte de las 24 h que tienen que cubrir los registros de lluvia */
@@ -290,21 +296,21 @@ function lluviaDelDia($conexion, $fecha, $estaciones) {
     return $lluvia;
 }
 
-/** Estaciones habilitadas con sus vecinas (misma zona, cercanas y de altura parecida) */
+/** Estaciones habilitadas con sus vecinas (cercanas y de altura parecida, de cualquier zona) */
 function leerEstaciones($conexion) {
-    $res = consultar($conexion, "SELECT identificacion, lat, lon, alt, zona, tiempo FROM estaciones WHERE habilitada >= 1");
+    $res = consultar($conexion, "SELECT identificacion, lat, lon, alt, tiempo FROM estaciones WHERE habilitada >= 1");
     $estaciones = [];
     while ($f = $res->fetch_assoc()) {
         $estaciones[(string)$f['identificacion']] = [
             'lat' => (float)$f['lat'], 'lon' => (float)$f['lon'], 'alt' => (float)$f['alt'],
-            'zona' => (string)$f['zona'], 'tiempo' => (float)$f['tiempo'] > 0 ? (float)$f['tiempo'] : 15,
+            'tiempo' => (float)$f['tiempo'] > 0 ? (float)$f['tiempo'] : 15,
             'vecinas' => []
         ];
     }
     foreach ($estaciones as $id => &$e) {
         $distancias = [];
         foreach ($estaciones as $otra => $o) {
-            if ($otra === $id || $o['zona'] !== $e['zona'] || abs($o['alt'] - $e['alt']) > VECINAS_DESNIVEL) continue;
+            if ($otra === $id || abs($o['alt'] - $e['alt']) > VECINAS_DESNIVEL) continue;
             $km = distanciaKm($e['lat'], $e['lon'], $o['lat'], $o['lon']);
             if ($km <= VECINAS_KM) $distancias[$otra] = $km;
         }
@@ -502,7 +508,7 @@ function actualizar($conexion) {
     // Si cambiaron los sensores dados de baja, se borra lo calculado desde la fecha afectada y se
     // vuelve a calcular (de a DIAS_POR_PEDIDO por pedido, como la primera vez)
     if ($calcula) {
-        $recalcularDesde = cambiosEnBajas($conexion);
+        $recalcularDesde = cambiosQueRecalculan($conexion);
         if ($recalcularDesde !== null) {
             consultar($conexion, "DELETE FROM fwi_diario WHERE fecha >= '" . max(INICIO, $recalcularDesde) . "'");
         }
@@ -538,12 +544,13 @@ function actualizar($conexion) {
 }
 
 /**
- * Fecha desde la que hay que recalcular porque cambiaron los sensores dados de baja, o null. Compara
- * la tabla con lo que vio la última vez (cantidad de filas y último cambio, guardados en
- * agromet-fwi-bajas.json de la carpeta temporal de PHP): una baja nueva se recalcula desde su
- * fecha; una editada o borrada, desde INICIO (no se sabe qué fechas tenía antes).
+ * Fecha desde la que hay que recalcular, o null. Compara con lo que vio la última vez (guardado en
+ * agromet-fwi-bajas.json de la carpeta temporal de PHP):
+ *   - otra VERSION_CALCULO: desde INICIO;
+ *   - sensores dados de baja (cantidad de filas y último cambio): una baja nueva, desde su fecha;
+ *     una editada o borrada, desde INICIO (no se sabe qué fechas tenía antes).
  */
-function cambiosEnBajas($conexion) {
+function cambiosQueRecalculan($conexion) {
     try {
         $res = @$conexion->query("SELECT COUNT(*) AS n, MAX(creado) AS creado, MAX(modificado) AS modificado,
             MIN(desde) AS desde FROM sensores_baja");
@@ -553,7 +560,8 @@ function cambiosEnBajas($conexion) {
     if ($res === false) return null; // todavía no existe la tabla
     $actual = $res->fetch_assoc();
     $actual = ['n' => (int)$actual['n'], 'creado' => (string)$actual['creado'],
-        'modificado' => (string)$actual['modificado'], 'desde' => (string)$actual['desde']];
+        'modificado' => (string)$actual['modificado'], 'desde' => (string)$actual['desde'],
+        'version' => VERSION_CALCULO];
 
     $archivo = sys_get_temp_dir() . '/agromet-fwi-bajas.json';
     $previo = is_file($archivo) ? json_decode((string)@file_get_contents($archivo), true) : null;
@@ -561,6 +569,7 @@ function cambiosEnBajas($conexion) {
     @file_put_contents($archivo, json_encode($actual));
 
     if (!is_array($previo)) return $actual['n'] > 0 ? $actual['desde'] : null;
+    if (!isset($previo['version']) || $previo['version'] !== VERSION_CALCULO) return INICIO;
     if ($actual['n'] < $previo['n'] || $actual['modificado'] !== $previo['modificado']) return INICIO;
     $res = consultar($conexion, "SELECT MIN(desde) AS desde FROM sensores_baja WHERE creado > '"
         . $conexion->real_escape_string($previo['creado']) . "'");

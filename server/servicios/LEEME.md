@@ -218,6 +218,11 @@ esa tabla, borra lo calculado desde la fecha afectada (una baja nueva, desde su 
 borrada, desde `INICIO`) y lo vuelve a calcular de a 20 días por pedido. Para eso guarda la cantidad
 de bajas y la fecha del último cambio en `agromet-fwi-bajas.json`, en la carpeta temporal de PHP.
 
+**Cambios de método.** Si se cambia cómo se calcula, subir `VERSION_CALCULO`: el primer pedido con la
+versión nueva recalcula todo desde `INICIO`, sin tener que vaciar la tabla. La versión 2 toma como
+vecinas las estaciones a menos de 40 km y 400 m de desnivel de cualquier zona (en la 1 tenían que ser
+de la misma zona, y La Cruz quedaba sin El Rodeo 1, a 6,7 km, por estar en Pedemonte).
+
 Para volver a calcular todo (por ejemplo, si cambia el método o `INICIO`): `TRUNCATE fwi_diario` y
 repetir el paso 5.
 
