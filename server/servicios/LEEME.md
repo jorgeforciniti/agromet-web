@@ -12,6 +12,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 | `resumen-diario.php` | Resumen diario de la red (/datos): máxima, mínima, lluvia, humedad, viento, radiación y demás valores de un día en todas las estaciones | `estaciones`, `datos_diarios` |
+| `incendio-fwi.php` | Peligro de incendios (/datos): índice meteorológico de peligro de incendios (FWI) del sistema canadiense por estación y día | `estaciones`, `datos_estaciones`, `fwi_diario` (la escribe) |
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
@@ -132,6 +133,72 @@ Para instalarlo:
    tiene que usar el índice de `fecha` y responder en menos de un segundo.
 3. Copiar el archivo a `/services/` y probar
    `https://agromet.eeaoc.gob.ar/services/resumen-diario.php?fecha=<hoy>`.
+
+## `incendio-fwi.php`
+
+Calcula el índice meteorológico de peligro de incendios forestales (FWI) del sistema canadiense,
+ajustado al hemisferio sur, según la guía de campo «Tablas para el cálculo del FWI» (Plan Nacional
+de Manejo del Fuego, 1998). Usa las ecuaciones de Van Wagner y Pickett (1985), que reproducen las
+tablas de la guía. El método, el viento llevado a 10 m (anemómetros a 3 m: +35 %) y el manejo de
+los datos faltantes están en el encabezado del archivo.
+
+**Es el único PHP de `/services/` que escribe en la base**: guarda una fila por estación y día en
+`fwi_diario` (cada día depende del anterior, así que no se puede calcular al vuelo). Sólo lee
+`datos_estaciones` de a un día por consulta y nunca agrupa por fecha.
+
+- `GET ?fecha=AAAA-MM-DD`: el día en todas las estaciones.
+- `GET ?estacion=<identificacion>&desde=AAAA-MM-DD&hasta=AAAA-MM-DD`: la serie de una estación
+  (hasta 400 días; el gráfico pide 90).
+- `GET ?prueba=guia`: el ejemplo de octubre de la guía, calculado sin usar la base, junto a los
+  valores de la planilla. FFMC e ISI coinciden; DMC, DC y FWI dan algo más que la planilla (las
+  tablas toman el extremo inferior de cada franja de temperatura y humedad).
+
+Cada consulta completa los días que faltan, de a 20, y vuelve a calcular los últimos 2 días (como
+mucho cada 30 minutos) por los registros que llegan tarde. El día en curso se calcula desde las 13 h.
+La respuesta trae `calculadoHasta` y `pendientes` (días que faltan calcular).
+
+Para instalarlo:
+
+1. Revisar con `SHOW COLUMNS FROM datos_estaciones` que la temperatura, la humedad y el viento
+   medio sean `temp_af`, `hum_af` y `viento_medio` (son los nombres que devuelve `datos-24hs.php`).
+   Si no, cambiarlos en `VARIABLES`. Revisar también que `estaciones` tenga `lat`, `lon`, `alt`,
+   `zona` y `tiempo`.
+2. Crear la tabla. El usuario de `conecta_mysql.php` tiene que poder hacer `SELECT`, `INSERT` y
+   `DELETE` en ella (`REPLACE` borra e inserta):
+
+   ```sql
+   CREATE TABLE fwi_diario (
+     identificacion VARCHAR(16) NOT NULL,
+     fecha DATE NOT NULL,
+     temp DECIMAL(4,1) NULL COMMENT 'Temperatura a las 12 h (°C)',
+     hr DECIMAL(4,1) NULL COMMENT 'Humedad relativa a las 12 h (%)',
+     viento DECIMAL(5,1) NULL COMMENT 'Viento medio a las 12 h llevado a 10 m (km/h)',
+     lluvia DECIMAL(6,1) NULL COMMENT 'Lluvia de 12 a 12 h (mm)',
+     ffmc DECIMAL(5,2) NULL,
+     dmc DECIMAL(7,2) NULL,
+     dc DECIMAL(7,2) NULL,
+     isi DECIMAL(6,2) NULL,
+     bui DECIMAL(7,2) NULL,
+     fwi DECIMAL(6,2) NULL,
+     estimado VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'JSON con los valores estimados y cómo',
+     dias_sin_datos SMALLINT NOT NULL DEFAULT 0,
+     calculado DATETIME NOT NULL,
+     PRIMARY KEY (identificacion, fecha),
+     KEY fecha (fecha)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+   ```
+
+3. Medir el tiempo real de las dos consultas de un día (la del mediodía y la de la lluvia de 12 a
+   12 h, en `lecturasMediodia` y `lluviaDelDia`) con una fecha cualquiera: cada una tiene que
+   responder en menos de un segundo, como `lluvia-periodo.php` con dos días.
+4. Copiar el archivo a `/services/` y abrir `?prueba=guia` (tiene que devolver los 18 días del
+   ejemplo).
+5. Abrir `?fecha=<hoy>` varias veces, hasta que `pendientes` sea 0. Desde `INICIO` (1/7/2026) son
+   unos 135 días: 7 pedidos de 20 días. Cada uno tiene que tardar pocos segundos; si alguno tarda
+   mucho, renombrar el archivo a `incendio-fwi.php.off` y revisar `SHOW PROCESSLIST`.
+
+Para volver a calcular todo (por ejemplo, si cambia el método o `INICIO`): `TRUNCATE fwi_diario` y
+repetir el paso 5.
 
 ## `kp-gfz.php`
 
