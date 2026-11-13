@@ -9,7 +9,12 @@ import { FeatureCollection } from 'geojson';
 export class KmzLayerService {
   constructor(private http: HttpClient) { }
 
+  /** Carga un KMZ (convertido a GeoJSON) o un .geojson tal cual. */
   async load(url: string): Promise<FeatureCollection> {
+    if (url.toLowerCase().endsWith('.geojson')) {
+      return firstValueFrom(this.http.get<FeatureCollection>(url));
+    }
+
     const archive = await JSZip.loadAsync(
       await firstValueFrom(this.http.get(url, { responseType: 'blob' }))
     );
