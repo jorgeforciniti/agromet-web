@@ -12,6 +12,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 | `resumen-diario.php` | Resumen diario de la red (/datos): máxima, mínima, lluvia, humedad, viento, radiación y demás valores de un día en todas las estaciones | `estaciones`, `datos_diarios` |
+| `sensores-baja.php` | Depuración de datos (todo el sitio): sensores dados de baja, que se cargan en /admin | `sensores_baja` |
 | `incendio-fwi.php` | Peligro de incendios (/datos): índice meteorológico de peligro de incendios (FWI) del sistema canadiense por estación y día | `estaciones`, `datos_estaciones`, `fwi_diario` (la escribe) |
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
@@ -134,6 +135,17 @@ Para instalarlo:
 3. Copiar el archivo a `/services/` y probar
    `https://agromet.eeaoc.gob.ar/services/resumen-diario.php?fecha=<hoy>`.
 
+## `sensores-baja.php`
+
+`GET /services/sensores-baja.php` devuelve los sensores dados de baja: estación, variable
+(`temperatura`, `humedad`, `viento`, `lluvia`, `radiacion`, `presion` u `hoja`), desde, hasta (`null`
+si sigue de baja) y motivo. El sitio no muestra ni usa esos valores en ese período. Las bajas se
+cargan en /admin, pestaña «Sensores dados de baja»; la tabla y los permisos están en
+`server/admin/LEEME.md`. Si la tabla no existe, devuelve la lista vacía y el sitio sigue sin depurar.
+
+Para instalarlo: copiar el archivo a `/services/` y probar
+`https://agromet.eeaoc.gob.ar/services/sensores-baja.php` (tiene que devolver `"status":"success"`).
+
 ## `incendio-fwi.php`
 
 Calcula el índice meteorológico de peligro de incendios forestales (FWI) del sistema canadiense,
@@ -200,6 +212,11 @@ Para instalarlo:
 5. Abrir `?fecha=<hoy>` varias veces, hasta que `pendientes` sea 0. Desde `INICIO` (1/7/2026) son
    unos 135 días: 7 pedidos de 20 días. Cada uno tiene que tardar pocos segundos; si alguno tarda
    mucho, renombrar el archivo a `incendio-fwi.php.off` y revisar `SHOW PROCESSLIST`.
+
+**Sensores dados de baja.** Lee `sensores_baja` y trata esos valores como faltantes. Cuando cambia
+esa tabla, borra lo calculado desde la fecha afectada (una baja nueva, desde su fecha; una editada o
+borrada, desde `INICIO`) y lo vuelve a calcular de a 20 días por pedido. Para eso guarda la cantidad
+de bajas y la fecha del último cambio en `agromet-fwi-bajas.json`, en la carpeta temporal de PHP.
 
 Para volver a calcular todo (por ejemplo, si cambia el método o `INICIO`): `TRUNCATE fwi_diario` y
 repetir el paso 5.

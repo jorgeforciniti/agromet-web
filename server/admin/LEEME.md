@@ -31,6 +31,36 @@ contraseña. Ahora vale el mismo control que el resto de la administración: cue
 email confirmado. Cada pedido de control queda anotado en `comandos.log` (fecha, email, IP y
 estación), que no se puede leer desde afuera.
 
+### Sensores dados de baja
+
+La pestaña **Sensores dados de baja** guarda en la base `estaciones` qué sensores dan valores
+erróneos (depuración de datos). Todo el sitio lee esa tabla con `/services/sensores-baja.php` y deja
+de usar esos valores. Crear la tabla y darle permiso al usuario de `conecta_admin.php` (escribe) y a
+`'invitado'@'%'`, el de `conecta_mysql.php` (lee; si ya tiene `SELECT` sobre `estaciones.*`, no hace
+falta):
+
+```sql
+CREATE TABLE estaciones.sensores_baja (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  identificacion VARCHAR(16) NOT NULL,
+  variable VARCHAR(20) NOT NULL COMMENT 'temperatura, humedad, viento, lluvia, radiacion, presion u hoja',
+  desde DATE NOT NULL,
+  hasta DATE NULL COMMENT 'NULL: sigue de baja',
+  motivo VARCHAR(255) NOT NULL,
+  cargado_por VARCHAR(120) NOT NULL,
+  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  modificado DATETIME NULL,
+  PRIMARY KEY (id),
+  KEY estacion_variable (identificacion, variable)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON estaciones.sensores_baja TO '<usuario de conecta_admin.php>'@'<host>';
+GRANT SELECT ON estaciones.sensores_baja TO 'invitado'@'%';
+```
+
+Cada alta, cambio o borrado queda anotado en `sensores.log` (fecha, email y qué cambió), que no se
+puede leer desde afuera. Si falta la tabla o el permiso, la pestaña lo dice.
+
 ## 3. Revisar `api/config.php`
 
 | Constante | Qué poner |
@@ -61,3 +91,4 @@ Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer 
 | `lluvias9a9.php` | Lluvia de 9 a 9 de todas las estaciones habilitadas. |
 | `comunicaciones.php` | Quién reporta (últimas tramas recibidas por estación) y los últimos 150 eventos de `comunicaciones`. |
 | `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela. |
+| `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. |
