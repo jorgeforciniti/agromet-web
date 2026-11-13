@@ -25,6 +25,8 @@ import { armarEnlace, consultaDe, fechaIso, leerFecha } from '../shared/enlace-c
 import { OTRAS_ESTACIONES, ZONA_LABELS } from '../shared/zonas';
 import { formatDecimal, SIN_DATO } from '../pipes/valor.pipe';
 import { FUENTE_TEXTO } from '../shared/fuente';
+import { Depurador, SensorBaja, VariableSensor, enRango, textoBaja } from '../shared/depuracion';
+import { SensoresBajaService } from '../services/sensores-baja.service';
 
 /** Valores del día ya validados (null: sin dato, fuera de rango o sin sensor) */
 interface ValoresDia {
@@ -48,6 +50,8 @@ interface FilaEstacion {
   zona: string;
   /** null: la estación no tiene la fila de ese día */
   valores: ValoresDia | null;
+  /** Sensores dados de baja ese día (sus valores van como «—») */
+  bajas: SensorBaja[];
 }
 
 interface GrupoZona {
@@ -55,25 +59,25 @@ interface GrupoZona {
   filas: FilaEstacion[];
 }
 
-/** Rango físico aceptado de cada variable; afuera son valores de error o de relleno (−99,9) */
-const RANGOS: Record<keyof ValoresDia, [number, number]> = {
-  tmax: [-25, 50],
-  tmin: [-25, 50],
-  lluvia: [0, 500],
-  hrMax: [0, 100],
-  hrMin: [0, 100],
-  vientoMedio: [0, 200],
-  vientoMax: [0, 250],
-  radiacion: [0, 1500],
-  et: [0, 20],
-  hoja: [0, 24]
+/** Sensor del que sale cada valor (la ET se calcula con temperatura, humedad, viento y radiación) */
+const SENSORES: Record<keyof ValoresDia, VariableSensor[]> = {
+  tmax: ['temperatura'],
+  tmin: ['temperatura'],
+  lluvia: ['lluvia'],
+  hrMax: ['humedad'],
+  hrMin: ['humedad'],
+  vientoMedio: ['viento'],
+  vientoMax: ['viento'],
+  radiacion: ['radiacion'],
+  et: ['temperatura', 'humedad', 'viento', 'radiacion'],
+  hoja: ['hoja']
 };
 
+/** Rango de la variable (shared/depuracion.ts); la ET, que no es un sensor, entre 0 y 20 mm */
 function numero(v: number | string | null | undefined, clave: keyof ValoresDia): number | null {
-  if (v === null || v === undefined || String(v).trim() === '') return null;
-  const n = Number(v);
-  const [min, max] = RANGOS[clave];
-  return isNaN(n) || n < min || n > max ? null : n;
+  if (clave !== 'et') return enRango(SENSORES[clave][0], v);
+  const n = enRango('lluvia', v);
+  return n !== null && n <= 20 ? n : null;
 }
 
 /**
@@ -85,8 +89,9 @@ function numero(v: number | string | null | undefined, clave: keyof ValoresDia):
  *   - radiación media 0 en un día completo (sin sensor de radiación o sensor caído); la ET se
  *     calcula con la radiación, así que tampoco vale;
  *   - ráfaga máxima 0 en un día completo (anemómetro caído).
+ * También descarta los sensores dados de baja en /admin (y la ET, si se calcula con uno de ellos).
  */
-function valoresDe(r: RegistroDiario, diaCompleto: boolean): ValoresDia {
+function valoresDe(r: RegistroDiario, diaCompleto: boolean, bajas: SensorBaja[]): ValoresDia {
   const v: ValoresDia = {
     tmax: numero(r.temp_max, 'tmax'),
     tmin: numero(r.temp_min, 'tmin'),
@@ -103,6 +108,11 @@ function valoresDe(r: RegistroDiario, diaCompleto: boolean): ValoresDia {
   if (v.hrMax === 0) v.hrMax = v.hrMin = null;
   if (diaCompleto && v.radiacion === 0) v.radiacion = v.et = null;
   if (diaCompleto && v.vientoMax === 0) v.vientoMax = v.vientoMedio = null;
+  // Sensores dados de baja (depuración de datos)
+  const deBaja = new Set(bajas.map(b => b.variable));
+  for (const clave of Object.keys(SENSORES) as (keyof ValoresDia)[]) {
+    if (SENSORES[clave].some(s => deBaja.has(s))) v[clave] = null;
+  }
   return v;
 }
 
@@ -187,6 +197,7 @@ export class ResumenDiarioDialogComponent implements OnInit, OnDestroy {
 
   constructor(
     private weatherService: WeatherService,
+    private sensoresBaja: SensoresBajaService,
     private dialogRef: MatDialogRef<ResumenDiarioDialogComponent>,
     @Inject(MAT_DIALOG_DATA) data: unknown
   ) {
@@ -226,17 +237,19 @@ export class ResumenDiarioDialogComponent implements OnInit, OnDestroy {
     this.cargando = true;
     this.error = '';
 
-    this.pedido = this.registrosDelDia(fecha).subscribe({
-      next: registros => {
+    this.pedido = forkJoin([this.registrosDelDia(fecha), this.sensoresBaja.depurador()]).subscribe({
+      next: ([registros, depurador]) => {
         this.fechaMostrada = fecha;
         this.filas = this.estaciones.map(s => {
           const r = registros.get(s.Identificacion);
+          const bajas = depurador.bajasEnPeriodo(s.Identificacion, fecha, fecha);
           return {
             id: s.Identificacion,
             nombre: s.nombre,
             lugar: [...new Set([s.Localidad || s.nombre, s.departamento, s.provincia].map(t => (t ?? '').trim()).filter(Boolean))].join(', '),
             zona: ZONA_LABELS[s.zona ?? ''] ? s.zona! : '',
-            valores: r ? valoresDe(r, fecha < fechaIso(this.hoy)) : null
+            valores: r ? valoresDe(r, fecha < fechaIso(this.hoy), bajas) : null,
+            bajas
           };
         });
         this.armarGrupos();
@@ -309,6 +322,11 @@ export class ResumenDiarioDialogComponent implements OnInit, OnDestroy {
   par(a: number | null | undefined, b: number | null | undefined, decimales = 1): string {
     if ((a ?? null) === null && (b ?? null) === null) return SIN_DATO;
     return `${this.v(a, decimales)} / ${this.v(b, decimales)}`;
+  }
+
+  /** Aviso de los sensores dados de baja de la estación ('' si no hay) */
+  avisoBajas(f: FilaEstacion): string {
+    return f.bajas.map(textoBaja).join('. ');
   }
 
   trackFila(_: number, f: FilaEstacion): string {

@@ -7,7 +7,9 @@
         lluvia de 0 a 24 h, humedad relativa máxima y mínima, viento medio y ráfaga máxima, radiación solar
         media, evapotranspiración y horas de hoja mojada.</p>
       <p>El día en curso se va completando con cada registro, así que sus valores son parciales. Un «—» indica
-        que la estación no tiene datos de ese día, que el valor no es válido o que no tiene ese sensor.</p>
+        que la estación no tiene datos de ese día, que el valor no es válido o que no tiene ese sensor. Los
+        sensores que la Sección dio de baja por dar valores erróneos tampoco se muestran: el motivo aparece
+        debajo del nombre de la estación.</p>
     </app-como-se-lee>
   </app-encabezado-dialogo>
 
@@ -100,6 +102,7 @@
           <th scope="row" class="resumen-estacion">
             {{ f.nombre }}
             <span>{{ f.lugar }}</span>
+            <span class="resumen-baja" *ngIf="avisoBajas(f) as b">{{ b }}.</span>
           </th>
           <ng-container *ngIf="f.valores as x; else sinDatos">
             <td class="num" data-etiqueta="Máx." data-unidad="°C" [class.sin-dato]="x.tmax === null">{{ v(x.tmax) }}</td>

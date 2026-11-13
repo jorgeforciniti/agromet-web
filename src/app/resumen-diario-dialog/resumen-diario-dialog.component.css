@@ -91,6 +91,14 @@
   font-weight: 400;
 }
 
+/* Sensores dados de baja: sus valores van como «—» y el motivo, debajo del nombre */
+.resumen-estacion .resumen-baja {
+  margin-top: 2px;
+  color: #a35200;
+  font-size: .75rem;
+  font-style: italic;
+}
+
 .dlg-tabla.dlg-tabla .resumen-sin-fila {
   text-align: left;
 }
