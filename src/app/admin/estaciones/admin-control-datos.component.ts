@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminApiService, AlertaDatos, ControlDatos } from '../../services/admin-api.service';
-import { NOMBRE_VARIABLE, VariableSensor } from '../../shared/depuracion';
+import { A_CONFIRMAR, NOMBRE_VARIABLE, VariableSensor } from '../../shared/depuracion';
 import { formatDecimal } from '../../pipes/valor.pipe';
 
 /** Baja a precargar en la pestaña «Sensores dados de baja» */
@@ -75,7 +75,8 @@ export class AdminControlDatosComponent implements OnInit {
       estacion: a.estacion,
       variable: a.variable,
       desde: a.inicio,
-      motivo: `${a.problema}: ${a.dias} de ${this.datos?.dias ?? a.dias} días; falla desde el ${this.fechaLarga(a.inicio)}`
+      // Una lluvia aislada puede ser real: se oculta como dato a confirmar, no como falla
+      motivo: `${a.regla === 'lluvia_aislada' ? A_CONFIRMAR + ' ' : ''}${a.problema}: ${a.dias} de ${this.datos?.dias ?? a.dias} días; falla desde el ${this.fechaLarga(a.inicio)}`
         + (a.inicio_limite ? ' o antes' : '') + ` (control del ${this.fechaLarga(this.datos?.hasta ?? a.ultima)})`
     });
   }

@@ -4,6 +4,19 @@
   gap: 10px;
 }
 
+.sen-confirmar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: .84rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.sen-confirmar input {
+  margin-top: 3px;
+}
+
 .ctl-campo small {
   font-weight: 600;
 }

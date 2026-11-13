@@ -39,6 +39,11 @@
         <input type="text" name="motivo" [(ngModel)]="motivo" maxlength="255" autocomplete="off"
           placeholder="Humedad mínima de 1 a 3 % con vecinas en 40 %" />
       </label>
+      <label class="sen-confirmar">
+        <input type="checkbox" name="aConfirmar" [(ngModel)]="aConfirmar" />
+        <span>Dato dudoso (a confirmar): se oculta igual, pero el sitio lo muestra como «a confirmar» y no como
+          falla del sensor</span>
+      </label>
 
       <p class="ctl-aviso ctl-aviso--ok" *ngIf="mensaje" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje }}</p>
       <p class="ctl-aviso ctl-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
@@ -68,11 +73,19 @@
               <td>{{ b.nombre || b.estacion }}</td>
               <td>{{ nombreVariable[b.variable] || b.variable }}</td>
               <td class="num">{{ fecha(b.desde) }}<span class="est-mut" *ngIf="b.hasta"> al {{ fecha(b.hasta) }}</span></td>
-              <td class="sen-motivo" [title]="'Cargó ' + b.cargado_por">{{ b.motivo }}</td>
+              <td class="sen-motivo" [title]="'Cargó ' + b.cargado_por">
+                <span class="est-tag est-t-retraso" *ngIf="esAConfirmar(b)">a confirmar</span> {{ sinPrefijo(b.motivo) }}
+              </td>
               <td class="sen-acciones">
                 <button type="button" class="est-enlace" (click)="cambiarDesde(b)" [disabled]="ocupado === b.id"
                   aria-label="Cambiar la fecha desde"><mat-icon>edit_calendar</mat-icon></button>
-                <button type="button" class="est-btn-sec" (click)="cerrar(b)" [disabled]="ocupado === b.id">Se arregló</button>
+                <ng-container *ngIf="esAConfirmar(b)">
+                  <button type="button" class="est-btn-sec" (click)="datoCorrecto(b)" [disabled]="ocupado === b.id">Dato
+                    correcto</button>
+                  <button type="button" class="est-btn-sec" (click)="esFalla(b)" [disabled]="ocupado === b.id">Es falla</button>
+                </ng-container>
+                <button type="button" class="est-btn-sec" *ngIf="!esAConfirmar(b)" (click)="cerrar(b)"
+                  [disabled]="ocupado === b.id">Se arregló</button>
                 <button type="button" class="est-enlace" (click)="borrar(b)" [disabled]="ocupado === b.id"
                   aria-label="Borrar la baja"><mat-icon>delete</mat-icon></button>
               </td>

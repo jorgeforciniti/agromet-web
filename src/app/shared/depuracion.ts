@@ -112,8 +112,21 @@ export class Depurador {
 /** Texto para mostrar junto a un valor de un sensor dado de baja */
 export function textoBaja(b: SensorBaja): string {
   // Las estaciones sin el sensor (SensoresBajaService) tienen una baja sin fecha de inicio real
-  return b.desde <= '1900-01-01' ? `Sin sensor de ${NOMBRE_VARIABLE[b.variable].toLowerCase()}`
+  if (b.desde <= '1900-01-01') return `Sin sensor de ${NOMBRE_VARIABLE[b.variable].toLowerCase()}`;
+  const dudoso = esAConfirmar(b);
+  return dudoso ? `${NOMBRE_VARIABLE[b.variable]}: dato a confirmar (${b.motivo.slice(A_CONFIRMAR.length).trim()})`
     : `${NOMBRE_VARIABLE[b.variable]}: sensor dado de baja (${b.motivo})`;
+}
+
+/**
+ * Dato dudoso: no se muestra hasta que la Sección lo confirme (por ejemplo, una lluvia que sólo
+ * registró una estación). Es una baja como las demás, con el motivo que empieza con A_CONFIRMAR; si
+ * se confirma que el dato es bueno, se borra la baja.
+ */
+export const A_CONFIRMAR = 'A confirmar:';
+
+export function esAConfirmar(b: { motivo: string }): boolean {
+  return b.motivo.startsWith(A_CONFIRMAR);
 }
 
 /** Campos de una respuesta que salen de cada sensor */

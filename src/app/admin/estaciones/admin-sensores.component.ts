@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminApiService, BajaSensor, SensoresBaja } from '../../services/admin-api.service';
 import { fechaIso } from '../../shared/enlace-consulta';
-import { NOMBRE_VARIABLE, VARIABLES_SENSOR, VariableSensor } from '../../shared/depuracion';
+import { A_CONFIRMAR, NOMBRE_VARIABLE, VARIABLES_SENSOR, VariableSensor, esAConfirmar } from '../../shared/depuracion';
 import { PropuestaBaja } from './admin-control-datos.component';
 
 /**
@@ -29,7 +29,8 @@ export class AdminSensoresComponent implements OnInit {
     this.variable = p.variable;
     this.desde = p.desde;
     this.hasta = '';
-    this.motivo = p.motivo.slice(0, 255);
+    this.aConfirmar = esAConfirmar(p);
+    this.motivo = this.sinPrefijo(p.motivo).slice(0, 255 - A_CONFIRMAR.length - 1);
     this.limpiarAvisos();
     this.mensaje = 'Revisá los datos y confirmá con «Dar de baja».';
   }
@@ -47,6 +48,8 @@ export class AdminSensoresComponent implements OnInit {
   desde = this.hoy;
   hasta = '';
   motivo = '';
+  /** Dato dudoso: se oculta igual, pero el sitio lo muestra como «a confirmar» y no como falla */
+  aConfirmar = false;
 
   enviando = false;
   ocupado: number | null = null;
@@ -91,9 +94,10 @@ export class AdminSensoresComponent implements OnInit {
     try {
       this.mensaje = await this.api.darDeBaja({
         estacion: this.estacion, variable: this.variable, desde: this.desde, hasta: this.hasta || null,
-        motivo: this.motivo.trim()
+        motivo: (this.aConfirmar ? `${A_CONFIRMAR} ` : '') + this.motivo.trim()
       });
       this.motivo = '';
+      this.aConfirmar = false;
       this.hasta = '';
       await this.leer();
     } catch (e) {
@@ -119,6 +123,35 @@ export class AdminSensoresComponent implements OnInit {
       + `${b.nombre ?? b.estacion} (AAAA-MM-DD):`, b.desde);
     if (desde === null || desde.trim() === b.desde) return;
     await this.editar(b, { desde: desde.trim(), hasta: b.hasta, motivo: b.motivo });
+  }
+
+  readonly esAConfirmar = esAConfirmar;
+
+  /** Motivo sin el prefijo de dato a confirmar */
+  sinPrefijo(motivo: string): string {
+    return esAConfirmar({ motivo }) ? motivo.slice(A_CONFIRMAR.length).trim() : motivo;
+  }
+
+  /** El dato dudoso era bueno: se borra la baja y el sitio lo vuelve a mostrar */
+  async datoCorrecto(b: BajaSensor): Promise<void> {
+    if (!confirm(`¿El dato de ${this.nombreVariable[b.variable].toLowerCase()} de ${b.nombre ?? b.estacion} es correcto? `
+      + 'Se borra la baja y el sitio lo vuelve a mostrar.')) return;
+    this.ocupado = b.id;
+    this.limpiarAvisos();
+    try {
+      await this.api.borrarBaja(b.id);
+      this.mensaje = 'Dato confirmado: el sitio lo vuelve a mostrar.';
+      await this.leer();
+    } catch (e) {
+      this.error = (e as Error).message;
+    } finally {
+      this.ocupado = null;
+    }
+  }
+
+  /** El dato dudoso era una falla: queda como baja común */
+  async esFalla(b: BajaSensor): Promise<void> {
+    await this.editar(b, { desde: b.desde, hasta: b.hasta, motivo: this.sinPrefijo(b.motivo) });
   }
 
   /** Vuelve a dejarla sin fecha de fin */
