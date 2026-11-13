@@ -30,7 +30,8 @@
  * Una alerta junta los días en que se cumplió la regla en esa estación; aparece desde MIN_DIAS días
  * (lluvia_aislada, desde uno: hay que confirmarla con quien esté en el lugar). Con un solo día de
  * lluvia sin registro había muchas falsas alarmas por tormentas aisladas. de_baja: el sensor ya está
- * dado de baja en alguno de esos días.
+ * dado de baja en alguno de esos días. Las diferencias que la Sección ya revisó y son reales
+ * (REVISADAS) no se proponen.
  */
 require_once __DIR__ . '/comun.php';
 
@@ -41,6 +42,15 @@ const MIN_DIAS = 2;
 const GRADIENTE_TERMICO = 0.0065; // °C por metro
 const BUSCAR_INICIO_DIAS = 400;
 const MAX_HUECO_DIAS = 15;
+
+/**
+ * Diferencias que la Sección revisó y son reales (no es el sensor): no se proponen. Estación =>
+ * [regla => motivo]. Por ejemplo, Santa Cruz está en el valle y sus vecinas a menos de 400 m de
+ * desnivel son de otro ambiente.
+ */
+const REVISADAS = [
+    '12' => ['temperatura_desvio' => 'Santa Cruz está en el valle: es más cálida que sus vecinas'],
+];
 const RANGOS = [
     'temperatura' => [-25, 50], 'humedad' => [1, 100], 'viento' => [0, 250], 'lluvia' => [0, 500], 'radiacion' => [0, 1500],
 ];
@@ -199,6 +209,7 @@ foreach ($valores as $fecha => $delDia) {
 $alertas = [];
 foreach ($hallazgos as $clave => $todas) {
     list($id, $regla, $variable) = explode('|', $clave);
+    if (isset(REVISADAS[$id][$regla])) continue;
     ksort($todas);
     $fechas = array_filter($todas, function ($f) use ($desde) { return $f >= $desde; }, ARRAY_FILTER_USE_KEY);
     if (count($fechas) < ($regla === 'lluvia_aislada' ? 1 : MIN_DIAS)) continue;
