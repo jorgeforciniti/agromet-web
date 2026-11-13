@@ -113,6 +113,14 @@ export class AdminSensoresComponent implements OnInit {
     await this.editar(b, { desde: b.desde, hasta: hasta.trim(), motivo: b.motivo });
   }
 
+  /** Corrige desde cuándo falla el sensor (los datos anteriores vuelven a usarse) */
+  async cambiarDesde(b: BajaSensor): Promise<void> {
+    const desde = prompt(`Primer día con datos erróneos de ${this.nombreVariable[b.variable].toLowerCase()} en `
+      + `${b.nombre ?? b.estacion} (AAAA-MM-DD):`, b.desde);
+    if (desde === null || desde.trim() === b.desde) return;
+    await this.editar(b, { desde: desde.trim(), hasta: b.hasta, motivo: b.motivo });
+  }
+
   /** Vuelve a dejarla sin fecha de fin */
   async reabrir(b: BajaSensor): Promise<void> {
     await this.editar(b, { desde: b.desde, hasta: null, motivo: b.motivo });

@@ -61,7 +61,10 @@ GRANT SELECT ON estaciones.sensores_baja TO 'invitado'@'%';
 La pestaña **Control de datos** (`control_datos.php`) propone qué dar de baja: compara cada estación
 con sus vecinas en `datos_diarios` (sólo lectura, la misma que ya tiene `conecta_admin.php` sobre
 `estaciones`). Con 31 días son unas 1.300 filas por el índice de fecha; responde en menos de un
-segundo. El botón «Dar de baja…» de cada alerta abre la pestaña de sensores con los datos precargados.
+segundo. Además busca hasta 400 días atrás cuándo empezó cada falla («Falla desde»): la baja va desde ese día,
+porque los datos anteriores del sensor son buenos. Lee unas 16.000 filas de `datos_diarios`. El botón
+«Dar de baja…» de cada alerta abre la pestaña de sensores con los datos precargados; ahí también se
+puede corregir la fecha desde de una baja ya cargada.
 
 Cada alta, cambio o borrado queda anotado en `sensores.log` (fecha, email y qué cambió), que no se
 puede leer desde afuera. Si falta la tabla o el permiso, la pestaña lo dice.

@@ -74,8 +74,9 @@ export class AdminControlDatosComponent implements OnInit {
     this.darDeBaja.emit({
       estacion: a.estacion,
       variable: a.variable,
-      desde: a.primera,
-      motivo: `${a.problema}: ${a.dias} de ${this.datos?.dias ?? a.dias} días (control del ${this.fecha(this.datos?.hasta ?? a.ultima)})`
+      desde: a.inicio,
+      motivo: `${a.problema}: ${a.dias} de ${this.datos?.dias ?? a.dias} días; falla desde el ${this.fechaLarga(a.inicio)}`
+        + (a.inicio_limite ? ' o antes' : '') + ` (control del ${this.fechaLarga(this.datos?.hasta ?? a.ultima)})`
     });
   }
 
@@ -90,6 +91,11 @@ export class AdminControlDatosComponent implements OnInit {
   /** dd/mm a partir de AAAA-MM-DD */
   fecha(iso: string): string {
     return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+  }
+
+  /** dd/mm/aaaa a partir de AAAA-MM-DD */
+  fechaLarga(iso: string): string {
+    return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
   }
 
   porClave(_: number, a: AlertaDatos): string {

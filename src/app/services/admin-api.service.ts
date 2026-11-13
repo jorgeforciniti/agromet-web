@@ -137,6 +137,10 @@ export interface AlertaDatos {
   fechas: string[];
   primera: string;
   ultima: string;
+  /** Cuándo empezó la falla (puede ser anterior al período revisado): la fecha desde de la baja */
+  inicio: string;
+  /** La falla ya estaba el primer día que se revisó (unos 400 días atrás): empezó antes de inicio */
+  inicio_limite: boolean;
   /** Día más reciente: valor de la estación y mediana de las vecinas (null si no compara) */
   ejemplo: { fecha: string; valor: number; vecinas: number | null };
   /** El sensor ya está dado de baja */

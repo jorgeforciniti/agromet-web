@@ -6,7 +6,13 @@
  *
  * GET ?dias=N (7 a 31; por defecto 14) → los N días completos que terminan ayer.
  * {ok, desde, hasta, dias, alertas:[{estacion, nombre, variable, regla, problema, dias, fechas, primera,
- *   ultima, ejemplo:{fecha, valor, vecinas}, de_baja}]}
+ *   ultima, inicio, inicio_limite, ejemplo:{fecha, valor, vecinas}, de_baja}]}
+ *
+ * inicio: cuándo empezó la falla, que suele ser antes del período revisado (el dato anterior era
+ * bueno y no hay que darlo de baja). Se revisa hasta BUSCAR_INICIO_DIAS atrás y se encadenan los
+ * días con la regla cumplida mientras entre uno y otro no haya más de MAX_HUECO_DIAS (los sensores
+ * que se degradan fallan de a ratos). inicio_limite: la falla ya estaba en el primer día revisado,
+ * así que empezó antes de inicio.
  *
  * Reglas (umbrales en las constantes de abajo). Las que comparan con las vecinas usan las estaciones a
  * menos de VECINAS_KM y VECINAS_DESNIVEL (de cualquier zona, como el FWI) y necesitan al menos
@@ -23,7 +29,8 @@
  *   fuera_de_rango     valor imposible (los mismos rangos que src/app/shared/depuracion.ts)
  * Una alerta junta los días en que se cumplió la regla en esa estación; aparece desde MIN_DIAS días
  * (lluvia_aislada, desde uno: hay que confirmarla con quien esté en el lugar). Con un solo día de
- * lluvia sin registro había muchas falsas alarmas por tormentas aisladas. de_baja: el sensor ya está dado de baja en alguno de esos días.
+ * lluvia sin registro había muchas falsas alarmas por tormentas aisladas. de_baja: el sensor ya está
+ * dado de baja en alguno de esos días.
  */
 require_once __DIR__ . '/comun.php';
 
@@ -32,6 +39,8 @@ const VECINAS_DESNIVEL = 400;
 const MIN_VECINAS = 2;
 const MIN_DIAS = 2;
 const GRADIENTE_TERMICO = 0.0065; // °C por metro
+const BUSCAR_INICIO_DIAS = 400;
+const MAX_HUECO_DIAS = 15;
 const RANGOS = [
     'temperatura' => [-25, 50], 'humedad' => [1, 100], 'viento' => [0, 250], 'lluvia' => [0, 500], 'radiacion' => [0, 1500],
 ];
@@ -57,6 +66,8 @@ $dias = isset($_GET['dias']) ? (int) $_GET['dias'] : 14;
 $dias = max(7, min(31, $dias));
 $hasta = date('Y-m-d', strtotime('-1 day'));
 $desde = date('Y-m-d', strtotime("$hasta -" . ($dias - 1) . ' day'));
+// Las reglas se evalúan desde antes, para encontrar cuándo empezó cada falla
+$historia = date('Y-m-d', strtotime("$hasta -" . (BUSCAR_INICIO_DIAS - 1) . ' day'));
 
 $est = '`' . DB_ESTACIONES . '`';
 $cx = conexion();
@@ -81,10 +92,10 @@ foreach ($estaciones as $id => &$e) {
 }
 unset($e);
 
-// 2) Valores diarios del período (por el índice de fecha: unas 40 filas por día)
+// 2) Valores diarios desde $historia (por el índice de fecha: unas 40 filas por día, 16.000 en total)
 $st = $cx->prepare("SELECT identificacion, fecha, temp_max, temp_min, hr_max, hr_min, rr_24, viento_max, rad_solar_media
     FROM $est.datos_diarios WHERE fecha BETWEEN ? AND ?");
-$st->bind_param('ss', $desde, $hasta);
+$st->bind_param('ss', $historia, $hasta);
 $st->execute();
 $valores = []; // [fecha][id] => [variable => valor]
 foreach ($st->get_result()->fetch_all(MYSQLI_ASSOC) as $f) {
@@ -184,13 +195,15 @@ foreach ($valores as $fecha => $delDia) {
     }
 }
 
-// 5) Una alerta por estación, regla y sensor
+// 5) Una alerta por estación, regla y sensor (con los días del período; el inicio, con toda la historia)
 $alertas = [];
-foreach ($hallazgos as $clave => $fechas) {
+foreach ($hallazgos as $clave => $todas) {
     list($id, $regla, $variable) = explode('|', $clave);
+    ksort($todas);
+    $fechas = array_filter($todas, function ($f) use ($desde) { return $f >= $desde; }, ARRAY_FILTER_USE_KEY);
     if (count($fechas) < ($regla === 'lluvia_aislada' ? 1 : MIN_DIAS)) continue;
-    ksort($fechas);
     $ultima = array_key_last_compat($fechas);
+    $inicio = inicio_de_falla(array_keys($todas), array_keys($fechas)[0]);
     $alertas[] = [
         'estacion' => $id,
         'nombre' => $estaciones[$id]['nombre'],
@@ -201,6 +214,9 @@ foreach ($hallazgos as $clave => $fechas) {
         'fechas' => array_keys($fechas),
         'primera' => array_keys($fechas)[0],
         'ultima' => $ultima,
+        // la lluvia aislada es un hecho de un día, no una falla que sigue
+        'inicio' => $regla === 'lluvia_aislada' ? array_keys($fechas)[0] : $inicio,
+        'inicio_limite' => $regla !== 'lluvia_aislada' && $inicio <= $historia,
         'ejemplo' => ['fecha' => $ultima, 'valor' => $fechas[$ultima][0], 'vecinas' => $fechas[$ultima][1]],
         'de_baja' => isset($bajas["$id|$variable"]),
     ];
@@ -210,6 +226,20 @@ usort($alertas, function ($a, $b) {
 });
 
 responder(['ok' => true, 'desde' => $desde, 'hasta' => $hasta, 'dias' => $dias, 'alertas' => $alertas]);
+
+/**
+ * Primer día de la falla que sigue en el período: desde el primer día con falla del período se va
+ * hacia atrás por los días con falla mientras el hueco entre dos de ellos no supere MAX_HUECO_DIAS.
+ * $dias: fechas con falla, ordenadas.
+ */
+function inicio_de_falla(array $dias, string $desdePeriodo): string
+{
+    $i = array_search($desdePeriodo, $dias, true);
+    while ($i > 0 && (strtotime($dias[$i]) - strtotime($dias[$i - 1])) / 86400 <= MAX_HUECO_DIAS) {
+        $i--;
+    }
+    return $dias[$i];
+}
 
 function numero($x)
 {

@@ -1,6 +1,7 @@
 <div class="est-barra">
   <span class="est-mut">Sensores que parecen fallar, comparados con las estaciones vecinas (a menos de 40 km y 400 m de
-    desnivel). Es una propuesta: revisá cada caso antes de dar de baja el sensor.</span>
+    desnivel). «Falla desde» es cuándo empezó: los datos anteriores son buenos y no se dan de baja. Es una propuesta:
+    revisá cada caso antes de dar de baja el sensor.</span>
   <label class="cdt-dias">
     <span>Período</span>
     <select [(ngModel)]="dias" (ngModelChange)="revisar()" [disabled]="cargando">
@@ -30,7 +31,7 @@
           <th scope="col">Sensor</th>
           <th scope="col">Problema</th>
           <th scope="col" class="num">Días</th>
-          <th scope="col">Período</th>
+          <th scope="col" title="Cuándo empezó la falla: los datos anteriores son buenos">Falla desde</th>
           <th scope="col">Último caso</th>
           <th scope="col"><span class="est-oculto">Acciones</span></th>
         </tr>
@@ -41,7 +42,7 @@
           <td>{{ nombreVariable[a.variable] || a.variable }}</td>
           <td class="cdt-problema">{{ a.problema }}</td>
           <td class="num"><strong>{{ a.dias }}</strong><span class="est-mut"> de {{ datos.dias }}</span></td>
-          <td class="num">{{ fecha(a.primera) }} al {{ fecha(a.ultima) }}</td>
+          <td class="num">{{ fechaLarga(a.inicio) }}<span class="est-mut" *ngIf="a.inicio_limite"> o antes</span></td>
           <td>{{ fecha(a.ejemplo.fecha) }}: {{ ejemplo(a) }}</td>
           <td>
             <span class="est-tag est-t-ok" *ngIf="a.de_baja; else boton">ya de baja</span>
