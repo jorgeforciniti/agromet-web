@@ -157,6 +157,10 @@ Cada consulta completa los días que faltan, de a 20, y vuelve a calcular los ú
 mucho cada 30 minutos) por los registros que llegan tarde. El día en curso se calcula desde las 13 h.
 La respuesta trae `calculadoHasta` y `pendientes` (días que faltan calcular).
 
+Está instalado y probado en el servidor (13/11/2026). La carga desde el 1/7 llevó 7 pedidos de 7 a
+13 s (unos 0,6 s por día) y una consulta ya calculada responde en 0,03 s. El PHP se conecta como
+`'invitado'@'%'`, que tiene `SELECT, INSERT, DELETE` sólo sobre `estaciones.fwi_diario`.
+
 Para instalarlo:
 
 1. Revisar con `SHOW COLUMNS FROM datos_estaciones` que la temperatura, la humedad y el viento
@@ -201,8 +205,9 @@ Para volver a calcular todo (por ejemplo, si cambia el método o `INICIO`): `TRU
 repetir el paso 5.
 
 Si responde «Error al preparar el guardado del índice de incendios (MySQL N)»: 1142 es que el usuario
-de `conecta_mysql.php` no tiene permiso de `INSERT` o `DELETE` en `fwi_diario` (por ejemplo,
-`GRANT SELECT, INSERT, DELETE ON estaciones.fwi_diario TO '<usuario>'@'localhost';`), 1146 que no
+de `conecta_mysql.php` no tiene permiso de `INSERT` o `DELETE` en `fwi_diario` (`GRANT SELECT, INSERT, DELETE ON estaciones.fwi_diario TO 'invitado'@'%';`: el host
+tiene que ser el de la cuenta con la que entra el PHP, que se ve con
+`SELECT user, host FROM mysql.user WHERE user = 'invitado';`), 1146 que no
 existe la tabla y 1054 que una columna no coincide con el SQL de arriba.
 
 ## `kp-gfz.php`
