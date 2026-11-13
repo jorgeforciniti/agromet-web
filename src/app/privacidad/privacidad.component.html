@@ -37,27 +37,40 @@
     </section>
 
     <section id="estadisticas">
-      <h2>Estadísticas de uso (Google Analytics)</h2>
+      <h2>Estadísticas de uso y errores (Google Analytics y PostHog)</h2>
       <p>
-        Usamos <strong>Google Analytics</strong>, de Google LLC, para conocer de forma agregada cómo se usa el sitio y
-        mejorarlo. Registra, entre otros datos:
+        Usamos <strong>Google Analytics</strong>, de Google LLC, y <strong>PostHog</strong>, de PostHog Inc., para
+        conocer de forma agregada cómo se usa el sitio y mejorarlo. Ambos servicios guardan los datos en servidores
+        de Estados Unidos. Registran, entre otros datos:
       </p>
       <ul>
-        <li>las secciones visitadas y las herramientas que se abren;</li>
+        <li>las secciones visitadas, los botones y enlaces que se tocan y las herramientas que se abren;</li>
         <li>las estaciones consultadas o marcadas como favoritas;</li>
         <li>el tipo de dispositivo y navegador, y la ubicación aproximada (ciudad o región);</li>
-        <li>el sitio desde el que llegaste y la duración de la visita.</li>
+        <li>el sitio desde el que llegaste, la duración de la visita y lo que tarda en cargar cada página;</li>
+        <li>los errores técnicos que aparezcan en tu navegador, para poder corregirlos.</li>
       </ul>
       <p>
-        Para distinguir visitas, Google Analytics usa cookies e identificadores aleatorios. Si iniciaste sesión, se
-        asocia además el identificador interno de tu cuenta, que no incluye tu nombre ni tu email. No usamos estos
-        datos para publicidad ni para identificar personas.
+        No grabamos tu pantalla ni lo que escribís en los formularios. Para distinguir visitas, estos servicios usan
+        cookies e identificadores aleatorios. Si iniciaste sesión, Google Analytics asocia además el identificador
+        interno de tu cuenta, que no incluye tu nombre ni tu email. No usamos estos datos para publicidad ni para
+        identificar personas.
       </p>
       <p>
-        Podés impedir esta medición bloqueando las cookies del sitio en tu navegador o instalando el
-        <a href="https://tools.google.com/dlpage/gaoptout?hl=es" target="_blank" rel="noopener">complemento de
-        inhabilitación de Google Analytics</a>. El tratamiento que hace Google se rige por su
-        <a href="https://policies.google.com/privacy?hl=es" target="_blank" rel="noopener">política de privacidad</a>.
+        Podés desactivar ambas mediciones en este navegador con el botón de abajo, o bloqueando las cookies del sitio.
+        El tratamiento que hace cada empresa se rige por su política:
+        <a href="https://policies.google.com/privacy?hl=es" target="_blank" rel="noopener">Google</a> y
+        <a href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog</a>.
+      </p>
+      <p class="medicion">
+        @if (medicionDesactivada) {
+          <span>La medición está desactivada en este navegador.</span>
+          <button type="button" class="medicion__boton" (click)="cambiarMedicion(true)">Volver a activarla</button>
+        } @else {
+          <button type="button" class="medicion__boton" (click)="cambiarMedicion(false)">
+            No medir mis visitas en este navegador
+          </button>
+        }
       </p>
     </section>
 

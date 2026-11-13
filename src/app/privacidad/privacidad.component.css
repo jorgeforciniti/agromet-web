@@ -135,3 +135,28 @@ a {
     padding: 14px 14px 18px;
   }
 }
+
+/* Botón para desactivar la medición de visitas en este navegador */
+.medicion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.medicion__boton {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--border));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--brand);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.medicion__boton:hover,
+.medicion__boton:focus-visible {
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface));
+}

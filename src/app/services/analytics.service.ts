@@ -1,6 +1,7 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
 import { Analytics, logEvent, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
 import posthog from 'posthog-js';
+import { environment } from '../environments/environment';
 
 // Clave pública del proyecto de PostHog (está pensada para ir en el sitio, no es un secreto).
 const POSTHOG_CLAVE = 'phc_y6MmVvKKJcFUN38CN2NXBhUurPm2U32m2Pu8E33gfA4Q';
@@ -75,15 +76,45 @@ export class AnalyticsService {
 }
 
 /**
- * Se mide sólo en el dominio publicado, para no mezclar visitas de desarrollo y pruebas.
+ * Se mide sólo en el dominio publicado, para no mezclar visitas de desarrollo y pruebas, y
+ * nunca si la persona lo desactivó en /privacidad.
  * Para probar en local: localStorage.setItem('agromet.analytics', '1') y recargar.
  */
 export function medirVisitas(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined' || medicionDesactivada()) return false;
   if (/(^|\.)agromet\.eeaoc\.gob\.ar$/.test(window.location.hostname)) return true;
   try {
     return localStorage.getItem('agromet.analytics') === '1';
   } catch {
     return false;
+  }
+}
+
+/** La persona pidió no medir sus visitas en este navegador (botón de /privacidad). */
+export function medicionDesactivada(): boolean {
+  try {
+    return localStorage.getItem('agromet.analytics') === '0';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Desactiva (o vuelve a activar) Google Analytics y PostHog en este navegador. Al desactivar se
+ * cortan ya mismo; al reactivar, la medición vuelve en la próxima carga de la página.
+ */
+export function desactivarMedicion(desactivar: boolean): void {
+  try {
+    if (desactivar) localStorage.setItem('agromet.analytics', '0');
+    else localStorage.removeItem('agromet.analytics');
+  } catch {
+    // Sin almacenamiento local la preferencia dura sólo esta visita.
+  }
+  // Interruptor oficial de Google Analytics para el ID de medición.
+  (window as unknown as Record<string, boolean>)[`ga-disable-${environment.firebaseConfig.measurementId}`] =
+    desactivar;
+  if (posthogActivo) {
+    if (desactivar) posthog.opt_out_capturing();
+    else posthog.opt_in_capturing();
   }
 }
