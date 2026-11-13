@@ -124,14 +124,6 @@ responder([
 ]);
 
 /** IP del pedido; detrás del proxy del sitio (nginx en el mismo equipo o la red interna), la que reenvía. */
-function ip_cliente(): string
-{
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    $reenviada = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')[0]);
-    $proxy = !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
-    return $proxy && filter_var($reenviada, FILTER_VALIDATE_IP) ? $reenviada : $ip;
-}
-
 function anotar_comando(string $admin, string $texto)
 {
     @error_log(date('Y-m-d H:i:s') . " $admin (" . ip_cliente() . ") $texto\n", 3, __DIR__ . '/comandos.log');

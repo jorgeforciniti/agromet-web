@@ -1,5 +1,5 @@
 # Sólo los endpoints se pueden pedir desde afuera; los archivos de apoyo no.
-<FilesMatch "^(config|comun|conecta_admin)\.php$">
+<FilesMatch "^(config|comun|conecta_admin|conecta_colmenar)\.php$">
   Require all denied
 </FilesMatch>
 

@@ -7,6 +7,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { AdminApiService, InformeCargado, LluviaEstacion9a9, Lluvias9a9 } from '../services/admin-api.service';
 import { fechaIso } from '../shared/enlace-consulta';
 import { CATEGORIAS_INFORME, nombreCategoria, sugerirDesdeArchivo } from './categorias';
+import { AdminColmenarComponent } from './colmenar/admin-colmenar.component';
 import { AdminComunicacionesComponent } from './estaciones/admin-comunicaciones.component';
 import { AdminControlComponent } from './estaciones/admin-control.component';
 import { AdminSensoresComponent } from './estaciones/admin-sensores.component';
@@ -23,7 +24,8 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
   selector: 'app-admin',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, AdminPublicadosComponent,
-    AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent],
+    AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent,
+    AdminColmenarComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })

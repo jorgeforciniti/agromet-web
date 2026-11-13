@@ -154,6 +154,58 @@ export interface ControlDatos {
   alertas: AlertaDatos[];
 }
 
+/** Un día de la serie de El Colmenar (colmenar_diarios.php). */
+export interface DiaColmenar {
+  fecha: string;
+  /** false: el día no tiene fila en la tabla */
+  existe: boolean;
+  temp_max: number | null;
+  temp_min: number | null;
+  precipitacion: number | null;
+  /** 0 sin lluvia, 1 traza, 2 medible, 3 sin dato */
+  estado_pp: number;
+  origen: string | null;
+  definitivo: boolean;
+  observaciones: string | null;
+  actualizado_en: string | null;
+  /** Sin fila, provisional o con algún valor vacío */
+  pendiente: boolean;
+}
+
+export interface PeriodoColmenar {
+  inicio: string;
+  hoy: string;
+  desde: string;
+  hasta: string;
+  dias: DiaColmenar[];
+}
+
+export interface AnioPendienteColmenar {
+  anio: number;
+  dias: number;
+  sin_fila: number;
+  provisionales: number;
+  sin_max: number;
+  sin_min: number;
+  sin_pp: number;
+}
+
+export interface ResumenColmenar {
+  inicio: string;
+  hoy: string;
+  total: number;
+  anios: AnioPendienteColmenar[];
+}
+
+export interface CargaDiaColmenar {
+  fecha: string;
+  temp_max: number | null;
+  temp_min: number | null;
+  precipitacion: number | null;
+  traza: boolean;
+  observaciones: string;
+}
+
 interface RespuestaApi {
   ok: boolean;
   error?: string;
@@ -233,6 +285,23 @@ export class AdminApiService {
 
   borrarBaja(id: number): Promise<string> {
     return this.pedir<{ mensaje: string }>('POST', 'sensores_baja.php', { accion: 'borrar', id }).then(r => r.mensaje);
+  }
+
+  /** Años de la serie de El Colmenar con días faltantes, provisionales o con valores vacíos. */
+  resumenColmenar(): Promise<ResumenColmenar> {
+    return this.pedir<ResumenColmenar>('GET', 'colmenar_diarios.php', undefined, new HttpParams().set('resumen', '1'));
+  }
+
+  /** Hasta 366 días; con `pendientes`, sólo los que tienen algo para cargar. */
+  diasColmenar(desde: string, hasta: string, pendientes: boolean): Promise<PeriodoColmenar> {
+    let params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    if (pendientes) params = params.set('pendientes', '1');
+    return this.pedir<PeriodoColmenar>('GET', 'colmenar_diarios.php', undefined, params);
+  }
+
+  /** Todo o nada. Devuelve cuántos días cambiaron y cómo quedaron los enviados. */
+  guardarColmenar(dias: CargaDiaColmenar[]): Promise<{ guardados: number; dias: DiaColmenar[] }> {
+    return this.pedir('POST', 'colmenar_diarios.php', { dias });
   }
 
   private async pedir<T>(metodo: 'GET' | 'POST', archivo: string, cuerpo?: unknown, params?: HttpParams): Promise<T> {

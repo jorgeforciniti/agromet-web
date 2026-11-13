@@ -69,6 +69,20 @@ puede corregir la fecha desde de una baja ya cargada.
 Cada alta, cambio o borrado queda anotado en `sensores.log` (fecha, email y qué cambió), que no se
 puede leer desde afuera. Si falta la tabla o el permiso, la pestaña lo dice.
 
+Para la pestaña **El Colmenar** (carga de la serie diaria) hace falta otra conexión, con la base
+`colmenar`: copiar `api/conecta_colmenar.ejemplo.php` como `conecta_colmenar.php` en la misma
+carpeta y completar el host y el puerto (los de `/api/config.ini`), el usuario y la contraseña.
+Tampoco se sube al repositorio y el `.htaccess` impide pedirlo desde afuera. Es un usuario aparte
+del de `/api/config.ini`, para que las APIs públicas de El Colmenar sigan sin poder escribir:
+
+```sql
+CREATE USER 'agromet_colmenar'@'<IP del servidor web>' IDENTIFIED BY '<contraseña>';
+GRANT SELECT, INSERT, UPDATE ON colmenar.clima_diario_el_colmenar TO 'agromet_colmenar'@'<IP del servidor web>';
+```
+
+No necesita `DELETE`: la pestaña nunca borra días. Si falta el archivo o el permiso, la pestaña lo
+dice y el resto de la administración sigue funcionando.
+
 ## 3. Revisar `api/config.php`
 
 | Constante | Qué poner |
@@ -76,6 +90,8 @@ puede leer desde afuera. Si falta la tabla o el permiso, la pestaña lo dice.
 | `ADMINISTRADORES` | Emails con acceso. Si se cambia, cambiar también `src/app/shared/administradores.ts`. |
 | `CARPETA_PDFS` | Carpeta de `https://agromet.eeaoc.gob.ar/PDFS/`. Por defecto, dos niveles arriba de `services/admin`. PHP necesita permiso de escritura ahí. |
 | `MAX_BYTES` | Tamaño máximo (30 MB). `upload_max_filesize` y `post_max_size` de PHP tienen que ser iguales o mayores. |
+| `DB_COLMENAR`, `COLMENAR_DESDE` | Base de la serie diaria de El Colmenar y su primer día (los días sin fila desde esa fecha cuentan como faltantes). |
+| `LIMITES_COLMENAR` | Valores aceptados al cargar (temperaturas de −20 a 50 °C y lluvia de 0 a 500 mm). Si se cambian, cambiar también `admin-colmenar.component.ts`. |
 
 ## 4. Probar
 
@@ -101,3 +117,21 @@ Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer 
 | `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela. |
 | `control_datos.php` | Control de datos: revisa `datos_diarios` de los últimos 7 a 31 días y propone sensores que parecen fallar (humedad que cae a 1-3 %, anemómetro trabado, pluviómetro sin registro, temperatura lejos de las vecinas, etc.). Sólo lee; las reglas están en el encabezado del archivo. |
 | `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. |
+| `colmenar_diarios.php` | Serie diaria de El Colmenar (`colmenar.clima_diario_el_colmenar`): resumen de pendientes por año, días de un período y carga de faltantes o validación de provisionales. |
+
+## Serie diaria de El Colmenar (`colmenar_diarios.php`)
+
+Es la tabla que leen las APIs públicas de `/api/colmenar` (estadísticas históricas del sitio), así
+que lo que se guarda aparece en el sitio en el siguiente pedido. Reglas:
+
+- **Día que falta** (sin fila): se inserta con `origen = 'convencional'` y `estado_registro = 1`.
+- **Día provisional** (`estado_registro = 0`, los de la estación automática): se guardan los valores
+  cargados y queda `estado_registro = 1`. Si se cambió algún valor, `origen` pasa a `convencional`;
+  si se valida tal cual, conserva su origen.
+- **Día validado** (`estado_registro = 1`): sólo se completan los valores en `NULL`; los demás no se
+  pueden cambiar.
+- `estado_pp` se calcula: sin lluvia cargada 3, traza 1 (se guarda 0 mm), 0 mm 0, 0,1 mm o más 2.
+- Se guardan todos los días enviados o ninguno (transacción). Nunca se borran filas.
+
+Cada día guardado queda en `colmenar.log` de la carpeta (fecha, email, IP, valores anteriores y
+nuevos), que no se puede leer desde afuera.

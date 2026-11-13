@@ -95,6 +95,15 @@ function conexion(): mysqli
     return $cx = $conexion;
 }
 
+/** IP del cliente (la reenviada sólo si el pedido llega desde un proxy de la red interna). */
+function ip_cliente(): string
+{
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $reenviada = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '')[0]);
+    $proxy = !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+    return $proxy && filter_var($reenviada, FILTER_VALIDATE_IP) ? $reenviada : $ip;
+}
+
 /** Cuerpo JSON del pedido (objeto), o error 400. */
 function cuerpo_json(): array
 {

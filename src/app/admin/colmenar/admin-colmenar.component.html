@@ -1,0 +1,155 @@
+<p class="col-intro est-mut">Serie diaria de El Colmenar (base <code>colmenar</code>). Se pueden cargar los días que faltan y
+  validar los provisionales (los de la estación automática, que todavía no se revisaron). En un día ya validado sólo se
+  completan los valores vacíos. Lo que se guarda pasa a las estadísticas históricas del sitio.</p>
+
+<section class="est-caja col-resumen">
+  <h2 class="est-caja__titulo">Pendientes de la serie
+    <small *ngIf="resumen">{{ resumen.total }} valores en {{ resumen.anios.length }} años · desde {{ resumen.inicio }}</small>
+  </h2>
+  <div class="est-cuerpo">
+    <p class="est-err" *ngIf="errorResumen" role="alert">{{ errorResumen }}</p>
+    <p class="est-mut" *ngIf="!resumen && !errorResumen">Cargando…</p>
+    <p class="est-mut" *ngIf="resumen && !resumen.anios.length">No hay días faltantes ni provisionales.</p>
+    <div class="est-scroll col-resumen__scroll" *ngIf="resumen?.anios?.length">
+      <table class="est-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Año</th>
+            <th scope="col" class="num">Días sin fila</th>
+            <th scope="col" class="num">Provisionales</th>
+            <th scope="col" class="num">Sin máxima</th>
+            <th scope="col" class="num">Sin mínima</th>
+            <th scope="col" class="num">Sin lluvia</th>
+            <th scope="col"><span class="est-oculto">Acción</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of resumen!.anios">
+            <th scope="row">{{ a.anio }}</th>
+            <td class="num">{{ a.sin_fila || '' }}</td>
+            <td class="num">{{ a.provisionales || '' }}</td>
+            <td class="num">{{ a.sin_max || '' }}</td>
+            <td class="num">{{ a.sin_min || '' }}</td>
+            <td class="num">{{ a.sin_pp || '' }}</td>
+            <td><button type="button" class="est-enlace" (click)="abrirAnio(a.anio)">
+              Ver {{ pendientesAnio(a) === 1 ? 'el pendiente' : 'los ' + pendientesAnio(a) }}<mat-icon>chevron_right</mat-icon></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="est-mut col-nota">«Sin máxima», «Sin mínima» y «Sin lluvia» cuentan días validados con ese valor vacío.</p>
+  </div>
+</section>
+
+<form class="col-consulta" (ngSubmit)="consultar()">
+  <label class="col-campo">
+    <span>Desde</span>
+    <input type="date" name="desde" [(ngModel)]="desde" required [min]="resumen?.inicio ?? '1910-01-01'" [max]="hoy" />
+  </label>
+  <label class="col-campo">
+    <span>Hasta</span>
+    <input type="date" name="hasta" [(ngModel)]="hasta" required [min]="desde" [max]="hoy" />
+  </label>
+  <label class="col-check">
+    <input type="checkbox" name="soloPendientes" [(ngModel)]="soloPendientes" />
+    Sólo días faltantes o sin validar
+  </label>
+  <button type="submit" class="col-btn" [disabled]="!periodoValido || consultando">
+    <mat-icon>search</mat-icon>{{ consultando ? 'Consultando…' : 'Consultar' }}
+  </button>
+  <span class="est-err" *ngIf="desde && hasta && !periodoValido">El período tiene que ir de la fecha inicial a la final, con
+    366 días como máximo.</span>
+</form>
+
+<p class="col-aviso col-aviso--error" *ngIf="errorConsulta" role="alert"><mat-icon>error</mat-icon>{{ errorConsulta }}</p>
+
+<section class="est-caja" *ngIf="periodo">
+  <h2 class="est-caja__titulo">Del {{ fecha(periodo.desde) }} al {{ fecha(periodo.hasta) }}
+    <small>{{ filas.length }} días{{ soloPendientes ? ' pendientes' : '' }}<ng-container *ngIf="!soloPendientes"> ·
+        {{ pendientesEnTabla }} pendientes</ng-container></small>
+  </h2>
+
+  <p class="est-mut col-vacio" *ngIf="!filas.length">No hay días {{ soloPendientes ? 'pendientes ' : '' }}en el período.</p>
+
+  <div class="est-scroll" *ngIf="filas.length">
+    <table class="est-tabla col-tabla">
+      <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col" class="num">Máxima (°C)</th>
+          <th scope="col" class="num">Mínima (°C)</th>
+          <th scope="col" class="num">Lluvia (mm)</th>
+          <th scope="col">Traza</th>
+          <th scope="col">Origen</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let f of filas; trackBy: porFecha">
+          <tr [class.col-fila--cambio]="aGuardar(f)" [class.col-fila--error]="error(f)">
+            <th scope="row">{{ fecha(f.dia.fecha) }}</th>
+            <td class="num">
+              <input *ngIf="editable(f, 'max'); else fijoMax" class="col-num" type="text" inputmode="decimal"
+                [(ngModel)]="f.max" [name]="'max' + f.dia.fecha" [attr.aria-label]="'Máxima del ' + f.dia.fecha" />
+              <ng-template #fijoMax>{{ numero(f.dia.temp_max) }}</ng-template>
+            </td>
+            <td class="num">
+              <input *ngIf="editable(f, 'min'); else fijoMin" class="col-num" type="text" inputmode="decimal"
+                [(ngModel)]="f.min" [name]="'min' + f.dia.fecha" [attr.aria-label]="'Mínima del ' + f.dia.fecha" />
+              <ng-template #fijoMin>{{ numero(f.dia.temp_min) }}</ng-template>
+            </td>
+            <td class="num">
+              <input *ngIf="editable(f, 'pp'); else fijoPp" class="col-num" type="text" inputmode="decimal"
+                [(ngModel)]="f.pp" [name]="'pp' + f.dia.fecha" [disabled]="f.traza"
+                [attr.aria-label]="'Lluvia del ' + f.dia.fecha" />
+              <ng-template #fijoPp>{{ numero(f.dia.precipitacion) }}</ng-template>
+            </td>
+            <td>
+              <input *ngIf="editable(f, 'pp'); else fijoTraza" type="checkbox" [(ngModel)]="f.traza"
+                (ngModelChange)="alCambiarTraza(f)" [name]="'traza' + f.dia.fecha" [attr.aria-label]="'Traza el ' + f.dia.fecha" />
+              <ng-template #fijoTraza>{{ f.dia.estado_pp === 1 ? 'Sí' : '' }}</ng-template>
+            </td>
+            <td>{{ f.dia.origen ? (origenes[f.dia.origen] || f.dia.origen) : '—' }}</td>
+            <td>
+              <span class="est-tag" [ngClass]="estado(f.dia).clase">{{ estado(f.dia).texto }}</span>
+              <label class="col-validar" *ngIf="f.dia.existe && !f.dia.definitivo">
+                <input type="checkbox" [ngModel]="confirmados.has(f.dia.fecha) || cambiada(f)"
+                  (ngModelChange)="confirmar(f, $event)" [name]="'validar' + f.dia.fecha"
+                  [title]="cambiada(f) ? 'Destildar deshace los cambios de este día' : 'Validar con los valores que tiene'" />
+                Validar
+              </label>
+            </td>
+            <td>
+              <input *ngIf="f.dia.pendiente; else fijoObs" class="col-obs" type="text" maxlength="255" [(ngModel)]="f.obs"
+                [name]="'obs' + f.dia.fecha" [attr.aria-label]="'Observaciones del ' + f.dia.fecha" />
+              <ng-template #fijoObs><span class="est-mut">{{ f.dia.observaciones }}</span></ng-template>
+            </td>
+          </tr>
+          <tr *ngIf="error(f) as e" class="col-fila--error">
+            <td colspan="8" class="col-error" role="alert"><mat-icon>error</mat-icon>{{ e }}</td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col-pie" *ngIf="filas.length">
+    <p class="col-aviso col-aviso--ok" *ngIf="mensaje" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje }}</p>
+    <p class="col-aviso col-aviso--error" *ngIf="errorGuardar" role="alert"><mat-icon>error</mat-icon>{{ errorGuardar }}</p>
+    <span class="est-mut">
+      {{ filasAGuardar.length }} {{ filasAGuardar.length === 1 ? 'día' : 'días' }} para guardar
+      <span class="est-err" *ngIf="conErrores"> · {{ conErrores }} con errores</span>
+    </span>
+    <button type="button" class="est-btn-sec" (click)="descartar()" [disabled]="!filasAGuardar.length || guardando">
+      <mat-icon>undo</mat-icon>Descartar cambios
+    </button>
+    <button type="button" class="col-btn" (click)="guardar()" [disabled]="!filasAGuardar.length || conErrores || guardando">
+      <mat-icon>save</mat-icon>{{ guardando ? 'Guardando…' : 'Guardar y validar' }}
+    </button>
+  </div>
+  <p class="est-mut col-nota" *ngIf="filas.length">Los valores llevan un decimal (se puede usar coma). Un campo vacío queda sin
+    dato. Al guardar, el día queda validado; si se cambia algún valor de un día provisional, su origen pasa a «Convencional».
+    Destildar «Validar» deshace los cambios de ese día.
+    La traza se guarda como 0 mm. Cada cambio queda anotado en el servidor con la cuenta que lo hizo.</p>
+</section>
