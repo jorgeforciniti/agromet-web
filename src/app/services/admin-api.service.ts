@@ -125,6 +125,31 @@ export interface DatosBaja {
   motivo: string;
 }
 
+/** Sensor que parece fallar según el control de datos (control_datos.php) */
+export interface AlertaDatos {
+  estacion: string;
+  nombre: string;
+  variable: VariableSensor;
+  /** humedad_baja, viento_cero, lluvia_sin_registro… (ver el encabezado de control_datos.php) */
+  regla: string;
+  problema: string;
+  dias: number;
+  fechas: string[];
+  primera: string;
+  ultima: string;
+  /** Día más reciente: valor de la estación y mediana de las vecinas (null si no compara) */
+  ejemplo: { fecha: string; valor: number; vecinas: number | null };
+  /** El sensor ya está dado de baja */
+  de_baja: boolean;
+}
+
+export interface ControlDatos {
+  desde: string;
+  hasta: string;
+  dias: number;
+  alertas: AlertaDatos[];
+}
+
 interface RespuestaApi {
   ok: boolean;
   error?: string;
@@ -182,6 +207,11 @@ export class AdminApiService {
 
   cancelarComando(id: number): Promise<string> {
     return this.pedir<{ mensaje: string }>('POST', 'comandos.php', { accion: 'cancelar', id }).then(r => r.mensaje);
+  }
+
+  /** Revisa los últimos `dias` días completos (7 a 31) */
+  controlDatos(dias: number): Promise<ControlDatos> {
+    return this.pedir<ControlDatos>('GET', 'control_datos.php', undefined, new HttpParams().set('dias', String(dias)));
   }
 
   sensoresBaja(): Promise<SensoresBaja> {

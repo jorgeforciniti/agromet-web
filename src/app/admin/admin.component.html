@@ -182,9 +182,15 @@
     </mat-tab>
 
     <!-- ================= Depuración de datos ================= -->
+    <mat-tab label="Control de datos">
+      <div class="adm__panel adm__panel--una">
+        <app-admin-control-datos (darDeBaja)="proponerBaja($event)"></app-admin-control-datos>
+      </div>
+    </mat-tab>
+
     <mat-tab label="Sensores dados de baja">
       <div class="adm__panel adm__panel--una">
-        <app-admin-sensores></app-admin-sensores>
+        <app-admin-sensores [propuesta]="propuestaBaja"></app-admin-sensores>
       </div>
     </mat-tab>
   </mat-tab-group>

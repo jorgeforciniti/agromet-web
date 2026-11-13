@@ -1,10 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminApiService, BajaSensor, SensoresBaja } from '../../services/admin-api.service';
 import { fechaIso } from '../../shared/enlace-consulta';
 import { NOMBRE_VARIABLE, VARIABLES_SENSOR, VariableSensor } from '../../shared/depuracion';
+import { PropuestaBaja } from './admin-control-datos.component';
 
 /**
  * Sensores dados de baja (depuración de datos): la Sección marca qué sensor da valores erróneos y
@@ -20,6 +21,18 @@ import { NOMBRE_VARIABLE, VARIABLES_SENSOR, VariableSensor } from '../../shared/
 })
 export class AdminSensoresComponent implements OnInit {
   private readonly api = inject(AdminApiService);
+
+  /** Baja propuesta por el control de datos: precarga el formulario (objeto nuevo en cada pedido) */
+  @Input() set propuesta(p: PropuestaBaja | null) {
+    if (!p) return;
+    this.estacion = p.estacion;
+    this.variable = p.variable;
+    this.desde = p.desde;
+    this.hasta = '';
+    this.motivo = p.motivo.slice(0, 255);
+    this.limpiarAvisos();
+    this.mensaje = 'Revisá los datos y confirmá con «Dar de baja».';
+  }
 
   readonly variables = VARIABLES_SENSOR;
   readonly nombreVariable = NOMBRE_VARIABLE;

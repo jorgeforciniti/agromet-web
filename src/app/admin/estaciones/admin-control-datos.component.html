@@ -1,0 +1,59 @@
+<div class="est-barra">
+  <span class="est-mut">Sensores que parecen fallar, comparados con las estaciones vecinas (a menos de 40 km y 400 m de
+    desnivel). Es una propuesta: revisá cada caso antes de dar de baja el sensor.</span>
+  <label class="cdt-dias">
+    <span>Período</span>
+    <select [(ngModel)]="dias" (ngModelChange)="revisar()" [disabled]="cargando">
+      <option *ngFor="let d of opcionesDias" [ngValue]="d">Últimos {{ d }} días</option>
+    </select>
+  </label>
+  <span class="est-estado" [class.est-estado--error]="error" role="status">{{ error || (cargando ? 'Revisando…' : '') }}</span>
+  <button type="button" class="est-btn-sec" (click)="revisar()" [disabled]="cargando" aria-label="Volver a revisar">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</div>
+
+<section class="est-caja" *ngIf="datos">
+  <h2 class="est-caja__titulo">
+    {{ alertas.length }} {{ alertas.length === 1 ? 'alerta' : 'alertas' }}
+    <small>del {{ fecha(datos.desde) }} al {{ fecha(datos.hasta) }}
+      <label class="cdt-ver" *ngIf="yaDeBaja">
+        <input type="checkbox" [(ngModel)]="verDeBaja" /> mostrar las {{ yaDeBaja }} ya dadas de baja
+      </label>
+    </small>
+  </h2>
+  <div class="est-scroll">
+    <table class="est-tabla cdt-tabla">
+      <thead>
+        <tr>
+          <th scope="col">Estación</th>
+          <th scope="col">Sensor</th>
+          <th scope="col">Problema</th>
+          <th scope="col" class="num">Días</th>
+          <th scope="col">Período</th>
+          <th scope="col">Último caso</th>
+          <th scope="col"><span class="est-oculto">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of alertas; trackBy: porClave" [class.cdt-baja]="a.de_baja">
+          <td>{{ a.nombre }} <span class="est-mut">({{ a.estacion }})</span></td>
+          <td>{{ nombreVariable[a.variable] || a.variable }}</td>
+          <td class="cdt-problema">{{ a.problema }}</td>
+          <td class="num"><strong>{{ a.dias }}</strong><span class="est-mut"> de {{ datos.dias }}</span></td>
+          <td class="num">{{ fecha(a.primera) }} al {{ fecha(a.ultima) }}</td>
+          <td>{{ fecha(a.ejemplo.fecha) }}: {{ ejemplo(a) }}</td>
+          <td>
+            <span class="est-tag est-t-ok" *ngIf="a.de_baja; else boton">ya de baja</span>
+            <ng-template #boton>
+              <button type="button" class="est-btn-sec" (click)="proponer(a)">Dar de baja…</button>
+            </ng-template>
+          </td>
+        </tr>
+        <tr *ngIf="!alertas.length">
+          <td colspan="7" class="est-mut">No hay sensores con problemas en este período.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

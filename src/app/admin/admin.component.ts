@@ -10,10 +10,12 @@ import { CATEGORIAS_INFORME, nombreCategoria, sugerirDesdeArchivo } from './cate
 import { AdminComunicacionesComponent } from './estaciones/admin-comunicaciones.component';
 import { AdminControlComponent } from './estaciones/admin-control.component';
 import { AdminSensoresComponent } from './estaciones/admin-sensores.component';
+import { AdminControlDatosComponent, PropuestaBaja } from './estaciones/admin-control-datos.component';
 import { AdminPublicadosComponent } from './publicados/admin-publicados.component';
 
 const MAX_MB = 30;
 const PESTANA_CONTROL = 4;
+const PESTANA_SENSORES = 6;
 
 type Orden9a9 = 'nombre' | 'mm' | 'horas';
 
@@ -21,7 +23,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
   selector: 'app-admin',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, AdminPublicadosComponent,
-    AdminComunicacionesComponent, AdminControlComponent, AdminSensoresComponent],
+    AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
@@ -38,6 +40,8 @@ export class AdminComponent implements OnInit {
   pestana = 0;
   /** Estación a abrir en "Control de estaciones" (objeto nuevo en cada pedido) */
   estacionControl: { id: string } | null = null;
+  /** Baja a precargar en "Sensores dados de baja" (desde el control de datos) */
+  propuestaBaja: PropuestaBaja | null = null;
 
   // ---- Cargar informe ----
   titulo = '';
@@ -70,6 +74,12 @@ export class AdminComponent implements OnInit {
   controlarEstacion(id: string): void {
     this.estacionControl = { id };
     this.pestana = PESTANA_CONTROL;
+  }
+
+  /** Desde el control de datos: abre "Sensores dados de baja" con la baja precargada. */
+  proponerBaja(p: PropuestaBaja): void {
+    this.propuestaBaja = { ...p };
+    this.pestana = PESTANA_SENSORES;
   }
 
   // ---- Cargar informe ----
