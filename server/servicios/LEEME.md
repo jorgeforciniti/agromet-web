@@ -22,6 +22,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `sensores-baja.php` | Depuración de datos (todo el sitio): sensores dados de baja, que se cargan en /admin | `sensores_baja` |
 | `incendio-fwi.php` | Peligro de incendios (/datos): índice meteorológico de peligro de incendios (FWI) del sistema canadiense por estación y día | `estaciones`, `datos_estaciones`, `fwi_diario` (la escribe) |
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación; con `?horas=24`, las últimas 24 horas (app móvil) | `estaciones`, `datos_estaciones` |
+| `horas-frio.php` | App móvil (Más → Herramientas): horas de frío y unidades Utah por día de una estación (`?estacion=&desde=&hasta=&base=`, hasta 186 días), calculadas acá para no mandar los registros de 15 minutos | `datos_estaciones` (depurado) |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
 | `forecast.php` | Estado actual y condiciones para aplicar: pronóstico de OpenWeatherMap cada 3 h (caché de 30 min) | — |
