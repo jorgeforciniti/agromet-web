@@ -11,6 +11,13 @@ include("conecta_mysql.php");
 
 mysqli_set_charset($conexion, "utf8");
 
+// Sensores dados de baja (depuración de datos, /services/depuracion.php): no se mandan sus valores.
+// Si el archivo no está, responde como antes.
+$depuracion = __DIR__ . "/../services/depuracion.php";
+if (is_file($depuracion)) {
+    require_once $depuracion;
+}
+
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 
 $en_csv = "";
@@ -59,6 +66,11 @@ if ($conexion) {
     $dir_key = preg_replace('/[^A-Z]/', '', $dir);
 
     $arr['viento_dir'] = array_key_exists($dir_key, $map) ? $map[$dir_key] : null;
+
+    // Sin el valor (no en null: la app lo leería como 0), la app usa su estimación
+    if (is_array($arr) && function_exists("depuracionBajas")) {
+        depuracionLimpiarActual($arr, depuracionBajas($conexion, $vble), $vble);
+    }
 
 ///////////////////////////////////////////////////////////////////////////////
 

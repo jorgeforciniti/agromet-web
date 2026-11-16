@@ -7,6 +7,13 @@ $db="estaciones";
 include("conecta_mysql.php");
 
 mysqli_set_charset($conexion,"utf8");
+
+// Sensores dados de baja (depuración de datos, /services/depuracion.php): no se mandan sus valores.
+// Si el archivo no está, responde como antes.
+$depuracion = __DIR__ . "/../services/depuracion.php";
+if (is_file($depuracion)) {
+    require_once $depuracion;
+}
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 $vble=$_GET['habilitada'];
 
@@ -32,8 +39,22 @@ if($conexion){
 
     }
 
+    $bajas = function_exists("depuracionBajas") ? depuracionBajas($conexion) : array();
+    $hoyIso = date("Y-m-d");
+
     $hacer = $conexion->query($peticion4);
     while ($row=$hacer->fetch_assoc()){
+        $id = $row['Identificacion'];
+        if ($bajas) {
+            depuracionLimpiarActual($row, $bajas, $id);
+            // Extremos del día (habilitada=99) y de toda la serie (tmax/tmin)
+            if (depuracionHayBaja($bajas, $id, 'temperatura', $hoyIso)) {
+                unset($row['temp_max'], $row['temp_min']);
+            }
+            if (depuracionHayBaja($bajas, $id, 'temperatura', '1900-01-01', $hoyIso)) {
+                unset($row['tmax'], $row['tmin']);
+            }
+        }
         $newkey="fecha";
         $row[$newkey] = date('d-m-Y',strtotime($row['fecha_I']));
         $newkey="hora";

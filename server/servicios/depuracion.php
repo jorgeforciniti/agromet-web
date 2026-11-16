@@ -15,6 +15,8 @@
  *   $bajas = depuracionBajas($conexion, $estacion, $desde, $hasta);
  *   depuracionLimpiarDia($fila, $bajas, $estacion, $fecha, DEPURACION_CAMPOS_DIARIOS);
  *   depuracionLimpiarPeriodo($fila, $bajas, $estacion, $desde, $hasta, DEPURACION_CAMPOS_RESUMEN);
+ *   depuracionLimpiarActual($fila, $bajas, $estacion);       // último registro (tabla estaciones)
+ *   if (depuracionHayBaja($bajas, $estacion, 'lluvia', $desde, $hasta)) { ...se saca la fila... }
  *
  * Si no puede leer sensores_baja, no quita nada: el PHP responde como antes.
  */
@@ -37,6 +39,18 @@ const DEPURACION_CAMPOS_DIARIOS = [
     'presion' => ['presion_media_24'],
     'hoja' => ['hum_hoja_hs'],
     'et' => ['et'],
+];
+
+/**
+ * Tabla estaciones (último registro): estaciones.php, datos-online.php y la app móvil. rr_mes va
+ * aparte (es del mes: ver depuracionLimpiarActual); viento_dir lo agrega io_datos.php.
+ */
+const DEPURACION_CAMPOS_ACTUALES = [
+    'temperatura' => ['temp_af'],
+    'humedad' => ['hum_af'],
+    'lluvia' => ['RR_dia', 'rr_dia', 'rr_15'],
+    'viento' => ['viento_medio', 'viento_max', 'rafaga24', 'direc', 'viento_dir'],
+    'presion' => ['presion'],
 ];
 
 /** datos-resumen.php: totales y promedios del período */
@@ -127,4 +141,16 @@ function depuracionLimpiarDia(&$fila, $bajas, $estacion, $fecha, $campos) {
 /** Totales de un período de una estación: se quita la variable si la baja toca algún día */
 function depuracionLimpiarPeriodo(&$fila, $bajas, $estacion, $desde, $hasta, $campos) {
     depuracionQuitar($fila, depuracionVariables($bajas, $estacion, $desde, $hasta), $campos);
+}
+
+/** Último registro de una estación (hoy); rr_mes se quita si la lluvia estuvo de baja en el mes */
+function depuracionLimpiarActual(&$fila, $bajas, $estacion) {
+    $hoy = date('Y-m-d');
+    depuracionQuitar($fila, depuracionVariables($bajas, $estacion, $hoy), DEPURACION_CAMPOS_ACTUALES);
+    if (depuracionHayBaja($bajas, $estacion, 'lluvia', date('Y-m-01'), $hoy)) unset($fila['rr_mes']);
+}
+
+/** ¿La variable de la estación estuvo de baja algún día entre $desde y $hasta (o sólo el día $desde)? */
+function depuracionHayBaja($bajas, $estacion, $variable, $desde, $hasta = null) {
+    return in_array($variable, depuracionVariables($bajas, $estacion, $desde, $hasta), true);
 }
