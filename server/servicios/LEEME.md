@@ -383,7 +383,11 @@ GOES con unas 4 horas de atraso. Con un acuerdo con el SMN se podría sumar el r
 carpeta temporal de PHP (`sys_get_temp_dir()`). Un solo pedido a NOAA a la vez; si NOAA no responde,
 va la última copia (`"origen":"cache"`) y la app muestra la hora vieja. La hora sale del nombre del
 archivo de NOAA (`AAAADDDhhmm`, día del año y hora UTC del barrido). Necesita la extensión **GD** de
-PHP y pedidos HTTPS hacia afuera (cURL o `allow_url_fopen`), como `kp-gfz.php`.
+PHP (o, si no está, **Imagick**) y pedidos HTTPS hacia afuera (cURL o `allow_url_fopen`), como
+`kp-gfz.php`. Sin ninguna de las dos devuelve «El servidor no tiene la extensión GD ni Imagick de
+PHP». Para activar GD: en el `php.ini` del servidor, quitar el `;` de `extension=gd` (en PHP 7 puede
+llamarse `extension=gd2` o venir aparte, por ejemplo el paquete `php7.x-gd` en Debian/Ubuntu o
+`php-gd` en CentOS) y reiniciar Apache o PHP-FPM; `phpinfo()` tiene que mostrar la sección «gd».
 
 **Calibración del recorte.** `RECORTE_X`/`RECORTE_Y` salen de la proyección geoestacionaria de
 GOES-19 (75,2° O): la imagen de 3600 × 2160 tiene 56,4 µrad por píxel, ajustado con el borde de la

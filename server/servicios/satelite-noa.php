@@ -22,7 +22,7 @@ header('Access-Control-Allow-Origin: *');
 
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
-ini_set('memory_limit', '256M'); // la imagen de 3600 × 2160 ocupa unos 31 MB descomprimida
+ini_set('memory_limit', '256M'); // la imagen de 3600 × 2160 ocupa unos 31 MB descomprimida (GD o Imagick)
 
 const URL_SECTOR = 'https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ssa/GEOCOLOR/';
 const ANCHO_ORIGEN = 3600;
@@ -85,51 +85,92 @@ function pedir($url, $soloEncabezados = false)
 }
 
 /**
+ * Recorta la imagen de NOAA (JPEG en $cuerpo), marca San Miguel de Tucumán con un círculo chico en el
+ * centro y la guarda en $destino. Usa GD o, si no está, Imagick. Devuelve null o el problema.
+ */
+function recortar($cuerpo, $destino)
+{
+    $centro = intdiv(RECORTE_LADO, 2);
+
+    if (function_exists('imagecreatefromstring')) {
+        $imagen = @imagecreatefromstring($cuerpo);
+        if (!$imagen) return 'No se pudo leer la imagen de NOAA.';
+        if (imagesx($imagen) !== ANCHO_ORIGEN || imagesy($imagen) !== ALTO_ORIGEN) {
+            imagedestroy($imagen);
+            return 'La imagen de NOAA cambió de tamaño: hay que volver a calibrar el recorte.';
+        }
+        $recorte = imagecreatetruecolor(RECORTE_LADO, RECORTE_LADO);
+        imagecopy($recorte, $imagen, 0, 0, RECORTE_X, RECORTE_Y, RECORTE_LADO, RECORTE_LADO);
+        imagedestroy($imagen);
+        imagesetthickness($recorte, 2);
+        imageellipse($recorte, $centro, $centro, 9, 9, imagecolorallocate($recorte, 255, 196, 0));
+        $bien = imagejpeg($recorte, $destino, 85);
+        imagedestroy($recorte);
+        return $bien ? null : 'No se pudo guardar la imagen.';
+    }
+
+    if (class_exists('Imagick')) {
+        try {
+            $imagen = new Imagick();
+            $imagen->readImageBlob($cuerpo);
+            if ($imagen->getImageWidth() !== ANCHO_ORIGEN || $imagen->getImageHeight() !== ALTO_ORIGEN) {
+                return 'La imagen de NOAA cambió de tamaño: hay que volver a calibrar el recorte.';
+            }
+            $imagen->cropImage(RECORTE_LADO, RECORTE_LADO, RECORTE_X, RECORTE_Y);
+            $imagen->setImagePage(0, 0, 0, 0);
+            $circulo = new ImagickDraw();
+            $circulo->setFillOpacity(0);
+            $circulo->setStrokeColor(new ImagickPixel('rgb(255,196,0)'));
+            $circulo->setStrokeWidth(2);
+            $circulo->circle($centro, $centro, $centro + 4, $centro);
+            $imagen->drawImage($circulo);
+            $imagen->setImageFormat('jpeg');
+            $imagen->setImageCompressionQuality(85);
+            $imagen->writeImage($destino);
+            $imagen->clear();
+            return null;
+        } catch (Exception $e) {
+            return 'No se pudo recortar la imagen de NOAA.';
+        }
+    }
+
+    return 'El servidor no tiene la extensión GD ni Imagick de PHP.';
+}
+
+/**
  * Baja la última imagen y guarda el recorte. La hora del barrido sale del nombre del archivo
  * (AAAADDDhhmm, día del año y hora UTC): NOAA lo publica unos 15 minutos después, así que se prueba
  * desde la hora de publicación del último hacia atrás, de a 10 minutos.
  */
 function actualizar($archivoImagen, $archivoDatos)
 {
-    if (!function_exists('imagecreatefromstring')) return 'El servidor no tiene la extensión GD de PHP.';
+    if (!function_exists('imagecreatefromstring') && !class_exists('Imagick')) {
+        return 'El servidor no tiene la extensión GD ni Imagick de PHP.';
+    }
 
     $ultimo = pedir(URL_SECTOR . ANCHO_ORIGEN . 'x' . ALTO_ORIGEN . '.jpg', true);
     if ($ultimo['codigo'] !== 200 || !$ultimo['modificado']) return 'NOAA no responde.';
 
     $base = intdiv($ultimo['modificado'], 600) * 600;
-    $imagen = null;
-    $sello = null;
-    for ($i = 0; $i < 4 && !$imagen; $i++) {
+    $cuerpo = null;
+    for ($i = 0; $i < 4 && !$cuerpo; $i++) {
         $hora = $base - $i * 600;
         $candidato = gmdate('Y', $hora) . sprintf('%03d', (int)gmdate('z', $hora) + 1) . gmdate('Hi', $hora);
         $r = pedir(URL_SECTOR . $candidato . '_GOES19-ABI-ssa-GEOCOLOR-' . ANCHO_ORIGEN . 'x' . ALTO_ORIGEN . '.jpg');
         if ($r['codigo'] === 200 && $r['cuerpo']) {
-            $imagen = @imagecreatefromstring($r['cuerpo']);
+            $cuerpo = $r['cuerpo'];
             $sello = $candidato;
             $horaBarrido = $hora;
         }
     }
-    if (!$imagen) return 'No se pudo bajar la imagen de NOAA.';
-    if (imagesx($imagen) !== ANCHO_ORIGEN || imagesy($imagen) !== ALTO_ORIGEN) {
-        imagedestroy($imagen);
-        return 'La imagen de NOAA cambió de tamaño: hay que volver a calibrar el recorte.';
-    }
-
-    $recorte = imagecreatetruecolor(RECORTE_LADO, RECORTE_LADO);
-    imagecopy($recorte, $imagen, 0, 0, RECORTE_X, RECORTE_Y, RECORTE_LADO, RECORTE_LADO);
-    imagedestroy($imagen);
-
-    // San Miguel de Tucumán: un círculo chico en el centro
-    $centro = intdiv(RECORTE_LADO, 2);
-    imagesetthickness($recorte, 2);
-    imageellipse($recorte, $centro, $centro, 9, 9, imagecolorallocate($recorte, 255, 196, 0));
+    if (!$cuerpo) return 'No se pudo bajar la imagen de NOAA.';
 
     $temporal = $archivoImagen . '.' . getmypid();
-    imagejpeg($recorte, $temporal, 85);
-    imagedestroy($recorte);
-    if (!@rename($temporal, $archivoImagen)) {
+    $problema = recortar($cuerpo, $temporal);
+    if ($problema === null && !@rename($temporal, $archivoImagen)) $problema = 'No se pudo guardar la imagen.';
+    if ($problema !== null) {
         @unlink($temporal);
-        return 'No se pudo guardar la imagen.';
+        return $problema;
     }
     @file_put_contents($archivoDatos, json_encode([
         'guardado' => time(),
