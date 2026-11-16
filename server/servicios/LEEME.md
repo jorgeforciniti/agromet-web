@@ -24,7 +24,6 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación; con `?horas=24`, las últimas 24 horas (app móvil) | `estaciones`, `datos_estaciones` |
 | `horas-frio.php` | App móvil (Más → Herramientas): horas de frío y unidades Utah por día de una estación (`?estacion=&desde=&hasta=&base=`, hasta 366 días), calculadas acá para no mandar los registros de 15 minutos | `datos_estaciones` (depurado) |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
-| `satelite-noa.php` | App móvil (Mapa → Satélite): recorte del NOA de la imagen GeoColor de GOES-19 (NOAA), renovado cada 10 minutos | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
 | `forecast.php` | Estado actual y condiciones para aplicar: pronóstico de OpenWeatherMap cada 3 h (caché de 30 min) | — |
 | `now.php` | Estado actual: tiempo actual de OpenWeatherMap (caché de 10 min) | — |
@@ -363,43 +362,6 @@ Para instalarlo: copiar el archivo a `/services/` y probar
 `https://agromet.eeaoc.gob.ar/services/enso.php`: tiene que traer `"origen":"noaa"` (o `cache` en la
 segunda consulta), `datos` desde 1950 y `estado.alerta` en castellano. Hasta que esté instalado, la
 tarjeta de Estado actual y la sección del Colmenar muestran un error con «Reintentar».
-
-## `satelite-noa.php`
-
-`GET /services/satelite-noa.php` devuelve la hora (UTC) y la dirección de la última imagen satelital
-del NOA; `?imagen=<sello>` devuelve el JPEG. Es un recorte de 400 × 400 píxeles (unos 800 km, 2 km
-por píxel) centrado en San Miguel de Tucumán, marcada con un círculo amarillo, de la imagen
-GeoColor del sector `ssa` de GOES-19 (`cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ssa/GEOCOLOR/`).
-Muestra nubes, no lluvia. Es de dominio público; la app cita «NOAA/NESDIS/STAR · GOES-19 GeoColor».
-No usa la base de datos.
-
-**Por qué satélite y no radar** (revisado en noviembre de 2026): el radar de Termas de Río Hondo
-(RMA-11) cubre Tucumán, pero el SMN no publica sus imágenes para terceros (piden un token de su web
-y la página tiene un filtro anti-robots). RainViewer no tiene cobertura argentina y NASA GIBS trae
-GOES con unas 4 horas de atraso. Con un acuerdo con el SMN se podría sumar el radar.
-
-**Se actualiza solo.** Cuando la copia tiene más de 10 minutos, baja la imagen de 3600 × 2160
-(unos 4 MB), la recorta y guarda `agromet-satelite-noa.jpg` y `agromet-satelite-noa.json` en la
-carpeta temporal de PHP (`sys_get_temp_dir()`). Un solo pedido a NOAA a la vez; si NOAA no responde,
-va la última copia (`"origen":"cache"`) y la app muestra la hora vieja. La hora sale del nombre del
-archivo de NOAA (`AAAADDDhhmm`, día del año y hora UTC del barrido). Necesita la extensión **GD** de
-PHP (o, si no está, **Imagick**) y pedidos HTTPS hacia afuera (cURL o `allow_url_fopen`), como
-`kp-gfz.php`. Sin ninguna de las dos devuelve «El servidor no tiene la extensión GD ni Imagick de
-PHP». Para activar GD: en el `php.ini` del servidor, quitar el `;` de `extension=gd` (en PHP 7 puede
-llamarse `extension=gd2` o venir aparte, por ejemplo el paquete `php7.x-gd` en Debian/Ubuntu o
-`php-gd` en CentOS) y reiniciar Apache o PHP-FPM; `phpinfo()` tiene que mostrar la sección «gd».
-
-**Calibración del recorte.** `RECORTE_X`/`RECORTE_Y` salen de la proyección geoestacionaria de
-GOES-19 (75,2° O): la imagen de 3600 × 2160 tiene 56,4 µrad por píxel, ajustado con el borde de la
-Tierra y verificado con los tripuntos Argentina-Chile-Bolivia (cerro Zapaleri) y
-Argentina-Brasil-Paraguay (Iguazú), con un error de 1 o 2 píxeles. San Miguel de Tucumán cae en el
-píxel (1423, 736). Si NOAA cambia el tamaño de la imagen, el PHP devuelve un error en vez de recortar
-otra zona; si cambia el satélite o el sector, hay que volver a calibrar.
-
-Para instalarlo: copiar el archivo a `/services/` y abrir
-`https://agromet.eeaoc.gob.ar/services/satelite-noa.php`: tiene que traer `"origen":"noaa"` y una
-hora de hace menos de media hora; la dirección de `imagen` (con `/services/` adelante) tiene que
-mostrar el NOA con Tucumán en el centro. Hasta que esté instalado, el modo Satélite de la app dice que la imagen no está disponible.
 
 ## `sql/correcciones_ubicacion_estaciones.sql`
 
