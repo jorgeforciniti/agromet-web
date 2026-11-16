@@ -30,7 +30,12 @@ set_exception_handler(function (Throwable $e) {
     error_log('admin/api: ' . $linea);
     @error_log($linea . "\n", 3, __DIR__ . '/errores.log');
     http_response_code(500);
-    $respuesta = ['ok' => false, 'error' => 'Error interno del servidor.'];
+    // El código y el lugar van en el mensaje: los .log no siempre se pueden escribir en el servidor
+    // (la carpeta no es del usuario de PHP) y así se ve en pantalla sin abrir el navegador
+    $donde = basename($e->getFile()) . ':' . $e->getLine();
+    $respuesta = ['ok' => false, 'error' => $e instanceof mysqli_sql_exception
+        ? "Error interno del servidor (MySQL {$e->getCode()}, $donde)."
+        : "Error interno del servidor ($donde)."];
     if ($e instanceof mysqli_sql_exception) {
         $respuesta['codigo'] = $e->getCode();
     }
