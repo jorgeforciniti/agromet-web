@@ -24,7 +24,7 @@ import { ValorPipe } from '../pipes/valor.pipe';
 registerLocaleData(localeEs);
 
 // ✅ Ajustá estos imports a tu estructura real
-import { StationsApiResponse, WeatherService, WeatherStation } from '../services/weather.service';
+import { OpenWeatherForecastItem, StationsApiResponse, WeatherService, WeatherStation } from '../services/weather.service';
 import { ESTACION_INICIAL, StationService } from '../services/station.service';
 import { GruposEstacionesPipe } from '../pipes/grupos-estaciones.pipe';
 import { KpLatest, KpService } from '../services/kp.service';
@@ -39,7 +39,8 @@ import {
   ResultadoEvaluacion,
   Semaforo,
   BIBLIOGRAFIA_APLICACION,
-  describirUmbrales
+  describirUmbrales,
+  salidaPuestaSol
 } from '../services/spray-advisor.service';
 import { CopiarEnlaceComponent } from '../shared/copiar-enlace.component';
 import { ComoSeLeeComponent } from '../shared/como-se-lee.component';
@@ -103,7 +104,19 @@ interface WeatherData {
   /** Kp usado para el registro (null = no se consideró) */
   kp?: number | null;
   rowClass?: ClaseFila;
+  /** Pronóstico: probabilidad de lluvia (%) del intervalo de 3 h */
+  probLluvia?: number | null;
 }
+
+/**
+ * El pronóstico da el viento a 10 m; los anemómetros de la red están a 3 m. Se lleva a 3 m con el
+ * mismo perfil logarítmico que usa el índice de peligro de incendios (10 m = 1,35 × 3 m), para que
+ * se compare con los mismos umbrales que los registros de la estación.
+ */
+const VIENTO_10M_A_3M = 1 / 1.35;
+
+const RUMBOS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO'];
+const DIAS_SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 interface HourlyWeatherRow {
   hora: string;
@@ -177,6 +190,10 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
 
   weatherData: WeatherData[] = [];
   private weatherDataRaw: HourlyWeatherRow[] = [];
+  /** Pronóstico de OpenWeatherMap cada 3 h (sólo cuando la fecha elegida es hoy) */
+  pronostico: WeatherData[] = [];
+  private pronosticoRaw: OpenWeatherForecastItem[] = [];
+  cargandoPronostico = false;
   /** Fecha (yyyy-MM-dd) de weatherDataRaw */
   private ymdDatos = '';
   /** Estación y día consultados, para el aviso de sensores dados de baja */
@@ -393,6 +410,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
   onParamsChanged(): void {
     this.refreshMarkers();
     if (this.weatherDataRaw.length) this.recalcTableFromRaw();
+    if (this.pronosticoRaw.length) this.recalcPronostico();
   }
 
   private usarGnssEnDecision(): boolean {
@@ -410,6 +428,7 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
         this.kpLoading = false;
         this.refreshMarkers();
         if (this.weatherDataRaw.length) this.recalcTableFromRaw();
+        if (this.pronosticoRaw.length) this.recalcPronostico();
       },
       error: err => {
         console.warn('[KP] Error leyendo SWPC', err);
@@ -552,6 +571,9 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
           this.fechaRealDeDatos = null;
         }
 
+        if (ymd === this.formatDate(new Date())) this.cargarPronostico();
+        else this.limpiarPronostico();
+
         this.loadingData = false;
       },
       error: err => {
@@ -598,8 +620,106 @@ export class ConditionsToApplyComponent implements OnInit, AfterViewInit, OnDest
     });
 
     this.actualizarNotaKp(delIntervalo, ultimo, sinKp, ymd === this.formatDate(new Date()));
-    // La fila seleccionada se reemplaza por su versión recalculada
-    if (this.selectedRow) this.selectedRow = this.weatherData.find(w => w.hora === this.selectedRow?.hora) ?? null;
+    this.reemplazarSeleccion();
+  }
+
+  /** La fila seleccionada se reemplaza por su versión recalculada (de la tabla del día o del pronóstico) */
+  private reemplazarSeleccion(): void {
+    if (this.selectedRow) {
+      this.selectedRow = [...this.weatherData, ...this.pronostico].find(w => w.hora === this.selectedRow?.hora) ?? null;
+    }
+  }
+
+  // ===== Pronóstico (OpenWeatherMap, cada 3 h) =====
+  private cargarPronostico(): void {
+    const est = this.estaciones.find(e => e.identificacion === this.selectedStation);
+    if (est?.lat == null || est?.lon == null) {
+      this.limpiarPronostico();
+      return;
+    }
+    this.cargandoPronostico = true;
+    this.weatherService.getOpenWeatherForecast(est.lat, est.lon).subscribe({
+      next: r => {
+        this.pronosticoRaw = Array.isArray(r?.list) ? r.list : [];
+        this.recalcPronostico();
+        this.cargandoPronostico = false;
+      },
+      error: () => {
+        this.limpiarPronostico();
+        this.cargandoPronostico = false;
+      }
+    });
+  }
+
+  private limpiarPronostico(): void {
+    this.pronosticoRaw = [];
+    this.pronostico = [];
+  }
+
+  /**
+   * Evalúa cada intervalo del pronóstico con las mismas reglas que los registros: viento llevado a
+   * 3 m, la ráfaga del pronóstico (si no viene, el viento medio), la probabilidad de lluvia (umbrales
+   * popRed y popYellow de cada método), la inversión según salida y puesta del sol en la estación y
+   * el último Kp publicado (el pronóstico no tiene Kp).
+   */
+  private recalcPronostico(): void {
+    const est = this.estaciones.find(e => e.identificacion === this.selectedStation);
+    const ahora = Date.now();
+    this.pronostico = this.pronosticoRaw
+      .filter(it => it.dt * 1000 > ahora - 3 * 3600 * 1000)
+      .map(it => {
+        const tC = this.numOrNull(it.main?.temp);
+        const rh = this.numOrNull(it.main?.humidity);
+        const medioMs = this.numOrNull(it.wind?.speed);
+        // A veces la ráfaga del pronóstico viene menor que el viento medio: se toma el mayor
+        const gustMs = this.numOrNull(it.wind?.gust);
+        const rafagaMs = gustMs != null && medioMs != null ? Math.max(gustMs, medioMs) : gustMs ?? medioMs;
+        const medio = medioMs != null ? medioMs * 3.6 * VIENTO_10M_A_3M : null;
+        const rafaga = rafagaMs != null ? rafagaMs * 3.6 * VIENTO_10M_A_3M : null;
+        const pop = this.numOrNull(it.pop) ?? 0;
+        const local = new Date(it.dt * 1000 - 3 * 3600 * 1000); // UTC−3
+        const hora = `${DIAS_SEMANA[local.getUTCDay()]} ${local.getUTCDate()} `
+          + `${String(local.getUTCHours()).padStart(2, '0')}:${String(local.getUTCMinutes()).padStart(2, '0')}`;
+
+        const faltantes = [
+          tC == null ? 'temperatura' : '', rh == null ? 'humedad' : '', medio == null ? 'viento' : '',
+          est?.lat == null || est?.lon == null ? 'ubicación' : ''
+        ].filter(Boolean);
+        let ev: EvaluacionAplicacion | null = null;
+        if (!faltantes.length) {
+          const sol = salidaPuestaSol(local.getUTCFullYear(), local.getUTCMonth() + 1, local.getUTCDate(),
+            est!.lat as number, est!.lon as number);
+          ev = this.applyProductoExtras(this.advisor.evaluar(
+            {
+              tC: tC as number, rh: rh as number, windMs: (medio as number) / 3.6, gustMs: (rafaga as number) / 3.6,
+              pop, dtUtc: it.dt, sunriseUtc: sol ? Math.floor(sol.salidaMs / 1000) : undefined,
+              sunsetUtc: sol ? Math.floor(sol.puestaMs / 1000) : undefined, weather: it.weather
+            },
+            this.metodo, this.cultivo, this.prioridad,
+            {
+              kpIndex: this.kpIndex ?? undefined,
+              sats: this.usarGnssEnDecision() ? this.sats : undefined,
+              gotaGruesa: this.tamGota === 'GRUESA' || this.tamGota === 'MUY_GRUESA'
+            }
+          ), { tC, rh, windMs: rafaga != null ? rafaga / 3.6 : null });
+        }
+        const deg = this.numOrNull(it.wind?.deg);
+        return {
+          hora,
+          temp_af: tC,
+          hum_af: rh,
+          viento_medio: medio,
+          viento_max: rafaga,
+          direccion: deg != null ? RUMBOS[Math.round(deg / 22.5) % 16] : null,
+          lluvia: null,
+          probLluvia: Math.round(pop * 100),
+          eval: ev,
+          faltantes,
+          kp: this.kpIndex,
+          rowClass: this.rowClass(ev?.semaforo ?? null)
+        } as WeatherData;
+      });
+    this.reemplazarSeleccion();
   }
 
   selectRow(row: WeatherData): void {

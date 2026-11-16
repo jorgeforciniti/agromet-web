@@ -835,3 +835,14 @@
   font-size: .9rem;
   font-weight: 400;
 }
+
+/* Pronóstico: la misma tabla que los registros, debajo */
+.pronostico {
+  margin-top: 18px;
+}
+
+.pronostico-titulo {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--brand);
+}

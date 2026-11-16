@@ -319,6 +319,50 @@
       * Información provisoria sujeta a modificación. La EEAOC no se responsabiliza por su utilización.
     </small>
 
+    <!-- PRONÓSTICO (sólo con la fecha de hoy) -->
+    <section class="pronostico" *ngIf="pronostico.length" aria-labelledby="pronostico-titulo">
+      <h3 id="pronostico-titulo" class="pronostico-titulo">Pronóstico: próximos días, cada 3 horas</h3>
+      <div class="table-scroll tabla-fija">
+        <table class="tabla-datos dlg-tabla">
+          <thead>
+            <tr>
+              <th>Día y hora</th>
+              <th>Semáforo</th>
+              <th class="num">ΔT (°C)</th>
+              <th>Inv.</th>
+              <th class="num">Temp. (°C)</th>
+              <th class="num">Humedad (%)</th>
+              <th class="num">Viento medio (km/h)</th>
+              <th class="num">Ráfaga (km/h)</th>
+              <th>Dirección</th>
+              <th class="num">Prob. lluvia (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of pronostico" [ngClass]="row.rowClass" [class.fila-elegida]="row === selectedRow"
+              (click)="selectRow(row)" [attr.title]="row.eval ? null : textoSinEvaluar(row.faltantes)">
+              <td>{{ row.hora }}</td>
+              <td><span class="semaforo-etiqueta">{{ row.eval ? (row.eval.semaforo | titlecase) : 'Sin evaluar' }}</span></td>
+              <td class="num">{{ row.eval ? (row.eval.deltaT | number:'1.1-1') : '—' }}</td>
+              <td>{{ row.eval ? (row.eval.inversionProbable ? 'Sí' : 'No') : '—' }}</td>
+              <td class="num">{{ row.temp_af | valor:1 }}</td>
+              <td class="num">{{ row.hum_af | valor }}</td>
+              <td class="num">{{ row.viento_medio | valor:1 }}</td>
+              <td class="num">{{ row.viento_max | valor:1 }}</td>
+              <td>{{ row.direccion || '—' }}</td>
+              <td class="num">{{ row.probLluvia | valor }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <small class="leyenda-tabla">
+        * Pronóstico de OpenWeatherMap para la ubicación de la estación, con las mismas reglas que los
+        registros. El viento del pronóstico es a 10 m: se lleva a la altura de los anemómetros de la red
+        (3 m, dividido por 1,35). La lluvia es la probabilidad del intervalo. Kp: el último publicado.<br>
+        * Es una estimación: antes de aplicar, verificá las condiciones en el lote.
+      </small>
+    </section>
+
     <!-- Fila sin evaluar: qué dato falta -->
     <div class="why-panel why-panel--sin-evaluar" *ngIf="selectedRow && !selectedRow.eval">
       <div class="why-head">

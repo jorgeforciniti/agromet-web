@@ -77,6 +77,7 @@ export interface OpenWeatherForecastItem {
   wind: {
     speed: number;
     deg: number;
+    gust?: number;
   };
 }
 

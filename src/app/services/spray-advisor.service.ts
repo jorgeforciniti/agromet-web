@@ -649,7 +649,7 @@ export class SprayAdvisorService {
     if (lSats !== 'VERDE') push(razones, `Satélites ${sats} (${lSats}) → precisión GNSS baja.`);
     if (lWx !== 'VERDE') {
       const desc = wxText ? wxText : 'Condición atmosférica adversa';
-      push(razones, `Condición actual: ${desc} (${lWx}).`);
+      push(razones, `Tiempo: ${desc} (${lWx}).`);
     }
 
     // Recomendaciones por método (conservadoras)
@@ -657,7 +657,7 @@ export class SprayAdvisorService {
     if (lInv !== 'VERDE') push(recs, 'Esperar ruptura de inversión: más mezcla (viento medio > 5 km/h) y/o mayor radiación.');
     if (lDT === 'ROJO') push(recs, 'Reprogramar a ΔT 2–8 °C o usar gota muy gruesa + antievaporante.');
     if (lWind === 'ROJO' || lGust === 'ROJO') push(recs, 'Si es imprescindible: bajar altura, aumentar tamaño de gota y alejarse de bordes sensibles.');
-    if (lWx === 'ROJO') push(recs, 'Hay precipitación/tormenta ahora: evitar la aplicación por lavado y seguridad.');
+    if (lWx === 'ROJO') push(recs, 'Precipitación o tormenta en ese momento: evitar la aplicación por lavado y seguridad.');
     if (lWx === 'AMARILLO') push(recs, 'Condición atmosférica (niebla/bruma/polvo): revisar visibilidad/deriva antes de aplicar.');
 
     // Consejos de operación (genéricos; se pueden ajustar)
