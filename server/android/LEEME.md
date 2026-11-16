@@ -8,7 +8,8 @@ repositorio están sólo los que se modificaron desde el sitio; el resto (`io_no
 ## Depuración de datos
 
 `io_datos.php`, `io_estaciones.php`, `io_rr.php` e `io_temperaturas.php` usan
-`/services/depuracion.php` (tiene que estar subido; si no está, responden como antes):
+`/services/depuracion.php` (tiene que estar subido; si no está, responden como antes). El encabezado
+`X-Depuracion` de la respuesta dice si depuran (`activa`) o no encontraron el archivo (`sin-archivo`):
 
 - **Datos actuales de una estación** (`io_datos`, `io_estaciones`): el valor de un sensor dado de
   baja no se manda; se quita la clave, no va en null, porque la app lee null como 0. Sin el valor,

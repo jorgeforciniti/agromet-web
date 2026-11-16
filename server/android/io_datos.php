@@ -14,9 +14,14 @@ mysqli_set_charset($conexion, "utf8");
 // Sensores dados de baja (depuración de datos, /services/depuracion.php): no se mandan sus valores.
 // Si el archivo no está, responde como antes.
 $depuracion = __DIR__ . "/../services/depuracion.php";
+if (!is_file($depuracion) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $depuracion = $_SERVER["DOCUMENT_ROOT"] . "/services/depuracion.php";
+}
 if (is_file($depuracion)) {
     require_once $depuracion;
 }
+// Para controlar desde afuera si depura (activa) o responde como antes (sin-archivo)
+header("X-Depuracion: " . (function_exists("depuracionLimpiarActual") ? "activa" : "sin-archivo"));
 
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 
