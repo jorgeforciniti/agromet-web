@@ -13,6 +13,26 @@ $db = 'estaciones';
 
 require_once 'conecta_mysql.php';
 
+// Sensores dados de baja (depuración de datos, /services/depuracion.php): sus valores van en null,
+// sin cambiar el formato. Si el archivo no está, responde como antes.
+$depuracion = __DIR__ . "/../services/depuracion.php";
+if (!is_file($depuracion) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $depuracion = $_SERVER["DOCUMENT_ROOT"] . "/services/depuracion.php";
+}
+if (is_file($depuracion)) {
+    require_once $depuracion;
+}
+
+// Cantidad de consultas (tabla api_consultas; ver LEEME.md)
+$registro = __DIR__ . "/../services/registro-consultas.php";
+if (!is_file($registro) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $registro = $_SERVER["DOCUMENT_ROOT"] . "/services/registro-consultas.php";
+}
+if (is_file($registro)) {
+    require_once $registro;
+    registrarConsulta($conexion, 'api_el_charco');
+}
+
 // La conexión queda disponible como $conexion
 if (!$conexion) {
     http_response_code(500);
@@ -147,6 +167,9 @@ $campos = array(
 
 $lista_campos = implode(', ', $campos);
 
+// Sensores dados de baja en el período: sus valores van vacíos (CSV) o en null (JSON)
+$bajas = function_exists('depuracionBajas') ? depuracionBajas($conexion, $IDENTIFICACION, $fecha_inicio, $fecha_fin) : array();
+
 // ===============================
 // CONSULTA
 // ===============================
@@ -223,6 +246,7 @@ if ($formato === 'csv') {
     fputcsv($out, $campos);
 
     while ($fila = mysqli_fetch_assoc($resultado)) {
+        if ($bajas) depuracionAnularRegistro($fila, $bajas);
         $linea = array();
 
         foreach ($campos as $campo) {
@@ -246,6 +270,7 @@ if ($formato === 'csv') {
 $datos = array();
 
 while ($fila = mysqli_fetch_assoc($resultado)) {
+    if ($bajas) depuracionAnularRegistro($fila, $bajas);
     $datos[] = $fila;
 }
 

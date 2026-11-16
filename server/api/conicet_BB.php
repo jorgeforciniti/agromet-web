@@ -20,6 +20,16 @@ if (is_file($depuracion)) {
     require_once $depuracion;
 }
 
+// Cantidad de consultas (tabla api_consultas; ver LEEME.md)
+$registro = __DIR__ . "/../services/registro-consultas.php";
+if (!is_file($registro) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $registro = $_SERVER["DOCUMENT_ROOT"] . "/services/registro-consultas.php";
+}
+if (is_file($registro)) {
+    require_once $registro;
+    registrarConsulta($conexion, 'conicet_BB');
+}
+
 mysqli_set_charset($conexion,"utf8");
 
 date_default_timezone_set("America/Argentina/Buenos_Aires");

@@ -105,6 +105,23 @@ export interface ControlEstaciones {
   historial: PedidoEstacion[];
 }
 
+/** Consultas de un feed para terceros de /api/ en el período (tabla api_consultas) */
+export interface ConsultasApi {
+  api: string;
+  total: number;
+  /** IP distintas que lo consultaron */
+  ips: number;
+  ultima: string | null;
+  por_dia: { dia: string; consultas: number }[];
+}
+
+export interface ConsultasApis {
+  desde: string;
+  hasta: string;
+  apis: ConsultasApi[];
+  ips: { api: string; ip: string; consultas: number; dias: number; ultima: string }[];
+}
+
 /** Sensor dado de baja (depuración de datos; tabla estaciones.sensores_baja) */
 export interface BajaSensor {
   id: number;
@@ -254,6 +271,10 @@ export class AdminApiService {
 
   lluvias9a9(fecha: string): Promise<Lluvias9a9> {
     return this.pedir<Lluvias9a9>('GET', 'lluvias9a9.php', undefined, new HttpParams().set('fecha', fecha));
+  }
+
+  consultasApis(dias: number): Promise<ConsultasApis> {
+    return this.pedir<ConsultasApis>('GET', 'consultas_api.php', undefined, new HttpParams().set('dias', String(dias)));
   }
 
   comunicaciones(): Promise<Comunicaciones> {

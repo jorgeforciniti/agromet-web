@@ -83,6 +83,28 @@ GRANT SELECT, INSERT, UPDATE ON colmenar.clima_diario_el_colmenar TO 'agromet_co
 No necesita `DELETE`: la pestaña nunca borra días. Si falta el archivo o el permiso, la pestaña lo
 dice y el resto de la administración sigue funcionando.
 
+### Consultas de las APIs para terceros
+
+La pestaña **Consultas de APIs** muestra cuántas veces se consultan los feeds de `/api/` (SMN,
+COVIAR, Citrusvil, CONICET, valles, El Charco), por día y por IP. Cada feed suma una consulta con
+`/services/registro-consultas.php` (lo usa `'invitado'@'%'`, el de `conecta_mysql.php`, que escribe)
+y esta pestaña la lee con `consultas_api.php` (el usuario de `conecta_admin.php`, que sólo lee). Sin
+la tabla, los feeds responden igual y la pestaña avisa que falta.
+
+```sql
+CREATE TABLE estaciones.api_consultas (
+  dia DATE NOT NULL,
+  api VARCHAR(40) NOT NULL COMMENT 'nombre del PHP de /api/ (smn, coviar, ...)',
+  ip VARCHAR(45) NOT NULL,
+  consultas INT UNSIGNED NOT NULL DEFAULT 0,
+  ultima DATETIME NOT NULL,
+  PRIMARY KEY (dia, api, ip)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+GRANT SELECT, INSERT, UPDATE ON estaciones.api_consultas TO 'invitado'@'%';
+GRANT SELECT ON estaciones.api_consultas TO '<usuario de conecta_admin.php>'@'<host>';
+```
+
 ## 3. Revisar `api/config.php`
 
 | Constante | Qué poner |
@@ -116,6 +138,7 @@ Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer 
 | `comunicaciones.php` | Quién reporta (últimas tramas recibidas por estación) y los últimos 150 eventos de `comunicaciones`. Incluye las deshabilitadas con GPRS, que no cuentan en el resumen. |
 | `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela (también en estaciones deshabilitadas con GPRS). |
 | `control_datos.php` | Control de datos: revisa `datos_diarios` de los últimos 7 a 31 días y propone sensores que parecen fallar (humedad que cae a 1-3 %, anemómetro trabado, pluviómetro sin registro, temperatura lejos de las vecinas, etc.). Revisa también las deshabilitadas que tienen datos, pero sólo las habilitadas sirven de vecinas. Sólo lee; las reglas están en el encabezado del archivo. |
+| `consultas_api.php` | Consultas de los feeds para terceros de `/api/` por feed, día e IP (tabla `api_consultas`). Sólo lee. |
 | `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. Lista todas las estaciones, también las deshabilitadas. Con `variable: todas` da de baja todos los sensores de una estación que falla entera (una fila por sensor). |
 | `colmenar_diarios.php` | Serie diaria de El Colmenar (`colmenar.clima_diario_el_colmenar`): resumen de pendientes por año, días de un período y carga de faltantes o validación de provisionales. |
 

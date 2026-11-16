@@ -1,0 +1,30 @@
+.cap-periodo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .85rem;
+}
+
+.cap-periodo select {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Mini serie de consultas por día */
+.cap-serie {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  width: 140px;
+  height: 28px;
+}
+
+.cap-barra {
+  flex: 1 1 0;
+  min-width: 1px;
+  background: var(--brand);
+  border-radius: 1px 1px 0 0;
+}

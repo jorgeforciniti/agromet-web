@@ -3,8 +3,8 @@
     <div class="adm__eyebrow">ADMINISTRACIÓN</div>
     <h1 class="adm__title">Administración de datos</h1>
     <p class="adm__copy">Carga y corrección de informes de la biblioteca técnica, lluvias de 9 a 9, estado de las
-      comunicaciones de las estaciones, control de los datos de los sensores y carga de la serie diaria de El
-      Colmenar.</p>
+      comunicaciones de las estaciones, control de los datos de los sensores, consultas de las APIs para
+      terceros y carga de la serie diaria de El Colmenar.</p>
   </header>
 
   <mat-tab-group class="adm__tabs" animationDuration="0ms" mat-stretch-tabs="false" [(selectedIndex)]="pestana">
@@ -201,6 +201,15 @@
       <div class="adm__panel adm__panel--una">
         <app-admin-sensores [propuesta]="propuestaBaja"></app-admin-sensores>
       </div>
+    </mat-tab>
+
+    <!-- ================= Consultas de los feeds para terceros ================= -->
+    <mat-tab label="Consultas de APIs">
+      <ng-template matTabContent>
+        <div class="adm__panel adm__panel--una">
+          <app-admin-consultas-api></app-admin-consultas-api>
+        </div>
+      </ng-template>
     </mat-tab>
 
     <!-- ================= Serie diaria de El Colmenar ================= -->

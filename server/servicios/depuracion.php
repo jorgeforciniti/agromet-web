@@ -183,6 +183,18 @@ const DEPURACION_COLUMNAS_REGISTRO = [
     'et' => ['ET'],
 ];
 
+/** Columnas de datos_diarios (feed io_valles.php) */
+const DEPURACION_COLUMNAS_DIARIAS = [
+    'temperatura' => ['temp_max', 'temp_min'],
+    'humedad' => ['hr_max', 'hr_min'],
+    'lluvia' => ['rr_24'],
+    'viento' => ['Viento_medio', 'Viento_Max'],
+    'radiacion' => ['Rad_Solar_media', 'Rad_Solar_max'],
+    'presion' => ['Presion_max', 'Presion_min', 'presion_media_24'],
+    'hoja' => ['hum_hoja_hs'],
+    'et' => ['et'],
+];
+
 /** Pone en null (sin quitar la clave) los campos de las variables dadas; compara sin mayúsculas */
 function depuracionAnular(&$fila, $variables, $campos) {
     $porNombre = [];
@@ -196,11 +208,20 @@ function depuracionAnular(&$fila, $variables, $campos) {
     }
 }
 
-/** Registro crudo de un día: anula los sensores de baja ese día (identificacion y fecha del registro) */
-function depuracionAnularRegistro(&$row, $bajas) {
-    $id = isset($row['identificacion']) ? $row['identificacion'] : (isset($row['Identificacion']) ? $row['Identificacion'] : null);
-    if ($id === null || !isset($row['fecha'])) return;
-    depuracionAnular($row, depuracionVariables($bajas, $id, substr((string)$row['fecha'], 0, 10)), DEPURACION_COLUMNAS_REGISTRO);
+/**
+ * Registro crudo de un día: anula los sensores de baja ese día. Toma identificacion y fecha del
+ * registro (sin importar mayúsculas); $columnas: DEPURACION_COLUMNAS_REGISTRO o _DIARIAS.
+ */
+function depuracionAnularRegistro(&$row, $bajas, $columnas = DEPURACION_COLUMNAS_REGISTRO) {
+    $id = null;
+    $fecha = null;
+    foreach ($row as $k => $v) {
+        $k = strtolower($k);
+        if ($k === 'identificacion') $id = $v;
+        if ($k === 'fecha') $fecha = $v;
+    }
+    if ($id === null || $fecha === null) return;
+    depuracionAnular($row, depuracionVariables($bajas, $id, substr((string)$fecha, 0, 10)), $columnas);
 }
 
 /** Último registro de una estación sin quitar claves (feeds viejos de /api/): anula en vez de quitar */

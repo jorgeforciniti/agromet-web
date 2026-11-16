@@ -13,6 +13,7 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 | `resumen-diario.php` | Resumen diario de la red (/datos): máxima, mínima, lluvia, humedad, viento, radiación y demás valores de un día en todas las estaciones | `estaciones`, `datos_diarios` |
 | `estaciones.php` | Todo el sitio y la app móvil: último registro de cada estación (`?habilitada=1` habilitadas, `2` las que transmitieron hoy, `?estacion=<id>` una sola) | `estaciones` (depurado) |
+| `registro-consultas.php` | No es un servicio: los feeds de `/api/` suman cada consulta (por día e IP) | `api_consultas` (la escribe) |
 | `depuracion.php` | No es un servicio: funciones que usan los demás PHP para no mandar los valores de los sensores dados de baja | `sensores_baja`, `estaciones` |
 | `datos-diarios.php` | Herramientas por estación de /datos y app móvil: valores diarios de una estación | `datos_diarios` (depurado) |
 | `datos-resumen.php` | Datos por localidad (resumen) y app móvil: totales y promedios del período de una estación | `datos_diarios` (depurado) |

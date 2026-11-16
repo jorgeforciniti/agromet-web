@@ -14,6 +14,26 @@ set_time_limit(30);
 $db = "estaciones";
 include("conecta_mysql.php");
 
+// Sensores dados de baja (depuración de datos, /services/depuracion.php): sus valores van en null,
+// sin cambiar el formato. Si el archivo no está, responde como antes.
+$depuracion = __DIR__ . "/../services/depuracion.php";
+if (!is_file($depuracion) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $depuracion = $_SERVER["DOCUMENT_ROOT"] . "/services/depuracion.php";
+}
+if (is_file($depuracion)) {
+    require_once $depuracion;
+}
+
+// Cantidad de consultas (tabla api_consultas; ver LEEME.md)
+$registro = __DIR__ . "/../services/registro-consultas.php";
+if (!is_file($registro) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $registro = $_SERVER["DOCUMENT_ROOT"] . "/services/registro-consultas.php";
+}
+if (is_file($registro)) {
+    require_once $registro;
+    registrarConsulta($conexion, 'io_valles');
+}
+
 if (!$conexion || mysqli_connect_errno()) {
     http_response_code(500);
     echo json_encode([
@@ -136,7 +156,10 @@ $units = [
 
 $arr = [];
 
+$diaIso = substr($fec, 0, 4) . '-' . substr($fec, 4, 2) . '-' . substr($fec, 6, 2);
+$bajas = function_exists("depuracionBajas") ? depuracionBajas($conexion, null, $diaIso, $diaIso) : array();
 while ($row = mysqli_fetch_assoc($resultado)) {
+    if ($bajas) depuracionAnularRegistro($row, $bajas, DEPURACION_COLUMNAS_DIARIAS);
     $id = $row['identificacion'];
 
     $station = [

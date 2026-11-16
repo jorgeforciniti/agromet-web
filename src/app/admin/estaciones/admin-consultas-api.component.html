@@ -1,0 +1,78 @@
+<div class="est-barra">
+  <span class="est-mut">Cuántas veces consultan los feeds de datos para terceros de <code>/api/</code> (SMN, COVIAR,
+    Citrusvil, CONICET, valles, El Charco), por día y por IP. Se cuenta desde que se instaló el registro.</span>
+  <label class="cap-periodo">
+    <span>Período</span>
+    <select [(ngModel)]="dias" (ngModelChange)="leer()" aria-label="Período">
+      <option *ngFor="let p of periodos" [ngValue]="p">Últimos {{ p }} días</option>
+    </select>
+  </label>
+  <span class="est-estado" [class.est-estado--error]="error" role="status">{{ error || (cargando ? 'Cargando…' : '') }}</span>
+  <button type="button" class="est-btn-sec" (click)="leer()" [disabled]="cargando" aria-label="Actualizar">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</div>
+
+<ng-container *ngIf="datos">
+  <p class="est-mut" *ngIf="!datos.apis.length">No hay consultas registradas entre el {{ datos.desde | date:'dd/MM/yyyy' }} y el
+    {{ datos.hasta | date:'dd/MM/yyyy' }}.</p>
+
+  <section class="est-caja" *ngIf="datos.apis.length">
+    <h2 class="est-caja__titulo">Por feed <small>del {{ datos.desde | date:'dd/MM' }} al {{ datos.hasta | date:'dd/MM/yyyy' }}</small></h2>
+    <div class="est-scroll">
+      <table class="est-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Feed</th>
+            <th scope="col" class="num">Consultas</th>
+            <th scope="col" class="num">Por día</th>
+            <th scope="col" class="num">IP distintas</th>
+            <th scope="col">Última</th>
+            <th scope="col">Día a día</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of datos.apis">
+            <td><strong>{{ a.api }}</strong><br><span class="est-mut">{{ destino(a.api) }}</span></td>
+            <td class="num">{{ a.total | number:'1.0-0':'es-AR' }}</td>
+            <td class="num">{{ promedio(a.total) | number:'1.0-1':'es-AR' }}</td>
+            <td class="num">{{ a.ips }}</td>
+            <td>{{ a.ultima | date:'dd/MM HH:mm' }}</td>
+            <td>
+              <div class="cap-serie" [attr.aria-label]="'Consultas por día de ' + a.api" role="img">
+                <span *ngFor="let d of barras(a.por_dia)" class="cap-barra" [style.height.%]="d.alto || 2"
+                  [attr.title]="(d.dia | date:'dd/MM') + ': ' + d.consultas"></span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="est-caja" *ngIf="datos.ips.length">
+    <h2 class="est-caja__titulo">Por IP <small>quién consulta cada feed</small></h2>
+    <div class="est-scroll">
+      <table class="est-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Feed</th>
+            <th scope="col">IP</th>
+            <th scope="col" class="num">Consultas</th>
+            <th scope="col" class="num">Días</th>
+            <th scope="col">Última</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let i of datos.ips">
+            <td>{{ i.api }}</td>
+            <td><code>{{ i.ip }}</code></td>
+            <td class="num">{{ i.consultas | number:'1.0-0':'es-AR' }}</td>
+            <td class="num">{{ i.dias }}</td>
+            <td>{{ i.ultima | date:'dd/MM HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</ng-container>

@@ -12,6 +12,7 @@ import { AdminColmenarComponent } from './colmenar/admin-colmenar.component';
 import { AdminComunicacionesComponent } from './estaciones/admin-comunicaciones.component';
 import { AdminControlComponent } from './estaciones/admin-control.component';
 import { AdminSensoresComponent } from './estaciones/admin-sensores.component';
+import { AdminConsultasApiComponent } from './estaciones/admin-consultas-api.component';
 import { AdminControlDatosComponent, PropuestaBaja } from './estaciones/admin-control-datos.component';
 import { AdminPublicadosComponent } from './publicados/admin-publicados.component';
 
@@ -26,6 +27,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, MatDialogModule, AdminPublicadosComponent,
     AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent,
+    AdminConsultasApiComponent,
     AdminColmenarComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'

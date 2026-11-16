@@ -10,6 +10,26 @@ header('Content-Type: application/json; charset=utf-8');
 $db = "estaciones";
 include("conecta_mysql.php");
 
+// Sensores dados de baja (depuración de datos, /services/depuracion.php): sus valores van en null,
+// sin cambiar el formato. Si el archivo no está, responde como antes.
+$depuracion = __DIR__ . "/../services/depuracion.php";
+if (!is_file($depuracion) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $depuracion = $_SERVER["DOCUMENT_ROOT"] . "/services/depuracion.php";
+}
+if (is_file($depuracion)) {
+    require_once $depuracion;
+}
+
+// Cantidad de consultas (tabla api_consultas; ver LEEME.md)
+$registro = __DIR__ . "/../services/registro-consultas.php";
+if (!is_file($registro) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $registro = $_SERVER["DOCUMENT_ROOT"] . "/services/registro-consultas.php";
+}
+if (is_file($registro)) {
+    require_once $registro;
+    registrarConsulta($conexion, 'smn-nuevo');
+}
+
 mysqli_set_charset($conexion, "utf8mb4");
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 set_time_limit(0);
@@ -62,7 +82,10 @@ $data = [];
 $lastId = null;
 $lastHour = null;
 
+$diaIso = substr($fec, 0, 4) . '-' . substr($fec, 4, 2) . '-' . substr($fec, 6, 2);
+$bajas = function_exists("depuracionBajas") ? depuracionBajas($conexion, null, $diaIso, $diaIso) : array();
 while ($row = $result->fetch_assoc()) {
+    if ($bajas) depuracionAnularRegistro($row, $bajas);
 
     $id = $row['identificacion'];
     $hora = $row['hora'];
