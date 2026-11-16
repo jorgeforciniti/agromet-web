@@ -42,6 +42,12 @@ switch ($habilitada) {
         break;
 }
 
+// ?estacion=<id>: sólo esa estación, esté o no habilitada (la usa la app móvil)
+$estacion = filter_input(INPUT_GET, 'estacion', FILTER_VALIDATE_INT);
+if ($estacion) {
+    $query = "SELECT * FROM estaciones WHERE Identificacion = $estacion";
+}
+
 $resultado = $conexion->query($query);
 if (!$resultado) {
     http_response_code(500);

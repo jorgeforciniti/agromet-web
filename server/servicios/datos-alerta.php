@@ -1,6 +1,7 @@
 <?php
 // datos-alerta.php
 // Resumen por estacion (lluvia y minimas) de un rango de fechas; sin rango: desde las 12:00 de ayer hasta ahora.
+// Sin rango y con ?horas=24: las últimas 24 horas (desde esta misma hora de ayer; lo usa la app móvil).
 //
 // Se resuelve en dos consultas separadas y se unen en PHP. Antes era un JOIN de datos_estaciones (InnoDB, mas de 20 millones
 // de filas) con estaciones (MyISAM): en MariaDB el optimizador recorria casi toda datos_estaciones y, como MyISAM bloquea la
@@ -42,6 +43,7 @@ const MAX_DIAS_RANGO = 400;
 $desde = isset($_GET['desde']) ? $_GET['desde'] : '';
 $hasta = isset($_GET['hasta']) ? $_GET['hasta'] : '';
 $sinFecha = false;
+$ultimas24 = isset($_GET['horas']) && $_GET['horas'] === '24';
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $desde))
     $sinFecha = true;
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $hasta))
@@ -71,7 +73,7 @@ if ($sinFecha) {
         SUM(temp_laf <= 0) AS registrosHelada
     FROM datos_estaciones
     WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-      AND (fecha > DATE_SUB(CURDATE(), INTERVAL 1 DAY) OR hora > '12:00:00')
+      AND (fecha > DATE_SUB(CURDATE(), INTERVAL 1 DAY) OR hora > " . ($ultimas24 ? "CURTIME()" : "'12:00:00'") . ")
     GROUP BY identificacion
     ORDER BY identificacion";
 } else {

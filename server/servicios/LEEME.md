@@ -12,12 +12,13 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 | `resumen-diario.php` | Resumen diario de la red (/datos): máxima, mínima, lluvia, humedad, viento, radiación y demás valores de un día en todas las estaciones | `estaciones`, `datos_diarios` |
+| `estaciones.php` | Todo el sitio y la app móvil: último registro de cada estación (`?habilitada=1` habilitadas, `2` las que transmitieron hoy, `?estacion=<id>` una sola) | `estaciones` (depurado) |
 | `depuracion.php` | No es un servicio: funciones que usan los demás PHP para no mandar los valores de los sensores dados de baja | `sensores_baja`, `estaciones` |
 | `datos-diarios.php` | Herramientas por estación de /datos y app móvil: valores diarios de una estación | `datos_diarios` (depurado) |
 | `datos-resumen.php` | Datos por localidad (resumen) y app móvil: totales y promedios del período de una estación | `datos_diarios` (depurado) |
 | `sensores-baja.php` | Depuración de datos (todo el sitio): sensores dados de baja, que se cargan en /admin | `sensores_baja` |
 | `incendio-fwi.php` | Peligro de incendios (/datos): índice meteorológico de peligro de incendios (FWI) del sistema canadiense por estación y día | `estaciones`, `datos_estaciones`, `fwi_diario` (la escribe) |
-| `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
+| `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación; con `?horas=24`, las últimas 24 horas (app móvil) | `estaciones`, `datos_estaciones` |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
 
