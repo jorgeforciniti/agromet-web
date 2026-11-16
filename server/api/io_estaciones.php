@@ -8,7 +8,7 @@ include("conecta_mysql.php");
 
 mysqli_set_charset($conexion,"utf8");
 date_default_timezone_set("America/Argentina/Buenos_Aires");
-$vble=$_GET['habilitada'];
+$vble = isset($_GET['habilitada']) ? intval($_GET['habilitada']) : 0; // va dentro del SQL
 
 $hoy = date("Ymd");
 

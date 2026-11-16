@@ -20,7 +20,7 @@ if (is_file($depuracion)) {
 // Para controlar desde afuera si depura (activa) o responde como antes (sin-archivo)
 header("X-Depuracion: " . (function_exists("depuracionLimpiarActual") ? "activa" : "sin-archivo"));
 date_default_timezone_set("America/Argentina/Buenos_Aires");
-$vble=$_GET['habilitada'];
+$vble = isset($_GET['habilitada']) ? intval($_GET['habilitada']) : 0;
 
 $hoy = date("Ymd");
 

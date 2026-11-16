@@ -26,7 +26,7 @@ header("X-Depuracion: " . (function_exists("depuracionLimpiarActual") ? "activa"
 
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 
-$vble=$_GET['estacion'];
+$vble = isset($_GET['estacion']) ? intval($_GET['estacion']) : 0; // número: va dentro del SQL
 
 $hoy = date("Ymd");
 $hace30 = date('Ymd',strtotime("-30 days"));

@@ -27,7 +27,7 @@ date_default_timezone_set("America/Argentina/Buenos_Aires");
 
 $en_csv = "";
 
-$vble = $_GET['estacion'];
+$vble = isset($_GET['estacion']) ? intval($_GET['estacion']) : 0; // número: va dentro del SQL
 $arr = "";
 
 if ($conexion) {

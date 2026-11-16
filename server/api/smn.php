@@ -17,7 +17,7 @@ mysqli_set_charset($conexion,"utf8");
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 set_time_limit(0);
 
-$fec=$_GET['fecha'];
+$fec = isset($_GET['fecha']) ? intval($_GET['fecha']) : 0; // AAAAMMDD: va dentro del SQL
 $arr = array();
 $arr1 = array();
 $arr2 = array();
