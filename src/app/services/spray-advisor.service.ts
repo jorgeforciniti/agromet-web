@@ -641,9 +641,14 @@ export class SprayAdvisorService {
     if (lTecho !== 'VERDE') push(razones, `${gustKmh != null ? 'Ráfaga' : 'Viento'} ${refKmh.toFixed(0)} km/h (${lTecho}).`);
     if (lMedio !== 'VERDE') push(razones, `Viento medio ${windKmh.toFixed(1)} km/h: desde ${num(medio!.amarillo)} km/h es demasiado (${lMedio}).`);
     if (lGust !== 'VERDE' && gustKmh != null) push(razones, `Ráfaga ${(gustKmh - windKmh).toFixed(0)} km/h sobre el viento medio (${lGust}).`);
+    // ΔT bajo (menos de 2 °C) no es evaporación: aire muy húmedo, en general estable, donde las gotas
+    // finas quedan suspendidas y derivan. La evaporación es el problema del ΔT alto.
+    const dtBajo = dT < 2;
     if (lDT !== 'VERDE') push(razones, dtConGotaGruesa
       ? `ΔT ${dT.toFixed(1)} °C (AMARILLO): entre 10 y 12 °C sólo se aplica con gota gruesa o muy gruesa.`
-      : `ΔT ${dT.toFixed(1)} °C (${lDT}) → evaporación/deriva.`);
+      : dtBajo
+        ? `ΔT ${dT.toFixed(1)} °C (${lDT}): aire muy húmedo, las gotas finas tardan en depositarse y derivan.`
+        : `ΔT ${dT.toFixed(1)} °C (${lDT}): aire seco, las gotas se evaporan y derivan.`);
     if (lRain !== 'VERDE') push(razones, `Prob. precipitación ${(pop * 100).toFixed(0)}% (${lRain}).`);
     if (lKp !== 'VERDE') push(razones, `Kp ${kp} (${lKp}) → posible degradación GNSS/compás.`);
     if (lSats !== 'VERDE') push(razones, `Satélites ${sats} (${lSats}) → precisión GNSS baja.`);
@@ -655,7 +660,9 @@ export class SprayAdvisorService {
     // Recomendaciones por método (conservadoras)
     if (sem === 'ROJO') push(recs, 'Evitar la aplicación en estas condiciones.');
     if (lInv !== 'VERDE') push(recs, 'Esperar ruptura de inversión: más mezcla (viento medio > 5 km/h) y/o mayor radiación.');
-    if (lDT === 'ROJO') push(recs, 'Reprogramar a ΔT 2–8 °C o usar gota muy gruesa + antievaporante.');
+    if (lDT === 'ROJO') push(recs, dtBajo
+      ? 'Reprogramar a ΔT 2–8 °C: esperar a que el aire se seque y haya más mezcla (viento o sol).'
+      : 'Reprogramar a ΔT 2–8 °C o usar gota muy gruesa + antievaporante.');
     if (lWind === 'ROJO' || lGust === 'ROJO') push(recs, 'Si es imprescindible: bajar altura, aumentar tamaño de gota y alejarse de bordes sensibles.');
     if (lWx === 'ROJO') push(recs, 'Precipitación o tormenta en ese momento: evitar la aplicación por lavado y seguridad.');
     if (lWx === 'AMARILLO') push(recs, 'Condición atmosférica (niebla/bruma/polvo): revisar visibilidad/deriva antes de aplicar.');
