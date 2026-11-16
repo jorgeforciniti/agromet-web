@@ -167,6 +167,49 @@ function depuracionQuitar(&$fila, $variables, $campos) {
     }
 }
 
+/**
+ * Registro crudo de datos_estaciones (nombres de columna de la tabla, sin importar mayúsculas):
+ * los feeds de terceros de /api/. Ahí no se quita la clave sino que el valor pasa a null, para no
+ * cambiar el formato que reciben (cada feed lo muestra como ya mostraba un dato faltante).
+ */
+const DEPURACION_COLUMNAS_REGISTRO = [
+    'temperatura' => ['Temp_AF', 'Temp_HAF', 'Temp_LAF'],
+    'humedad' => ['Hum_AF'],
+    'lluvia' => ['Lluvia', 'Tasa_Lluvia'],
+    'viento' => ['Viento_Medio', 'Viento_Max', 'Direccion_VMed', 'Direccion_VMax'],
+    'radiacion' => ['Rad_Solar', 'Rad_Solar_H'],
+    'presion' => ['Presion'],
+    'hoja' => ['Hum_Hoja'],
+    'et' => ['ET'],
+];
+
+/** Pone en null (sin quitar la clave) los campos de las variables dadas; compara sin mayúsculas */
+function depuracionAnular(&$fila, $variables, $campos) {
+    $porNombre = [];
+    foreach (array_keys($fila) as $k) $porNombre[strtolower($k)] = $k;
+    foreach ($variables as $v) {
+        if (!isset($campos[$v])) continue;
+        foreach ($campos[$v] as $campo) {
+            $k = strtolower($campo);
+            if (isset($porNombre[$k])) $fila[$porNombre[$k]] = null;
+        }
+    }
+}
+
+/** Registro crudo de un día: anula los sensores de baja ese día (identificacion y fecha del registro) */
+function depuracionAnularRegistro(&$row, $bajas) {
+    $id = isset($row['identificacion']) ? $row['identificacion'] : (isset($row['Identificacion']) ? $row['Identificacion'] : null);
+    if ($id === null || !isset($row['fecha'])) return;
+    depuracionAnular($row, depuracionVariables($bajas, $id, substr((string)$row['fecha'], 0, 10)), DEPURACION_COLUMNAS_REGISTRO);
+}
+
+/** Último registro de una estación sin quitar claves (feeds viejos de /api/): anula en vez de quitar */
+function depuracionAnularActual(&$fila, $bajas, $estacion, $fecha = null) {
+    $dia = $fecha ? substr((string)$fecha, 0, 10) : date('Y-m-d');
+    depuracionAnular($fila, depuracionVariables($bajas, $estacion, $dia), DEPURACION_CAMPOS_ACTUALES);
+    if (depuracionHayBaja($bajas, $estacion, 'lluvia', substr($dia, 0, 7) . '-01', $dia)) depuracionAnular($fila, ['lluvia'], ['lluvia' => ['rr_mes']]);
+}
+
 /** Fila de un día de una estación */
 function depuracionLimpiarDia(&$fila, $bajas, $estacion, $fecha, $campos) {
     depuracionQuitar($fila, depuracionVariables($bajas, $estacion, substr((string)$fecha, 0, 10)), $campos);

@@ -13,3 +13,7 @@ repositorio). Las subcarpetas `push/` (notificaciones de la app) tienen su propi
 
 Los parámetros se convierten a número antes de ir al SQL (`intval`): con el texto sin filtrar se
 podía inyectar SQL. `smn-nuevo.php` e `io_valles.php` ya lo validaban y siguen sólo en el servidor.
+
+**Depuración de datos:** usan `/services/depuracion.php` (tiene que estar subido; si no está, responden
+como antes). Los valores de los sensores dados de baja salen en `null` (en `smn.php`, `-99.9`), sin
+cambiar el formato: las mismas claves, como ya salía un dato faltante.

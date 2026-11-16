@@ -10,6 +10,16 @@ error_reporting (E_ALL  ^  E_NOTICE  ^  E_DEPRECATED);
 $db="estaciones";
 include("conecta_mysql.php");
 
+// Sensores dados de baja (depuración de datos, /services/depuracion.php): sus valores van en null,
+// sin cambiar el formato. Si el archivo no está, responde como antes.
+$depuracion = __DIR__ . "/../services/depuracion.php";
+if (!is_file($depuracion) && !empty($_SERVER["DOCUMENT_ROOT"])) {
+    $depuracion = $_SERVER["DOCUMENT_ROOT"] . "/services/depuracion.php";
+}
+if (is_file($depuracion)) {
+    require_once $depuracion;
+}
+
 mysqli_set_charset($conexion,"utf8");
 
 date_default_timezone_set("America/Argentina/Buenos_Aires");
@@ -41,9 +51,12 @@ if ($fec<20220101){
         $peticion4="SELECT fecha,hora, estaciones.lat, estaciones.lon, estaciones.alt, estaciones.nombre, estaciones.identificacion, Temp_HAF, Temp_LAF, Lluvia, datos_estaciones.Presion, Rad_Solar, datos_estaciones.Hum_AF, datos_estaciones.Viento_medio, datos_estaciones.Viento_Max, Direccion_VMed, Direccion_VMax FROM `datos_estaciones` inner join estaciones on datos_estaciones.Identificacion = estaciones.Identificacion WHERE fecha = $fec and estaciones.habilitada>0";
 
         $hacer = $conexion->query($peticion4);
+        $diaIso = substr($fec, 0, 4) . '-' . substr($fec, 4, 2) . '-' . substr($fec, 6, 2);
+        $bajas = function_exists("depuracionBajas") ? depuracionBajas($conexion, null, $diaIso, $diaIso) : array();
         $e=0;
         $h=0;
         while ($row=$hacer->fetch_assoc()){
+            if ($bajas) depuracionAnularRegistro($row, $bajas);
             // station
             if ($row['identificacion']==$e){
                 if($row['hora']>$h){
