@@ -17,6 +17,9 @@ require_once 'conecta_mysql.php'; // Se espera que ahí estén las variables $co
 
 mysqli_set_charset($conexion, 'utf8');
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 function validarFecha($fecha) {
     $d = DateTime::createFromFormat('Y-m-d', $fecha);
     return $d && $d->format('Y-m-d') === $fecha;
@@ -73,11 +76,12 @@ $sql = "SELECT
         where identificacion=$estacion and fecha>='$desde' and fecha<='$hasta'";
 
 $result = $conexion->query($sql);
+$bajas = depuracionBajas($conexion, $estacion, $desde, $hasta);
 
 // Verificar resultados
 if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $response[] = [
+        $fila = [
             'fecha' => (string)$row['fecha'],
             'temp_max' => (float)$row['temp_max'],
             'temp_min' => (float)$row['temp_min'],
@@ -92,6 +96,8 @@ if ($result) {
             'et' => (float)$row['et'],
             'hum_hoja_hs' => (float)$row['hum_hoja_hs']
         ];
+        depuracionLimpiarDia($fila, $bajas, $estacion, $row['fecha'], DEPURACION_CAMPOS_DIARIOS);
+        $response[] = $fila;
     }
 } else {
     http_response_code(500);

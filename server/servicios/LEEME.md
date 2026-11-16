@@ -12,6 +12,9 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |
 | `resumen-diario.php` | Resumen diario de la red (/datos): máxima, mínima, lluvia, humedad, viento, radiación y demás valores de un día en todas las estaciones | `estaciones`, `datos_diarios` |
+| `depuracion.php` | No es un servicio: funciones que usan los demás PHP para no mandar los valores de los sensores dados de baja | `sensores_baja`, `estaciones` |
+| `datos-diarios.php` | Herramientas por estación de /datos y app móvil: valores diarios de una estación | `datos_diarios` (depurado) |
+| `datos-resumen.php` | Datos por localidad (resumen) y app móvil: totales y promedios del período de una estación | `datos_diarios` (depurado) |
 | `sensores-baja.php` | Depuración de datos (todo el sitio): sensores dados de baja, que se cargan en /admin | `sensores_baja` |
 | `incendio-fwi.php` | Peligro de incendios (/datos): índice meteorológico de peligro de incendios (FWI) del sistema canadiense por estación y día | `estaciones`, `datos_estaciones`, `fwi_diario` (la escribe) |
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación | `estaciones`, `datos_estaciones` |
@@ -134,6 +137,19 @@ Para instalarlo:
    tiene que usar el índice de `fecha` y responder en menos de un segundo.
 3. Copiar el archivo a `/services/` y probar
    `https://agromet.eeaoc.gob.ar/services/resumen-diario.php?fecha=<hoy>`.
+
+## `depuracion.php`
+
+Funciones comunes para depurar los datos en el servidor (no responde si se lo pide directo). Cada
+PHP que lo incluye deja de mandar los campos de los sensores dados de baja: los de la tabla
+`sensores_baja` (también las bajas «A confirmar:») y la radiación de las estaciones con
+`isRadiation = 0`. La ET se quita si está de baja la temperatura, la humedad, el viento o la
+radiación; en los resúmenes de un período, la variable se quita si la baja toca algún día. Es la
+misma regla de `src/app/shared/depuracion.ts`, que el sitio sigue aplicando como segunda barrera.
+
+Se sube a `/services/` antes que los PHP que lo usan: `datos-diarios.php` y `datos-resumen.php`.
+Necesita `SELECT` sobre `sensores_baja` para el usuario de `conecta_mysql.php` (ya lo tiene, por
+`sensores-baja.php`). Si no puede leer la tabla, no quita nada.
 
 ## `sensores-baja.php`
 
