@@ -148,6 +148,8 @@ function estaciones_temp_baja($conexion) {
 try {
 
     $tempBaja = estaciones_temp_baja($conexion);
+    // Para controlar que lee las bajas (si sale vacía con bajas cargadas: falta depuracion.php o el permiso)
+    $resumen["temperatura_de_baja"] = array_keys($tempBaja);
 
     /*
       0) Cerrar los eventos abiertos de estaciones con la temperatura dada de baja: su sensor no
