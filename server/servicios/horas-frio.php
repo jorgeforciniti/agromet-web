@@ -25,7 +25,7 @@ require_once 'depuracion.php';
 
 mysqli_set_charset($conexion, 'utf8');
 
-define('HORAS_FRIO_DIAS_MAXIMO', 186);
+define('HORAS_FRIO_DIAS_MAXIMO', 366);
 
 function error_json($codigo, $mensaje)
 {
