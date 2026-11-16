@@ -44,8 +44,14 @@
 mat-tab-nav-panel{
   flex: 1 1 auto;
   display: flex;
+  flex-direction: column;
   height: auto !important;
   max-height: none !important;
+}
+
+/* El aviso de sensores dados de baja va arriba, a todo el ancho (en fila quedaba al costado) */
+mat-tab-nav-panel > app-aviso-bajas:not(:empty){
+  margin-top: 16px;
 }
 
 .tab-content{

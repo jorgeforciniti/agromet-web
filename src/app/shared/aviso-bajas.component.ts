@@ -15,7 +15,8 @@ export interface ConsultaBajas {
 /**
  * Aviso de los sensores dados de baja en la consulta (depuración de datos): sus valores no se
  * muestran ni se usan, y sin el aviso un hueco o un total más bajo podría leerse como dato. Se pone
- * junto a los resultados de cada herramienta por estación:
+ * arriba de los resultados de cada herramienta por estación, a todo el ancho; con más de dos
+ * avisos queda plegado para no empujar el gráfico fuera de la pantalla del celular:
  *   <app-aviso-bajas [consulta]="consultaBajas" [variables]="['temperatura']"></app-aviso-bajas>
  * variables: sólo las que usa la herramienta (sin indicarlas, todas salvo la radiación de las
  * estaciones que no tienen ese sensor).
@@ -25,19 +26,21 @@ export interface ConsultaBajas {
   standalone: true,
   template: `
     @if (textos.length) {
-      <p class="aviso-bajas" role="note">
-        <span class="aviso-bajas__titulo">Datos que no se usan en este período</span>
+      <details class="aviso-bajas" [open]="textos.length <= 2">
+        <summary class="aviso-bajas__titulo">Datos que no se usan en este período ({{ textos.length }})</summary>
         @for (t of textos; track t) {
           <span class="aviso-bajas__item">{{ t }}</span>
         }
-      </p>
+      </details>
     }
   `,
   styles: [`
+    :host {
+      display: block;
+    }
+
     .aviso-bajas {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      display: block;
       margin: 0;
       padding: 8px 12px;
       border: 1px solid color-mix(in srgb, var(--warning, #f59f00) 35%, white);
@@ -50,6 +53,12 @@ export interface ConsultaBajas {
 
     .aviso-bajas__titulo {
       font-weight: 700;
+      cursor: pointer;
+    }
+
+    .aviso-bajas__item {
+      display: block;
+      margin-top: 2px;
     }
   `]
 })
