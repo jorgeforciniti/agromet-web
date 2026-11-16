@@ -84,6 +84,9 @@
             <p>«Última actualización» es la hora de ese registro y cuánto hace que llegó: en verde si es de la última
               hora, en naranja si está atrasado más de 1 hora y en gris si no hay datos de hoy. En esos dos últimos
               casos los valores no reflejan las condiciones actuales.</p>
+            <p>Si falta la temperatura, la humedad o el viento (o el sensor está dado de baja), o si el último registro
+              tiene más de una hora, el valor se estima con OpenWeatherMap y se marca «estimado». La lluvia no se
+              estima.</p>
             <p>Las lecturas de temperatura, lluvia o viento fuera de rango físico (errores del sensor) no se muestran. El ícono del cielo junto al
               nombre no lo mide la estación: viene de OpenWeatherMap; la salida y la puesta del sol, de
               sunrise-sunset.org.</p>
@@ -94,23 +97,23 @@
         <div class="station-metrics">
           <div class="metric">
             <mat-icon>thermostat</mat-icon>
-            <span class="value">{{ rtTemperature }} °C</span>
-            <span class="label">Temperatura</span>
+            <span class="value">{{ rtTemperature ?? '—' }} °C</span>
+            <span class="label">Temperatura<span class="estimado" *ngIf="rtEstimado.temp"> · estimada</span></span>
           </div>
           <div class="metric">
             <fa-icon [icon]="['fas', 'cloud-rain']"></fa-icon>
-            <span class="value">{{ rtRain }} mm</span>
+            <span class="value">{{ rtRain ?? '—' }} mm</span>
             <span class="label">Lluvia</span>
           </div>
           <div class="metric">
             <mat-icon>water_drop</mat-icon>
-            <span class="value">{{ rtHumidity }} %</span>
-            <span class="label">Humedad</span>
+            <span class="value">{{ rtHumidity ?? '—' }} %</span>
+            <span class="label">Humedad<span class="estimado" *ngIf="rtEstimado.hum"> · estimada</span></span>
           </div>
           <div class="metric">
             <mat-icon>air</mat-icon>
-            <span class="value">{{ rtWind?.direction }} {{ rtWind?.speed }} km/h</span>
-            <span class="label">Viento</span>
+            <span class="value">{{ rtWind?.direction }} {{ rtWind?.speed ?? '—' }} km/h</span>
+            <span class="label">Viento<span class="estimado" *ngIf="rtEstimado.viento"> · estimado</span></span>
           </div>
           <div class="metric metric--wide">
             <mat-icon>schedule</mat-icon>
@@ -119,6 +122,10 @@
                 · <span class="actualizado" [class]="'actualizado--' + rtEstado">{{ rtHace }}</span></ng-container></span>
           </div>
         </div>
+
+        <p class="nota-estimado" *ngIf="hayEstimados">Los valores «estimados» son de OpenWeatherMap para la ubicación de
+          la estación: la estación no tiene ese dato (falta o el sensor está dado de baja) o su último registro tiene
+          más de una hora.</p>
 
         <footer class="station-sun">
           <span><mat-icon>wb_sunny</mat-icon> {{ sunrise }}</span>

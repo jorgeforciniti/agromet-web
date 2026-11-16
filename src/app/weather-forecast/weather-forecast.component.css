@@ -651,3 +651,15 @@
 .como-se-lee--forecast {
   margin: -8px 0 14px;
 }
+
+/* Valor estimado con OpenWeatherMap (Estado actual) */
+.estimado {
+  font-style: italic;
+  color: var(--warning-text, #9a6700);
+}
+
+.nota-estimado {
+  margin: 6px 0 0;
+  font-size: .78rem;
+  color: var(--muted);
+}

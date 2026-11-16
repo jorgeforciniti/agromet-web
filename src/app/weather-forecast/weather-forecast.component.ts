@@ -36,6 +36,9 @@ export interface AvisoHelada {
 }
 import { EstadoComunicacion, estadoComunicacion, haceCuanto, leerFechaEstacion } from '../shared/estado-estacion';
 
+/** Rumbos en el formato de la estación (direc) */
+const RUMBOS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
 registerLocaleData(localeEsAr);
 
 const ZONA_HORARIA = 'America/Argentina/Buenos_Aires';
@@ -110,6 +113,12 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
   rtHace = '';
   rtEstado: EstadoComunicacion = 'sin-datos-hoy';
   rtStationName: string = '';
+  /** Valores estimados con OpenWeatherMap (la estación no lo tiene, está dado de baja o atrasado) */
+  rtEstimado = { temp: false, hum: false, viento: false };
+
+  get hayEstimados(): boolean {
+    return this.rtEstimado.temp || this.rtEstimado.hum || this.rtEstimado.viento;
+  }
 
   constructor(
     private weatherService: WeatherService,
@@ -588,6 +597,9 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
       this.rtHace = this.rtUpdated ? haceCuanto(this.rtUpdated) : '';
       this.rtEstado = estadoComunicacion(this.rtUpdated);
       this.rtStationName = this.selectedStation.nombre || 'Estación desconocida';
+      this.rtEstimado = { temp: false, hum: false, viento: false };
+      // Sin datos de hoy, la lluvia del día no es la de hoy
+      if (this.rtEstado === 'sin-datos-hoy') this.rtRain = null;
 
       this.getWeatherForecast(lat, lon);
       this.loadNowWeather(lat, lon);
@@ -607,6 +619,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
 
         this.nowDescription = w?.description ?? null;
         this.nowIconUrl = icon ? `https://openweathermap.org/img/wn/${icon}.png` : null;
+        this.estimarFaltantes(res);
 
         this.nowLoading = false;
       },
@@ -616,6 +629,35 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
         this.nowDescription = null;
       }
     });
+  }
+
+  /**
+   * Como la app móvil: si la estación no tiene el valor (falta, está fuera de rango o el sensor está
+   * dado de baja) o el registro está atrasado más de una hora, se estima con OpenWeatherMap y se marca
+   * «estimado». El viento del modelo es a 10 m y se lleva a 3 m, la altura de los anemómetros
+   * (÷ 1,35, el mismo perfil que el índice de incendios). La lluvia no se estima: no hay un equivalente.
+   */
+  private estimarFaltantes(owm: OpenWeatherNowResponse): void {
+    const atrasada = this.rtEstado !== 'al-dia';
+    const t = owm?.main?.temp;
+    if ((atrasada || this.rtTemperature == null) && t != null && Number.isFinite(t)) {
+      this.rtTemperature = Math.round(t * 10) / 10;
+      this.rtEstimado.temp = true;
+    }
+    const h = owm?.main?.humidity;
+    if ((atrasada || this.rtHumidity == null) && h != null && Number.isFinite(h)) {
+      this.rtHumidity = Math.round(h);
+      this.rtEstimado.hum = true;
+    }
+    const v = owm?.wind?.speed;
+    if ((atrasada || this.rtWind?.speed == null) && v != null && Number.isFinite(v)) {
+      const deg = owm.wind?.deg;
+      this.rtWind = {
+        direction: deg != null && Number.isFinite(deg) ? RUMBOS[Math.round(deg / 22.5) % 16] : 'N/A',
+        speed: Math.round(v * 3.6 / 1.35)
+      };
+      this.rtEstimado.viento = true;
+    }
   }
 
   ngOnDestroy(): void {

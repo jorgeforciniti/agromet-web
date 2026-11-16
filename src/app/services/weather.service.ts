@@ -90,6 +90,9 @@ export interface OpenWeatherForecastResponse {
 
 export interface OpenWeatherNowResponse {
   weather: OpenWeatherCondition[];
+  /** Para estimar los valores que faltan en la estación (Estado actual) */
+  main?: { temp?: number; humidity?: number };
+  wind?: { speed?: number; deg?: number };
 }
 
 export interface SmnAreaWarning {
