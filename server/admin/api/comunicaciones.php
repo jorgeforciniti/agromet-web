@@ -17,7 +17,7 @@ $cx = conexion();
 
 try {
     $estaciones = $cx->query("
-        SELECT e.Identificacion AS id, e.nombre,
+        SELECT e.Identificacion AS id, e.nombre, e.habilitada,
                (SELECT MAX(c.fechahora) FROM $est.comunicaciones c
                  WHERE c.estacion = e.Identificacion AND c.fechahora >= NOW() - INTERVAL 3 DAY AND c.error_c IN (9,2)) AS ult_recepcion,
                (SELECT COUNT(*) FROM $est.comunicaciones c
@@ -25,8 +25,8 @@ try {
                (SELECT TIMESTAMP(d.Fecha, d.Hora) FROM $est.datos_estaciones d
                  WHERE d.Identificacion = e.Identificacion ORDER BY d.Fecha DESC, d.Hora DESC LIMIT 1) AS ult_dato
         FROM $est.estaciones e
-        WHERE e.habilitada > 0 AND e.gprs = 1
-        ORDER BY e.nombre")->fetch_all(MYSQLI_ASSOC);
+        WHERE e.gprs = 1
+        ORDER BY e.habilitada = 0, e.nombre")->fetch_all(MYSQLI_ASSOC);
 
     $eventos = $cx->query("
         SELECT c.id, c.fechahora, c.error_c, c.estacion, c.detalle, e.nombre
@@ -52,10 +52,14 @@ $resumen = ['ok' => 0, 'retraso' => 0, 'sin' => 0];
 $estaciones = array_map(function ($e) use ($minutos, &$resumen) {
     $rec = $minutos($e['ult_recepcion']);
     $estado = $rec === null || $rec > 60 ? 'sin' : ($rec > 20 ? 'retraso' : 'ok');
-    $resumen[$estado]++;
+    $habilitada = (int) $e['habilitada'] > 0;
+    if ($habilitada) {
+        $resumen[$estado]++; // las deshabilitadas no cuentan en el resumen de la red
+    }
     return [
         'id' => (string) $e['id'],
         'nombre' => trim((string) $e['nombre']),
+        'habilitada' => $habilitada,
         'estado' => $estado,
         'min_recepcion' => $rec,
         'ult_dato' => $e['ult_dato'],

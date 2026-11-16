@@ -38,7 +38,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let a of alertas; trackBy: porClave" [class.cdt-baja]="a.de_baja">
-          <td>{{ a.nombre }} <span class="est-mut">({{ a.estacion }})</span></td>
+          <td>{{ a.nombre }} <span class="est-mut">({{ a.estacion }})</span> <span class="est-deshabilitada" *ngIf="a.habilitada === false">deshabilitada</span></td>
           <td>{{ nombreVariable[a.variable] || a.variable }}</td>
           <td class="cdt-problema">{{ a.problema }}</td>
           <td class="num"><strong>{{ a.dias }}</strong><span class="est-mut"> de {{ datos.dias }}</span></td>

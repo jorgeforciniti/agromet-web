@@ -112,11 +112,11 @@ Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer 
 | `pdfs.php` | Lista los informes (búsqueda, categoría, año, de a 20) y publica uno nuevo. |
 | `pdf_editar.php` | Corrige título, categoría o fecha de un informe publicado. |
 | `pdf_borrar.php` | Despublica: borra el registro y mueve el archivo a `PDFS/_despublicados/` (no se pierde). |
-| `lluvias9a9.php` | Lluvia de 9 a 9 de todas las estaciones habilitadas. |
-| `comunicaciones.php` | Quién reporta (últimas tramas recibidas por estación) y los últimos 150 eventos de `comunicaciones`. |
-| `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela. |
-| `control_datos.php` | Control de datos: revisa `datos_diarios` de los últimos 7 a 31 días y propone sensores que parecen fallar (humedad que cae a 1-3 %, anemómetro trabado, pluviómetro sin registro, temperatura lejos de las vecinas, etc.). Sólo lee; las reglas están en el encabezado del archivo. |
-| `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. |
+| `lluvias9a9.php` | Lluvia de 9 a 9 de todas las estaciones habilitadas y de las deshabilitadas que tienen registros en el período. |
+| `comunicaciones.php` | Quién reporta (últimas tramas recibidas por estación) y los últimos 150 eventos de `comunicaciones`. Incluye las deshabilitadas con GPRS, que no cuentan en el resumen. |
+| `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela (también en estaciones deshabilitadas con GPRS). |
+| `control_datos.php` | Control de datos: revisa `datos_diarios` de los últimos 7 a 31 días y propone sensores que parecen fallar (humedad que cae a 1-3 %, anemómetro trabado, pluviómetro sin registro, temperatura lejos de las vecinas, etc.). Revisa también las deshabilitadas que tienen datos, pero sólo las habilitadas sirven de vecinas. Sólo lee; las reglas están en el encabezado del archivo. |
+| `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. Lista todas las estaciones, también las deshabilitadas. Con `variable: todas` da de baja todos los sensores de una estación que falla entera (una fila por sensor). |
 | `colmenar_diarios.php` | Serie diaria de El Colmenar (`colmenar.clima_diario_el_colmenar`): resumen de pendientes por año, días de un período y carga de faltantes o validación de provisionales. |
 
 ## Serie diaria de El Colmenar (`colmenar_diarios.php`)

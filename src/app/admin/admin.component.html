@@ -157,7 +157,7 @@
                 <tr *ngFor="let e of estacionesOrdenadas" [class.sin-datos]="e.mm === null"
                   [class.incompleta]="e.mm !== null && e.horas < 24">
                   <td>{{ e.id }}</td>
-                  <td>{{ e.nombre }}</td>
+                  <td>{{ e.nombre }} <span class="est-deshabilitada" *ngIf="e.habilitada === false">deshabilitada</span></td>
                   <td class="num">{{ e.mm === null ? '—' : (e.mm | number:'1.1-1':'es-AR') }}</td>
                   <td class="num">{{ e.horas | number:'1.0-2':'es-AR' }}</td>
                   <td class="adm-celda-accion">

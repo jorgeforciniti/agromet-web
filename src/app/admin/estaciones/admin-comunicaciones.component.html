@@ -52,7 +52,7 @@
         <tbody>
           <tr *ngFor="let e of estaciones">
             <td><span class="est-tag est-t-{{ e.estado }}">{{ nombresEstado[e.estado] }}</span></td>
-            <td>{{ e.nombre }} <span class="est-mut">({{ e.id }})</span></td>
+            <td>{{ e.nombre }} <span class="est-mut">({{ e.id }})</span> <span class="est-deshabilitada" *ngIf="e.habilitada === false">deshabilitada</span></td>
             <td class="num">{{ hace(e.min_recepcion) }}</td>
             <td class="num">
               <ng-container *ngIf="e.ult_dato; else sinDato">

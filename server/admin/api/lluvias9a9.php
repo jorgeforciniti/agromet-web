@@ -15,15 +15,16 @@ $hasta = validar_fecha($_GET['fecha'] ?? '', 'fecha');
 $desde = date('Y-m-d', strtotime("$hasta -1 day"));
 
 $est = '`' . DB_ESTACIONES . '`';
-// LEFT JOIN: también aparecen las estaciones habilitadas sin registros (para ver las que faltan)
-$sql = "SELECT e.identificacion AS id, e.nombre, e.tiempo,
+// LEFT JOIN: también aparecen las estaciones habilitadas sin registros (para ver las que faltan).
+// Las deshabilitadas aparecen si tienen registros en el período (para revisar sus datos).
+$sql = "SELECT e.identificacion AS id, e.nombre, e.tiempo, e.habilitada,
                SUM(d.lluvia) AS mm, COUNT(d.lluvia) AS registros, COUNT(d.temp_AF) AS registros_temp
         FROM $est.estaciones e
         LEFT JOIN $est.datos_estaciones d
                ON d.identificacion = e.identificacion
               AND ((d.fecha = ? AND d.hora <= '09:00:00') OR (d.fecha = ? AND d.hora > '09:00:00'))
-        WHERE e.habilitada > 0
-        GROUP BY e.identificacion, e.nombre, e.tiempo
+        WHERE e.habilitada > 0 OR d.identificacion IS NOT NULL
+        GROUP BY e.identificacion, e.nombre, e.tiempo, e.habilitada
         ORDER BY e.nombre";
 $st = conexion()->prepare($sql);
 $st->bind_param('ss', $hasta, $desde);
@@ -35,6 +36,7 @@ $estaciones = array_map(function ($f) {
     return [
         'id' => (string) $f['id'],
         'nombre' => trim($f['nombre']),
+        'habilitada' => (int) $f['habilitada'] > 0,
         'mm' => $registros > 0 ? round((float) $f['mm'], 1) : null,
         // Igual que RR9a9.php: registros × intervalo de la estación (minutos) / 60
         'horas' => round((int) $f['registros_temp'] * (float) $f['tiempo'] / 60, 2),

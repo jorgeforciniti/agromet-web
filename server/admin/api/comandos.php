@@ -40,7 +40,7 @@ try {
 
         $estacion = (int) ($d['estacion'] ?? 0);
         $comando = $d['comando'] ?? '';
-        $st = $cx->prepare("SELECT nombre FROM $est.estaciones WHERE Identificacion = ? AND habilitada > 0 AND gprs = 1");
+        $st = $cx->prepare("SELECT nombre FROM $est.estaciones WHERE Identificacion = ? AND gprs = 1");
         $st->bind_param('i', $estacion);
         $st->execute();
         $fila = $st->get_result()->fetch_assoc();
@@ -77,10 +77,10 @@ try {
     }
 
     $estaciones = $cx->query("
-        SELECT e.Identificacion AS id, e.nombre, DATE_FORMAT(e.fecha_I, '%d/%m/%y%H:%i') AS fecha_i,
+        SELECT e.Identificacion AS id, e.nombre, e.habilitada, DATE_FORMAT(e.fecha_I, '%d/%m/%y%H:%i') AS fecha_i,
                (SELECT TIMESTAMPDIFF(MINUTE, TIMESTAMP(d.Fecha, d.Hora), NOW()) FROM $est.datos_estaciones d
                  WHERE d.Identificacion = e.Identificacion ORDER BY d.Fecha DESC, d.Hora DESC LIMIT 1) AS min_dato
-        FROM $est.estaciones e WHERE e.habilitada > 0 AND e.gprs = 1 ORDER BY e.nombre")->fetch_all(MYSQLI_ASSOC);
+        FROM $est.estaciones e WHERE e.gprs = 1 ORDER BY e.habilitada = 0, e.nombre")->fetch_all(MYSQLI_ASSOC);
     $ahora = $cx->query("SELECT DATE_FORMAT(NOW(), '%d/%m/%y%H:%i') AS ahora")->fetch_assoc()['ahora'];
     $pendientes = $cx->query("
         SELECT c.id, c.estacion, e.nombre, c.comando, c.fecha_ref, c.creado
@@ -114,6 +114,7 @@ responder([
         return [
             'id' => (string) $e['id'],
             'nombre' => trim((string) $e['nombre']),
+            'habilitada' => (int) $e['habilitada'] > 0,
             // NULL si fecha_I está vacía o en cero
             'fecha_i' => $e['fecha_i'],
             'min_dato' => $e['min_dato'] === null ? null : (int) $e['min_dato'],

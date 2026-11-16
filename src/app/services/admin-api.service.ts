@@ -25,6 +25,8 @@ export interface FiltroInformesAdmin {
 export interface LluviaEstacion9a9 {
   id: string;
   nombre: string;
+  /** false: la estación está deshabilitada (se muestra igual, para revisar y corregir sus datos) */
+  habilitada?: boolean;
   /** null: la estación no tiene registros en el período */
   mm: number | null;
   /** Horas cubiertas por los registros (24 = completo) */
@@ -42,6 +44,8 @@ export type EstadoEstacion = 'ok' | 'retraso' | 'sin';
 export interface EstacionComunicacion {
   id: string;
   nombre: string;
+  /** false: la estación está deshabilitada (se muestra igual, para revisar y corregir sus datos) */
+  habilitada?: boolean;
   estado: EstadoEstacion;
   /** Minutos desde la última trama recibida (null: ninguna en 3 días) */
   min_recepcion: number | null;
@@ -75,6 +79,8 @@ export type ComandoEstacion = 'hora' | 'borrar';
 export interface EstacionControl {
   id: string;
   nombre: string;
+  /** false: la estación está deshabilitada (se muestra igual, para revisar y corregir sus datos) */
+  habilitada?: boolean;
   /** dd/mm/aahh:mm guardada en estaciones.fecha_I */
   fecha_i: string | null;
   min_dato: number | null;
@@ -115,7 +121,7 @@ export interface BajaSensor {
 }
 
 export interface SensoresBaja {
-  estaciones: { id: string; nombre: string }[];
+  estaciones: { id: string; nombre: string; habilitada?: boolean }[];
   bajas: BajaSensor[];
 }
 
@@ -129,6 +135,8 @@ export interface DatosBaja {
 export interface AlertaDatos {
   estacion: string;
   nombre: string;
+  /** false: la estación está deshabilitada (se muestra igual, para revisar y corregir sus datos) */
+  habilitada?: boolean;
   variable: VariableSensor;
   /** humedad_baja, viento_cero, lluvia_sin_registro… (ver el encabezado de control_datos.php) */
   regla: string;
@@ -275,7 +283,8 @@ export class AdminApiService {
   }
 
   /** Devuelve el mensaje para mostrar */
-  darDeBaja(datos: DatosBaja & { estacion: string; variable: VariableSensor }): Promise<string> {
+  /** variable 'todas': todos los sensores de la estación (falla entera) */
+  darDeBaja(datos: DatosBaja & { estacion: string; variable: VariableSensor | 'todas' }): Promise<string> {
     return this.pedir<{ mensaje: string }>('POST', 'sensores_baja.php', { accion: 'crear', ...datos }).then(r => r.mensaje);
   }
 

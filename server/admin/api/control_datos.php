@@ -82,11 +82,13 @@ $historia = date('Y-m-d', strtotime("$hasta -" . (BUSCAR_INICIO_DIAS - 1) . ' da
 $est = '`' . DB_ESTACIONES . '`';
 $cx = conexion();
 
-// 1) Estaciones habilitadas (SELECT *: isRadiation puede no estar en todas las instalaciones)
+// 1) Estaciones (SELECT *: isRadiation puede no estar en todas las instalaciones). Se revisan
+// también las deshabilitadas que tienen datos, pero sólo las habilitadas sirven de vecinas.
 $estaciones = [];
-foreach ($cx->query("SELECT * FROM $est.estaciones WHERE habilitada > 0")->fetch_all(MYSQLI_ASSOC) as $e) {
+foreach ($cx->query("SELECT * FROM $est.estaciones")->fetch_all(MYSQLI_ASSOC) as $e) {
     $estaciones[(string) $e['Identificacion']] = [
         'nombre' => trim((string) $e['nombre']),
+        'habilitada' => (int) $e['habilitada'] > 0,
         'lat' => (float) $e['lat'], 'lon' => (float) $e['lon'], 'alt' => (float) $e['alt'],
         'radiacion' => !isset($e['isRadiation']) || (int) $e['isRadiation'] === 1,
     ];
@@ -94,7 +96,7 @@ foreach ($cx->query("SELECT * FROM $est.estaciones WHERE habilitada > 0")->fetch
 foreach ($estaciones as $id => &$e) {
     $e['vecinas'] = [];
     foreach ($estaciones as $otra => $o) {
-        if ($otra !== $id && abs($o['alt'] - $e['alt']) <= VECINAS_DESNIVEL
+        if ($otra !== $id && $o['habilitada'] && abs($o['alt'] - $e['alt']) <= VECINAS_DESNIVEL
             && distancia_km($e['lat'], $e['lon'], $o['lat'], $o['lon']) <= VECINAS_KM) {
             $e['vecinas'][] = $otra;
         }
@@ -218,6 +220,7 @@ foreach ($hallazgos as $clave => $todas) {
     $alertas[] = [
         'estacion' => $id,
         'nombre' => $estaciones[$id]['nombre'],
+        'habilitada' => $estaciones[$id]['habilitada'],
         'variable' => $variable,
         'regla' => $regla,
         'problema' => REGLAS[$regla][1],

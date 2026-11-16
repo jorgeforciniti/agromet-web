@@ -14,7 +14,7 @@
       <label class="ctl-campo">
         <span>Estación</span>
         <select [(ngModel)]="estacionId" (ngModelChange)="alCambiarEstacion()">
-          <option *ngFor="let e of datos.estaciones; trackBy: porId" [value]="e.id">{{ e.nombre }} ({{ e.id }})</option>
+          <option *ngFor="let e of datos.estaciones; trackBy: porId" [value]="e.id">{{ e.nombre }} ({{ e.id }}){{ e.habilitada === false ? ' · deshabilitada' : '' }}</option>
         </select>
       </label>
       <p class="est-mut ctl-info" *ngIf="seleccionada as e">

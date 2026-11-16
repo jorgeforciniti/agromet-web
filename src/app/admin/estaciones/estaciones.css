@@ -164,3 +164,16 @@
 .est-enlace:hover {
   background: color-mix(in srgb, var(--brand) 8%, white);
 }
+
+/* Estación deshabilitada: se muestra para revisar y corregir sus datos */
+.est-deshabilitada {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}

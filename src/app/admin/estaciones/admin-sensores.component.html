@@ -15,13 +15,14 @@
       <label class="ctl-campo">
         <span>Estación</span>
         <select name="estacion" [(ngModel)]="estacion">
-          <option *ngFor="let e of datos.estaciones" [value]="e.id">{{ e.nombre }} ({{ e.id }})</option>
+          <option *ngFor="let e of datos.estaciones" [value]="e.id">{{ e.nombre }} ({{ e.id }}){{ e.habilitada === false ? ' · deshabilitada' : '' }}</option>
         </select>
       </label>
       <label class="ctl-campo">
         <span>Sensor</span>
         <select name="variable" [(ngModel)]="variable">
           <option *ngFor="let v of variables" [value]="v">{{ nombreVariable[v] }}</option>
+          <option value="todas">Todos los sensores (la estación falla entera)</option>
         </select>
       </label>
       <div class="sen-fechas">
@@ -49,7 +50,7 @@
       <p class="ctl-aviso ctl-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
 
       <button type="submit" class="ctl-btn" [disabled]="!formularioValido || enviando">
-        <mat-icon>sensors_off</mat-icon>{{ enviando ? 'Guardando…' : 'Dar de baja' }}
+        <mat-icon>sensors_off</mat-icon>{{ enviando ? 'Guardando…' : (variable === 'todas' ? 'Dar de baja todos' : 'Dar de baja') }}
       </button>
     </form>
   </section>

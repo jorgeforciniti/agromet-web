@@ -44,7 +44,8 @@ export class AdminSensoresComponent implements OnInit {
   errorCarga = '';
 
   estacion = '';
-  variable: VariableSensor = 'humedad';
+  /** 'todas': todos los sensores de la estación (falla entera) */
+  variable: VariableSensor | 'todas' = 'humedad';
   desde = this.hoy;
   hasta = '';
   motivo = '';
@@ -89,6 +90,11 @@ export class AdminSensoresComponent implements OnInit {
 
   async darDeBaja(): Promise<void> {
     if (!this.formularioValido || this.enviando) return;
+    if (this.variable === 'todas') {
+      const nombre = this.datos?.estaciones.find(e => e.id === this.estacion)?.nombre ?? this.estacion;
+      if (!confirm(`¿Dar de baja todos los sensores de ${nombre} desde el ${this.desde.split('-').reverse().join('/')}? `
+        + 'Se carga una baja por sensor (salvo los que ya están de baja ese día), y cada una se puede cerrar o borrar después.')) return;
+    }
     this.enviando = true;
     this.limpiarAvisos();
     try {

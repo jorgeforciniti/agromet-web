@@ -7,6 +7,8 @@
  * GET → {ok, variables:[...], estaciones:[{id, nombre}], bajas:[{id, estacion, nombre, variable, desde,
  *        hasta, motivo, cargado_por, creado}]}
  * POST {accion:'crear', estacion, variable, desde, hasta?, motivo}
+ *      variable: 'todas' da de baja todos los sensores (la estación falla entera): una fila por
+ *      variable, salvo las que ya están de baja ese día
  * POST {accion:'editar', id, desde, hasta?, motivo}   (para cerrarla, poner hasta: el día anterior al arreglo)
  * POST {accion:'borrar', id}                         (sólo si se cargó por error)
  * Cada cambio se anota en sensores.log con el email del administrador.
@@ -74,19 +76,40 @@ try {
             error_json('Estación inválida.', 422);
         }
         $variable = $d['variable'] ?? '';
-        if (!in_array($variable, VARIABLES_SENSOR, true)) {
+        if ($variable !== 'todas' && !in_array($variable, VARIABLES_SENSOR, true)) {
             error_json('Variable inválida.', 422);
+        }
+        $variables = $variable === 'todas' ? VARIABLES_SENSOR : [$variable];
+
+        // Con «todas», se saltean las que ya están de baja el día desde (no se duplican)
+        if ($variable === 'todas') {
+            $st = $cx->prepare("SELECT variable FROM $est.sensores_baja
+                WHERE identificacion = ? AND desde <= ? AND (hasta IS NULL OR hasta >= ?)");
+            $st->bind_param('sss', $estacion, $desde, $desde);
+            $st->execute();
+            $yaDeBaja = array_column($st->get_result()->fetch_all(MYSQLI_ASSOC), 'variable');
+            $variables = array_values(array_diff($variables, $yaDeBaja));
+            if (!$variables) {
+                error_json('Todos los sensores de esa estación ya están de baja ese día.', 422);
+            }
         }
 
         $st = $cx->prepare("INSERT INTO $est.sensores_baja (identificacion, variable, desde, hasta, motivo, cargado_por)
             VALUES (?, ?, ?, ?, ?, ?)");
-        $st->bind_param('ssssss', $estacion, $variable, $desde, $hasta, $motivo, $admin);
-        $st->execute();
-        anotar_sensor($admin, "da de baja $variable de la estación $estacion desde $desde, baja {$cx->insert_id}");
-        responder(['ok' => true, 'mensaje' => 'Sensor de ' . $variable . ' de ' . trim($fila['nombre']) . ' dado de baja.']);
+        $cx->begin_transaction();
+        foreach ($variables as $v) {
+            $st->bind_param('ssssss', $estacion, $v, $desde, $hasta, $motivo, $admin);
+            $st->execute();
+            anotar_sensor($admin, "da de baja $v de la estación $estacion desde $desde, baja {$cx->insert_id}");
+        }
+        $cx->commit();
+        responder(['ok' => true, 'mensaje' => ($variable === 'todas'
+            ? count($variables) . ' sensores de ' . trim($fila['nombre']) . ' dados de baja.'
+            : 'Sensor de ' . $variable . ' de ' . trim($fila['nombre']) . ' dado de baja.')]);
     }
 
-    $estaciones = $cx->query("SELECT Identificacion AS id, nombre FROM $est.estaciones WHERE habilitada > 0 ORDER BY nombre")
+    // Todas: también las deshabilitadas, para poder marcar sus sensores
+    $estaciones = $cx->query("SELECT Identificacion AS id, nombre, habilitada FROM $est.estaciones ORDER BY habilitada = 0, nombre")
         ->fetch_all(MYSQLI_ASSOC);
     $bajas = $cx->query("
         SELECT b.id, b.identificacion, e.nombre, b.variable, b.desde, b.hasta, b.motivo, b.cargado_por, b.creado
@@ -106,7 +129,7 @@ responder([
     'ok' => true,
     'variables' => VARIABLES_SENSOR,
     'estaciones' => array_map(function ($e) {
-        return ['id' => (string) $e['id'], 'nombre' => trim((string) $e['nombre'])];
+        return ['id' => (string) $e['id'], 'nombre' => trim((string) $e['nombre']), 'habilitada' => (int) $e['habilitada'] > 0];
     }, $estaciones),
     'bajas' => array_map(function ($b) {
         return [
