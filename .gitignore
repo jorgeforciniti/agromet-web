@@ -50,3 +50,4 @@ src/assets/videos/inicio.mp4
 server/usuario/api/conecta_usuarios.php
 server/admin/api/conecta_admin.php
 server/admin/api/conecta_colmenar.php
+server/api/push/clave-push.php
