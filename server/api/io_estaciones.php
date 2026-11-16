@@ -15,6 +15,8 @@ if (!is_file($depuracion) && !empty($_SERVER["DOCUMENT_ROOT"])) {
 if (is_file($depuracion)) {
     require_once $depuracion;
 }
+// Para controlar desde afuera si depura (activa) o responde como antes (sin-archivo)
+header("X-Depuracion: " . (function_exists("depuracionAnular") ? "activa" : "sin-archivo"));
 
 // Cantidad de consultas (tabla api_consultas; ver LEEME.md)
 $registro = __DIR__ . "/../services/registro-consultas.php";
