@@ -48,7 +48,8 @@ try {
             error_json('La fecha hasta es anterior a la fecha desde.', 422);
         }
         $motivo = is_string($d['motivo'] ?? null) ? trim($d['motivo']) : '';
-        if ($motivo === '' || mb_strlen($motivo) > 255) {
+        // Largo en caracteres sin mb_strlen: el servidor no tiene la extensión mbstring
+        if ($motivo === '' || preg_match_all('/./su', $motivo) > 255) {
             error_json('Escribí el motivo (hasta 255 caracteres).', 422);
         }
 
