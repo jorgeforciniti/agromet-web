@@ -19,6 +19,9 @@ date_default_timezone_set('America/Argentina/Tucuman');
 
 $db = "estaciones";
 require_once 'conecta_mysql.php';
+
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
 // Helpers de error
 function badRequest($msg)
 {
@@ -145,6 +148,9 @@ while ($row = $resEst->fetch_assoc()) {
 $stmtEst->close();
 
 // 5) Unir (equivale al JOIN anterior: solo estaciones que existen y, sin rango, están habilitadas)
+$bajasDesde = $sinFecha ? date('Y-m-d', strtotime('-1 day')) : $desde;
+$bajasHasta = $sinFecha ? date('Y-m-d') : $hasta;
+$bajas = depuracionBajas($conexion, null, $bajasDesde, $bajasHasta);
 $data = [];
 foreach ($agregados as $a) {
     $id = (int) $a['identificacion'];
@@ -152,7 +158,7 @@ foreach ($agregados as $a) {
         continue;
     }
     $e = $estaciones[$id];
-    $data[] = [
+    $fila = [
         'identificacion'    => $a['identificacion'],
         'nombre'            => $e['nombre'],
         'lat'               => $e['lat'],
@@ -168,6 +174,8 @@ foreach ($agregados as $a) {
         'minimaTemperatura' => $a['minimaTemperatura'],
         'registrosHelada'   => $a['registrosHelada'],
     ];
+    depuracionLimpiarPeriodo($fila, $bajas, $id, $bajasDesde, $bajasHasta, DEPURACION_CAMPOS_ALERTA);
+    $data[] = $fila;
 }
 
 // 6) Devolver JSON

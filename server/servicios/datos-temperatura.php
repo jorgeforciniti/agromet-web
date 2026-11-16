@@ -29,6 +29,9 @@ date_default_timezone_set('America/Argentina/Tucuman');
 $db = "estaciones";
 require_once 'conecta_mysql.php'; // define $conexion
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 // Rango físico aceptado (°C); el mismo que TEMP_MIN_VALIDA y TEMP_MAX_VALIDA del mapa
 const TEMP_MIN_VALIDA = -25;
 const TEMP_MAX_VALIDA = 50;
@@ -132,8 +135,9 @@ if (!$stmt->execute()) {
 }
 $res = $stmt->get_result();
 $data = [];
+$bajas = depuracionBajas($conexion, null, $desde, $hasta);
 while ($row = $res->fetch_assoc()) {
-    $data[] = [
+    $fila = [
         'nombre'           => $row['nombre'],
         'lat'              => isset($row['lat'])           ? (float)$row['lat'] : null,
         'lon'              => isset($row['lon'])           ? (float)$row['lon'] : null,
@@ -152,6 +156,8 @@ while ($row = $res->fetch_assoc()) {
         'dias_min'         => (int)$row['dias_min'],
         'dias_media'       => (int)$row['dias_media'],
     ];
+    depuracionLimpiarPeriodo($fila, $bajas, $row['identificacion'], $desde, $hasta, DEPURACION_CAMPOS_TEMPERATURA_PERIODO);
+    $data[] = $fila;
 }
 
 // 6) Enviar JSON final

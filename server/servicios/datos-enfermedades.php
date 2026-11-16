@@ -11,6 +11,9 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
 $db = "estaciones";
 require_once 'conecta_mysql.php';
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 mysqli_set_charset($conexion, 'utf8');
 
 function validarFecha($fecha)
@@ -152,9 +155,10 @@ if (!$result) {
 }
 
 $response = [];
+$bajas = depuracionBajas($conexion, $estacion, $desde, $hasta);
 
 while ($row = $result->fetch_assoc()) {
-    $response[] = [
+    $fila = [
         'fecha' => (string) $row['Fecha'],
         'hora' => (string) $row['Hora'],
         'temp_af' => safeFloat($row['Temp_AF']),
@@ -185,6 +189,8 @@ while ($row = $result->fetch_assoc()) {
         'hum_suelo3' => safeInt($row['Hum_Suelo3']),
         'ultregrecibido' => isset($row['ultregrecibido']) ? (string) $row['ultregrecibido'] : null
     ];
+    depuracionLimpiarDia($fila, $bajas, $estacion, $row['Fecha'], DEPURACION_CAMPOS_REGISTRO);
+    $response[] = $fila;
 }
 
 $conexion->close();

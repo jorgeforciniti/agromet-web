@@ -8,6 +8,9 @@ error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 $db = "estaciones";
 include("conecta_mysql.php");
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 if (!$conexion) {
     http_response_code(500);
     echo json_encode(["error" => "No se pudo conectar a la base de datos."]);
@@ -48,6 +51,7 @@ if (!$resultado) {
 }
 
 $arr = [];
+$bajas = depuracionBajas($conexion);
 
 // Campos para sanitizar valores centinela
 $fieldsToCheck = ['temp_af', 'hum_af', 'RR_dia', 'viento_medio', 'viento_max'];
@@ -66,6 +70,7 @@ while ($fila = $resultado->fetch_assoc()) {
             }
         }
     }
+    depuracionLimpiarActual($fila, $bajas, $fila['Identificacion'], $fila['fecha_I']);
     $arr[] = $fila;
 }
 

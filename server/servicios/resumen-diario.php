@@ -26,6 +26,9 @@ date_default_timezone_set('America/Argentina/Tucuman');
 $db = "estaciones";
 require_once 'conecta_mysql.php'; // define $conexion
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 // Columnas de datos_diarios => nombre en la respuesta (el mismo que usa datos-diarios.php; en la
 // tabla la humedad es hr_max/hr_min, en minúscula)
 const COLUMNAS = [
@@ -66,12 +69,14 @@ if (!$stmt->execute()) errorJson(500, 'Error al ejecutar la consulta.');
 
 // 4) Armar la respuesta
 $res = $stmt->get_result();
+$bajas = depuracionBajas($conexion, null, $fecha, $fecha);
 $data = [];
 while ($row = $res->fetch_assoc()) {
     $fila = ['identificacion' => (string)$row['identificacion']];
     foreach (COLUMNAS as $c) {   // $c: nombre en la respuesta (el alias del SELECT)
         $fila[$c] = $row[$c] !== null ? (float)$row[$c] : null;
     }
+    depuracionLimpiarDia($fila, $bajas, $fila['identificacion'], $fecha, DEPURACION_CAMPOS_DIARIOS);
     $data[] = $fila;
 }
 $stmt->close();

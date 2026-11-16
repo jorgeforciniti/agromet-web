@@ -15,6 +15,9 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
 $db = "estaciones";
 require_once 'conecta_mysql.php'; // Se espera que ahí estén las variables $conexion
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 mysqli_set_charset($conexion, 'utf8');
 
 function validarFecha($fechas)
@@ -130,12 +133,13 @@ $sql = "SELECT
         order by hora";
 
 $result = $conexion->query($sql);
+$bajas = depuracionBajas($conexion, $estacion, $fecha, $fecha);
 
 // Verificar resultados
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $dire = traeDirViento((int) $row['direccion_vmed']);
-        $response[] = [
+        $fila = [
             'hora' => (string) $row['hora'],
             'temp_af' => safeFloat($row['temp_af']),
             'hum_af' => safeFloat($row['hum_af']),
@@ -147,6 +151,8 @@ if ($result) {
             'temp_50' => safeFloat($row['Temperatura_Suelo2']),
             'presion' => safeFloat($row['presion']),
         ];
+        depuracionLimpiarDia($fila, $bajas, $estacion, $fecha, DEPURACION_CAMPOS_REGISTRO);
+        $response[] = $fila;
     }
 } else {
     http_response_code(500);

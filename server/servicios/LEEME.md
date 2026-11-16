@@ -147,7 +147,11 @@ PHP que lo incluye deja de mandar los campos de los sensores dados de baja: los 
 radiación; en los resúmenes de un período, la variable se quita si la baja toca algún día. Es la
 misma regla de `src/app/shared/depuracion.ts`, que el sitio sigue aplicando como segunda barrera.
 
-Se sube a `/services/` antes que los PHP que lo usan: `datos-diarios.php` y `datos-resumen.php`.
+Se sube a `/services/` antes que los PHP que lo usan: `datos-diarios.php`, `datos-resumen.php`,
+`datos-24hs.php`, `datos-enfermedades.php`, `datos-online.php`, `estaciones.php`, `datos-heladas.php`,
+`datos-alerta.php`, `datos-temperatura.php`, `lluvia-periodo.php` y `resumen-diario.php` (y, desde
+otras carpetas, `/android/io_*.php` y `/api/push/verificar-heladas-push.php`). Sin `depuracion.php`,
+los de esta carpeta fallan: hay que subirlo primero.
 Necesita `SELECT` sobre `sensores_baja` para el usuario de `conecta_mysql.php` (ya lo tiene, por
 `sensores-baja.php`). Si no puede leer la tabla, no quita nada.
 

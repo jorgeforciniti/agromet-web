@@ -15,6 +15,9 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
 $db="estaciones";
 require_once 'conecta_mysql.php'; // Se espera que ahí estén las variables $conexion
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 mysqli_set_charset($conexion, 'utf8');
 
 // Array de respuesta
@@ -40,8 +43,9 @@ $result = $conexion->query($sql);
 
 // Verificar resultados
 if ($result) {
+    $bajas = depuracionBajas($conexion);
     while ($row = $result->fetch_assoc()) {
-        $response[] = [
+        $fila = [
             'identificacion' => (int)$row['identificacion'],
             'nombre' => trim($row['nombre']),
             'lat' => trim($row['lat']),
@@ -58,6 +62,8 @@ if ($result) {
             'direc' => (int)$row['direc'],
             'rafaga24' => trim($row['rafaga24'])
         ];
+        depuracionLimpiarActual($fila, $bajas, $row['identificacion'], $row['fecha_i']);
+        $response[] = $fila;
     }
 } else {
     http_response_code(500);

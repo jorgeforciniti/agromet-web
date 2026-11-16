@@ -9,6 +9,9 @@ date_default_timezone_set('America/Argentina/Tucuman');
 
 $db = "estaciones";
 require_once 'conecta_mysql.php';
+
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
 // Helpers de error
 function badRequest($msg) {
     http_response_code(400);
@@ -73,8 +76,9 @@ if (!$stmt->execute()) {
 $res = $stmt->get_result();
 
 $data = [];
+$bajas = depuracionBajas($conexion, null, $desde, $hasta);
 while ($row = $res->fetch_assoc()) {
-    $data[] = [
+    $fila = [
         'nombre'           => $row['nombre'],
         'lat'              => (float)$row['lat'],
         'lon'              => (float)$row['lon'],
@@ -91,6 +95,8 @@ while ($row = $res->fetch_assoc()) {
         'identificacion'   => $row['identificacion'],
         'hsDebajo0'        => (float)$row['hsDebajo0'],
     ];
+    depuracionLimpiarPeriodo($fila, $bajas, $row['identificacion'], $desde, $hasta, DEPURACION_CAMPOS_HELADAS);
+    $data[] = $fila;
 }
 
 // 6) Devolver JSON

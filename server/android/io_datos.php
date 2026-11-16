@@ -74,7 +74,7 @@ if ($conexion) {
 
     // Sin el valor (no en null: la app lo leería como 0), la app usa su estimación
     if (is_array($arr) && function_exists("depuracionBajas")) {
-        depuracionLimpiarActual($arr, depuracionBajas($conexion, $vble), $vble);
+        depuracionLimpiarActual($arr, depuracionBajas($conexion, $vble), $vble, isset($arr['fecha_I']) ? $arr['fecha_I'] : null);
     }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -94,6 +94,9 @@ $horasPeriodo = max(0, round(($finEfectivo->getTimestamp() - $inicio->getTimesta
 $db = "estaciones";
 require_once 'conecta_mysql.php'; // define $conexion
 
+// Sensores dados de baja: sus campos no se mandan (ver depuracion.php)
+require_once 'depuracion.php';
+
 if (!$conexion) {
     error_json('Error de conexión a la base de datos.', 500);
 }
@@ -125,12 +128,13 @@ while ($f = $resDatos->fetch_assoc()) {
     $datos[(string)$f['identificacion']] = $f;
 }
 
+$bajas = depuracionBajas($conexion, null, $fechaDesde, $fechaHasta);
 $estaciones = [];
 while ($e = $resEstaciones->fetch_assoc()) {
     $id = (string)$e['identificacion'];
     $f = isset($datos[$id]) ? $datos[$id] : null;
     $registros = $f ? (int)$f['registros'] : 0;
-    $estaciones[] = [
+    $fila = [
         'id' => $id,
         'nombre' => trim($e['nombre']),
         'habilitada' => (int)$e['habilitada'],
@@ -141,6 +145,8 @@ while ($e = $resEstaciones->fetch_assoc()) {
         // Registros de lluvia × intervalo de la estación (minutos) / 60
         'horas' => round($registros * (float)$e['tiempo'] / 60, 2),
     ];
+    depuracionLimpiarPeriodo($fila, $bajas, $id, $fechaDesde, $fechaHasta, DEPURACION_CAMPOS_LLUVIA_PERIODO);
+    $estaciones[] = $fila;
 }
 $conexion->close();
 

@@ -53,6 +53,40 @@ const DEPURACION_CAMPOS_ACTUALES = [
     'presion' => ['presion'],
 ];
 
+/** datos-24hs.php y datos-enfermedades.php: un registro (datos_estaciones) */
+const DEPURACION_CAMPOS_REGISTRO = [
+    'temperatura' => ['temp_af', 'temp_haf', 'temp_laf'],
+    'humedad' => ['hum_af'],
+    'lluvia' => ['lluvia', 'tasa_lluvia'],
+    'viento' => ['viento_medio', 'viento_max', 'direccion', 'direccion_vmax', 'direccion_vmed'],
+    'radiacion' => ['rad_solar', 'rad_solar_h'],
+    'presion' => ['presion'],
+    'hoja' => ['hum_hoja'],
+    'et' => ['et'],
+];
+
+/** datos-alerta.php: lluvia y mínimas del período */
+const DEPURACION_CAMPOS_ALERTA = [
+    'lluvia' => ['totalLluvia', 'maxLluvia', 'maxLluviaDia', 'fechaMaxLluviaDia', 'registrosLluvia'],
+    'temperatura' => ['minimaTemperatura', 'registrosHelada'],
+];
+
+/** lluvia-periodo.php */
+const DEPURACION_CAMPOS_LLUVIA_PERIODO = [
+    'lluvia' => ['mm', 'maxRegistro', 'registrosLluvia'],
+];
+
+/** datos-temperatura.php */
+const DEPURACION_CAMPOS_TEMPERATURA_PERIODO = [
+    'temperatura' => ['avg_temp_max', 'abs_max_temp', 'avg_temp_min', 'abs_min_temp', 'avg_temp_period', 'abs_max_date',
+        'abs_min_date'],
+];
+
+/** datos-heladas.php */
+const DEPURACION_CAMPOS_HELADAS = [
+    'temperatura' => ['minAbs', 'hsDebajo-4', 'hsDebajo-2', 'maxHsDebajo0', 'diasHeladas', 'FPH', 'FUH', 'hsDebajo0'],
+];
+
 /** datos-resumen.php: totales y promedios del período */
 const DEPURACION_CAMPOS_RESUMEN = [
     'temperatura' => ['TempMaxAbs', 'TempMinAbs', 'tempMaxMedia', 'tempMinMedia', 'amplitudTermica', 'horasHelada',
@@ -143,11 +177,14 @@ function depuracionLimpiarPeriodo(&$fila, $bajas, $estacion, $desde, $hasta, $ca
     depuracionQuitar($fila, depuracionVariables($bajas, $estacion, $desde, $hasta), $campos);
 }
 
-/** Último registro de una estación (hoy); rr_mes se quita si la lluvia estuvo de baja en el mes */
-function depuracionLimpiarActual(&$fila, $bajas, $estacion) {
-    $hoy = date('Y-m-d');
-    depuracionQuitar($fila, depuracionVariables($bajas, $estacion, $hoy), DEPURACION_CAMPOS_ACTUALES);
-    if (depuracionHayBaja($bajas, $estacion, 'lluvia', date('Y-m-01'), $hoy)) unset($fila['rr_mes']);
+/**
+ * Último registro de una estación: el día del registro ($fecha, fecha_I; sin ella, hoy). rr_mes se
+ * quita si la lluvia estuvo de baja en el mes de ese día.
+ */
+function depuracionLimpiarActual(&$fila, $bajas, $estacion, $fecha = null) {
+    $dia = $fecha ? substr((string)$fecha, 0, 10) : date('Y-m-d');
+    depuracionQuitar($fila, depuracionVariables($bajas, $estacion, $dia), DEPURACION_CAMPOS_ACTUALES);
+    if (depuracionHayBaja($bajas, $estacion, 'lluvia', substr($dia, 0, 7) . '-01', $dia)) unset($fila['rr_mes']);
 }
 
 /** ¿La variable de la estación estuvo de baja algún día entre $desde y $hasta (o sólo el día $desde)? */

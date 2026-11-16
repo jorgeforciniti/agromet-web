@@ -51,7 +51,7 @@ if($conexion){
     while ($row=$hacer->fetch_assoc()){
         $id = $row['Identificacion'];
         if ($bajas) {
-            depuracionLimpiarActual($row, $bajas, $id);
+            depuracionLimpiarActual($row, $bajas, $id, $row['fecha_I']);
             // Extremos del día (habilitada=99) y de toda la serie (tmax/tmin)
             if (depuracionHayBaja($bajas, $id, 'temperatura', $hoyIso)) {
                 unset($row['temp_max'], $row['temp_min']);
