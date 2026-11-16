@@ -408,8 +408,10 @@ export class PeligroIncendiosDialogComponent implements OnInit, OnDestroy {
   estimaciones(f: FilaEstacion): string {
     const e = f.dia?.estimado ?? {};
     // 'baja:vecinas': el sensor está dado de baja (depuración de datos) y se estimó con las vecinas
+    // 'hora:12:40': el registro más cercano a las 12 h es de esa hora (más de media hora de diferencia)
     const motivo = (m: string): string => m.startsWith('baja:')
-      ? `sensor dado de baja; ${MOTIVOS[m.slice(5)] ?? 'sin dato'}` : MOTIVOS[m] ?? m;
+      ? `sensor dado de baja; ${MOTIVOS[m.slice(5)] ?? 'sin dato'}`
+      : m.startsWith('hora:') ? `registro de las ${m.slice(5)} h (el más cercano a las 12 h)` : MOTIVOS[m] ?? m;
     return (Object.keys(e) as (keyof EstimadoFwi)[])
       .map(k => `${NOMBRE_VALOR[k]}: ${k === 'codigos' && e.codigos === 'vecinas'
         ? 'el cálculo arrancó con los códigos de las vecinas' : motivo(e[k]!)}`)

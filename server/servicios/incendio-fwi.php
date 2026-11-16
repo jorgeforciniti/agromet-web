@@ -26,7 +26,8 @@
  * 'baja:vecinas'). Tampoco se usan para estimar a las vecinas.
  *
  * Observaciones faltantes (la guía pide no saltear días y estimar el dato), en este orden:
- *   1. el registro más cercano a las 12 h entre las 11 y las 13 h ('hora' si está a más de 15 min);
+ *   1. el registro más cercano a las 12 h entre las 11 y las 13 h ('hora:HH:MM', con la hora del
+ *      registro, si está a más de MINUTOS_OBSERVADO min);
  *   2. el promedio de las estaciones vecinas (a menos de VECINAS_KM y VECINAS_DESNIVEL, sin importar
  *      la zona: el límite entre zonas no separa el tiempo de estaciones a pocos km)
  *      que sí lo tienen ('vecinas');
@@ -63,9 +64,10 @@ const MAX_DIAS_SIN_DATOS = 10;
 const MAX_DIAS_SERIE = 400;
 /**
  * Versión del método. Al cambiarla (por ejemplo, otra regla de vecinas), el primer pedido borra
- * fwi_diario y lo vuelve a calcular desde INICIO. 2: vecinas de cualquier zona.
+ * fwi_diario y lo vuelve a calcular desde INICIO. 2: vecinas de cualquier zona. 3: registro a hasta
+ * 30 min de las 12 h como observado (antes, 15) y la hora del registro en la nota.
  */
-const VERSION_CALCULO = 2;
+const VERSION_CALCULO = 3;
 /** Anemómetro a 3 m: la guía suma 35 % para llevar el viento a 10 m */
 const FACTOR_VIENTO = 1.35;
 /** Parte de las 24 h que tienen que cubrir los registros de lluvia */
@@ -74,7 +76,7 @@ const VECINAS_KM = 40;
 const VECINAS_DESNIVEL = 400;
 const VECINAS_MAX = 3;
 /** Un registro a más minutos de las 12 h se marca como estimado */
-const MINUTOS_OBSERVADO = 15;
+const MINUTOS_OBSERVADO = 30;
 
 /** Factores de duración del día (enero a diciembre), corridos 6 meses para el hemisferio sur */
 const LE_DMC = [12.4, 10.9, 9.4, 8.0, 7.0, 6.0, 6.5, 7.5, 9.0, 12.8, 13.9, 13.9];
@@ -269,7 +271,7 @@ function lecturasMediodia($conexion, $fecha) {
             if ($valor < $v['min'] || $valor > $v['max']) continue;
             if (isset($lecturas[$id][$nombre]) && $lecturas[$id][$nombre]['minutos'] <= $distancia) continue;
             if ($nombre === 'viento') $valor *= FACTOR_VIENTO;
-            $lecturas[$id][$nombre] = ['valor' => $valor, 'minutos' => $distancia];
+            $lecturas[$id][$nombre] = ['valor' => $valor, 'minutos' => $distancia, 'hora' => substr((string)$f['hora'], 0, 5)];
         }
     }
     return $lecturas;
@@ -402,7 +404,7 @@ function calcularDia($conexion, $fecha, $estaciones, $ultimoCalculable) {
         foreach (array_keys(VARIABLES) as $v) {
             if (isset($hoy[$id][$v])) {
                 $valores[$v] = $hoy[$id][$v]['valor'];
-                if ($hoy[$id][$v]['minutos'] > MINUTOS_OBSERVADO) $estimado[$v] = 'hora';
+                if ($hoy[$id][$v]['minutos'] > MINUTOS_OBSERVADO) $estimado[$v] = 'hora:' . $hoy[$id][$v]['hora'];
                 continue;
             }
             $deVecinas = [];
