@@ -209,6 +209,9 @@ export class AdminComponent implements OnInit {
       data: { id: e.id, nombre: e.nombre, desde: this.lluvias.desde, hasta: this.lluvias.hasta },
       width: 'min(1100px, 95vw)',
       maxWidth: '95vw',
+      // Con sólo maxHeight la superficie (height: 100%) no tiene alto de referencia y el contenido
+      // queda recortado sin scroll: como los demás diálogos do-dialog, alto fijo
+      height: '92vh',
       maxHeight: '92vh',
       panelClass: 'do-dialog',
       autoFocus: false
