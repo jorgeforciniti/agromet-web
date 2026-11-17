@@ -129,22 +129,10 @@ if ($result) {
             }
         }
 
-        unset($estacion['dataset_raw']); // Limpieza
-
-        // Las localidades sin ningún dato en la campaña no se muestran: desde /admin el año se crea
-        // en -999,9 (sin dato) para todas, también las que no informan
-        $conDato = false;
-        foreach ($dataset as $dato) {
-            if ($dato['value'] !== null && $dato['value'] >= 0) {
-                $conDato = true;
-                break;
-            }
-        }
-        if (!$conDato) {
-            continue;
-        }
-
+        // Las localidades sin ningún dato (todo en -999,9) se mandan igual: las oculta el diálogo
+        // (rain-campaign-dialog), después de sumar el acumulado diario del mes en curso
         $estacion['dataset'] = $dataset;
+        unset($estacion['dataset_raw']); // Limpieza
         $response[] = $estacion;
     }
 

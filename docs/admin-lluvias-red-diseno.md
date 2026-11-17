@@ -160,9 +160,9 @@ cualquier momento sin tocar nada.
   sentencia puede quedar como evento anual de respaldo.
 - La pestaña avisa cuántas filas creó («Se creó el año 2027 para 312 localidades»), y queda anotado
   en `lluvias.log`.
-- **Efecto en el sitio:** las localidades sin datos ese año aparecen en «Lluvias por campaña» con los
-  meses vacíos (hoy `datos-campania.php` las saca por el `INNER JOIN`). Si molesta, se puede hacer
-  que el sitio oculte las localidades sin ningún dato en la campaña (§7).
+- **Efecto en el sitio:** `datos-campania.php` manda también las localidades sin datos ese año (todo
+  en -999,9). No se ven: el diálogo de «Lluvias por campaña» oculta las que no tienen ningún dato,
+  después de sumar el acumulado diario del mes en curso (§7).
 
 ## 5. API (`server/admin/api/`)
 
@@ -309,8 +309,11 @@ El juego de caracteres queda en latin1: la conexión de la API es utf8mb4 y Mari
 
 - `services/datos-campania-mes-en-curso.php`: cambiar `YEAR(fecha) = ? AND MONTH(fecha) = ?` por
   `fecha BETWEEN ? AND ?`, para que use el índice, y sumar sólo `mm >= 0`.
-- `services/datos-campania.php`: no mandar las localidades que no tienen ningún mes con dato en la
-  campaña, para que el alta automática del año no llene «Lluvias por campaña» de filas vacías.
+- `services/datos-campania.php`: unir sólo con la versión vigente de cada localidad en
+  `estaciones_rr` (con todas, cada mes se repetía una vez por versión). Las localidades sin datos
+  **no** se filtran en el servidor: las oculta `rain-campaign-dialog` después de sumar el mes en curso.
+  Si el servidor las sacara antes, una campaña que empieza este mes (sin totales cerrados todavía)
+  quedaría vacía.
 
 ## 8. Archivos
 
