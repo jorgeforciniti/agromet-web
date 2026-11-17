@@ -141,14 +141,9 @@ export class RainCampaignDialogComponent implements OnInit {
 
       if (campaign.status !== 'success') return;
 
-      /* 1. dataset base */
-      this.stations = campaign.data.filter(
-        (st: StationRain) => st.dataset.some(d => d.value !== -999.9)
-      );
-      if (!this.stations.length) {
-        this.months = this.displayedColumns = this.dataSource = [];
-        return;
-      }
+      /* 1. dataset base, siempre con los 12 meses de la ventana */
+      this.stations = campaign.data
+        .map((st: StationRain) => ({ ...st, dataset: this.completarDoceMeses(st.dataset, startMonth, startYear) }));
 
       /* 2. meses de la ventana */
       this.months = this.buildMonthsArray(startMonth);   // etiqueta mes
@@ -184,6 +179,16 @@ export class RainCampaignDialogComponent implements OnInit {
         });
       }
 
+      /*
+       * Sólo las estaciones con algún dato. Se filtra después de sumar el mes en curso: con una campaña
+       * que empieza este mes todavía no hay meses cerrados y antes la tabla quedaba vacía.
+       */
+      this.stations = this.stations.filter(st => st.dataset.some(d => d.value !== -999.9));
+      if (!this.stations.length) {
+        this.months = this.displayedColumns = this.dataSource = [];
+        return;
+      }
+
       /* 5. columnas a mostrar */
       this.displayedColumns = [
         'name', 'lat', 'lon',
@@ -197,6 +202,25 @@ export class RainCampaignDialogComponent implements OnInit {
     });
   }
 
+
+  /**
+   * datos-campania.php no manda los meses del año que todavía no empezó: con una campaña que termina
+   * el año que viene (inicio desde febrero del año en curso) llegan 11 meses o menos. La tabla dibuja
+   * 12 columnas y, al leer el mes que faltaba, la plantilla fallaba y quedaba una sola estación. Los
+   * meses que faltan se agregan sin dato (-999.9) y sin normal (NaN): el diálogo de la estación ya
+   * trata una normal no finita como faltante.
+   */
+  private completarDoceMeses(dataset: RainRecord[], startMonth: number, startYear: number): RainRecord[] {
+    const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    const completo: RainRecord[] = [];
+    for (let i = 0; i < 12; i++) {
+      const mes0 = (startMonth - 1 + i) % 12;
+      const anio = startYear + Math.floor((startMonth - 1 + i) / 12);
+      const existente = dataset.find(d => Number(d.year) === anio && String(d.month).toUpperCase() === meses[mes0]);
+      completo.push(existente ?? { year: anio, month: meses[mes0], value: -999.9, normal: NaN });
+    }
+    return completo;
+  }
 
   /** genera 12 etiquetas empezando en startMonth (1-12) */
   private buildMonthsArray(startMonth: number): string[] {
@@ -277,6 +301,9 @@ export class RainCampaignDialogComponent implements OnInit {
 
   /** Texto para tooltip de celdas */
   public tooltipText(normal: number, period: string): string {
+    if (!Number.isFinite(normal)) {
+      return 'Mes todavía sin datos';
+    }
     if (!(normal > 0)) {
       return `Normal: ${normal} mm\nPeríodo referencia: ${period}\nSin color: con normal de 0 mm no se calcula el porcentaje`;
     }
