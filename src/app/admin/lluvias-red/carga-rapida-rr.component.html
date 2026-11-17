@@ -67,7 +67,7 @@
 
       <label class="rr-campo">
         <span>mm</span>
-        <input #campoMm class="rr-mm" type="text" inputmode="decimal" autocomplete="off" [(ngModel)]="mmTexto" name="mm"
+        <input #campoMm class="rr-mm" type="text" inputmode="decimal" autocomplete="off" [(ngModel)]="mmTexto" (ngModelChange)="alCambiarMm()" name="mm"
           [disabled]="!elegida || enviando" (keydown)="teclaMm($event)"
           [attr.aria-label]="elegida ? 'mm de ' + elegida.nombre + ' ' + periodo : 'mm'" />
       </label>

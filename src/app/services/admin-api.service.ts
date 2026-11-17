@@ -249,6 +249,8 @@ export interface LocalidadesRr {
   anio: number;
   /** Filas del año en curso creadas al abrir; null: falta la clave única en datos_rr_mes */
   creadas: number | null;
+  /** Por qué no se pudo crear el año (con creadas null) */
+  aviso_anio?: string | null;
   siguiente_id: number;
   localidades: LocalidadRr[];
 }

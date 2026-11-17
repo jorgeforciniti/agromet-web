@@ -22,7 +22,13 @@ function conexion_lluvias(): mysqli
     }
     $db = DB_ESTACIONES;
     ob_start();
-    require RUTA_CONECTA_LLUVIAS;
+    try {
+        require RUTA_CONECTA_LLUVIAS;
+    } catch (mysqli_sql_exception $e) {
+        // Desde PHP 8.1 mysqli lanza la excepción antes de que se pueda mirar connect_errno
+        error_log('admin/api lluvias: sin conexión (' . $e->getCode() . ')');
+        $conexion = null;
+    }
     ob_end_clean();
     if (!isset($conexion) || !($conexion instanceof mysqli) || $conexion->connect_errno) {
         error_json('No se pudo conectar a la base de datos de la red pluviométrica.', 500);

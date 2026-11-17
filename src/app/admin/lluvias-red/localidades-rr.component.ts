@@ -60,6 +60,10 @@ export class LocalidadesRrComponent {
   mensaje = '';
   /** Localidad recién guardada (para ofrecer cargar su historia) */
   guardada: number | null = null;
+  /** No se pudo abrir la ficha de una localidad */
+  errorLista = '';
+  /** El formulario como se leyó, para no grabar una versión sin cambios */
+  private inicial = '';
 
   get listaProveedores(): string[] {
     return proveedores(this.localidades);
@@ -86,9 +90,11 @@ export class LocalidadesRrComponent {
     this.editando = l.id;
     this.limpiarMensajes();
     this.versiones = [];
+    // Nunca queda a la vista el formulario de otra localidad
+    this.form = { ...this.vacio(), id: String(l.id) };
+    this.inicial = '';
     if (!l.ficha) {
       // Tiene datos pero no ficha: la edición le crea la primera versión
-      this.form = { ...this.vacio(), id: String(l.id) };
       return;
     }
     this.cargandoFicha = true;
@@ -101,8 +107,11 @@ export class LocalidadesRrComponent {
         periodo_normal: f.periodo_normal, normales: f.normales.map(v => escribirMm(v))
       };
       this.versiones = r.versiones;
+      this.inicial = JSON.stringify(this.form);
     } catch (e) {
-      this.error = (e as Error).message;
+      // Sin la ficha no se edita: guardar grabaría una versión con el formulario vacío
+      this.editando = null;
+      this.errorLista = `No se pudo abrir ${l.nombre}: ${(e as Error).message}`;
     } finally {
       this.cargandoFicha = false;
     }
@@ -114,6 +123,7 @@ export class LocalidadesRrComponent {
   }
 
   private limpiarMensajes(): void {
+    this.errorLista = '';
     this.error = '';
     this.aviso = '';
     this.mensaje = '';
@@ -161,6 +171,11 @@ export class LocalidadesRrComponent {
       this.error = error ?? '';
       return;
     }
+    if (this.editando !== 'nueva' && this.inicial && JSON.stringify(this.form) === this.inicial) {
+      this.limpiarMensajes();
+      this.mensaje = 'No hay cambios para guardar.';
+      return;
+    }
     this.guardando = true;
     this.limpiarMensajes();
     try {
@@ -174,6 +189,7 @@ export class LocalidadesRrComponent {
       this.editando = r.localidad.id;
       this.form.id = String(r.localidad.id);
       this.versiones = r.versiones;
+      this.inicial = JSON.stringify(this.form);
       this.guardada = r.localidad.id;
       this.cambio.emit();
     } catch (e) {

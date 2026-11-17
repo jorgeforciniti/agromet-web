@@ -494,7 +494,8 @@ export class WeatherService {
   }
 
   getRainCampaign<TStation = RainCampaignStation>(month: number, year: number): Observable<StatusDataApiResponse<TStation>> {
-    const url = this.stationsUrl + `datos-campania.php?mes=${month}&anio=${year}&tipo=2`;
+    // vacias=1: también las localidades sin datos; el diálogo las oculta después de sumar el mes en curso
+    const url = this.stationsUrl + `datos-campania.php?mes=${month}&anio=${year}&tipo=2&vacias=1`;
     return this.http.get<StatusDataApiResponse<TStation>>(url);
   }
 

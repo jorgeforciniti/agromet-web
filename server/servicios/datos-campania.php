@@ -31,6 +31,7 @@ function devuelveMes($mes) {
     return isset($meses[$mes - 1]) ? $meses[$mes - 1] : '';
 }
 
+$incluirVacias = isset($_GET['vacias']) && $_GET['vacias'] === '1';
 $mes = isset($_GET['mes']) ? validarMes($_GET['mes']) : null;
 $anio = isset($_GET['anio']) ? validarAnio($_GET['anio']) : null;
 
@@ -129,8 +130,25 @@ if ($result) {
             }
         }
 
-        // Las localidades sin ningún dato (todo en -999,9) se mandan igual: las oculta el diálogo
-        // (rain-campaign-dialog), después de sumar el acumulado diario del mes en curso
+        // Localidades sin ningún dato (todo en -999,9; desde /admin el año se crea así para todas):
+        // - con vacias=1 se mandan: el diálogo del sitio (rain-campaign-dialog) las oculta después de
+        //   sumar el acumulado diario del mes en curso;
+        // - sin vacias=1 (la app móvil, también las versiones ya publicadas) no se mandan: la app elige
+        //   la localidad más cercana y una vacía le ganaría a la que tiene datos.
+        if (!$incluirVacias) {
+            $conDato = false;
+            foreach ($dataset as $dato) {
+                if ($dato['value'] !== null && $dato['value'] >= 0) {
+                    $conDato = true;
+                    break;
+                }
+            }
+            if (!$conDato) {
+                unset($estacion['dataset_raw']);
+                continue;
+            }
+        }
+
         $estacion['dataset'] = $dataset;
         unset($estacion['dataset_raw']); // Limpieza
         $response[] = $estacion;

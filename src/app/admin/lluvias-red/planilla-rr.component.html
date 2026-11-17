@@ -102,6 +102,7 @@
   </div>
 
   <div class="rr-pie" *ngIf="filas.length">
+    <p class="rr-aviso rr-aviso--confirmar" *ngIf="avisoPegado" role="alert"><mat-icon>content_paste</mat-icon>{{ avisoPegado }}</p>
     <p class="rr-aviso rr-aviso--ok" *ngIf="mensaje" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje }}</p>
     <p class="rr-aviso rr-aviso--error" *ngIf="errorGuardar" role="alert"><mat-icon>error</mat-icon>{{ errorGuardar }}</p>
     <span class="est-mut">{{ valoresCambiados }} {{ valoresCambiados === 1 ? 'valor' : 'valores' }} para guardar

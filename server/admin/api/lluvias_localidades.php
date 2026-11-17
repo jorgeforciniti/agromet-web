@@ -2,9 +2,10 @@
 /*
  * Localidades de la red pluviométrica (tabla estaciones_rr, una fila por versión).
  *
- * GET → {ok, anio, creadas, siguiente_id, localidades:[{id, nombre, zona, proveedor, lat, lon, alt, ficha}]}
+ * GET → {ok, anio, creadas, aviso_anio, siguiente_id, localidades:[{id, nombre, zona, proveedor, lat, lon, alt, ficha}]}
  *   Todas las localidades con ficha o con algún dato. Antes crea las filas del año en curso en
- *   datos_rr_mes (creadas: cuántas; null si la tabla todavía no tiene la clave única).
+ *   datos_rr_mes (creadas: cuántas; null si la tabla todavía no tiene la clave única o si falló, y
+ *   entonces aviso_anio dice por qué).
  * GET ?id=N → {ok, localidad, versiones:[…]}: la versión vigente con las normales y las anteriores.
  * POST {accion:'crear', localidad} → alta con el número indicado o, sin número, el siguiente libre.
  * POST {accion:'editar', id, localidad} → versión nueva de la localidad (las anteriores quedan).
@@ -35,11 +36,20 @@ try {
     }
 
     $anio = (int) date('Y');
-    $creadas = asegurar_anio($cx, $anio, $admin);
+    // El alta del año es un extra: si falla (permiso, bloqueo), la lista se responde igual
+    $avisoAnio = null;
+    try {
+        $creadas = asegurar_anio($cx, $anio, $admin);
+    } catch (mysqli_sql_exception $e) {
+        error_log('admin/api lluvias: alta del año ' . $anio . ': ' . $e->getMessage());
+        $creadas = null;
+        $avisoAnio = "No se pudo crear el año $anio (MySQL {$e->getCode()}). La fila de cada localidad se crea al cargarle el primer total.";
+    }
     responder([
         'ok' => true,
         'anio' => $anio,
         'creadas' => $creadas,
+        'aviso_anio' => $avisoAnio,
         'siguiente_id' => siguiente_id($cx),
         'localidades' => localidades($cx),
     ]);

@@ -310,10 +310,12 @@ El juego de caracteres queda en latin1: la conexión de la API es utf8mb4 y Mari
 - `services/datos-campania-mes-en-curso.php`: cambiar `YEAR(fecha) = ? AND MONTH(fecha) = ?` por
   `fecha BETWEEN ? AND ?`, para que use el índice, y sumar sólo `mm >= 0`.
 - `services/datos-campania.php`: unir sólo con la versión vigente de cada localidad en
-  `estaciones_rr` (con todas, cada mes se repetía una vez por versión). Las localidades sin datos
-  **no** se filtran en el servidor: las oculta `rain-campaign-dialog` después de sumar el mes en curso.
-  Si el servidor las sacara antes, una campaña que empieza este mes (sin totales cerrados todavía)
-  quedaría vacía.
+  `estaciones_rr` (con todas, cada mes se repetía una vez por versión). Las localidades sin datos en
+  la campaña sólo se mandan con `vacias=1`:
+  - el sitio lo manda y `rain-campaign-dialog` las oculta después de sumar el mes en curso (si el
+    servidor las sacara antes, una campaña que empieza este mes quedaría vacía);
+  - la app móvil no lo manda: elige la localidad más cercana a la estación y una vacía le ganaría a la
+    que tiene datos. Así funciona igual en las versiones ya publicadas.
 
 ## 8. Archivos
 

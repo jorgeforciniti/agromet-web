@@ -106,6 +106,7 @@ export class CargaRapidaRrComponent implements OnInit {
 
   /** Lee lo ya cargado del mes (diario) o del año (mensual), si cambió. */
   async leerContexto(): Promise<void> {
+    if (this.modo === 'dia' && !/^\d{4}-\d{2}-\d{2}$/.test(this.fecha)) return;   // fecha borrada a medias
     const pedido = this.modo === 'dia' ? `d${this.fecha.slice(0, 7)}` : `m${this.anio}`;
     if (pedido === this.cargado) return;
     this.cargado = pedido;
@@ -215,11 +216,14 @@ export class CargaRapidaRrComponent implements OnInit {
         this.cancelar();
         this.enfocarBusqueda();
       }
-    } else if (this.confirmar) {
-      // Cambiar el valor anula la confirmación pendiente
-      this.confirmar = null;
-      this.mensaje = '';
     }
+  }
+
+  /** Cambiar el valor anula la confirmación pendiente (Shift, Tab o las flechas no). */
+  alCambiarMm(): void {
+    if (!this.confirmar) return;
+    this.confirmar = null;
+    this.mensaje = '';
   }
 
   async enviar(): Promise<void> {

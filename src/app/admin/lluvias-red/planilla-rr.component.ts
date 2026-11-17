@@ -66,6 +66,9 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
   guardando = false;
   errorGuardar = '';
   mensaje = '';
+  /** Aviso del último pegado (filas o columnas que no entraron) */
+  avisoPegado = '';
+  private pedido = 0;
 
   ngOnInit(): void {
     if (this.localidadInicial === null) this.leer();
@@ -77,8 +80,11 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
       if (l) {
         this.modo = 'localidad';
         this.elegirLocalidad(l, true);
+      } else if (cambios['localidadInicial'].firstChange) {
+        this.leer(true);   // ngOnInit no lee si se pidió una localidad
       }
-      this.abierta.emit();
+      // Fuera del ciclo de detección: el padre vuelve localidadInicial a null (evita NG0100)
+      queueMicrotask(() => this.abierta.emit());
     }
   }
 
@@ -132,12 +138,15 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
 
   async leer(sinPreguntar = false): Promise<void> {
     if (!sinPreguntar && !this.descartarCambios()) return;
+    // Si se cambia de año o de localidad antes de que llegue la respuesta, la vieja se descarta
+    const pedido = ++this.pedido;
     this.cargando = true;
     this.error = '';
     this.errorGuardar = '';
     try {
       if (this.modo === 'anio') {
         const r = await this.api.mensualesRr(this.anio);
+        if (pedido !== this.pedido) return;
         const guardadas = new Map(r.filas.map(f => [f.id, f.meses]));
         const diarios = new Map(r.diarios.map(d => [d.id, d.meses]));
         this.filas = this.localidades.map(l => this.fila(l.id, r.anio, l.nombre,
@@ -145,14 +154,16 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
         this.repetidas = r.repetidas;
       } else if (this.localidad) {
         const r = await this.api.serieMensualRr(this.localidad.id);
+        if (pedido !== this.pedido) return;
         this.filas = r.anios.map(a => this.fila(r.id, a.anio, String(a.anio), '', a.meses));
         this.repetidas = r.repetidas;
       }
     } catch (e) {
+      if (pedido !== this.pedido) return;
       this.error = (e as Error).message;
       this.filas = [];
     } finally {
-      this.cargando = false;
+      if (pedido === this.pedido) this.cargando = false;
     }
   }
 
@@ -271,14 +282,24 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
     ev.preventDefault();
     const lineas = texto.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
     const visibles = this.visibles;
+    let filasPegadas = 0, sobranColumnas = false;
     lineas.forEach((linea, i) => {
       const f = visibles[fila + i];
       if (!f) return;
+      filasPegadas++;
       linea.split('\t').forEach((valor, j) => {
         if (col + j < 12) f.celdas[col + j] = valor.trim().replace(/\s/g, '');
+        else sobranColumnas = true;
       });
     });
     this.mensaje = '';
+    const avisos: string[] = [];
+    if (filasPegadas < lineas.length) {
+      avisos.push(`se pegaron ${filasPegadas} de ${lineas.length} filas (no hay más filas debajo`
+        + (this.modo === 'localidad' ? ': agregá los años que faltan' : '') + ')');
+    }
+    if (sobranColumnas) avisos.push('las columnas después de diciembre no se pegaron');
+    this.avisoPegado = avisos.length ? avisos.join('; ').replace(/^./, c => c.toUpperCase()) + '.' : '';
   }
 
   async guardar(): Promise<void> {

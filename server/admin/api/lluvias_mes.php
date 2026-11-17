@@ -242,6 +242,25 @@ function guardar_planilla(mysqli $cx, $filas, string $admin)
             error_json("No existe la localidad $id. Si es nueva, dala de alta en «Localidades».", 422);
         }
     }
+    // Filas repetidas en la base, antes de escribir: con las tablas en MyISAM la transacción no
+    // deshace lo ya grabado, así que nada puede cortar la escritura a mitad de la planilla
+    $ids = array_values(array_unique(array_column($nuevas, 'id')));
+    $anios = array_values(array_unique(array_column($nuevas, 'anio')));
+    $st = $cx->prepare('SELECT identificacion, anio FROM datos_rr_mes
+        WHERE identificacion IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')
+          AND anio IN (' . implode(', ', array_fill(0, count($anios), '?')) . ')
+        GROUP BY identificacion, anio HAVING COUNT(*) > 1');
+    $st->bind_param(str_repeat('i', count($ids) + count($anios)), ...$ids, ...$anios);
+    $st->execute();
+    $repetidas = [];
+    foreach ($st->get_result()->fetch_all(MYSQLI_ASSOC) as $f) {
+        if (isset($nuevas[$f['identificacion'] . '|' . $f['anio']])) {
+            $repetidas[] = "localidad {$f['identificacion']} en {$f['anio']}";
+        }
+    }
+    if ($repetidas) {
+        error_json('Hay filas repetidas en la base (' . implode(', ', $repetidas) . '). Hay que dejar una sola desde la base; no se guardó nada.', 409);
+    }
 
     $anotaciones = [];
     $cambios = 0;

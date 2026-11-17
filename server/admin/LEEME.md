@@ -107,7 +107,12 @@ la §6 del diseño: los controles de filas repetidas y los `ALTER` (InnoDB, clav
 
 - sin la clave única `estacion_anio`, el año nuevo no se crea solo (la pestaña lo avisa) y la fila de
   cada localidad se crea al cargarle el primer total;
-- con MyISAM, cada grabado bloquea la tabla entera mientras dura.
+- con MyISAM, cada grabado bloquea la tabla entera mientras dura, y las transacciones no hacen nada:
+  si una planilla fallara a mitad por un error de la base, las filas anteriores quedarían grabadas
+  (las filas repetidas se detectan antes de escribir, así que ese caso no corta la planilla).
+
+`MAX_STATEMENT_TIME` en `CREATE USER` depende de la versión de MariaDB: si no lo acepta, crear el
+usuario sin esa opción y poner `max_statement_time` en `my.ini`.
 
 Cada cambio queda en `lluvias.log` de la carpeta (fecha, email, IP, valor anterior y nuevo), que no
 se puede leer desde afuera.

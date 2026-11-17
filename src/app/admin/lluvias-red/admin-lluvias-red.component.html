@@ -18,7 +18,8 @@
   <p class="rr-aviso rr-aviso--ok" *ngIf="datos.creadas" role="status"><mat-icon>event_available</mat-icon>
     Se creó el año {{ datos.anio }} para {{ datos.creadas }} {{ datos.creadas === 1 ? 'localidad' : 'localidades' }}
     (todos los meses sin dato).</p>
-  <p class="rr-aviso" *ngIf="datos.creadas === null" role="status"><mat-icon>info</mat-icon>
+  <p class="rr-aviso rr-aviso--error" *ngIf="datos.aviso_anio" role="alert"><mat-icon>warning</mat-icon>{{ datos.aviso_anio }}</p>
+  <p class="rr-aviso" *ngIf="datos.creadas === null && !datos.aviso_anio" role="status"><mat-icon>info</mat-icon>
     El año nuevo todavía no se crea solo: falta la clave única de <code>datos_rr_mes</code> (ver server/admin/LEEME.md).
     Mientras tanto, la fila se crea al cargar el primer total de cada localidad.</p>
 

@@ -40,7 +40,7 @@ const LIMITES_COLMENAR = ['temp' => [-20, 50], 'pp' => 500];
 // (SELECT, INSERT, UPDATE). Recibe $db y define $conexion (ver conecta_lluvias.ejemplo.php). No se
 // sube al repositorio.
 const RUTA_CONECTA_LLUVIAS = __DIR__ . '/conecta_lluvias.php';
-// Lluvia en mm, con un decimal como máximo: por encima del aviso se pide confirmar; el límite no se acepta
+// Lluvia en mm, con un decimal como máximo: por encima del aviso se pide confirmar; más que el límite no se acepta
 const LIMITE_LLUVIA_DIA = 500;
 const AVISO_LLUVIA_DIA = 150;
 const LIMITE_LLUVIA_MES = 2000;

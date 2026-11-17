@@ -50,4 +50,7 @@ src/assets/videos/inicio.mp4
 server/usuario/api/conecta_usuarios.php
 server/admin/api/conecta_admin.php
 server/admin/api/conecta_colmenar.php
+server/admin/api/conecta_lluvias.php
+# Registros de la administración (se escriben en el servidor)
+server/admin/api/*.log
 server/api/push/clave-push.php
