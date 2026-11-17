@@ -35,6 +35,24 @@ const COLMENAR_DESDE = '1910-01-01';
 // Valores aceptados al cargar: temperaturas en °C y lluvia diaria en mm
 const LIMITES_COLMENAR = ['temp' => [-20, 50], 'pp' => 500];
 
+// Red pluviométrica (pestaña «Red pluviométrica»): conexión aparte, con permisos sólo sobre
+// estaciones_rr (SELECT, INSERT), datos_rr_dia (SELECT, INSERT, UPDATE, DELETE) y datos_rr_mes
+// (SELECT, INSERT, UPDATE). Recibe $db y define $conexion (ver conecta_lluvias.ejemplo.php). No se
+// sube al repositorio.
+const RUTA_CONECTA_LLUVIAS = __DIR__ . '/conecta_lluvias.php';
+// Lluvia en mm, con un decimal como máximo: por encima del aviso se pide confirmar; el límite no se acepta
+const LIMITE_LLUVIA_DIA = 500;
+const AVISO_LLUVIA_DIA = 150;
+const LIMITE_LLUVIA_MES = 2000;
+const AVISO_LLUVIA_MES = 800;
+// Los datos diarios sólo sirven para el mes en curso: se carga ese mes y, hasta este día del mes
+// siguiente, también el anterior
+const DIAS_GRACIA_DIARIO = 10;
+// Primer año que se acepta en los totales mensuales (datos históricos)
+const LLUVIAS_DESDE = 1900;
+// Caja aproximada de la red (Tucumán y alrededores): una localidad fuera de ella sólo genera un aviso
+const ZONA_RED = ['lat' => [-30, -22], 'lon' => [-68, -62]];
+
 // Carpeta pública de los informes (https://agromet.eeaoc.gob.ar/PDFS/). Con la API instalada
 // en public_html/services/admin, queda dos niveles arriba.
 const CARPETA_PDFS = __DIR__ . '/../../PDFS/';

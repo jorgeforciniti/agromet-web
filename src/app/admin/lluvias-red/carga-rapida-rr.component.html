@@ -1,0 +1,121 @@
+<section class="est-caja">
+  <h2 class="est-caja__titulo">Carga rápida
+    <small>Unas letras del nombre (o el número) · Enter · mm · Enter</small>
+  </h2>
+  <div class="est-cuerpo">
+    <div class="rr-fila">
+      <label class="rr-campo">
+        <span>Qué se carga</span>
+        <select [(ngModel)]="modo" (ngModelChange)="cambiarModo()" name="modo">
+          <option value="dia">Lluvia diaria</option>
+          <option value="mes">Total mensual</option>
+        </select>
+      </label>
+
+      <label class="rr-campo" *ngIf="modo === 'dia'">
+        <span>Fecha</span>
+        <input type="date" [(ngModel)]="fecha" (ngModelChange)="cambiarPeriodo()" name="fecha"
+          [min]="desdeDiario" [max]="hastaDiario" />
+      </label>
+      <ng-container *ngIf="modo === 'mes'">
+        <label class="rr-campo">
+          <span>Año</span>
+          <select [(ngModel)]="anio" (ngModelChange)="cambiarPeriodo()" name="anio">
+            <option *ngFor="let a of anios" [ngValue]="a">{{ a }}</option>
+          </select>
+        </label>
+        <label class="rr-campo">
+          <span>Mes</span>
+          <select [(ngModel)]="mes" (ngModelChange)="cambiarPeriodo()" name="mes">
+            <option *ngFor="let m of mesesPosibles" [ngValue]="m">{{ meses[m - 1] }}</option>
+          </select>
+        </label>
+      </ng-container>
+
+      <label class="rr-campo">
+        <span>Proveedor</span>
+        <select [(ngModel)]="proveedor" (ngModelChange)="buscar()" name="proveedor">
+          <option value="">Todos</option>
+          <option *ngFor="let p of listaProveedores" [value]="p">{{ p }}</option>
+        </select>
+      </label>
+    </div>
+
+    <p class="est-err" *ngIf="fechaFueraDeRango && desdeDiario">Los datos diarios se cargan del {{ desdeDiario | date:'dd/MM/yyyy' }}
+      a hoy: los meses anteriores se cierran con el total mensual.</p>
+    <p class="est-err" *ngIf="errorContexto" role="alert">No se pudo leer lo ya cargado: {{ errorContexto }}</p>
+
+    <div class="rr-carga">
+      <div class="rr-carga__localidad">
+        <label class="rr-campo">
+          <span>Localidad</span>
+          <input #busqueda type="text" autocomplete="off" spellcheck="false" [(ngModel)]="texto" (ngModelChange)="buscar()"
+            (keydown)="teclaBusqueda($event)" name="texto" placeholder="Nombre o número" autofocus
+            role="combobox" aria-autocomplete="list" [attr.aria-expanded]="sugerencias.length > 0"
+            aria-controls="rr-sugerencias" />
+        </label>
+        <ul id="rr-sugerencias" class="rr-sugerencias" role="listbox" *ngIf="sugerencias.length">
+          <li *ngFor="let l of sugerencias; let i = index" role="option" [attr.aria-selected]="i === activa"
+            [class.rr-sugerencias__activa]="i === activa" (mousedown)="$event.preventDefault(); elegir(l)">
+            <strong>{{ l.nombre }}</strong>
+            <span class="est-mut">{{ l.id }}<ng-container *ngIf="l.zona"> · {{ l.zona }}</ng-container><ng-container
+                *ngIf="l.proveedor"> · {{ l.proveedor }}</ng-container></span>
+            <span class="rr-sugerencias__valor" *ngIf="guardado(l) !== null">{{ mmTxt(guardado(l)) }} mm</span>
+          </li>
+        </ul>
+      </div>
+
+      <label class="rr-campo">
+        <span>mm</span>
+        <input #campoMm class="rr-mm" type="text" inputmode="decimal" autocomplete="off" [(ngModel)]="mmTexto" name="mm"
+          [disabled]="!elegida || enviando" (keydown)="teclaMm($event)"
+          [attr.aria-label]="elegida ? 'mm de ' + elegida.nombre + ' ' + periodo : 'mm'" />
+      </label>
+
+      <div class="rr-carga__contexto" *ngIf="elegida as l" aria-live="polite">
+        <strong>{{ l.nombre }}</strong> ({{ l.id }}) · {{ periodo }}
+        <span *ngIf="guardado(l) !== null"> · ya tiene <strong>{{ mmTxt(guardado(l)) }} mm</strong></span>
+        <span class="est-mut" *ngIf="modo === 'dia' && acumuladoMes(l) as a">
+          · mes: {{ mmTxt(a.mm) }} mm en {{ a.dias }} {{ a.dias === 1 ? 'día' : 'días' }}</span>
+      </div>
+    </div>
+
+    <p class="rr-aviso rr-aviso--confirmar" *ngIf="mensaje" role="alert"><mat-icon>help</mat-icon>{{ mensaje }}</p>
+    <p class="rr-aviso rr-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
+
+    <p class="est-mut rr-nota">↑ ↓ eligen otra localidad de la lista · Esc vuelve atrás · el campo de mm vacío borra el valor ·
+      Ctrl+Z (con la búsqueda vacía) deshace la última carga. Cada carga se guarda en el momento y queda anotada con la
+      cuenta que la hizo.</p>
+  </div>
+</section>
+
+<section class="est-caja rr-historial" *ngIf="historial.length">
+  <h2 class="est-caja__titulo">Cargas de esta sesión <small>{{ historial.length }}</small></h2>
+  <div class="est-scroll">
+    <table class="est-tabla">
+      <thead>
+        <tr>
+          <th scope="col">Localidad</th>
+          <th scope="col">Período</th>
+          <th scope="col" class="num">mm</th>
+          <th scope="col" class="num">Antes</th>
+          <th scope="col"><span class="est-oculto">Acción</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of historial" [class.rr-deshecha]="c.deshecha">
+          <th scope="row">{{ c.localidad.nombre }} <span class="est-mut">({{ c.localidad.id }})</span></th>
+          <td>{{ etiqueta(c) }}</td>
+          <td class="num">{{ c.mm === null ? 'borrado' : mmTxt(c.mm) }}</td>
+          <td class="num est-mut">{{ c.anterior === null ? '—' : mmTxt(c.anterior) }}</td>
+          <td>
+            <span class="est-mut" *ngIf="c.deshecha">Deshecha</span>
+            <button type="button" class="est-enlace" *ngIf="!c.deshecha" (click)="deshacer(c)">
+              <mat-icon>undo</mat-icon>Deshacer</button>
+            <span class="est-err" *ngIf="c.error">{{ c.error }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

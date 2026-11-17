@@ -1,0 +1,30 @@
+<p class="rr-intro est-mut">Lluvias de la red pluviométrica: los totales mensuales (el dato oficial, de las planillas) y los
+  datos diarios, que sólo sirven para el acumulado del mes en curso del sitio. Reemplaza al programa de FoxPro.</p>
+
+<nav class="rr-vistas" aria-label="Vistas de la red pluviométrica">
+  <button type="button" [class.rr-vistas__activa]="vista === 'carga'" (click)="vista = 'carga'">
+    <mat-icon>keyboard</mat-icon>Carga rápida</button>
+  <button type="button" [class.rr-vistas__activa]="vista === 'planilla'" (click)="vista = 'planilla'">
+    <mat-icon>grid_on</mat-icon>Planilla anual</button>
+  <button type="button" [class.rr-vistas__activa]="vista === 'localidades'" (click)="vista = 'localidades'">
+    <mat-icon>place</mat-icon>Localidades</button>
+</nav>
+
+<p class="rr-aviso rr-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}
+  <button type="button" class="est-enlace" (click)="leer()">Reintentar</button></p>
+<p class="est-mut" *ngIf="!datos && !error">Cargando localidades…</p>
+
+<ng-container *ngIf="datos">
+  <p class="rr-aviso rr-aviso--ok" *ngIf="datos.creadas" role="status"><mat-icon>event_available</mat-icon>
+    Se creó el año {{ datos.anio }} para {{ datos.creadas }} {{ datos.creadas === 1 ? 'localidad' : 'localidades' }}
+    (todos los meses sin dato).</p>
+  <p class="rr-aviso" *ngIf="datos.creadas === null" role="status"><mat-icon>info</mat-icon>
+    El año nuevo todavía no se crea solo: falta la clave única de <code>datos_rr_mes</code> (ver server/admin/LEEME.md).
+    Mientras tanto, la fila se crea al cargar el primer total de cada localidad.</p>
+
+  <app-carga-rapida-rr *ngIf="vista === 'carga'" [localidades]="datos.localidades"></app-carga-rapida-rr>
+  <app-planilla-rr *ngIf="vista === 'planilla'" [localidades]="datos.localidades" [localidadInicial]="historia"
+    (abierta)="historia = null"></app-planilla-rr>
+  <app-localidades-rr *ngIf="vista === 'localidades'" [localidades]="datos.localidades" [siguienteId]="datos.siguiente_id"
+    (cambio)="leer()" (historia)="abrirHistoria($event)"></app-localidades-rr>
+</ng-container>

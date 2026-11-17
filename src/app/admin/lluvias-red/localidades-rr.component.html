@@ -1,0 +1,132 @@
+<section class="est-caja rr-ficha" *ngIf="editando !== null">
+  <h2 class="est-caja__titulo">
+    {{ editando === 'nueva' ? 'Nueva localidad' : 'Localidad ' + editando }}
+    <small *ngIf="editando !== 'nueva'">Guardar agrega una versión nueva; las anteriores quedan</small>
+  </h2>
+  <div class="est-cuerpo">
+    <p class="est-mut" *ngIf="cargandoFicha">Cargando…</p>
+    <form *ngIf="!cargandoFicha" (ngSubmit)="guardar()" class="rr-form">
+      <div class="rr-fila">
+        <label class="rr-campo rr-campo--corto">
+          <span>Número</span>
+          <input type="text" inputmode="numeric" [(ngModel)]="form.id" name="id" [disabled]="editando !== 'nueva'" />
+        </label>
+        <label class="rr-campo rr-campo--largo">
+          <span>Nombre</span>
+          <input type="text" [(ngModel)]="form.nombre" name="nombre" maxlength="50" required />
+        </label>
+        <label class="rr-campo rr-campo--corto">
+          <span>Zona</span>
+          <input type="text" [(ngModel)]="form.zona" name="zona" maxlength="2" />
+        </label>
+        <label class="rr-campo rr-campo--corto">
+          <span>Proveedor</span>
+          <input type="text" [(ngModel)]="form.proveedor" name="proveedor" maxlength="2" list="rr-proveedores" />
+          <datalist id="rr-proveedores"><option *ngFor="let p of listaProveedores" [value]="p"></option></datalist>
+        </label>
+      </div>
+      <div class="rr-fila">
+        <label class="rr-campo">
+          <span>Latitud (°)</span>
+          <input type="text" inputmode="decimal" [(ngModel)]="form.lat" name="lat" placeholder="-26,8241" />
+        </label>
+        <label class="rr-campo">
+          <span>Longitud (°)</span>
+          <input type="text" inputmode="decimal" [(ngModel)]="form.lon" name="lon" placeholder="-65,2226" />
+        </label>
+        <label class="rr-campo">
+          <span>Altura (m)</span>
+          <input type="text" inputmode="decimal" [(ngModel)]="form.alt" name="alt" />
+        </label>
+        <label class="rr-campo">
+          <span>Período de las normales</span>
+          <input type="text" [(ngModel)]="form.periodo_normal" name="periodo_normal" maxlength="15" placeholder="1991-2020" />
+        </label>
+      </div>
+
+      <fieldset class="rr-normales">
+        <legend>Normales (mm, opcionales)</legend>
+        <label *ngFor="let m of meses; let i = index">
+          <span>{{ m }}</span>
+          <input type="text" inputmode="decimal" [(ngModel)]="form.normales[i]" [name]="'normal' + i" />
+        </label>
+      </fieldset>
+
+      <p class="rr-aviso rr-aviso--ok" *ngIf="mensaje" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje }}
+        <button type="button" class="est-enlace" *ngIf="guardada !== null" (click)="historia.emit(guardada!)">
+          Cargar sus datos históricos<mat-icon>chevron_right</mat-icon></button></p>
+      <p class="rr-aviso rr-aviso--confirmar" *ngIf="aviso" role="alert"><mat-icon>warning</mat-icon>{{ aviso }}</p>
+      <p class="rr-aviso rr-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
+
+      <div class="rr-pie">
+        <span class="est-err" *ngIf="errorFormulario && (form.nombre || form.lat || form.lon)">{{ errorFormulario }}</span>
+        <button type="button" class="est-btn-sec" (click)="cerrar()"><mat-icon>close</mat-icon>Cerrar</button>
+        <button type="submit" class="rr-btn" [disabled]="!!errorFormulario || guardando">
+          <mat-icon>save</mat-icon>{{ guardando ? 'Guardando…' : (editando === 'nueva' ? 'Dar de alta' : 'Guardar') }}</button>
+      </div>
+    </form>
+
+    <details class="rr-versiones" *ngIf="versiones.length">
+      <summary>Versiones anteriores ({{ versiones.length }})</summary>
+      <table class="est-tabla">
+        <thead>
+          <tr><th scope="col">Versión</th><th scope="col">Nombre</th><th scope="col">Zona</th><th scope="col">Proveedor</th>
+            <th scope="col" class="num">Latitud</th><th scope="col" class="num">Longitud</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of versiones">
+            <td>{{ v.version }}</td><td>{{ v.nombre }}</td><td>{{ v.zona }}</td><td>{{ v.proveedor }}</td>
+            <td class="num">{{ v.lat }}</td><td class="num">{{ v.lon }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+</section>
+
+<div class="rr-fila rr-fila--consulta">
+  <label class="rr-campo">
+    <span>Buscar</span>
+    <input type="search" [(ngModel)]="filtro" name="filtroLocalidades" placeholder="Nombre o número" />
+  </label>
+  <label class="rr-campo">
+    <span>Proveedor</span>
+    <select [(ngModel)]="proveedor" name="proveedorLocalidades">
+      <option value="">Todos</option>
+      <option *ngFor="let p of listaProveedores" [value]="p">{{ p }}</option>
+    </select>
+  </label>
+  <button type="button" class="rr-btn" (click)="nueva()"><mat-icon>add_location_alt</mat-icon>Nueva localidad</button>
+</div>
+
+<section class="est-caja">
+  <h2 class="est-caja__titulo">Localidades <small>{{ visibles.length }} de {{ localidades.length }} · con ficha o con algún
+      dato</small></h2>
+  <div class="est-scroll">
+    <table class="est-tabla">
+      <thead>
+        <tr>
+          <th scope="col" class="num">N.º</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Zona</th>
+          <th scope="col">Proveedor</th>
+          <th scope="col">Ubicación</th>
+          <th scope="col"><span class="est-oculto">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let l of visibles" [class.rr-fila--cambio]="editando === l.id">
+          <td class="num">{{ l.id }}</td>
+          <th scope="row">{{ l.nombre }}</th>
+          <td>{{ l.zona }}</td>
+          <td>{{ l.proveedor }}</td>
+          <td class="est-mut">{{ coordenadas(l) }}</td>
+          <td>
+            <button type="button" class="est-enlace" (click)="editar(l)"><mat-icon>edit</mat-icon>{{ l.ficha ? 'Editar' : 'Crear ficha' }}</button>
+            <button type="button" class="est-enlace" (click)="historia.emit(l.id)"><mat-icon>grid_on</mat-icon>Totales</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

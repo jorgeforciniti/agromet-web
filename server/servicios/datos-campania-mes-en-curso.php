@@ -24,12 +24,16 @@ $month = filter_input(INPUT_GET, 'month', FILTER_VALIDATE_INT, [
          ]);
 
 /* ───── Consulta segura ─────────────────────────────────────── */
+// Rango de fechas (usa el índice por fecha, a diferencia de YEAR()/MONTH()). Sólo valores >= 0: un
+// -999,9 (sin dato) restaría al acumulado.
+$desde = sprintf('%04d-%02d-01', $year, $month);
+$hasta = date('Y-m-t', strtotime($desde));
 $sql = "
   SELECT identificacion,
          SUM(mm)   AS total_mm,
          MAX(fecha) AS ultima_fecha
     FROM datos_rr_dia
-   WHERE YEAR(fecha) = ? AND MONTH(fecha) = ?
+   WHERE fecha BETWEEN ? AND ? AND mm >= 0
 GROUP BY identificacion
 ORDER BY identificacion
 ";
@@ -38,7 +42,7 @@ if (!$stmt) {
     http_response_code(500);
     exit(json_encode(['status' => 'error', 'message' => 'Error preparando SQL']));
 }
-$stmt->bind_param('ii', $year, $month);
+$stmt->bind_param('ss', $desde, $hasta);
 $stmt->execute();
 $res = $stmt->get_result();
 

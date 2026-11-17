@@ -1,0 +1,119 @@
+<div class="rr-fila rr-fila--consulta">
+  <label class="rr-campo">
+    <span>Ver</span>
+    <select [(ngModel)]="modo" (ngModelChange)="cambiarModo()" name="modoPlanilla">
+      <option value="anio">Un año, todas las localidades</option>
+      <option value="localidad">Una localidad, todos los años</option>
+    </select>
+  </label>
+
+  <ng-container *ngIf="modo === 'anio'">
+    <label class="rr-campo">
+      <span>Año</span>
+      <select [(ngModel)]="anio" (ngModelChange)="leer()" name="anioPlanilla">
+        <option *ngFor="let a of anios" [ngValue]="a">{{ a }}</option>
+      </select>
+    </label>
+    <label class="rr-campo">
+      <span>Buscar</span>
+      <input type="search" [(ngModel)]="filtro" name="filtro" placeholder="Nombre o número" />
+    </label>
+    <label class="rr-campo">
+      <span>Proveedor</span>
+      <select [(ngModel)]="proveedor" name="proveedorPlanilla">
+        <option value="">Todos</option>
+        <option *ngFor="let p of listaProveedores" [value]="p">{{ p }}</option>
+      </select>
+    </label>
+  </ng-container>
+
+  <div class="rr-carga__localidad" *ngIf="modo === 'localidad'">
+    <label class="rr-campo">
+      <span>Localidad</span>
+      <input type="text" autocomplete="off" [(ngModel)]="textoLocalidad" (ngModelChange)="buscarLocalidad()"
+        (keydown)="teclaLocalidad($event)" name="textoLocalidad" placeholder="Nombre o número" />
+    </label>
+    <ul class="rr-sugerencias" role="listbox" *ngIf="sugerencias.length">
+      <li *ngFor="let l of sugerencias; let i = index" role="option" [class.rr-sugerencias__activa]="i === 0"
+        (mousedown)="$event.preventDefault(); elegirLocalidad(l)">
+        <strong>{{ l.nombre }}</strong> <span class="est-mut">{{ l.id }}</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<p class="rr-aviso rr-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
+<p class="rr-aviso rr-aviso--error" *ngIf="repetidas.length" role="alert"><mat-icon>warning</mat-icon>
+  Hay filas repetidas en la base ({{ modo === 'anio' ? 'localidades' : 'años' }} {{ repetidas.join(', ') }}). Se muestra la
+  última cargada; hasta dejar una sola desde la base, esas filas no se pueden guardar.</p>
+<p class="est-mut" *ngIf="cargando">Cargando…</p>
+
+<section class="est-caja" *ngIf="!cargando && (filas.length || (modo === 'localidad' && localidad))">
+  <h2 class="est-caja__titulo">
+    <ng-container *ngIf="modo === 'anio'">Totales mensuales {{ anio }}</ng-container>
+    <ng-container *ngIf="modo === 'localidad' && localidad">{{ localidad.nombre }} ({{ localidad.id }})</ng-container>
+    <small>{{ visibles.length }} {{ modo === 'anio' ? 'localidades' : 'años' }} · mm</small>
+  </h2>
+
+  <div class="rr-fila rr-agregar" *ngIf="modo === 'localidad' && localidad">
+    <label class="rr-campo">
+      <span>Agregar año</span>
+      <input type="number" [(ngModel)]="anioNuevo" name="anioNuevo" [min]="1900" [max]="anioActual"
+        (keydown.enter)="$event.preventDefault(); agregarAnio()" placeholder="AAAA" />
+    </label>
+    <button type="button" class="est-btn-sec" (click)="agregarAnio()" [disabled]="!anioNuevo"><mat-icon>add</mat-icon>Agregar</button>
+    <button type="button" class="est-btn-sec" (click)="completarAnios()"
+      title="Agrega todos los años que faltan desde el indicado (o desde el primero) hasta hoy">
+      <mat-icon>playlist_add</mat-icon>Completar años hasta hoy</button>
+  </div>
+
+  <p class="est-mut rr-vacio" *ngIf="!filas.length">Esta localidad todavía no tiene totales mensuales. Agregá los años y pegá
+    los valores desde la planilla.</p>
+
+  <div class="est-scroll" *ngIf="visibles.length">
+    <table class="est-tabla rr-planilla">
+      <thead>
+        <tr>
+          <th scope="col">{{ modo === 'anio' ? 'Localidad' : 'Año' }}</th>
+          <th scope="col" class="num" *ngFor="let m of meses">{{ m }}</th>
+          <th scope="col" class="num">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let f of visibles; let i = index; trackBy: porClave" [class.rr-fila--cambio]="cambiada(f)">
+          <th scope="row">
+            {{ f.titulo }}<span class="est-mut" *ngIf="modo === 'anio'"> {{ f.id }}</span>
+            <small class="est-mut rr-detalle" *ngIf="f.detalle">{{ f.detalle }}</small>
+          </th>
+          <td class="num" *ngFor="let m of meses; let c = index">
+            <input class="rr-celda" type="text" inputmode="decimal" autocomplete="off" [attr.data-rr]="i + '-' + c"
+              [(ngModel)]="f.celdas[c]" [name]="'c' + f.id + '-' + f.anio + '-' + c" [disabled]="futuro(f, c)"
+              [class.rr-celda--cambio]="cambiada(f, c)" [class.rr-celda--error]="!!errorCelda(f, c)"
+              [class.rr-celda--alta]="alta(f, c)" [class.rr-celda--difiere]="difiere(f, c)"
+              [title]="errorCelda(f, c) || (difiere(f, c) ? 'Muy distinto de la suma de los diarios' : '')"
+              [attr.aria-label]="f.titulo + ', ' + m + ' ' + f.anio" (keydown)="tecla($event, i, c)"
+              (paste)="pegar($event, i, c)" />
+            <small class="rr-diario" *ngIf="f.diarios[c]" title="Suma de los datos diarios (días con dato)">{{ diario(f.diarios[c]) }}</small>
+          </td>
+          <td class="num rr-total">{{ total(f) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="rr-pie" *ngIf="filas.length">
+    <p class="rr-aviso rr-aviso--ok" *ngIf="mensaje" role="status"><mat-icon>check_circle</mat-icon>{{ mensaje }}</p>
+    <p class="rr-aviso rr-aviso--error" *ngIf="errorGuardar" role="alert"><mat-icon>error</mat-icon>{{ errorGuardar }}</p>
+    <span class="est-mut">{{ valoresCambiados }} {{ valoresCambiados === 1 ? 'valor' : 'valores' }} para guardar
+      <span class="est-err" *ngIf="conErrores"> · {{ conErrores }} con errores</span>
+      <span class="est-err" *ngIf="repetidasCambiadas"> · {{ repetidasCambiadas }} en filas repetidas</span></span>
+    <button type="button" class="est-btn-sec" (click)="descartar()" [disabled]="!aGuardar.length || guardando">
+      <mat-icon>undo</mat-icon>Descartar cambios</button>
+    <button type="button" class="rr-btn" (click)="guardar()"
+      [disabled]="!aGuardar.length || conErrores || guardando || repetidasCambiadas">
+      <mat-icon>save</mat-icon>{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
+  </div>
+  <p class="est-mut rr-nota">Celda vacía = sin dato. Un decimal como máximo (se puede usar coma). Enter y las flechas ↑ ↓ bajan
+    y suben por la columna. Se puede pegar un bloque copiado de Excel desde la celda elegida. En gris, debajo, la suma de los
+    datos diarios del mes (sólo como referencia); en color, si es muy distinta del total con el mes completo.</p>
+</section>

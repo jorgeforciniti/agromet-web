@@ -231,6 +231,98 @@ export interface CargaDiaColmenar {
   observaciones: string;
 }
 
+/** Localidad de la red pluviométrica (lluvias_localidades.php). */
+export interface LocalidadRr {
+  id: number;
+  nombre: string;
+  zona: string;
+  /** Código de quien provee el dato */
+  proveedor: string;
+  lat: number | null;
+  lon: number | null;
+  alt: number | null;
+  /** false: tiene datos pero no ficha en estaciones_rr */
+  ficha: boolean;
+}
+
+export interface LocalidadesRr {
+  anio: number;
+  /** Filas del año en curso creadas al abrir; null: falta la clave única en datos_rr_mes */
+  creadas: number | null;
+  siguiente_id: number;
+  localidades: LocalidadRr[];
+}
+
+/** Una versión de la ficha (estaciones_rr) */
+export interface FichaLocalidadRr {
+  version: number;
+  id: number;
+  nombre: string;
+  zona: string;
+  proveedor: string;
+  lat: number;
+  lon: number;
+  alt: number;
+  periodo_normal: string;
+  /** 12 normales de enero a diciembre (null: sin normal) */
+  normales: (number | null)[];
+}
+
+export interface DatosLocalidadRr {
+  /** Sólo en el alta: sin número, la API usa el siguiente libre */
+  id?: number | null;
+  nombre: string;
+  zona: string;
+  proveedor: string;
+  lat: number;
+  lon: number;
+  alt: number | null;
+  periodo_normal: string;
+  normales: (number | null)[];
+}
+
+export interface RespuestaFichaRr {
+  localidad: FichaLocalidadRr;
+  versiones: FichaLocalidadRr[];
+  /** La ubicación cae fuera de la zona de la red */
+  aviso?: string | null;
+}
+
+/** Resultado de guardar un valor: guardado false = ya había otro y no se pidió reemplazarlo. */
+export interface GuardadoRr {
+  guardado: boolean;
+  anterior: number | null;
+}
+
+export interface MesDiarioRr {
+  mes: string;
+  /** Fechas que se pueden cargar hoy */
+  desde: string;
+  hasta: string;
+  valores: { id: number; fecha: string; mm: number | null }[];
+}
+
+export interface AnioMensualRr {
+  anio: number;
+  filas: { id: number; meses: (number | null)[] }[];
+  /** Suma de los diarios de cada mes (referencia) */
+  diarios: { id: number; meses: ({ mm: number; dias: number } | null)[] }[];
+  /** Localidades con más de una fila en el año */
+  repetidas: number[];
+}
+
+export interface SerieMensualRr {
+  id: number;
+  anios: { anio: number; meses: (number | null)[] }[];
+  repetidas: number[];
+}
+
+export interface FilaMensualRr {
+  id: number;
+  anio: number;
+  meses: (number | null)[];
+}
+
 interface RespuestaApi {
   ok: boolean;
   error?: string;
@@ -332,6 +424,52 @@ export class AdminApiService {
   /** Todo o nada. Devuelve cuántos días cambiaron y cómo quedaron los enviados. */
   guardarColmenar(dias: CargaDiaColmenar[]): Promise<{ guardados: number; dias: DiaColmenar[] }> {
     return this.pedir('POST', 'colmenar_diarios.php', { dias });
+  }
+
+  /** Red pluviométrica: todas las localidades. Antes crea las filas del año en curso. */
+  localidadesRr(): Promise<LocalidadesRr> {
+    return this.pedir<LocalidadesRr>('GET', 'lluvias_localidades.php');
+  }
+
+  fichaLocalidadRr(id: number): Promise<RespuestaFichaRr> {
+    return this.pedir<RespuestaFichaRr>('GET', 'lluvias_localidades.php', undefined, new HttpParams().set('id', String(id)));
+  }
+
+  crearLocalidadRr(localidad: DatosLocalidadRr): Promise<RespuestaFichaRr> {
+    return this.pedir<RespuestaFichaRr>('POST', 'lluvias_localidades.php', { accion: 'crear', localidad });
+  }
+
+  /** Agrega una versión nueva de la ficha. */
+  editarLocalidadRr(id: number, localidad: DatosLocalidadRr): Promise<RespuestaFichaRr> {
+    return this.pedir<RespuestaFichaRr>('POST', 'lluvias_localidades.php', { accion: 'editar', id, localidad });
+  }
+
+  /** mes: AAAA-MM */
+  diariosRr(mes: string): Promise<MesDiarioRr> {
+    return this.pedir<MesDiarioRr>('GET', 'lluvias_dia.php', undefined, new HttpParams().set('mes', mes));
+  }
+
+  /** mm null borra el valor del día. */
+  guardarDiarioRr(datos: { id: number; fecha: string; mm: number | null; reemplazar: boolean }): Promise<GuardadoRr> {
+    return this.pedir<GuardadoRr>('POST', 'lluvias_dia.php', datos);
+  }
+
+  mensualesRr(anio: number): Promise<AnioMensualRr> {
+    return this.pedir<AnioMensualRr>('GET', 'lluvias_mes.php', undefined, new HttpParams().set('anio', String(anio)));
+  }
+
+  serieMensualRr(id: number): Promise<SerieMensualRr> {
+    return this.pedir<SerieMensualRr>('GET', 'lluvias_mes.php', undefined, new HttpParams().set('id', String(id)));
+  }
+
+  /** Un total (mes de 1 a 12); mm null lo deja sin dato. */
+  guardarMensualRr(datos: { id: number; anio: number; mes: number; mm: number | null; reemplazar: boolean }): Promise<GuardadoRr> {
+    return this.pedir<GuardadoRr>('POST', 'lluvias_mes.php', { accion: 'valor', ...datos });
+  }
+
+  /** Todo o nada (hasta 200 filas). */
+  guardarPlanillaRr(filas: FilaMensualRr[]): Promise<{ guardadas: number; cambios: number }> {
+    return this.pedir('POST', 'lluvias_mes.php', { accion: 'planilla', filas });
   }
 
   private async pedir<T>(metodo: 'GET' | 'POST', archivo: string, cuerpo?: unknown, params?: HttpParams): Promise<T> {

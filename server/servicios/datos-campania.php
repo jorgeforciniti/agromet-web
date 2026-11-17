@@ -52,9 +52,13 @@ $sql = "SELECT
             ene as r1, feb as r2, mar as r3, abr as r4, may as r5, jun as r6, 
             jul as r7, ago as r8, sep as r9, oct as r10, nov as r11, dic as r12, 
             zona, periodo_normal 
-        FROM estaciones_rr 
-        INNER JOIN datos_rr_mes ON datos_rr_mes.identificacion = estaciones_rr.identificacion 
-        WHERE anio = $anio OR anio = $anio + 1 
+        FROM datos_rr_mes
+        -- Sólo la versión vigente de cada localidad (la de id más alto): con todas, cada mes se
+        -- repetía una vez por versión y la campaña quedaba cortada
+        INNER JOIN (SELECT identificacion, MAX(id) AS id FROM estaciones_rr GROUP BY identificacion) vigente
+                ON vigente.identificacion = datos_rr_mes.identificacion
+        INNER JOIN estaciones_rr ON estaciones_rr.id = vigente.id
+        WHERE anio = $anio OR anio = $anio + 1
         ORDER BY nombre, datos_rr_mes.identificacion, anio";
 
 $result = $conexion->query($sql);
@@ -125,8 +129,22 @@ if ($result) {
             }
         }
 
-        $estacion['dataset'] = $dataset;
         unset($estacion['dataset_raw']); // Limpieza
+
+        // Las localidades sin ningún dato en la campaña no se muestran: desde /admin el año se crea
+        // en -999,9 (sin dato) para todas, también las que no informan
+        $conDato = false;
+        foreach ($dataset as $dato) {
+            if ($dato['value'] !== null && $dato['value'] >= 0) {
+                $conDato = true;
+                break;
+            }
+        }
+        if (!$conDato) {
+            continue;
+        }
+
+        $estacion['dataset'] = $dataset;
         $response[] = $estacion;
     }
 

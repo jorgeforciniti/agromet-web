@@ -8,6 +8,8 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `normales.php` | Normales mensuales de una estación | `normales` |
 | `informes-v2.php` | Listado de informes | — |
 | `lluvias-estacion.php` | Diálogo de una estación en «Lluvias por campaña»: ubicación, normales y serie histórica de lluvias mensuales | `estaciones_rr`, `datos_rr_mes` |
+| `datos-campania.php` | «Lluvias por campaña»: 12 meses de cada localidad desde el mes elegido, con las normales. Usa sólo la versión vigente de cada localidad y no manda las que no tienen ningún dato en la campaña (desde /admin el año se crea en -999,9 para todas) | `estaciones_rr`, `datos_rr_mes` |
+| `datos-campania-mes-en-curso.php` | Acumulado del mes en curso por localidad, con los datos diarios (sólo valores ≥ 0) | `datos_rr_dia` |
 | `lluvia-periodo.php` | Mapa de lluvias diarias: lluvia de 0 a 24 h o de 9 a 9 h y cantidad de registros por estación | `estaciones`, `datos_estaciones` |
 | `datos-temperatura.php` | Mapa de temperaturas: medias y extremos del período por estación | `estaciones`, `datos_diarios` |
 | `kp-gfz.php` | Condiciones para aplicar: Kp de GFZ Potsdam para fechas pasadas (proxy, sin CORS) | — |

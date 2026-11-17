@@ -83,6 +83,35 @@ GRANT SELECT, INSERT, UPDATE ON colmenar.clima_diario_el_colmenar TO 'agromet_co
 No necesita `DELETE`: la pestaña nunca borra días. Si falta el archivo o el permiso, la pestaña lo
 dice y el resto de la administración sigue funcionando.
 
+### Red pluviométrica
+
+La pestaña **Red pluviométrica** reemplaza al programa de Visual FoxPro (`web.exe`) para cargar las
+lluvias de la red. Diseño completo en `docs/admin-lluvias-red-diseno.md`. Usa su propia conexión:
+copiar `api/conecta_lluvias.ejemplo.php` como `conecta_lluvias.php` en la misma carpeta y completar
+la contraseña. Tampoco se sube al repositorio y el `.htaccess` impide pedirlo desde afuera. El
+usuario sólo tiene permiso sobre las tres tablas de la red y un tope de conexiones, para que esta
+pestaña nunca pueda agotar las conexiones de la base:
+
+```sql
+CREATE USER 'agromet_lluvias'@'<IP del servidor web>' IDENTIFIED BY '<contraseña>'
+  WITH MAX_USER_CONNECTIONS 5 MAX_STATEMENT_TIME 30;
+GRANT SELECT, INSERT ON estaciones.estaciones_rr TO 'agromet_lluvias'@'<IP del servidor web>';
+GRANT SELECT, INSERT, UPDATE, DELETE ON estaciones.datos_rr_dia TO 'agromet_lluvias'@'<IP del servidor web>';
+GRANT SELECT, INSERT, UPDATE ON estaciones.datos_rr_mes TO 'agromet_lluvias'@'<IP del servidor web>';
+```
+
+`estaciones_rr` sólo necesita `INSERT`: cada edición agrega una versión nueva. Antes de usarla (una
+vez, en un horario sin uso y después de una copia de las tres tablas), conviene aplicar los cambios de
+la §6 del diseño: los controles de filas repetidas y los `ALTER` (InnoDB, claves únicas
+`estacion_fecha` y `estacion_anio`, índice por fecha). La pestaña funciona sin ellos, pero:
+
+- sin la clave única `estacion_anio`, el año nuevo no se crea solo (la pestaña lo avisa) y la fila de
+  cada localidad se crea al cargarle el primer total;
+- con MyISAM, cada grabado bloquea la tabla entera mientras dura.
+
+Cada cambio queda en `lluvias.log` de la carpeta (fecha, email, IP, valor anterior y nuevo), que no
+se puede leer desde afuera.
+
 ### Consultas de las APIs para terceros
 
 La pestaña **Consultas de APIs** muestra cuántas veces se consultan los feeds de `/api/` (SMN,
@@ -114,6 +143,9 @@ GRANT SELECT ON estaciones.api_consultas TO '<usuario de conecta_admin.php>'@'<h
 | `MAX_BYTES` | Tamaño máximo (30 MB). `upload_max_filesize` y `post_max_size` de PHP tienen que ser iguales o mayores. |
 | `DB_COLMENAR`, `COLMENAR_DESDE` | Base de la serie diaria de El Colmenar y su primer día (los días sin fila desde esa fecha cuentan como faltantes). |
 | `LIMITES_COLMENAR` | Valores aceptados al cargar (temperaturas de −20 a 50 °C y lluvia de 0 a 500 mm). Si se cambian, cambiar también `admin-colmenar.component.ts`. |
+| `LIMITE_LLUVIA_DIA`, `AVISO_LLUVIA_DIA`, `LIMITE_LLUVIA_MES`, `AVISO_LLUVIA_MES`, `LLUVIAS_DESDE` | Red pluviométrica: tope y aviso de los mm (500 y 150 por día, 2000 y 800 por mes) y primer año aceptado. Si se cambian, cambiar también `src/app/admin/lluvias-red/lluvias-red.ts`. |
+| `DIAS_GRACIA_DIARIO` | Hasta qué día del mes se pueden cargar todavía los datos diarios del mes anterior (10). |
+| `ZONA_RED` | Caja de latitud y longitud de la red: una localidad fuera de ella sólo genera un aviso. |
 
 ## 4. Probar
 
@@ -141,6 +173,10 @@ Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer 
 | `consultas_api.php` | Consultas de los feeds para terceros de `/api/` por feed, día e IP (tabla `api_consultas`). Sólo lee. |
 | `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. Lista todas las estaciones, también las deshabilitadas. Con `variable: todas` da de baja todos los sensores de una estación que falla entera (una fila por sensor). |
 | `colmenar_diarios.php` | Serie diaria de El Colmenar (`colmenar.clima_diario_el_colmenar`): resumen de pendientes por año, días de un período y carga de faltantes o validación de provisionales. |
+| `lluvias_comun.php` | Base de la red pluviométrica: conexión con `conecta_lluvias.php`, validación de los mm, lista de localidades y alta automática del año. No se puede pedir desde afuera. |
+| `lluvias_localidades.php` | Localidades de la red (`estaciones_rr`): lista (antes crea las filas del año en curso), ficha con versiones, alta con el siguiente número libre y edición (versión nueva). |
+| `lluvias_dia.php` | Datos diarios (`datos_rr_dia`) del mes en curso y, hasta el día `DIAS_GRACIA_DIARIO`, del anterior: lectura de un mes y carga de un valor (vacío lo borra). |
+| `lluvias_mes.php` | Totales mensuales (`datos_rr_mes`): un año completo con la suma de los diarios como referencia, la serie de una localidad, carga de un valor y de una planilla (todo o nada). Crea la fila que falte. |
 
 ## Serie diaria de El Colmenar (`colmenar_diarios.php`)
 

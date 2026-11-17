@@ -15,6 +15,7 @@ import { AdminSensoresComponent } from './estaciones/admin-sensores.component';
 import { AdminConsultasApiComponent } from './estaciones/admin-consultas-api.component';
 import { AdminControlDatosComponent, PropuestaBaja } from './estaciones/admin-control-datos.component';
 import { AdminPublicadosComponent } from './publicados/admin-publicados.component';
+import { AdminLluviasRedComponent } from './lluvias-red/admin-lluvias-red.component';
 
 const MAX_MB = 30;
 const PESTANA_CONTROL = 4;
@@ -28,7 +29,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, MatDialogModule, AdminPublicadosComponent,
     AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent,
     AdminConsultasApiComponent,
-    AdminColmenarComponent],
+    AdminColmenarComponent, AdminLluviasRedComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })
