@@ -9,7 +9,9 @@
  *   Con filas repetidas (misma localidad y año) se muestra la de id más alto, como el sitio.
  * POST {accion:'valor', id, anio, mes (1-12), mm, reemplazar?} → un valor (carga rápida).
  *   Si ya había otro valor y no viene reemplazar: {ok, guardado:false, anterior}.
- * POST {accion:'planilla', filas:[{id, anio, meses:[12 mm o null]}]} (hasta MAX_FILAS_MES) → todo o nada.
+ * POST {accion:'planilla', filas:[{id, anio, meses:[12 mm o null], antes?:[12]}]} (hasta MAX_FILAS_MES) → todo o nada.
+ *   antes: los valores como se leyeron. Con antes sólo se escriben los meses cambiados, y si alguno ya no
+ *   es el que se leyó (otro lo cargó mientras tanto) responde 409 sin guardar nada.
  *   Responde {ok, guardadas, cambios}.
  * En los dos POST, la fila que falta se crea.
  */
@@ -235,7 +237,21 @@ function guardar_planilla(mysqli $cx, $filas, string $admin)
             }
             $leidos[] = $mm;
         }
-        $nuevas[$clave] = ['id' => $id, 'anio' => $anio, 'meses' => $leidos];
+        // Los valores como los leyó la planilla (opcional): sólo se escriben los meses que la planilla
+        // cambió, y si alguno de esos ya no es el que leyó, otro lo cargó mientras tanto
+        $antes = $p['antes'] ?? null;
+        if ($antes !== null) {
+            if (!is_array($antes) || count($antes) !== 12) {
+                error_json("Localidad $id, $anio: los valores anteriores son 12, de enero a diciembre.", 422);
+            }
+            $antes = array_map(function ($v) {
+                if ($v !== null && !is_int($v) && !is_float($v)) {
+                    error_json('Pedido inválido.', 422);
+                }
+                return $v === null ? null : round((float) $v, 1);
+            }, array_values($antes));
+        }
+        $nuevas[$clave] = ['id' => $id, 'anio' => $anio, 'meses' => $leidos, 'antes' => $antes];
     }
     foreach (array_unique(array_column($nuevas, 'id')) as $id) {
         if (!localidad_existe($cx, $id)) {
@@ -266,19 +282,46 @@ function guardar_planilla(mysqli $cx, $filas, string $admin)
     $cambios = 0;
     $cx->begin_transaction();
     try {
-        foreach ($nuevas as $n) {
+        // Primero se leen todas las filas: si otro cambió un mes que la planilla también cambia, no se
+        // escribe nada (con MyISAM no habría cómo deshacer lo ya escrito)
+        $conflictos = [];
+        foreach ($nuevas as $clave => $n) {
             $fila = fila_bloqueada($cx, $n['id'], $n['anio']);
-            $antes = $fila ? meses_json($fila) : array_fill(0, 12, null);
-            $distintos = [];
+            $base = $fila ? meses_json($fila) : array_fill(0, 12, null);
+            $final = $base;
             foreach ($n['meses'] as $i => $v) {
+                if ($n['antes'] === null) {
+                    $final[$i] = $v;   // sin los valores leídos: la fila entera, como antes
+                } elseif ($v !== $n['antes'][$i]) {
+                    if ($base[$i] !== $n['antes'][$i] && $base[$i] !== $v) {
+                        $conflictos[] = nombre_localidad($cx, $n['id']) . ', ' . MESES_RR[$i] . " {$n['anio']}: ahora tiene "
+                            . ($base[$i] === null ? 'sin dato' : str_replace('.', ',', (string) $base[$i]) . ' mm');
+                    }
+                    $final[$i] = $v;
+                }
+            }
+            $nuevas[$clave] += ['fila' => $fila, 'base' => $base, 'final' => $final];
+        }
+        if ($conflictos) {
+            $cx->rollback();
+            error_json('Mientras tanto se cargaron otros valores en meses que la planilla también cambia ('
+                . implode('; ', array_slice($conflictos, 0, 5)) . (count($conflictos) > 5 ? '; …' : '')
+                . '). No se guardó nada: copiá tus cambios, volvé a leer la planilla y cargalos de nuevo.', 409);
+        }
+
+        foreach ($nuevas as $n) {
+            $fila = $n['fila'];
+            $antes = $n['base'];
+            $distintos = [];
+            foreach ($n['final'] as $i => $v) {
                 if ($antes[$i] !== $v) {
                     $distintos[MESES_RR[$i]] = [$antes[$i], $v];
                 }
             }
-            if (!$distintos && ($fila || !array_filter($n['meses'], 'is_float'))) {
+            if (!$distintos && ($fila || !array_filter($n['final'], 'is_float'))) {
                 continue;   // nada para guardar
             }
-            escribir_fila($cx, $fila, $n['id'], $n['anio'], $n['meses']);
+            escribir_fila($cx, $fila, $n['id'], $n['anio'], $n['final']);
             $cambios += count($distintos);
             $anotaciones[] = "mensual {$n['id']} {$n['anio']} " . ($fila ? '' : '(fila nueva) ') . json_encode($distintos);
         }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,6 +27,15 @@ interface FilaPlanilla {
 }
 
 /**
+ * Cambios sin guardar de la última planilla cerrada. Al pasar a otra vista o a otra pestaña de /admin
+ * el componente se destruye: así no se pierde lo tipeado o pegado, y se recupera al volver.
+ */
+let borrador: {
+  modo: Modo; anio: number; localidad: LocalidadRr | null; filtro: string; proveedor: string; soloConDatos: boolean;
+  filas: FilaPlanilla[]; repetidas: number[];
+} | null = null;
+
+/**
  * Totales mensuales como planilla: por año (todas las localidades) o por localidad (todos sus años,
  * para los datos históricos). Se puede pegar un bloque copiado de Excel. Guarda todo o nada.
  */
@@ -37,7 +46,7 @@ interface FilaPlanilla {
   templateUrl: './planilla-rr.component.html',
   styleUrls: ['../estaciones/estaciones.css', './lluvias-red.css']
 })
-export class PlanillaRrComponent implements OnInit, OnChanges {
+export class PlanillaRrComponent implements OnInit, OnChanges, OnDestroy {
   private readonly api = inject(AdminApiService);
 
   @Input({ required: true }) localidades: LocalidadRr[] = [];
@@ -57,6 +66,8 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
   sugerencias: LocalidadRr[] = [];
   filtro = '';
   proveedor = '';
+  /** En la vista por año, sólo las localidades con algún total o diario en el año (o algo tipeado) */
+  soloConDatos = true;
   anioNuevo: number | null = null;
 
   filas: FilaPlanilla[] = [];
@@ -68,14 +79,55 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
   mensaje = '';
   /** Aviso del último pegado (filas o columnas que no entraron) */
   avisoPegado = '';
+  /** Se recuperaron cambios sin guardar de la vez anterior */
+  recuperado = false;
   private pedido = 0;
 
   ngOnInit(): void {
-    if (this.localidadInicial === null) this.leer();
+    if (this.localidadInicial !== null) return;   // lo resolvió ngOnChanges
+    if (!this.recuperar()) this.leer();
+  }
+
+  ngOnDestroy(): void {
+    borrador = this.aGuardar.length ? {
+      modo: this.modo, anio: this.anio, localidad: this.localidad, filtro: this.filtro, proveedor: this.proveedor,
+      soloConDatos: this.soloConDatos, filas: this.filas, repetidas: this.repetidas
+    } : null;
+  }
+
+  /** Avisa antes de cerrar o recargar la página con cambios sin guardar. */
+  @HostListener('window:beforeunload', ['$event'])
+  alSalir(ev: BeforeUnloadEvent): void {
+    if (this.aGuardar.length) ev.preventDefault();
+  }
+
+  /** Vuelve a mostrar los cambios sin guardar de la vez anterior, si los hay. */
+  private recuperar(): boolean {
+    const b = borrador;
+    borrador = null;
+    if (!b) return false;
+    this.modo = b.modo;
+    this.anio = b.anio;
+    this.localidad = b.localidad;
+    this.textoLocalidad = b.localidad?.nombre ?? '';
+    this.filtro = b.filtro;
+    this.proveedor = b.proveedor;
+    this.soloConDatos = b.soloConDatos;
+    this.filas = b.filas;
+    this.repetidas = b.repetidas;
+    this.recuperado = true;
+    return true;
   }
 
   ngOnChanges(cambios: SimpleChanges): void {
     if (cambios['localidadInicial'] && this.localidadInicial !== null) {
+      // Cargar historia con cambios sin guardar de la vez anterior: se pregunta antes de descartarlos
+      if (borrador && !confirm('Hay cambios sin guardar en la planilla. ¿Descartarlos?')) {
+        this.recuperar();
+        queueMicrotask(() => this.abierta.emit());
+        return;
+      }
+      borrador = null;
       const l = this.localidades.find(x => x.id === this.localidadInicial);
       if (l) {
         this.modo = 'localidad';
@@ -99,8 +151,14 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
     return this.filas.filter(f => {
       const l = porId.get(f.id);
       if (this.proveedor && l?.proveedor !== this.proveedor) return false;
+      if (this.soloConDatos && !this.conDatos(f)) return false;
       return !t || normalizar(f.titulo).includes(t) || String(f.id).startsWith(t);
     });
+  }
+
+  /** Tiene algún total o diario en el año, o algo tipeado */
+  private conDatos(f: FilaPlanilla): boolean {
+    return f.original.some(v => v !== null) || f.diarios.some(d => d !== null) || f.celdas.some(t => t.trim() !== '');
   }
 
   cambiarModo(): void {
@@ -143,6 +201,7 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
     this.cargando = true;
     this.error = '';
     this.errorGuardar = '';
+    this.recuperado = false;
     try {
       if (this.modo === 'anio') {
         const r = await this.api.mensualesRr(this.anio);
@@ -282,14 +341,17 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
     ev.preventDefault();
     const lineas = texto.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
     const visibles = this.visibles;
-    let filasPegadas = 0, sobranColumnas = false;
+    let filasPegadas = 0, sobranColumnas = false, futuros = false;
     lineas.forEach((linea, i) => {
       const f = visibles[fila + i];
       if (!f) return;
       filasPegadas++;
       linea.split('\t').forEach((valor, j) => {
-        if (col + j < 12) f.celdas[col + j] = valor.trim().replace(/\s/g, '');
-        else sobranColumnas = true;
+        const c = col + j;
+        if (c >= 12) sobranColumnas = true;
+        // Un mes que no terminó está deshabilitado: con un valor pegado quedaría un error sin corregir
+        else if (this.futuro(f, c)) futuros = futuros || valor.trim() !== '';
+        else f.celdas[c] = valor.trim().replace(/\s/g, '');
       });
     });
     this.mensaje = '';
@@ -299,6 +361,7 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
         + (this.modo === 'localidad' ? ': agregá los años que faltan' : '') + ')');
     }
     if (sobranColumnas) avisos.push('las columnas después de diciembre no se pegaron');
+    if (futuros) avisos.push('los meses que todavía no terminaron no se pegaron');
     this.avisoPegado = avisos.length ? avisos.join('; ').replace(/^./, c => c.toUpperCase()) + '.' : '';
   }
 
@@ -311,7 +374,11 @@ export class PlanillaRrComponent implements OnInit, OnChanges {
     this.guardando = true;
     this.errorGuardar = '';
     this.mensaje = '';
-    const datos: FilaMensualRr[] = filas.map(f => ({ id: f.id, anio: f.anio, meses: f.celdas.map(t => leerMm(t) as number | null) }));
+    // Con los valores como se leyeron: la API sólo escribe los meses cambiados y rechaza la planilla si
+    // alguno ya no es el que se leyó (otro lo cargó mientras tanto)
+    const datos: FilaMensualRr[] = filas.map(f => ({
+      id: f.id, anio: f.anio, meses: f.celdas.map(t => leerMm(t) as number | null), antes: f.original
+    }));
     let cambios = 0;
     try {
       for (let i = 0; i < datos.length; i += FILAS_POR_PEDIDO) {

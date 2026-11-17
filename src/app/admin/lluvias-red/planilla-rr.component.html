@@ -25,6 +25,10 @@
         <option *ngFor="let p of listaProveedores" [value]="p">{{ p }}</option>
       </select>
     </label>
+    <label class="rr-check">
+      <input type="checkbox" [(ngModel)]="soloConDatos" name="soloConDatos" />
+      Sólo con datos en el año
+    </label>
   </ng-container>
 
   <div class="rr-carga__localidad" *ngIf="modo === 'localidad'">
@@ -43,6 +47,8 @@
 </div>
 
 <p class="rr-aviso rr-aviso--error" *ngIf="error" role="alert"><mat-icon>error</mat-icon>{{ error }}</p>
+<p class="rr-aviso rr-aviso--confirmar" *ngIf="recuperado && aGuardar.length" role="status"><mat-icon>restore</mat-icon>
+  Estos son los cambios sin guardar de la vez anterior: guardalos o descartalos.</p>
 <p class="rr-aviso rr-aviso--error" *ngIf="repetidas.length" role="alert"><mat-icon>warning</mat-icon>
   Hay filas repetidas en la base ({{ modo === 'anio' ? 'localidades' : 'años' }} {{ repetidas.join(', ') }}). Se muestra la
   última cargada; hasta dejar una sola desde la base, esas filas no se pueden guardar.</p>

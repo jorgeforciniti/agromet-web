@@ -187,8 +187,13 @@ function crear(mysqli $cx, $l, string $admin)
     insertar_version($cx, $id, $d, ['foto' => '', 'ultregrecibido' => date('Y-m-d'), 'normal' => '']);
     anotar_lluvias($admin, "alta de localidad $id " . json_encode(array_diff_key($d, ['normales' => 1]), JSON_UNESCAPED_UNICODE));
 
-    // La localidad nueva ya tiene la fila del año en curso
-    asegurar_anio($cx, (int) date('Y'), $admin);
+    // La localidad nueva ya tiene la fila del año en curso. La localidad ya quedó creada: si esto falla
+    // no se responde error (al reintentar diría que el número ya es de otra); la fila se crea al cargar
+    try {
+        asegurar_anio($cx, (int) date('Y'), $admin);
+    } catch (mysqli_sql_exception $e) {
+        error_log('admin/api lluvias: alta del año para la localidad ' . $id . ': ' . $e->getMessage());
+    }
     responder(['ok' => true, 'aviso' => aviso_zona($d)] + ficha($cx, $id));
 }
 

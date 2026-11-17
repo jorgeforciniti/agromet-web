@@ -81,6 +81,7 @@ export class LocalidadesRrComponent {
 
   nueva(): void {
     this.editando = 'nueva';
+    this.cargandoFicha = false;
     this.form = { ...this.vacio(), id: String(this.siguienteId) };
     this.versiones = [];
     this.limpiarMensajes();
@@ -93,6 +94,7 @@ export class LocalidadesRrComponent {
     // Nunca queda a la vista el formulario de otra localidad
     this.form = { ...this.vacio(), id: String(l.id) };
     this.inicial = '';
+    this.cargandoFicha = false;
     if (!l.ficha) {
       // Tiene datos pero no ficha: la edición le crea la primera versión
       return;
@@ -100,6 +102,8 @@ export class LocalidadesRrComponent {
     this.cargandoFicha = true;
     try {
       const r = await this.api.fichaLocalidadRr(l.id);
+      // Se abrió otra localidad mientras llegaba: esta respuesta no puede llenar su formulario
+      if (this.editando !== l.id) return;
       const f = r.localidad;
       this.form = {
         id: String(f.id), nombre: f.nombre, zona: f.zona, proveedor: f.proveedor,
@@ -109,11 +113,12 @@ export class LocalidadesRrComponent {
       this.versiones = r.versiones;
       this.inicial = JSON.stringify(this.form);
     } catch (e) {
+      if (this.editando !== l.id) return;
       // Sin la ficha no se edita: guardar grabaría una versión con el formulario vacío
       this.editando = null;
       this.errorLista = `No se pudo abrir ${l.nombre}: ${(e as Error).message}`;
     } finally {
-      this.cargandoFicha = false;
+      if (this.editando === l.id || this.editando === null) this.cargandoFicha = false;   // si no, lo maneja la otra
     }
   }
 

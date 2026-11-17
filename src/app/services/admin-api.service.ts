@@ -323,6 +323,8 @@ export interface FilaMensualRr {
   id: number;
   anio: number;
   meses: (number | null)[];
+  /** Los 12 valores como se leyeron: la API sólo escribe los cambiados y avisa si alguno cambió en la base */
+  antes: (number | null)[];
 }
 
 interface RespuestaApi {

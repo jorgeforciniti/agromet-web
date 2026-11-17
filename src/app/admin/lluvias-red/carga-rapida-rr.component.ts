@@ -260,6 +260,11 @@ export class CargaRapidaRrComponent implements OnInit {
           + (mm === null ? 'Enter lo borra' : 'Enter lo reemplaza') + ', Esc cancela.';
         return;
       }
+      if (mm === null && r.anterior === null) {
+        // Enter con el campo vacío y sin valor guardado: no se borró nada, no va a «Cargas de esta sesión»
+        this.error = `${l.nombre} no tenía valor ${this.periodo}: no había nada que borrar. Escribí los mm.`;
+        return;
+      }
       carga.anterior = r.anterior;
       this.historial.unshift(carga);
       this.cancelar();

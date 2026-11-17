@@ -53,6 +53,11 @@
   margin: 14px 0;
 }
 
+/* Con la lista de localidades abierta (planilla por localidad), los otros campos no bajan con ella */
+.rr-fila--consulta:has(.rr-sugerencias) {
+  align-items: flex-start;
+}
+
 .rr-campo {
   display: flex;
   flex-direction: column;
@@ -77,6 +82,16 @@
 
 .rr-campo--corto input { width: 6em; }
 .rr-campo--largo { flex: 1 1 260px; }
+
+/* Casilla en la fila de filtros, alineada con el pie de los campos */
+.rr-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  font-size: .9rem;
+  cursor: pointer;
+}
 
 .rr-btn {
   display: inline-flex;
@@ -132,7 +147,8 @@
 .rr-carga {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  /* Arriba: con la lista abierta, la columna de la localidad crece y el campo de mm no tiene que bajar */
+  align-items: flex-start;
   gap: 10px 14px;
   margin: 6px 0 12px;
 }
@@ -148,6 +164,7 @@
 }
 
 .rr-carga__contexto {
+  align-self: flex-end;
   flex: 1 1 260px;
   padding-bottom: 10px;
   font-size: .9rem;
@@ -160,12 +177,9 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* La lista ocupa lugar y corre lo de abajo: flotando (position: absolute) la cortaban el
+   overflow: hidden de .est-caja y el de la pestaña de /admin */
 .rr-sugerencias {
-  position: absolute;
-  z-index: 5;
-  top: 100%;
-  left: 0;
-  right: 0;
   margin: 4px 0 0;
   padding: 4px;
   list-style: none;
