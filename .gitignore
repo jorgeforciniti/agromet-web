@@ -54,3 +54,4 @@ server/admin/api/conecta_lluvias.php
 # Registros de la administración (se escriben en el servidor)
 server/admin/api/*.log
 server/api/push/clave-push.php
+server/servicios/openweather-clave.php

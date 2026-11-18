@@ -24,6 +24,28 @@ Se suben a mano (WinSCP) a la carpeta `/services/` del servidor, junto a `conect
 | `datos-alerta.php` | Estado actual, mapa de lluvias diarias y lluvia acumulada: lluvia y mínimas por estación; con `?horas=24`, las últimas 24 horas (app móvil) | `estaciones`, `datos_estaciones` |
 | `enso.php` | Estado actual (El Niño y La Niña) y El Colmenar (sección «El Niño y La Niña»): índice RONI de NOAA CPC y estado de alerta | — |
 | `pronosticos/smn-alerta-area.php` | Alertas del SMN por área (`tipo=1`) y avisos de corto plazo (`tipo=2`) | — |
+| `forecast.php` | Estado actual y condiciones para aplicar: pronóstico de OpenWeatherMap cada 3 h (caché de 30 min) | — |
+| `now.php` | Estado actual: tiempo actual de OpenWeatherMap (caché de 10 min) | — |
+| `openweather.php` | No es un servicio: pedido a OpenWeatherMap con caché que usan `forecast.php` y `now.php` | — |
+
+## `forecast.php` y `now.php` (OpenWeatherMap)
+
+Hacen de intermediarios con OpenWeatherMap porque su API no manda cabeceras CORS para el sitio. Antes
+le pedían los datos en cada visita. En noviembre de 2026 la cuenta superó el límite del plan,
+OpenWeatherMap la bloqueó (HTTP 429) y el pronóstico dejó de verse: la misma clave la usan también
+los mosaicos del mapa del sitio y la app móvil, que le piden directamente.
+
+Ahora `openweather.php` guarda cada respuesta en la carpeta temporal de PHP (`agromet-owm-*.json`), por
+coordenada redondeada a 0,01°: 30 minutos el pronóstico y 10 el tiempo actual. Si OpenWeatherMap no
+responde, manda la última copia (hasta 12 h). Después de un 429 no le pide nada durante 15 minutos.
+La cabecera `X-Cache` dice de dónde salió la respuesta: `guardada`, `nueva` o `vencida`.
+
+Instalación: subir `openweather.php`, `forecast.php`, `now.php` y `openweather-clave.php`, que no
+está en el repositorio. Se crea a partir de `openweather-clave.ejemplo.php` con la clave de
+OpenWeatherMap. Para probarlo, abrir dos veces
+`https://agromet.eeaoc.gob.ar/services/forecast.php?lat=-26.73&lon=-65.3`: la segunda tiene que
+traer `X-Cache: guardada` (pestaña Red del navegador). Mientras dure un bloqueo, responde 502 o
+`X-Cache: vencida`.
 
 ## `normales.php`
 
