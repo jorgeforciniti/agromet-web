@@ -34,7 +34,9 @@ set_exception_handler(function (Throwable $e) {
     // (la carpeta no es del usuario de PHP) y así se ve en pantalla sin abrir el navegador
     $donde = basename($e->getFile()) . ':' . $e->getLine();
     $respuesta = ['ok' => false, 'error' => $e instanceof mysqli_sql_exception
-        ? "Error interno del servidor (MySQL {$e->getCode()}, $donde)."
+        ? (in_array($e->getCode(), MYSQL_CODIGOS_TIEMPO_AGOTADO)
+            ? "La consulta superó el límite de " . MAX_SEGUNDOS_CONSULTA . " s y se canceló ($donde)."
+            : "Error interno del servidor (MySQL {$e->getCode()}, $donde).")
         : "Error interno del servidor ($donde)."];
     if ($e instanceof mysqli_sql_exception) {
         $respuesta['codigo'] = $e->getCode();
@@ -82,6 +84,14 @@ function administrador_actual(): string
     return $email;
 }
 
+/**
+ * Tope de cada SELECT de /admin. Una consulta que recorra la tabla de registros entera la deja
+ * bloqueada para el receptor de datos (hubo una de más de 800 s); con el tope el servidor la cancela.
+ */
+const MAX_SEGUNDOS_CONSULTA = 30;
+/** Errores de consulta cancelada por el tope: 3024 en MySQL, 1969 en MariaDB */
+const MYSQL_CODIGOS_TIEMPO_AGOTADO = [3024, 1969];
+
 /** Conexión mysqli (una por pedido) con conecta_admin.php. */
 function conexion(): mysqli
 {
@@ -97,6 +107,15 @@ function conexion(): mysqli
     }
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $conexion->set_charset('utf8mb4');
+    // max_execution_time existe desde MySQL 5.7.8 (sólo afecta a los SELECT); MariaDB usa
+    // max_statement_time. En versiones que no tienen ninguno de los dos se sigue sin tope.
+    try {
+        $conexion->query(stripos($conexion->server_info, 'MariaDB') !== false
+            ? 'SET SESSION max_statement_time = ' . MAX_SEGUNDOS_CONSULTA
+            : 'SET SESSION max_execution_time = ' . (MAX_SEGUNDOS_CONSULTA * 1000));
+    } catch (mysqli_sql_exception $e) {
+        error_log('admin/api: no se pudo fijar el tope de las consultas: ' . $e->getMessage());
+    }
     return $cx = $conexion;
 }
 

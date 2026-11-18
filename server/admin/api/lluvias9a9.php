@@ -17,17 +17,25 @@ $desde = date('Y-m-d', strtotime("$hasta -1 day"));
 $est = '`' . DB_ESTACIONES . '`';
 // LEFT JOIN: también aparecen las estaciones habilitadas sin registros (para ver las que faltan).
 // Las deshabilitadas aparecen si tienen registros en el período (para revisar sus datos).
+// Los registros se filtran y agrupan antes del JOIN con un rango simple de `fecha` (usa el índice
+// `Fecha`); las horas del primer y del último día se descartan aparte. Con el OR entre fecha y hora
+// dentro del ON, MySQL recorría la tabla de registros entera (más de 800 s con la tabla bloqueada).
 $sql = "SELECT e.identificacion AS id, e.nombre, e.tiempo, e.habilitada,
-               SUM(d.lluvia) AS mm, COUNT(d.lluvia) AS registros, COUNT(d.temp_AF) AS registros_temp
+               d.mm, COALESCE(d.registros, 0) AS registros, COALESCE(d.registros_temp, 0) AS registros_temp
         FROM $est.estaciones e
-        LEFT JOIN $est.datos_estaciones d
-               ON d.identificacion = e.identificacion
-              AND ((d.fecha = ? AND d.hora <= '09:00:00') OR (d.fecha = ? AND d.hora > '09:00:00'))
+        LEFT JOIN (
+            SELECT identificacion,
+                   SUM(lluvia) AS mm, COUNT(lluvia) AS registros, COUNT(temp_AF) AS registros_temp
+            FROM $est.datos_estaciones
+            WHERE fecha BETWEEN ? AND ?
+              AND NOT (fecha = ? AND hora <= '09:00:00')
+              AND NOT (fecha = ? AND hora > '09:00:00')
+            GROUP BY identificacion
+        ) d ON d.identificacion = e.identificacion
         WHERE e.habilitada > 0 OR d.identificacion IS NOT NULL
-        GROUP BY e.identificacion, e.nombre, e.tiempo, e.habilitada
         ORDER BY e.nombre";
 $st = conexion()->prepare($sql);
-$st->bind_param('ss', $hasta, $desde);
+$st->bind_param('ssss', $desde, $hasta, $desde, $hasta);
 $st->execute();
 $filas = $st->get_result()->fetch_all(MYSQLI_ASSOC);
 

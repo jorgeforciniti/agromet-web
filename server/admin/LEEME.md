@@ -164,6 +164,22 @@ Sin token (tiene que responder 401):
 
 Los errores inesperados quedan en `errores.log` de la carpeta (no se puede leer desde afuera).
 
+## Tope de las consultas
+
+`conexion()` de `comun.php` fija un tope de `MAX_SEGUNDOS_CONSULTA` (30 s) a cada `SELECT` de la
+conexión de `conecta_admin.php` (`max_execution_time` en MySQL 5.7.8 o posterior, `max_statement_time`
+en MariaDB; en versiones anteriores no hay tope). Una consulta que se pasa la cancela el servidor y la
+API responde «La consulta superó el límite…». No alcanza a las conexiones de `conecta_lluvias.php` ni
+de El Colmenar.
+
+**Cuidado con `datos_estaciones`.** Una consulta que la recorre entera la deja bloqueada para el
+receptor de datos y traba el servidor. La primera versión de `lluvias9a9.php` tenía en el `ON` del
+JOIN un `OR` entre condiciones de fecha y hora y llegó a tardar más de 800 s. Filtrar siempre por un
+rango simple de `fecha` (índice `Fecha`) antes del JOIN, y descartar las horas de los extremos aparte.
+Después de subir `lluvias9a9.php` o `comun.php`, probar «Lluvias de 9 a 9» con el día de hoy: tiene
+que responder en pocos segundos. Si tarda, revisar `SHOW PROCESSLIST` por si quedó una consulta
+colgada (`KILL <Id>`).
+
 ## Qué hace cada archivo
 
 | Archivo | Uso |
