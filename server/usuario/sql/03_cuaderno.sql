@@ -2,6 +2,8 @@
 -- Tabla nueva; no modifica ninguna tabla existente. Ejecutar en la base DB_USUARIOS (usuarios).
 -- `uid` lo genera el celular: así una anotación hecha sin conexión y subida después no se duplica.
 
+USE usuarios;
+
 CREATE TABLE IF NOT EXISTS usuario_cuaderno (
   usuario_id  INT UNSIGNED  NOT NULL,
   uid         VARCHAR(40)   NOT NULL,
