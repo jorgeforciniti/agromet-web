@@ -15,6 +15,24 @@ error_reporting(E_ALL);
 ini_set('display_errors', '0');
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
+// La app del celular (Capacitor) pide desde otro origen: https://localhost en Android,
+// capacitor://localhost en iOS y http://localhost:8100 con `ionic serve`. Sólo esos orígenes; el
+// sitio web pide desde el mismo dominio y no necesita esto.
+const ORIGENES_APP = ['https://localhost', 'capacitor://localhost', 'http://localhost:8100'];
+$origen = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origen, ORIGENES_APP, true)) {
+    header('Access-Control-Allow-Origin: ' . $origen);
+    header('Vary: Origin');
+    header('Access-Control-Allow-Headers: Authorization, Content-Type');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Max-Age: 86400');
+}
+// Consulta previa del navegador (preflight): sólo los encabezados de arriba
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 // Cualquier error no previsto (por ejemplo, de MySQL) responde JSON en vez de una página vacía.
 // El detalle queda en el log (ver abajo), no en la respuesta.
 set_exception_handler(function (Throwable $e) {

@@ -24,6 +24,7 @@ const FIREBASE_PROJECT_ID = 'agromet-web';
 const MAX_FAVORITAS = 8;
 const MAX_CONSULTAS = 30;
 const MAX_ALERTAS = 20;
+const MAX_CUADERNO = 2000; // anotaciones del cuaderno de aplicaciones (app móvil)
 
 // Herramientas válidas para consultas guardadas (las mismas de src/app/shared/enlace-consulta.ts)
 const HERRAMIENTAS = [

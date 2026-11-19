@@ -50,3 +50,20 @@ Comprobaciones:
 
 Si el sitio publicado todavía no tiene esta API, el frontend sigue funcionando como en la Etapa 1
 (favoritas sólo en el navegador).
+
+## App móvil: cuenta y cuaderno de aplicaciones
+
+La app (Más → Cuenta) inicia sesión con la misma cuenta de Firebase que el sitio y usa esta API para
+las favoritas (`preferencias.php`) y el cuaderno de aplicaciones (`cuaderno.php`, `cuaderno_borrar.php`).
+
+1. Ejecutar `sql/03_cuaderno.sql` en la base `usuarios` (crea `usuario_cuaderno`; no toca lo existente).
+2. Subir con WinSCP a `public_html/services/usuarios/`: `comun.php` (ahora responde CORS sólo a los
+   orígenes de la app: `https://localhost`, `capacitor://localhost` y `http://localhost:8100`),
+   `config.php` (suma `MAX_CUADERNO`), `cuaderno.php`, `cuaderno_borrar.php` y `cuenta_borrar.php`.
+   Ojo: `config.php` del servidor puede tener rutas propias; si difiere, agregar sólo la línea de
+   `MAX_CUADERNO`.
+3. Probar la consulta previa de la app (tiene que responder 204 con `Access-Control-Allow-Origin`):
+
+       curl -i -X OPTIONS https://agromet.eeaoc.gob.ar/services/usuarios/cuaderno.php -H "Origin: https://localhost" -H "Access-Control-Request-Headers: authorization"
+
+   y sin token `cuaderno.php` tiene que responder 401.

@@ -1,6 +1,6 @@
 <?php
 /*
- * POST → {ok}. Borra los datos del usuario en estas tablas (favoritas, consultas y alertas
+ * POST → {ok}. Borra los datos del usuario en estas tablas (favoritas, consultas, alertas y cuaderno
  * caen por ON DELETE CASCADE). La cuenta de Firebase la borra el propio usuario.
  */
 require_once __DIR__ . '/comun.php';
