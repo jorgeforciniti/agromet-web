@@ -37,6 +37,9 @@ Ahora `openweather.php` guarda cada respuesta en la carpeta temporal de PHP (`ag
 coordenada redondeada a 0,01°: 30 minutos el pronóstico y 10 el tiempo actual. Si OpenWeatherMap no
 responde, manda la última copia (hasta 12 h). Después de un 429 no le pide nada durante 15 minutos.
 La cabecera `X-Cache` dice de dónde salió la respuesta: `guardada`, `nueva` o `vencida`.
+Mandan `Access-Control-Allow-Origin: *`, como los demás servicios: la app móvil (desde la 2.4.1) usa
+`now.php` y `forecast.php` en vez de pedirle directo a OpenWeatherMap, así comparte la caché con el
+sitio y no gasta la cuota desde cada celular.
 
 Instalación: subir `openweather.php`, `forecast.php`, `now.php` y `openweather-clave.php`, que no
 está en el repositorio. Se crea a partir de `openweather-clave.ejemplo.php` con la clave de

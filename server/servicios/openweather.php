@@ -45,6 +45,8 @@ function owm_responder_copia($archivo, $origen, $segundosVigencia)
 function owm_proxy($endpoint, $minutosCache)
 {
     header('Content-Type: application/json; charset=utf-8');
+    // Como los demás servicios: la app del celular lo pide desde otro origen (https://localhost)
+    header('Access-Control-Allow-Origin: *');
 
     $lat = isset($_GET['lat']) ? floatval($_GET['lat']) : 0;
     $lon = isset($_GET['lon']) ? floatval($_GET['lon']) : 0;
