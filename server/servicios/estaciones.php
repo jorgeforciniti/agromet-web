@@ -4,6 +4,29 @@ header('Content-Type: application/json');
 
 error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 
+// Obtener y validar los parámetros GET 'habilitada' y 'estacion' (antes de abrir la conexión, para poder usar el caché)
+$habilitada = filter_input(INPUT_GET, 'habilitada', FILTER_VALIDATE_INT);
+if ($habilitada === false || $habilitada === null) {
+    $habilitada = 0; // valor por defecto
+}
+// ?estacion=<id>: sólo esa estación, esté o no habilitada (la usa la app móvil)
+$estacion = filter_input(INPUT_GET, 'estacion', FILTER_VALIDATE_INT);
+
+// Caché en disco de 30 s: la web y la app piden esta lista muy seguido y casi no cambia (los datos llegan cada
+// 15 minutos). Los pedidos repetidos se responden sin abrir conexión a la base. Si el archivo no se puede leer
+// o escribir, la API funciona igual y consulta la base.
+const CACHE_ESTACIONES_SEGUNDOS = 30;
+$archivoCache = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'agromet_services_estaciones_'
+    . md5($habilitada . '|' . ($estacion ? $estacion : 0)) . '.json';
+if (is_file($archivoCache) && (time() - (int) @filemtime($archivoCache)) < CACHE_ESTACIONES_SEGUNDOS) {
+    $enCache = @file_get_contents($archivoCache);
+    if ($enCache !== false && $enCache !== '') {
+        header('X-Cache: HIT');
+        echo $enCache;
+        exit;
+    }
+}
+
 // Conectar a la base de datos
 $db = "estaciones";
 include("conecta_mysql.php");
@@ -19,12 +42,6 @@ if (!$conexion) {
 
 mysqli_set_charset($conexion, "utf8");
 date_default_timezone_set("America/Argentina/Buenos_Aires");
-
-// Obtener y validar el parámetro GET 'habilitada'
-$habilitada = filter_input(INPUT_GET, 'habilitada', FILTER_VALIDATE_INT);
-if ($habilitada === false || $habilitada === null) {
-    $habilitada = 0; // valor por defecto
-}
 
 $hoy = date("Ymd");
 
@@ -43,7 +60,6 @@ switch ($habilitada) {
 }
 
 // ?estacion=<id>: sólo esa estación, esté o no habilitada (la usa la app móvil)
-$estacion = filter_input(INPUT_GET, 'estacion', FILTER_VALIDATE_INT);
 if ($estacion) {
     $query = "SELECT * FROM estaciones WHERE Identificacion = $estacion";
 }
@@ -81,5 +97,15 @@ while ($fila = $resultado->fetch_assoc()) {
 }
 
 mysqli_close($conexion);
-echo json_encode($arr);
+$json = json_encode($arr);
+header('X-Cache: MISS');
+echo $json;
+
+// Guardar en el caché: se escribe un archivo temporal y se renombra, para que nadie lea un archivo a medio escribir
+if ($json !== false && $json !== '') {
+    $temporal = $archivoCache . '.' . getmypid() . '.tmp';
+    if (@file_put_contents($temporal, $json) !== false && !@rename($temporal, $archivoCache)) {
+        @unlink($temporal);
+    }
+}
 ?>
