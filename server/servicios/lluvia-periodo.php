@@ -3,8 +3,9 @@
  * Lluvia por estación en un período, con la cantidad de registros (mapa de lluvias diarias).
  * Va en /services/ junto a datos-alerta.php y usa la misma conexión (conecta_mysql.php).
  * Hace la misma consulta que «Lluvias 9 a 9» de /admin (server/admin/api/lluvias9a9.php), pero es
- * pública y acepta un período de hasta 31 días. Usa el índice `Fecha` de datos_estaciones (EXPLAIN
- * revisado en noviembre de 2026: range sobre `Fecha`, ~7.300 filas para dos días).
+ * pública y acepta un período de hasta 31 días. Usa un rango de `fecha` sobre `idx_fecha_hora_id` de
+ * datos_estaciones (EXPLAIN revisado el 25/11/2026, después de borrar los índices `Fecha` y `fechora`:
+ * range, ~4.000 filas para dos días).
  *
  * GET lluvia-periodo.php?desde=AAAA-MM-DD&hasta=AAAA-MM-DD&dia=calendario|pluviometrico
  *   calendario:    de las 0 h de `desde` a las 24 h de `hasta`.
@@ -31,12 +32,16 @@ ini_set('display_errors', 0);
 date_default_timezone_set('America/Argentina/Tucuman');
 
 /**
- * Período máximo. La consulta recorre el índice de `fecha` (unos 3.700 registros por día): con 31 días
+ * Período máximo. La consulta recorre un rango de `fecha` del índice (unos 3.700 registros por día): con 31 días
  * son ~115.000 registros. Períodos más largos tendrían la tabla bloqueada demasiado tiempo para el
  * receptor de datos.
  */
 const MAX_DIAS = 31;
-/** Tope de la consulta en milisegundos (MySQL 5.7.8 o posterior; otras versiones ignoran la pista) */
+/**
+ * Tope de la consulta en milisegundos. MariaDB no entiende la pista MAX_EXECUTION_TIME de MySQL (la toma como
+ * comentario y la consulta quedaba sin tope): usa `SET STATEMENT max_statement_time=<segundos> FOR SELECT ...`.
+ * En MySQL 5.7.8 o posterior se sigue usando la pista; en otras versiones no hay tope.
+ */
 const MAX_MS_CONSULTA = 15000;
 
 function error_json($mensaje, $codigo = 400)
@@ -112,7 +117,11 @@ if ($resEstaciones === false) {
 //    que se pueden interpolar sin riesgo (y no depende de mysqlnd).
 //    ORDER BY NULL evita el ordenamiento que agrega GROUP BY en MySQL 5 (el orden lo da la lista de
 //    estaciones).
-$sql = "SELECT /*+ MAX_EXECUTION_TIME(" . MAX_MS_CONSULTA . ") */ d.identificacion,
+//    Tope de tiempo: en MariaDB un prefijo SET STATEMENT (solo vale para esta consulta); en MySQL la pista.
+$esMariaDB = stripos($conexion->server_info, 'MariaDB') !== false;
+$prefijoTope = $esMariaDB ? 'SET STATEMENT max_statement_time=' . (MAX_MS_CONSULTA / 1000) . ' FOR ' : '';
+$pistaTope = $esMariaDB ? '' : '/*+ MAX_EXECUTION_TIME(' . MAX_MS_CONSULTA . ') */ ';
+$sql = $prefijoTope . "SELECT " . $pistaTope . "d.identificacion,
                SUM(d.lluvia) AS mm, MAX(d.lluvia) AS maxRegistro, COUNT(d.lluvia) AS registros,
                COUNT(CASE WHEN d.lluvia > 0.3 THEN 1 END) AS registrosLluvia
         FROM datos_estaciones d
@@ -121,6 +130,10 @@ $sql = "SELECT /*+ MAX_EXECUTION_TIME(" . MAX_MS_CONSULTA . ") */ d.identificaci
         ORDER BY NULL";
 $resDatos = $conexion->query($sql);
 if ($resDatos === false) {
+    // 1969 en MariaDB y 3024 en MySQL: la consulta pasó el tope de tiempo y el servidor la canceló
+    if (in_array($conexion->errno, [1969, 3024], true)) {
+        error_json('La consulta superó el tiempo máximo de ' . (MAX_MS_CONSULTA / 1000) . ' s; pruebe con un período más corto.', 500);
+    }
     error_json('Error en la consulta de lluvias.', 500);
 }
 $datos = [];
