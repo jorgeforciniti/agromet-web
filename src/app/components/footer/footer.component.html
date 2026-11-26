@@ -4,12 +4,22 @@
     <div class="footer-col footer-marca">
       <span class="footer-eyebrow">Institución</span>
       <strong class="footer-titulo">Estación Experimental Agroindustrial Obispo Colombres</strong>
-      <p class="footer-texto">
-        William Cross 3150 · Las Talitas<br>
-        Tucumán, Argentina<br>
-        Tel: (54 381) 452 1000 · Fax: (54 381) 452 1008
-      </p>
+      <ul class="footer-lista">
+        <li><mat-icon aria-hidden="true">place</mat-icon>William Cross 3150 · Las Talitas, Tucumán, Argentina</li>
+        <li><mat-icon aria-hidden="true">call</mat-icon>(54 381) 452 1000 · Fax 452 1008</li>
+        <li><mat-icon aria-hidden="true">language</mat-icon><a href="https://www.eeaoc.gob.ar" target="_blank" rel="noopener noreferrer">www.eeaoc.gob.ar</a></li>
+      </ul>
     </div>
+
+    <!-- Secciones del sitio -->
+    <nav class="footer-col footer-nav" aria-label="Secciones del sitio">
+      <span class="footer-eyebrow">El sitio</span>
+      <ul class="footer-enlaces">
+        @for (s of secciones; track s.path) {
+          <li><a [routerLink]="s.path">{{ s.label }}</a></li>
+        }
+      </ul>
+    </nav>
 
     <!-- Contacto de la sección -->
     <div class="footer-col">
@@ -28,27 +38,18 @@
       <div class="footer-qr">
         <figure>
           <img src="assets/images/qr/qrandroid.png" alt="Código QR para descargar la app en Google Play" loading="lazy">
+          <figcaption>Android</figcaption>
         </figure>
         <figure>
           <img src="assets/images/qr/qrios.png" alt="Código QR para descargar la app en App Store" loading="lazy">
+          <figcaption>iPhone</figcaption>
         </figure>
-      </div>
-    </div>
-
-    <!-- Redes -->
-    <div class="footer-col">
-      <span class="footer-eyebrow">Seguinos</span>
-      <div class="iconos">
-        <a class="social-link" href="https://www.facebook.com/EEAOCOFICIAL/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><fa-icon [icon]="['fab', 'facebook']"></fa-icon></a>
-        <a class="social-link" href="https://twitter.com/eeaocoficial" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><fa-icon [icon]="['fab', 'twitter']"></fa-icon></a>
-        <a class="social-link" href="https://www.youtube.com/channel/UC5cr5skGsAzBIoNO_c8KhBg" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><fa-icon [icon]="['fab', 'youtube']"></fa-icon></a>
-        <a class="social-link" href="https://www.instagram.com/eeaocoficial/?hl=es-la" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><fa-icon [icon]="['fab', 'instagram']"></fa-icon></a>
       </div>
     </div>
   </div>
 
   <div class="footer-base">
-    <span>© {{ anio }} Estación Experimental Agroindustrial Obispo Colombres</span>
-    <span>Tucumán · Argentina</span>
+    <span>© {{ anio }} Estación Experimental Agroindustrial Obispo Colombres · Tucumán, Argentina</span>
+    <a routerLink="/privacidad">Política de privacidad</a>
   </div>
 </footer>

@@ -4,7 +4,7 @@
   --f-text: #eef3ea;
   --f-muted: #c3d1b8;
   --f-accent: var(--brand-claro);
-  --f-line: rgba(255, 255, 255, .12);
+  --f-line: rgba(255, 255, 255, .14);
   --footer-stripe-h: 12px;
 
   position: relative;
@@ -22,22 +22,34 @@
   background: var(--brand-stripe);
 }
 
+/* Institución | sitio | contacto | app, separadas por líneas finas */
 .footer-main {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  gap: 24px 48px;
-  /* Todas las columnas apoyadas sobre la base del pie */
-  align-items: end;
+  grid-template-columns: minmax(260px, 1.4fr) minmax(280px, 1.3fr) minmax(220px, 1fr) auto;
+  /* Columnas a todo el alto (separadores parejos) y su contenido apoyado sobre la base del pie */
+  align-items: stretch;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: calc(var(--footer-stripe-h) + 24px) 32px 18px;
+  padding: calc(var(--footer-stripe-h) + 32px) 32px 28px;
 }
 
 .footer-col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 10px;
   min-width: 0;
+  padding: 0 32px;
+  border-left: 1px solid var(--f-line);
+}
+
+.footer-col:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+
+.footer-col:last-child {
+  padding-right: 0;
 }
 
 .footer-eyebrow {
@@ -51,30 +63,25 @@
 .footer-titulo {
   font-size: var(--fs-texto);
   font-weight: 800;
+  line-height: 1.3;
 }
 
-.footer-texto {
-  margin: 0;
-  font-size: var(--fs-detalle);
-  line-height: 1.55;
-  color: var(--f-muted);
-}
-
-/* Contacto */
+/* Datos con ícono (dirección, teléfonos, correo, web) */
 .footer-lista {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--fs-detalle);
+  line-height: 1.4;
   color: var(--f-muted);
 }
 
 .footer-lista li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   min-width: 0;
 }
@@ -87,26 +94,52 @@
   color: var(--f-accent);
 }
 
-.footer-lista a {
+/* Accesos al sitio, en dos columnas */
+.footer-enlaces {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 8px 28px;
+  font-size: var(--fs-detalle);
+}
+
+.footer a {
   color: var(--f-text);
   text-decoration: none;
   overflow-wrap: anywhere;
   border-bottom: 1px solid transparent;
-  transition: border-color .15s ease;
+  transition: border-color .15s ease, color .15s ease;
 }
 
-.footer-lista a:hover {
+.footer a:hover {
+  color: #fff;
   border-bottom-color: var(--f-accent);
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 3px;
 }
 
 /* QR: tarjetas blancas para que sigan siendo escaneables */
 .footer-qr {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .footer-qr figure {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer-qr img {
+  display: block;
+  width: 76px;
+  height: auto;
   padding: 6px;
   background: #fff;
   border-radius: 12px;
@@ -114,46 +147,13 @@
   transition: transform .2s ease;
 }
 
-.footer-qr figure:hover {
+.footer-qr figure:hover img {
   transform: translateY(-2px);
 }
 
-.footer-qr img {
-  display: block;
-  width: 72px;
-  height: auto;
-}
-
-/* Redes sociales */
-.iconos {
-  display: flex;
-  gap: 8px;
-}
-
-.social-link {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, .28);
-  color: var(--f-text);
-  font-size: 16px;
-  transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
-}
-
-.social-link:hover,
-.social-link:focus-visible {
-  background: var(--f-accent);
-  border-color: var(--f-accent);
-  color: var(--f-bg);
-  transform: translateY(-2px);
-}
-
-.social-link:focus-visible,
-.footer-lista a:focus-visible {
-  outline: 2px solid var(--f-accent);
-  outline-offset: 3px;
+.footer-qr figcaption {
+  font-size: var(--fs-detalle);
+  color: var(--f-muted);
 }
 
 /* Franja inferior */
@@ -164,83 +164,75 @@
   gap: 4px 16px;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 10px 32px 12px;
+  padding: 12px 32px 14px;
   border-top: 1px solid var(--f-line);
   font-size: var(--fs-detalle);
   color: var(--f-muted);
 }
 
+.footer-base a {
+  color: var(--f-muted);
+}
+
+/* Con la barra lateral de redes a la vista (components/redes-laterales), el contenido del pie
+   deja lugar a la izquierda, igual que .main-content en app.component.css */
+@media (min-width: 769px) and (max-width: 1720px) {
+  .footer-main,
+  .footer-base {
+    padding-left: 84px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .footer-qr figure,
-  .social-link {
+  .footer-qr img {
     transition: none;
   }
 }
 
-/* Tableta: institución y contacto en la primera fila; app y redes en la segunda */
+/* Tableta: dos columnas (institución y sitio arriba; contacto y app abajo) */
 @media (max-width: 1100px) {
   .footer-main {
     grid-template-columns: 1fr 1fr;
-    gap: 22px 32px;
+    row-gap: 28px;
+  }
+
+  .footer-col:nth-child(3) {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .footer-col:nth-child(2) {
+    padding-right: 0;
   }
 }
 
+/* Celular: una columna, separadas por líneas horizontales */
 @media (max-width: 560px) {
   .footer-main {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px 12px;
-    padding: calc(var(--footer-stripe-h) + 18px) 16px 14px;
-    text-align: left;
+    grid-template-columns: 1fr;
+    row-gap: 0;
+    padding: calc(var(--footer-stripe-h) + 20px) 16px 8px;
   }
 
-  /* Institución y contacto a todo el ancho; app y redes lado a lado */
-  .footer-marca,
-  .footer-col:nth-child(2) {
-    grid-column: 1 / -1;
+  .footer-col,
+  .footer-col:first-child,
+  .footer-col:nth-child(3) {
+    padding: 16px 0;
+    border-left: none;
+    border-top: 1px solid var(--f-line);
   }
 
-  .footer-col {
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  .footer-texto {
-    font-size: var(--fs-detalle);
-    line-height: 1.45;
-  }
-
-  .footer-lista li {
-    justify-content: flex-start;
-  }
-
-  .footer-qr {
-    gap: 6px;
-  }
-
-  .footer-qr figure {
-    padding: 4px;
-    border-radius: 10px;
+  .footer-col:first-child {
+    padding-top: 0;
+    border-top: none;
   }
 
   .footer-qr img {
-    width: 58px;
-  }
-
-  .iconos {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 6px;
-  }
-
-  .social-link {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
+    width: 64px;
   }
 
   .footer-base {
-    justify-content: flex-start;
-    text-align: left;
-    padding: 10px 16px 12px;
+    flex-direction: column;
+    padding: 12px 16px 14px;
   }
 }

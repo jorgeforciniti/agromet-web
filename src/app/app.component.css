@@ -34,6 +34,15 @@
   box-sizing: border-box;
 }
 
+/* Con la barra lateral de redes (components/redes-laterales) a la vista, el contenido deja
+   lugar a la izquierda para que no lo tape; desde 1720 px ya sobra margen a los costados. */
+@media (min-width: 769px) and (max-width: 1720px) {
+  .main-content,
+  .global-disclaimer.global-disclaimer {
+    padding-left: 72px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-content {
     padding: 0 8px;

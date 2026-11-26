@@ -7,12 +7,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faTwitter, faYoutube, faInstagram, faFacebook } from '@fortawesome/free-brands-svg-icons';
+import { faXTwitter, faYoutube, faInstagram, faFacebookF, faTiktok, faLinkedinIn, faSpotify } from '@fortawesome/free-brands-svg-icons';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { RedesLateralesComponent } from './components/redes-laterales/redes-laterales.component';
 import { AnalyticsService } from './services/analytics.service';
 import { CuentaPreferenciasService } from './services/cuenta-preferencias.service';
 
@@ -31,7 +32,8 @@ import { CuentaPreferenciasService } from './services/cuenta-preferencias.servic
     FontAwesomeModule,
     ReactiveFormsModule,
     HeaderComponent,
-    FooterComponent
+    FooterComponent,
+    RedesLateralesComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
@@ -43,7 +45,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(library: FaIconLibrary, public dialog: MatDialog, private analytics: AnalyticsService,
     cuentaPreferencias: CuentaPreferenciasService, router: Router) {
-    library.addIcons(faTwitter, faYoutube, faInstagram, faFacebook);
+    library.addIcons(faXTwitter, faYoutube, faInstagram, faFacebookF, faTiktok, faLinkedinIn, faSpotify);
 
     // Al pasar a otra sección se empieza desde arriba. El scrollPositionRestoration del router no
     // sirve acá: mueve la ventana y el que se desplaza es <body> (ver ngOnInit). Sólo cuenta el
