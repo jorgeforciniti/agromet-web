@@ -17,8 +17,10 @@ type InformeDialogInput = Partial<Informe> & {
 };
 
 interface CategoryMeta {
+  /** Nombre corto: botones de filtro y etiqueta de tema en la lista */
   label: string;
-  color: string;
+  /** Ícono de Material del tema (en el verde de la marca) */
+  icono: string;
 }
 
 /** Informes de un tema en la vista sin filtros (los más recientes de cada uno) */
@@ -65,14 +67,14 @@ export class InformesComponent implements OnInit {
   ];
 
   private readonly categoryMeta: Record<string, CategoryMeta> = {
-    ll: { label: 'Lluvias', color: '#2563eb' },
-    he: { label: 'Heladas', color: '#7c3aed' },
-    bo: { label: 'Boletín', color: '#4a7729' },
-    co: { label: 'Congresos', color: '#64748b' },
-    ad: { label: 'Adversidades', color: '#dc2626' },
-    rv: { label: 'Revistas', color: '#db2777' },
-    et: { label: 'Estadísticas', color: '#0d9488' },
-    ta: { label: 'Talleres', color: '#d97706' }
+    ll: { label: 'Lluvias', icono: 'water_drop' },
+    he: { label: 'Heladas', icono: 'ac_unit' },
+    bo: { label: 'Boletín', icono: 'article' },
+    co: { label: 'Congresos', icono: 'co_present' },
+    ad: { label: 'Adversidades', icono: 'warning_amber' },
+    rv: { label: 'Revistas', icono: 'menu_book' },
+    et: { label: 'Estadísticas', icono: 'bar_chart' },
+    ta: { label: 'Talleres', icono: 'groups' }
   };
 
   // Filtros vigentes (vienen de la URL: /informes?categoria=ll&anio=2019&q=...)
@@ -163,8 +165,7 @@ export class InformesComponent implements OnInit {
     for (const informe of this.informes) {
       let tema = temas.find(t => t.categoria === informe.categoria);
       if (!tema) {
-        const tipo = this.tiposInformes.find(t => t.value === informe.categoria);
-        tema = { categoria: informe.categoria, titulo: tipo?.viewValue ?? this.categoriaLabel(informe.categoria), informes: [] };
+        tema = { categoria: informe.categoria, titulo: this.nombreTema(informe.categoria), informes: [] };
         temas.push(tema);
       }
       tema.informes.push(informe);
@@ -198,7 +199,7 @@ export class InformesComponent implements OnInit {
   }
 
   get resumenResultados(): string {
-    if (this.modo === 'resumen') return 'Los más recientes de cada tema';
+    if (this.modo === 'resumen') return 'Los últimos de cada tema';
     const n = this.total;
     if (n === 0) return '';
     const base = n === 1 ? '1 informe' : `${n.toLocaleString('es-AR')} informes`;
@@ -265,11 +266,23 @@ export class InformesComponent implements OnInit {
     return this.categoryMeta[categoria]?.label ?? categoria;
   }
 
-  chipColor(categoria: string): string {
-    if (!categoria) {
-      return 'var(--brand)';
-    }
-    return this.categoryMeta[categoria]?.color ?? 'var(--mod-reports)';
+  /** Nombre corto para los botones de filtro («Todos», «Lluvias», …) */
+  etiquetaFiltro(value: string): string {
+    return value ? this.categoriaLabel(value) : 'Todos';
+  }
+
+  iconoTema(categoria: string): string {
+    return this.categoryMeta[categoria]?.icono ?? 'description';
+  }
+
+  /** Nombre largo del tema («Informes de lluvias») */
+  nombreTema(categoria: string): string {
+    return this.tiposInformes.find(t => t.value === categoria)?.viewValue ?? this.categoriaLabel(categoria);
+  }
+
+  /** Sin filtros, el informe más reciente de todos va destacado arriba (la API los ordena por fecha). */
+  get destacado(): Informe | null {
+    return this.vistaPorTemas ? this.informes[0] ?? null : null;
   }
 
   async openDialog(informe: InformeDialogInput): Promise<void> {

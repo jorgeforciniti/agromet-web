@@ -8,8 +8,10 @@
     <div class="inf-temas" role="group" aria-label="Filtrar por tema">
       <button *ngFor="let tipo of tiposInformes" type="button" class="inf-tema"
         [class.inf-tema--activo]="selectedCategoria === tipo.value"
-        [attr.aria-pressed]="selectedCategoria === tipo.value" (click)="selectCategoria(tipo.value)">
-        {{ tipo.viewValue }}
+        [attr.aria-pressed]="selectedCategoria === tipo.value" [title]="tipo.viewValue"
+        (click)="selectCategoria(tipo.value)">
+        <mat-icon *ngIf="tipo.value" aria-hidden="true">{{ iconoTema(tipo.value) }}</mat-icon>
+        {{ etiquetaFiltro(tipo.value) }}
       </button>
     </div>
 
@@ -29,14 +31,11 @@
       </label>
 
       <button *ngIf="hayFiltros" type="button" class="inf-buscador__limpiar" (click)="limpiarFiltros()">
+        <mat-icon aria-hidden="true">close</mat-icon>
         Quitar filtros
       </button>
     </div>
   </div>
-
-  <p class="inf-resultados" *ngIf="!loading && !error && informes.length" aria-live="polite">
-    {{ resumenResultados }}
-  </p>
 
   <!-- Cargando -->
   <ul class="inf-lista" *ngIf="loading" aria-hidden="true" aria-busy="true">
@@ -46,15 +45,37 @@
     </li>
   </ul>
 
+  <!-- Sin filtros: el último informe publicado, destacado -->
+  <button *ngIf="!loading && destacado as d" type="button" class="inf-destacado" (click)="openDialog(d)">
+    <span class="inf-destacado__icono" aria-hidden="true"><mat-icon>{{ iconoTema(d.categoria) }}</mat-icon></span>
+    <span class="inf-destacado__texto">
+      <span class="inf-destacado__eyebrow">Último publicado · {{ nombreTema(d.categoria) }}</span>
+      <span class="inf-destacado__titulo">{{ tituloInforme(d.titulo) }}</span>
+      <time class="inf-destacado__fecha" [attr.datetime]="d.creado">{{ fecha(d.creado) }}</time>
+    </span>
+    <span class="inf-destacado__accion">
+      <mat-icon aria-hidden="true">picture_as_pdf</mat-icon>
+      Abrir PDF
+    </span>
+  </button>
+
+  <p class="inf-resultados" *ngIf="!loading && !error && informes.length" aria-live="polite">
+    {{ resumenResultados }}
+  </p>
+
   <ng-container *ngIf="!loading && informes.length; else sinInformes">
     <!-- Sin filtros: los más recientes de cada tema -->
     <div class="inf-temas-grilla" *ngIf="vistaPorTemas; else listaPlana">
       <section class="inf-bloque" *ngFor="let t of temas; let ti = index" [attr.aria-labelledby]="'inf-tema-' + ti">
         <header class="inf-bloque__cabeza">
           <h2 class="inf-bloque__titulo" [id]="'inf-tema-' + ti">
-            <i class="inf-bloque__marca" [style.background]="chipColor(t.categoria)" aria-hidden="true"></i>{{ t.titulo }}
+            <span class="inf-bloque__icono" aria-hidden="true"><mat-icon>{{ iconoTema(t.categoria) }}</mat-icon></span>
+            {{ t.titulo }}
           </h2>
-          <button type="button" class="inf-bloque__todos" (click)="selectCategoria(t.categoria)">Ver todos</button>
+          <button type="button" class="inf-bloque__todos" (click)="selectCategoria(t.categoria)"
+            [attr.aria-label]="'Ver todos: ' + t.titulo">
+            Ver todos <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+          </button>
         </header>
         <ul class="inf-lista">
           <li *ngFor="let informe of t.informes">
@@ -86,10 +107,10 @@
       <span class="inf-fila__texto">
         <span class="inf-fila__titulo">{{ tituloInforme(informe.titulo) }}</span>
         <span class="inf-fila__tema" *ngIf="conTema">
-          <i [style.background]="chipColor(informe.categoria)" aria-hidden="true"></i>{{ categoriaLabel(informe.categoria) }}
+          <mat-icon aria-hidden="true">{{ iconoTema(informe.categoria) }}</mat-icon>{{ categoriaLabel(informe.categoria) }}
         </span>
       </span>
-      <mat-icon class="inf-fila__pdf" aria-label="Abrir PDF">picture_as_pdf</mat-icon>
+      <span class="inf-fila__pdf" aria-label="Abrir PDF">PDF</span>
     </button>
   </ng-template>
 
