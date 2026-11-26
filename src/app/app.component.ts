@@ -1,5 +1,6 @@
 ﻿import { Component, OnDestroy, OnInit } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -41,8 +42,23 @@ export class AppComponent implements OnInit, OnDestroy {
   private headerResizeObserver?: ResizeObserver;
 
   constructor(library: FaIconLibrary, public dialog: MatDialog, private analytics: AnalyticsService,
-    cuentaPreferencias: CuentaPreferenciasService) {
+    cuentaPreferencias: CuentaPreferenciasService, router: Router) {
     library.addIcons(faTwitter, faYoutube, faInstagram, faFacebook);
+
+    // Al pasar a otra sección se empieza desde arriba. El scrollPositionRestoration del router no
+    // sirve acá: mueve la ventana y el que se desplaza es <body> (ver ngOnInit). Sólo cuenta el
+    // cambio de ruta: los de parámetros (?estacion=…) o de ancla (#…) dejan la página donde está.
+    let rutaAnterior = '';
+    router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe(e => {
+      const arbol = router.parseUrl(e.urlAfterRedirects);
+      const ruta = '/' + (arbol.root.children['primary']?.segments.map(s => s.path).join('/') ?? '');
+      if (ruta !== rutaAnterior && rutaAnterior !== '' && !arbol.fragment) {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+      rutaAnterior = ruta;
+    });
 
     // Favoritas de la cuenta al iniciar sesión (y las del visitante al cerrarla)
     cuentaPreferencias.iniciar();
