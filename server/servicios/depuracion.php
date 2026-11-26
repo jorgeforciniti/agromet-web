@@ -15,7 +15,7 @@
  *   $bajas = depuracionBajas($conexion, $estacion, $desde, $hasta);
  *   depuracionLimpiarDia($fila, $bajas, $estacion, $fecha, DEPURACION_CAMPOS_DIARIOS);
  *   depuracionLimpiarPeriodo($fila, $bajas, $estacion, $desde, $hasta, DEPURACION_CAMPOS_RESUMEN);
- *   depuracionLimpiarActual($fila, $bajas, $estacion);       // último registro (tabla estaciones)
+ *   depuracionLimpiarActual($fila, $bajas, $estacion);       // último registro (tabla estaciones; también saca lo fuera de rango)
  *   if (depuracionHayBaja($bajas, $estacion, 'lluvia', $desde, $hasta)) { ...se saca la fila... }
  *
  * Si no puede leer sensores_baja, no quita nada: el PHP responde como antes.
@@ -224,8 +224,41 @@ function depuracionAnularRegistro(&$row, $bajas, $columnas = DEPURACION_COLUMNAS
     depuracionAnular($row, depuracionVariables($bajas, $id, substr((string)$fecha, 0, 10)), $columnas);
 }
 
+/**
+ * Rango posible de cada campo del último registro (tabla estaciones). Cuando un sensor falla, la
+ * consola manda valores de relleno (Davis: 1802,6 °C, 255 % de humedad, 410,4 km/h de viento) que
+ * en datos_estaciones quedan en null pero en la tabla estaciones quedan tal cual. Fuera de rango, el
+ * campo se trata como el de un sensor de baja. Temperatura: el mismo mínimo que datos-temperatura.php
+ * y el máximo de la app móvil; los demás, los de la app (home.page.ts, lluvias.page.html), que
+ * también los aplica de su lado (estaciones.service.ts, EstacionWidget.java). Claves sin importar
+ * mayúsculas (datos-online.php usa rr_dia).
+ */
+const DEPURACION_RANGOS_ACTUALES = [
+    'temp_af' => [-25, 55],
+    'hum_af' => [1, 100],
+    'presion' => [500, 1100],
+    'viento_medio' => [0, 220],
+    'viento_max' => [0, 260],
+    'rafaga24' => [0, 260],
+    'rr_15' => [0, 150],
+    'rr_dia' => [0, 399.99],
+    'rr_mes' => [0, 2000],
+];
+
+/** Campos del último registro fuera de rango (los nombres tal como están en $fila) */
+function depuracionFueraDeRango($fila) {
+    $fuera = [];
+    foreach ($fila as $k => $v) {
+        $rango = DEPURACION_RANGOS_ACTUALES[strtolower($k)] ?? null;
+        if ($rango === null || $v === null || $v === '') continue;
+        if (!is_numeric($v) || (float)$v < $rango[0] || (float)$v > $rango[1]) $fuera[] = $k;
+    }
+    return $fuera;
+}
+
 /** Último registro de una estación sin quitar claves (feeds viejos de /api/): anula en vez de quitar */
 function depuracionAnularActual(&$fila, $bajas, $estacion, $fecha = null) {
+    foreach (depuracionFueraDeRango($fila) as $k) $fila[$k] = null;
     $dia = $fecha ? substr((string)$fecha, 0, 10) : date('Y-m-d');
     depuracionAnular($fila, depuracionVariables($bajas, $estacion, $dia), DEPURACION_CAMPOS_ACTUALES);
     if (depuracionHayBaja($bajas, $estacion, 'lluvia', substr($dia, 0, 7) . '-01', $dia)) depuracionAnular($fila, ['lluvia'], ['lluvia' => ['rr_mes']]);
@@ -246,6 +279,7 @@ function depuracionLimpiarPeriodo(&$fila, $bajas, $estacion, $desde, $hasta, $ca
  * quita si la lluvia estuvo de baja en el mes de ese día.
  */
 function depuracionLimpiarActual(&$fila, $bajas, $estacion, $fecha = null) {
+    foreach (depuracionFueraDeRango($fila) as $k) unset($fila[$k]);
     $dia = $fecha ? substr((string)$fecha, 0, 10) : date('Y-m-d');
     depuracionQuitar($fila, depuracionVariables($bajas, $estacion, $dia), DEPURACION_CAMPOS_ACTUALES);
     if (depuracionHayBaja($bajas, $estacion, 'lluvia', substr($dia, 0, 7) . '-01', $dia)) unset($fila['rr_mes']);
