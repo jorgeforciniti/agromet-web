@@ -2,6 +2,10 @@
   margin: 0 auto;
   padding: 14px 12px 40px;
   display: grid;
+  /* minmax(0, 1fr): sin esto la columna toma el ancho mínimo de su contenido, y el carrusel
+     de Mis estaciones del celular (una fila de tarjetas desplazable) la ensanchaba más que la
+     pantalla, cortando también el recuadro de bienvenida. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 
