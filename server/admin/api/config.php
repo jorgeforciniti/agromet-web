@@ -53,6 +53,12 @@ const LLUVIAS_DESDE = 1900;
 // Caja aproximada de la red (Tucumán y alrededores): una localidad fuera de ella sólo genera un aviso
 const ZONA_RED = ['lat' => [-30, -22], 'lon' => [-68, -62]];
 
+// Pedidos para sumar una estación a la red (/suma-tu-estacion): a quién se avisa por correo (el
+// contacto del pie del sitio) y desde qué dirección sale el aviso. Si el servidor no manda correo,
+// los pedidos igual se ven en la pestaña «Sumar estaciones».
+const AVISO_INCORPORACIONES = 'jorgeforciniti@eeaoc.org.ar';
+const REMITENTE_AVISOS = 'no-responder@agromet.eeaoc.gob.ar';
+
 // Carpeta pública de los informes (https://agromet.eeaoc.gob.ar/PDFS/). Con la API instalada
 // en public_html/services/admin, queda dos niveles arriba.
 const CARPETA_PDFS = __DIR__ . '/../../PDFS/';

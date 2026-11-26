@@ -6,6 +6,25 @@
 }
 
 /* ====== Encabezado ====== */
+.re-sumar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-detalle);
+}
+
+.re-sumar .material-icons {
+  font-size: 20px;
+  color: var(--brand);
+}
+
+.re-sumar a {
+  color: var(--brand-600);
+  font-weight: 700;
+}
+
 .re__titulo {
   margin: 0;
   font-family: var(--font-display);

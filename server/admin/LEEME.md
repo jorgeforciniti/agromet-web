@@ -139,18 +139,48 @@ GRANT SELECT, INSERT, UPDATE ON estaciones.api_consultas TO 'invitado'@'%';
 GRANT SELECT ON estaciones.api_consultas TO '<usuario de conecta_admin.php>'@'<host>';
 ```
 
+### Pedidos para sumar estaciones
+
+La página pública `/suma-tu-estacion` manda el formulario a `incorporaciones.php` **sin token** (es
+el único endpoint público de esta carpeta). Guarda el pedido en la base `admin` y manda un aviso con
+`mail()` a `AVISO_INCORPORACIONES`; si el servidor no tiene correo configurado, el aviso no sale pero el
+pedido queda igual en la pestaña **Sumar estaciones**, donde se marca como atendido. Acepta 3 pedidos
+por hora desde la misma IP. Sin la tabla, la página le pide a la persona que escriba al correo.
+
+```sql
+CREATE TABLE admin.incorporaciones_estacion (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  creado DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  nombre VARCHAR(120) NOT NULL,
+  email VARCHAR(160) NOT NULL,
+  telefono VARCHAR(40) NOT NULL DEFAULT '',
+  ubicacion VARCHAR(200) NOT NULL,
+  estacion VARCHAR(120) NOT NULL DEFAULT '' COMMENT 'marca y modelo',
+  internet VARCHAR(10) NOT NULL DEFAULT '' COMMENT 'si, no, no_se o vacío',
+  comentarios TEXT NOT NULL,
+  ip VARCHAR(45) NOT NULL,
+  atendido DATETIME NULL,
+  atendido_por VARCHAR(160) NULL,
+  PRIMARY KEY (id),
+  KEY ip_creado (ip, creado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+GRANT SELECT, INSERT, UPDATE ON admin.incorporaciones_estacion TO '<usuario de conecta_admin.php>'@'<host>';
+```
+
 ## 3. Revisar `api/config.php`
 
 | Constante | Qué poner |
 |---|---|
 | `ADMINISTRADORES` | Emails con acceso. Si se cambia, cambiar también `src/app/shared/administradores.ts`. |
-| `CARPETA_PDFS` | Carpeta de `https://agromet.eeaoc.gob.ar/PDFS/`. Por defecto, dos niveles arriba de `services/admin`. PHP necesita permiso de escritura ahí. |
+| `CARPETA_PDFS` | Carpeta de `https://agromet.eeaoc.gob.ar/PDFS/`. Por defecto, dos niveles arriba de `services/admin`. PHP necesita permiso de escritura ahí: si al publicar dice que no tiene permiso, revisar los permisos y el dueño de `PDFS/` (por ejemplo, después de subir el sitio con WinSCP). |
 | `MAX_BYTES` | Tamaño máximo (30 MB). `upload_max_filesize` y `post_max_size` de PHP tienen que ser iguales o mayores. |
 | `DB_COLMENAR`, `COLMENAR_DESDE` | Base de la serie diaria de El Colmenar y su primer día (los días sin fila desde esa fecha cuentan como faltantes). |
 | `LIMITES_COLMENAR` | Valores aceptados al cargar (temperaturas de −20 a 50 °C y lluvia de 0 a 500 mm). Si se cambian, cambiar también `admin-colmenar.component.ts`. |
 | `LIMITE_LLUVIA_DIA`, `AVISO_LLUVIA_DIA`, `LIMITE_LLUVIA_MES`, `AVISO_LLUVIA_MES`, `LLUVIAS_DESDE` | Red pluviométrica: tope y aviso de los mm (500 y 150 por día, 2000 y 800 por mes) y primer año aceptado. Si se cambian, cambiar también `src/app/admin/lluvias-red/lluvias-red.ts`. |
 | `DIAS_GRACIA_DIARIO` | Hasta qué día del mes se pueden cargar todavía los datos diarios del mes anterior (10). |
 | `ZONA_RED` | Caja de latitud y longitud de la red: una localidad fuera de ella sólo genera un aviso. |
+| `AVISO_INCORPORACIONES`, `REMITENTE_AVISOS` | A quién llega el aviso de cada pedido de `/suma-tu-estacion` (el contacto del pie del sitio) y desde qué dirección sale. |
 
 ## 4. Probar
 
@@ -192,6 +222,7 @@ colgada (`KILL <Id>`).
 | `comandos.php` | Pedidos de "Actualizar fecha y hora" y "Borrar memoria" para UDPAdmin: lista, carga y cancela (también en estaciones deshabilitadas con GPRS). |
 | `control_datos.php` | Control de datos: revisa `datos_diarios` de los últimos 7 a 31 días y propone sensores que parecen fallar (humedad que cae a 1-3 %, anemómetro trabado, pluviómetro sin registro, temperatura lejos de las vecinas, etc.). Revisa también las deshabilitadas que tienen datos, pero sólo las habilitadas sirven de vecinas. Sólo lee; las reglas están en el encabezado del archivo. |
 | `consultas_api.php` | Consultas de los feeds para terceros de `/api/` por feed, día e IP (tabla `api_consultas`). Sólo lee. |
+| `incorporaciones.php` | Pedidos de `/suma-tu-estacion`: alta pública (sin token, con aviso por correo), lista y marca de atendido para los administradores. |
 | `sensores_baja.php` | Sensores dados de baja (depuración de datos): lista, carga, edita (por ejemplo, para cerrar una baja cuando se arregla el sensor) y borra. Lista todas las estaciones, también las deshabilitadas. Con `variable: todas` da de baja todos los sensores de una estación que falla entera (una fila por sensor). |
 | `colmenar_diarios.php` | Serie diaria de El Colmenar (`colmenar.clima_diario_el_colmenar`): resumen de pendientes por año, días de un período y carga de faltantes o validación de provisionales. |
 | `lluvias_comun.php` | Base de la red pluviométrica: conexión con `conecta_lluvias.php`, validación de los mm, lista de localidades y alta automática del año. No se puede pedir desde afuera. |

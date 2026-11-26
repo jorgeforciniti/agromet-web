@@ -1,0 +1,125 @@
+<div class="ste">
+  <header class="section-header">
+    <span class="section-kicker">RED DE ESTACIONES</span>
+    <h1 class="section-title">Sumá tu estación a la red de la EEAOC</h1>
+    <p class="section-summary">¿Tenés una estación meteorológica en tu campo? Sumala a la red de la Sección
+      Agrometeorología y aprovechá sus datos junto con los de las estaciones de toda la provincia.</p>
+  </header>
+
+  <div class="ste__cuerpo">
+    <section class="ste-caja" aria-labelledby="ste-beneficios">
+      <h2 id="ste-beneficios" class="ste-caja__titulo">Qué ganás</h2>
+      <ul class="ste-beneficios">
+        @for (b of beneficios; track b.icono) {
+          <li>
+            <mat-icon aria-hidden="true">{{ b.icono }}</mat-icon>
+            <span>{{ b.texto }}</span>
+          </li>
+        }
+      </ul>
+      <p class="ste-nota">Mirá las estaciones que ya forman parte en <a routerLink="/estaciones">Red de estaciones</a>.
+        Después de recibir tu pedido te escribimos para coordinar los próximos pasos.</p>
+    </section>
+
+    <section class="ste-caja" aria-labelledby="ste-form-titulo">
+      <h2 id="ste-form-titulo" class="ste-caja__titulo">Pedí sumar tu estación</h2>
+
+      @if (enviado) {
+        <div #confirmacion class="ste-ok" role="status" tabindex="-1">
+          <mat-icon aria-hidden="true">check_circle</mat-icon>
+          <div>
+            <p><strong>¡Gracias! Recibimos tu pedido.</strong></p>
+            <p>Te vamos a escribir al correo que dejaste para coordinar cómo sumar tu estación.</p>
+            <button type="button" class="btn btn--ghost" (click)="otroPedido()">Enviar otro pedido</button>
+          </div>
+        </div>
+      } @else {
+        <form #form="ngForm" #formEl class="ste-form" (ngSubmit)="enviar(form, formEl)" novalidate>
+          <p class="ste-nota">Los campos con <span aria-hidden="true">*</span> son obligatorios.</p>
+
+          <label class="ste-campo">
+            <span>Nombre y apellido <span class="ste-req" aria-hidden="true">*</span></span>
+            <input type="text" name="nombre" [(ngModel)]="datos.nombre" #nombre="ngModel" required maxlength="120"
+              autocomplete="name" [attr.aria-invalid]="nombre.invalid && nombre.touched"
+              aria-describedby="ste-error-nombre" />
+            @if (nombre.invalid && nombre.touched) {
+              <small id="ste-error-nombre" class="ste-error">Escribí tu nombre.</small>
+            }
+          </label>
+
+          <div class="ste-fila">
+            <label class="ste-campo">
+              <span>Correo electrónico <span class="ste-req" aria-hidden="true">*</span></span>
+              <input type="email" name="email" [(ngModel)]="datos.email" #email="ngModel" required email maxlength="160"
+                autocomplete="email" inputmode="email" [attr.aria-invalid]="email.invalid && email.touched"
+                aria-describedby="ste-error-email" />
+              @if (email.invalid && email.touched) {
+                <small id="ste-error-email" class="ste-error">Revisá el correo electrónico.</small>
+              }
+            </label>
+
+            <label class="ste-campo">
+              <span>Teléfono <small>(opcional)</small></span>
+              <input type="tel" name="telefono" [(ngModel)]="datos.telefono" maxlength="40" autocomplete="tel"
+                inputmode="tel" />
+            </label>
+          </div>
+
+          <label class="ste-campo">
+            <span>Localidad o ubicación de la estación <span class="ste-req" aria-hidden="true">*</span></span>
+            <input type="text" name="ubicacion" [(ngModel)]="datos.ubicacion" #ubicacion="ngModel" required maxlength="200"
+              placeholder="Por ejemplo: Los Puestos, Leales" [attr.aria-invalid]="ubicacion.invalid && ubicacion.touched"
+              aria-describedby="ste-error-ubicacion" />
+            @if (ubicacion.invalid && ubicacion.touched) {
+              <small id="ste-error-ubicacion" class="ste-error">Contanos dónde está la estación.</small>
+            }
+          </label>
+
+          <div class="ste-fila">
+            <label class="ste-campo">
+              <span>Marca y modelo de la estación <small>(opcional)</small></span>
+              <input type="text" name="estacion" [(ngModel)]="datos.estacion" maxlength="120"
+                placeholder="Si no lo sabés, dejalo vacío" />
+            </label>
+
+            <label class="ste-campo">
+              <span>¿Tiene conexión a internet? <small>(opcional)</small></span>
+              <select name="internet" [(ngModel)]="datos.internet">
+                <option value="">Elegí una opción</option>
+                <option value="si">Sí</option>
+                <option value="no">No</option>
+                <option value="no_se">No sé</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="ste-campo">
+            <span>Comentarios <small>(opcional)</small></span>
+            <textarea name="comentarios" [(ngModel)]="datos.comentarios" rows="4" maxlength="2000"
+              placeholder="Lo que quieras contarnos de tu estación o de tu campo"></textarea>
+          </label>
+
+          <!-- Trampa para robots: oculto para las personas y para los lectores de pantalla -->
+          <div class="ste-trampa" aria-hidden="true">
+            <label>Sitio web <input type="text" name="sitio_web" [(ngModel)]="datos.sitio_web" tabindex="-1"
+                autocomplete="off" /></label>
+          </div>
+
+          @if (error) {
+            <p class="ste-aviso-error" role="alert">{{ error }}</p>
+          }
+
+          <div class="ste-acciones">
+            <button type="submit" class="btn" [disabled]="enviando">
+              {{ enviando ? 'Enviando…' : 'Enviar pedido' }}
+            </button>
+          </div>
+
+          <p class="ste-nota">Usamos estos datos sólo para responder tu pedido (ver la
+            <a routerLink="/privacidad">política de privacidad</a>). También podés escribirnos a
+            <a [href]="'mailto:' + correo">{{ correo }}</a>.</p>
+        </form>
+      }
+    </section>
+  </div>
+</div>

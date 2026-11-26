@@ -1,0 +1,14 @@
+.inc-comentarios {
+  min-width: 220px;
+  white-space: pre-line;
+}
+
+.inc-atendido td {
+  opacity: .6;
+}
+
+.inc-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

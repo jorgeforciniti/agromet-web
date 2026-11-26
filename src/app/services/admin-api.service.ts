@@ -122,6 +122,22 @@ export interface ConsultasApis {
   ips: { api: string; ip: string; consultas: number; dias: number; ultima: string }[];
 }
 
+/** Pedido para sumar una estación propia a la red (/suma-tu-estacion; tabla admin.incorporaciones_estacion) */
+export interface PedidoIncorporacion {
+  id: number;
+  creado: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  ubicacion: string;
+  /** Marca y modelo */
+  estacion: string;
+  internet: '' | 'si' | 'no' | 'no_se';
+  comentarios: string;
+  atendido: boolean;
+  atendido_por: string | null;
+}
+
 /** Sensor dado de baja (depuración de datos; tabla estaciones.sensores_baja) */
 export interface BajaSensor {
   id: number;
@@ -371,6 +387,15 @@ export class AdminApiService {
 
   consultasApis(dias: number): Promise<ConsultasApis> {
     return this.pedir<ConsultasApis>('GET', 'consultas_api.php', undefined, new HttpParams().set('dias', String(dias)));
+  }
+
+  /** Los últimos 200, del más nuevo al más viejo */
+  incorporaciones(): Promise<PedidoIncorporacion[]> {
+    return this.pedir<{ pedidos: PedidoIncorporacion[] }>('GET', 'incorporaciones.php').then(r => r.pedidos);
+  }
+
+  marcarIncorporacion(id: number, atendido: boolean): Promise<void> {
+    return this.pedir('POST', 'incorporaciones.php', { accion: 'atendido', id, atendido }).then(() => undefined);
   }
 
   comunicaciones(): Promise<Comunicaciones> {

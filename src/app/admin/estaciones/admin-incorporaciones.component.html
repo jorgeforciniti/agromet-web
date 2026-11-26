@@ -1,0 +1,48 @@
+<div class="est-barra">
+  <span class="est-mut">Pedidos de productores para sumar su estación a la red, enviados desde
+    <a href="/suma-tu-estacion" target="_blank" rel="noopener">/suma-tu-estacion</a>. Cada pedido también llega por correo.</span>
+  <span class="est-estado" [class.est-estado--error]="error" role="status">{{ error || (cargando ? 'Cargando…' : '') }}</span>
+  <button type="button" class="est-btn-sec" (click)="leer()" [disabled]="cargando" aria-label="Actualizar">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</div>
+
+<p class="est-mut" *ngIf="!cargando && !error && !pedidos.length">Todavía no hay pedidos.</p>
+
+<section class="est-caja" *ngIf="pedidos.length">
+  <h2 class="est-caja__titulo">Pedidos <small>{{ pendientes }} sin atender de {{ pedidos.length }}</small></h2>
+  <div class="est-scroll">
+    <table class="est-tabla">
+      <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Productor</th>
+          <th scope="col">Ubicación</th>
+          <th scope="col">Estación</th>
+          <th scope="col">Internet</th>
+          <th scope="col">Comentarios</th>
+          <th scope="col">Atendido</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pedidos" [class.inc-atendido]="p.atendido">
+          <td>{{ p.creado | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td><strong>{{ p.nombre }}</strong><br>
+            <a [href]="'mailto:' + p.email">{{ p.email }}</a>
+            <ng-container *ngIf="p.telefono"><br>{{ p.telefono }}</ng-container></td>
+          <td>{{ p.ubicacion }}</td>
+          <td>{{ p.estacion || '—' }}</td>
+          <td>{{ internet(p.internet) }}</td>
+          <td class="inc-comentarios">{{ p.comentarios || '—' }}</td>
+          <td>
+            <label class="inc-check">
+              <input type="checkbox" [checked]="p.atendido" (change)="marcar(p, $any($event.target).checked)"
+                [attr.aria-label]="'Pedido de ' + p.nombre + ' atendido'" />
+              <span class="est-mut" *ngIf="p.atendido_por && p.atendido">{{ p.atendido_por }}</span>
+            </label>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

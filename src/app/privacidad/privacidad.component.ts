@@ -17,7 +17,7 @@ import { desactivarMedicion, medicionDesactivada } from '../services/analytics.s
 })
 export class PrivacidadComponent {
   /** Fecha de la última revisión del texto; cambiarla al modificarlo */
-  readonly actualizada = '11/11/2026';
+  readonly actualizada = '26/11/2026';
 
   medicionDesactivada = medicionDesactivada();
 

@@ -1,0 +1,269 @@
+.ste {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Encabezado: el mismo de Privacidad */
+.section-header {
+  position: relative;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.section-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  background: var(--brand);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  background: rgba(255, 255, 255, .84);
+  font-size: var(--fs-detalle);
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: color-mix(in srgb, var(--brand) 60%, #3f4750);
+}
+
+.section-title {
+  margin: 8px 0 0;
+  font-size: var(--fs-titulo);
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.08;
+}
+
+.section-summary {
+  max-width: 820px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-texto);
+  font-weight: 700;
+}
+
+/* Beneficios a la izquierda y formulario a la derecha; en pantallas angostas, uno debajo del otro */
+.ste__cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.ste-caja {
+  min-width: 0;
+  padding: 18px 22px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+}
+
+.ste-caja__titulo {
+  margin: 0 0 14px;
+  font-size: var(--fs-titulo);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.ste-beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ste-beneficios li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--brand-50);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-texto);
+  line-height: 1.45;
+}
+
+.ste-beneficios mat-icon {
+  flex: none;
+  color: var(--brand);
+}
+
+.ste-nota {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-detalle);
+  line-height: 1.5;
+}
+
+.ste-form .ste-nota:first-child {
+  margin-top: 0;
+}
+
+.ste-nota a,
+.ste-ok a {
+  color: var(--brand-600);
+  font-weight: 700;
+}
+
+/* Formulario */
+.ste-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ste-fila {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ste-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--fs-texto);
+  font-weight: 700;
+}
+
+.ste-campo small {
+  color: var(--muted);
+  font-size: var(--fs-detalle);
+  font-weight: 400;
+}
+
+.ste-campo input,
+.ste-campo select,
+.ste-campo textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #c9ced6;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+}
+
+.ste-campo textarea {
+  resize: vertical;
+}
+
+.ste-campo input:focus-visible,
+.ste-campo select:focus-visible,
+.ste-campo textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 45%, transparent);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+
+.ste-campo input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.ste-req {
+  color: var(--danger);
+}
+
+.ste-campo .ste-error,
+.ste-aviso-error {
+  color: #b91c1c;
+  font-size: var(--fs-detalle);
+  font-weight: 700;
+}
+
+.ste-aviso-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+}
+
+.ste-acciones .btn {
+  min-height: 44px;
+  font-size: var(--fs-texto);
+}
+
+.ste-acciones .btn:disabled {
+  opacity: .7;
+  cursor: progress;
+  transform: none;
+}
+
+/* Fuera de la pantalla: sólo lo completan los robots */
+.ste-trampa {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.ste-ok {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-50);
+  font-size: var(--fs-texto);
+  outline: none;
+}
+
+.ste-ok mat-icon {
+  flex: none;
+  color: var(--brand);
+}
+
+.ste-ok p {
+  margin: 0 0 8px;
+}
+
+.ste-ok .btn {
+  margin-top: 6px;
+}
+
+@media (max-width: 900px) {
+  .ste__cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .ste-fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section-header,
+  .ste-caja {
+    padding: 14px 14px 18px;
+  }
+
+  .section-header {
+    padding-left: 18px;
+  }
+
+  .ste-acciones .btn {
+    width: 100%;
+  }
+}

@@ -13,6 +13,7 @@ import { AdminComunicacionesComponent } from './estaciones/admin-comunicaciones.
 import { AdminControlComponent } from './estaciones/admin-control.component';
 import { AdminSensoresComponent } from './estaciones/admin-sensores.component';
 import { AdminConsultasApiComponent } from './estaciones/admin-consultas-api.component';
+import { AdminIncorporacionesComponent } from './estaciones/admin-incorporaciones.component';
 import { AdminControlDatosComponent, PropuestaBaja } from './estaciones/admin-control-datos.component';
 import { AdminPublicadosComponent } from './publicados/admin-publicados.component';
 import { AdminLluviasRedComponent } from './lluvias-red/admin-lluvias-red.component';
@@ -29,7 +30,7 @@ type Orden9a9 = 'nombre' | 'mm' | 'horas';
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatTabsModule, MatDialogModule, AdminPublicadosComponent,
     AdminComunicacionesComponent, AdminControlComponent, AdminControlDatosComponent, AdminSensoresComponent,
     AdminConsultasApiComponent,
-    AdminColmenarComponent, AdminLluviasRedComponent],
+    AdminColmenarComponent, AdminLluviasRedComponent, AdminIncorporacionesComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css'
 })

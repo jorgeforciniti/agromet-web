@@ -39,6 +39,12 @@ export const routes: Routes = [
     loadComponent: () => import('./estaciones/estaciones.component').then((m) => m.EstacionesComponent)
   },
   {
+    // La promociona un video de Instagram (agromet.eeaoc.gob.ar/suma-tu-estacion): no cambiar la ruta
+    path: 'suma-tu-estacion',
+    title: 'Sumá tu estación a la red | Agrometeorología EEAOC',
+    loadComponent: () => import('./suma-tu-estacion/suma-tu-estacion.component').then((m) => m.SumaTuEstacionComponent)
+  },
+  {
     path: 'mi-cuenta',
     title: 'Mi cuenta | Agrometeorología EEAOC',
     loadComponent: () => import('./mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent)
