@@ -1,9 +1,14 @@
 <div class="header-container">
   <header class="header">
     <div class="header-content">
-      <a href="https://www.eeaoc.gob.ar/">
-        <img src="assets/images/logos/logo_eeaoc.png" alt="Logo EEAOC" class="logo">
-      </a>
+      <!-- Isologotipo a la izquierda y eslogan SOMOS centrado respecto al ancho, con la base alineada a la
+           del isologotipo ("alineación centrada respecto al lienzo", manual de marca EEAOC, pág. 34) -->
+      <div class="marca">
+        <a href="https://www.eeaoc.gob.ar/">
+          <img src="assets/images/logos/eeaoc-isologotipo.png" alt="EEAOC - Estación Experimental Agroindustrial Obispo Colombres" class="logo">
+        </a>
+        <img src="assets/images/logos/somos-eslogan.png" alt="SOMOS Innovación Tecnológica, de Tucumán para el mundo" class="eslogan">
+      </div>
 
       <div class="header-actions">
         <a *ngIf="alertText" class="alert-pill" routerLink="/estado-actual" [title]="alertText">
@@ -37,6 +42,5 @@
       </ul>
     </nav>
 
-    <div class="header-bar" aria-hidden="true"></div>
   </header>
 </div>

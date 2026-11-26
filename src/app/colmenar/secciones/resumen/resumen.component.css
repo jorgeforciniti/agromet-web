@@ -44,7 +44,7 @@
 }
 
 .kpi__valor--grande {
-  font-size: 2.4rem !important;
+  font-size: var(--fs-cifra) !important;
   line-height: 1;
 }
 
@@ -105,26 +105,26 @@
 .extremo__valor {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.6rem;
+  font-size: var(--fs-titulo);
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
 
 .extremo__valor small {
   font-family: var(--font-sans);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
   color: var(--muted);
 }
 
 .extremo__etiqueta {
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
 .extremo__desvio {
   color: var(--muted);
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
 }
 
 @media (max-width: 760px) {

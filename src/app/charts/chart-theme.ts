@@ -12,8 +12,15 @@ Chart.register(...registerables);
 
 // Números con coma decimal en ejes y tooltips, igual que en las tablas.
 Chart.defaults.locale = 'es-AR';
-Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif';
-Chart.defaults.font.size = 12;
+Chart.defaults.font.family = '"Helvetica Neue LT", "Helvetica Neue LT Std", "Helvetica Neue", Roboto, Arial, sans-serif';
+// Misma escala que el resto del sitio (tokens.scss): detalle (.85rem) para ejes, leyendas y notas;
+// texto (1rem) para los títulos. Todo el texto alineado a la izquierda.
+export const TAM_DETALLE = 13.6;
+export const TAM_TEXTO = 16;
+Chart.defaults.font.size = TAM_DETALLE;
+Chart.defaults.plugins.title.font = { size: TAM_TEXTO, weight: 'bold' };
+Chart.defaults.plugins.title.align = 'start';
+Chart.defaults.plugins.legend.align = 'start';
 Chart.defaults.color = '#52514e';
 Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(17, 24, 39, .92)';
 Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
@@ -25,9 +32,9 @@ Chart.defaults.plugins.tooltip.bodyColor = '#ffffff';
 Chart.defaults.plugins.subtitle.display = true;
 Chart.defaults.plugins.subtitle.text = FUENTE_TEXTO;
 Chart.defaults.plugins.subtitle.position = 'bottom';
-Chart.defaults.plugins.subtitle.align = 'end';
+Chart.defaults.plugins.subtitle.align = 'start';
 Chart.defaults.plugins.subtitle.color = '#5f6670';
-Chart.defaults.plugins.subtitle.font = { size: 12 };
+Chart.defaults.plugins.subtitle.font = { size: TAM_DETALLE };
 Chart.defaults.plugins.subtitle.padding = { top: 6, bottom: 0 };
 
 /**

@@ -59,7 +59,7 @@
 .hero-seccion {
   margin: 0;
   color: var(--hero-suave);
-  font-size: .95rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
@@ -92,7 +92,7 @@
   max-width: 23ch;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3.1rem);
+  font-size: var(--fs-titulo);
   line-height: 1.02;
   letter-spacing: -.01em;
 }
@@ -101,7 +101,7 @@
   margin: 14px 0 0;
   max-width: 62ch;
   color: var(--hero-suave);
-  font-size: 1.02rem;
+  font-size: var(--fs-texto);
   line-height: 1.5;
 }
 
@@ -130,9 +130,9 @@
 
 .franja-zona {
   color: var(--hero-suave);
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
   line-height: 1.15;
-  text-align: right;
+  text-align: left;
 }
 
 .franja-pista {
@@ -177,7 +177,7 @@
   position: absolute;
   top: 4px;
   transform: translateX(-50%);
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   color: var(--hero-suave);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -197,7 +197,7 @@
   background: var(--hero-fondo-2);
   color: var(--hero-texto);
   font: inherit;
-  font-size: .94rem;
+  font-size: var(--fs-texto);
   text-align: left;
   cursor: pointer;
 }
@@ -241,7 +241,7 @@
 
 .estacion-nombre {
   min-width: 0;
-  text-align: center;
+  text-align: left;
   display: grid;
 }
 
@@ -253,12 +253,12 @@
 }
 
 .estacion-nombre strong {
-  font-size: 1rem;
+  font-size: var(--fs-texto);
 }
 
 .estacion-nombre span {
   color: var(--muted);
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
 }
 
 .estacion-flecha {
@@ -286,23 +286,23 @@
   margin: 10px 0 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 4.2rem;
+  font-size: var(--fs-cifra);
   line-height: 1;
-  text-align: center;
+  text-align: left;
   font-variant-numeric: tabular-nums;
 }
 
 .estacion-temp small {
-  font-size: 1.6rem;
+  font-size: var(--fs-titulo);
   font-weight: 500;
   color: var(--muted);
 }
 
 .estacion-lectura {
   margin: 0;
-  text-align: center;
+  text-align: left;
   color: var(--muted);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 .estacion-datos {
@@ -314,18 +314,18 @@
 
 .estacion-datos div {
   padding: 10px 4px 0;
-  text-align: center;
+  text-align: left;
 }
 
 .estacion-datos dt {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
 }
 
 .estacion-datos dd {
   margin: 2px 0 0;
   font-weight: 700;
-  font-size: .95rem;
+  font-size: var(--fs-texto);
   font-variant-numeric: tabular-nums;
 }
 
@@ -337,7 +337,7 @@
   background: var(--brand);
   color: #fff;
   font-weight: 700;
-  text-align: center;
+  text-align: left;
   text-decoration: none;
 }
 
@@ -419,7 +419,7 @@
   }
 
   .estacion-temp {
-    font-size: 3.6rem;
+    font-size: var(--fs-cifra);
   }
 }
 

@@ -35,7 +35,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+  font-size: var(--fs-titulo);
   line-height: 1.05;
 }
 
@@ -43,7 +43,7 @@
   margin: 0;
   max-width: 64ch;
   color: var(--muted);
-  font-size: 1rem;
+  font-size: var(--fs-texto);
   line-height: 1.45;
 }
 
@@ -60,12 +60,12 @@
   border-radius: 10px;
   background: transparent;
   font-family: var(--font-display);
-  font-size: 2.2rem;
+  font-size: var(--fs-cifra);
   font-weight: 600;
   line-height: 1;
   color: var(--text);
   padding: 2px 6px;
-  text-align: center;
+  text-align: left;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
@@ -114,7 +114,7 @@
   background: color-mix(in srgb, var(--warning) 12%, white);
   border: 1px solid color-mix(in srgb, var(--warning) 35%, white);
   color: #7c4a03;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   line-height: 1.45;
 }
 
@@ -149,7 +149,7 @@
 .colmenar-nav__grupo {
   margin: 12px 12px 4px;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
@@ -168,7 +168,7 @@
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   text-align: left;
   cursor: pointer;
 }
@@ -211,7 +211,7 @@
 .colmenar-fuente {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   line-height: 1.4;
 }
 
@@ -264,6 +264,6 @@
   }
 
   .selector-anio select {
-    font-size: 1.8rem;
+    font-size: var(--fs-cifra);
   }
 }

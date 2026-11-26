@@ -63,7 +63,7 @@ export function completitudLluvia(d: LluviaMensualClasificada | null | undefined
   styles: [`
     :host { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; }
     .tag { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; font: inherit;
-      font-size: .72rem; font-weight: 700; border: 1px solid var(--border); background: var(--surface-2); color: #374151; white-space: nowrap; }
+      font-size: var(--fs-detalle); font-weight: 700; border: 1px solid var(--border); background: var(--surface-2); color: #374151; white-space: nowrap; }
     .tag--btn { cursor: pointer; }
     .tag--btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 30%, white); outline-offset: 2px; }
     .tag--completo { border-color: color-mix(in srgb, var(--brand) 30%, var(--border)); background: var(--brand-50); color: var(--brand-600); }
@@ -72,8 +72,8 @@ export function completitudLluvia(d: LluviaMensualClasificada | null | undefined
     .tag--sin-datos { background: transparent; color: var(--muted); }
     .punto { width: 7px; height: 7px; border-radius: 50%; background: var(--warning); }
     .info { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; border: 1px solid currentColor;
-      font-size: .6rem; font-style: italic; font-family: Georgia, serif; opacity: .8; }
-    .detalle { max-width: 260px; font-size: .74rem; line-height: 1.35; color: #374151; white-space: normal; }
+      font-size: var(--fs-detalle); font-style: italic; font-family: Georgia, serif; opacity: .8; }
+    .detalle { max-width: 260px; font-size: var(--fs-detalle); line-height: 1.35; color: #374151; white-space: normal; }
   `]
 })
 export class CompletitudLluviaComponent {

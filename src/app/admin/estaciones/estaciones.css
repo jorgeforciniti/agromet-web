@@ -9,7 +9,7 @@
   align-items: center;
   gap: 6px 18px;
   margin-bottom: 14px;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .est-estado {
@@ -52,13 +52,13 @@
   margin: 0;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
-  font-size: .95rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
 }
 
 .est-caja__titulo small {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
 }
 
@@ -74,7 +74,7 @@
 .est-tabla {
   width: 100%;
   border-collapse: collapse;
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
 }
 
 .est-tabla th,
@@ -91,7 +91,7 @@
   z-index: 1;
   background: #f8fafc;
   color: var(--muted);
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
 }
 
@@ -110,7 +110,7 @@
   display: inline-block;
   padding: 1px 8px;
   border-radius: 10px;
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
@@ -124,7 +124,7 @@
   border-radius: 999px;
   background: #fff;
   font: inherit;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--text);
   cursor: pointer;
@@ -155,7 +155,7 @@
   border-radius: 6px;
   background: none;
   font: inherit;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--brand);
   cursor: pointer;
@@ -173,7 +173,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
   white-space: nowrap;
 }

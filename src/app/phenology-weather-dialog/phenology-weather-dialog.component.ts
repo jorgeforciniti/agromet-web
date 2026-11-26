@@ -262,7 +262,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     maintainAspectRatio: false,
     scales: {
       x: {
-        ticks: { color: '#111827', maxRotation: 0, autoSkip: false, font: { size: 11, weight: 700 } },
+        ticks: { color: '#111827', maxRotation: 0, autoSkip: false, font: { size: 13.6, weight: 700 } },
         grid: { display: false }
       },
       y: {
@@ -273,7 +273,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     plugins: {
       legend: {
         position: 'bottom' as const,
-        labels: { color: '#111827', boxWidth: 12, boxHeight: 8, font: { size: 11, weight: 700 } }
+        labels: { color: '#111827', boxWidth: 12, boxHeight: 8, font: { size: 13.6, weight: 700 } }
       },
       tooltip: {
         callbacks: {
@@ -298,7 +298,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
     plugins: {
       legend: {
         position: 'bottom' as const,
-        labels: { color: '#111827', boxWidth: 12, boxHeight: 8, font: { size: 11, weight: 700 } }
+        labels: { color: '#111827', boxWidth: 12, boxHeight: 8, font: { size: 13.6, weight: 700 } }
       }
     },
     elements: {
@@ -1082,7 +1082,7 @@ export class PhenologyWeatherDialogComponent implements OnInit {
       plugins: {
         legend: {
           position: 'bottom' as const,
-          labels: { color: '#111827', boxWidth: 12, boxHeight: 8, font: { size: 11, weight: 700 } }
+          labels: { color: '#111827', boxWidth: 12, boxHeight: 8, font: { size: 13.6, weight: 700 } }
         }
       },
       elements: { line: { tension: 0.2 } }

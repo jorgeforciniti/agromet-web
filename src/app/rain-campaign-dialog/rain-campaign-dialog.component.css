@@ -86,7 +86,7 @@
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-weight: 700;
 }
 
@@ -101,7 +101,7 @@
   min-width: 760px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
   background: transparent;
 }
 
@@ -120,7 +120,7 @@
   padding: 7px 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
-  text-align: center;
+  text-align: left;
   font-weight: 700;
   background: transparent;
   background-clip: padding-box;
@@ -202,7 +202,7 @@
   .rain-table th,
   .rain-table td {
     padding: 6px 8px;
-    font-size: .8rem;
+    font-size: var(--fs-detalle);
   }
 }
 
@@ -228,6 +228,6 @@
 }
 
 .celda-click:focus-visible {
-  outline: 2px solid var(--accent, #0284c7);
+  outline: 2px solid var(--accent, #3b5f21);
   outline-offset: -2px;
 }

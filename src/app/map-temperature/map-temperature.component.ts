@@ -307,7 +307,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
       // Estilo de la caja: .temperature-legend en styles.css
 
       div.innerHTML = `
-            <h4 style="margin: 0 0 8px 0; font-size:14px">Escala de Temperatura (°C)</h4>
+            <h4 style="margin: 0 0 8px 0; font-size:var(--fs-texto)">Escala de Temperatura (°C)</h4>
             <div style="background: linear-gradient(to right,
                 rgb(49,54,149) 0%,
                 rgb(69,117,180) 17.5%,
@@ -326,7 +326,7 @@ export class MapTemperatureComponent implements OnInit, AfterViewInit, OnDestroy
                 <span>25</span>
                 <span>&ge;35</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: var(--fs-detalle);">
                 <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%;
                   border: 2px dashed #000; box-sizing: border-box;"></span>
                 Faltan días con datos

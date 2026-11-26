@@ -70,7 +70,7 @@ import { Herramienta, NOMBRE_HERRAMIENTA } from './enlace-consulta';
       background: transparent;
       color: var(--brand);
       font: inherit;
-      font-size: .82rem;
+      font-size: var(--fs-detalle);
       font-weight: 700;
       cursor: pointer;
     }
@@ -103,7 +103,7 @@ import { Herramienta, NOMBRE_HERRAMIENTA } from './enlace-consulta';
     }
 
     .guardar label {
-      font-size: .8rem;
+      font-size: var(--fs-detalle);
       font-weight: 700;
       color: var(--muted);
     }
@@ -116,14 +116,14 @@ import { Herramienta, NOMBRE_HERRAMIENTA } from './enlace-consulta';
       border: 1px solid var(--border);
       border-radius: 10px;
       font: inherit;
-      font-size: .9rem;
+      font-size: var(--fs-texto);
     }
 
     .error {
       flex-basis: 100%;
-      text-align: right;
+      text-align: left;
       color: #9a3412;
-      font-size: .8rem;
+      font-size: var(--fs-detalle);
       font-weight: 700;
     }
   `]

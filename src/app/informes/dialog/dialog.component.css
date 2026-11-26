@@ -25,20 +25,20 @@
   border: 1px solid color-mix(in srgb, var(--mod-reports) 18%, var(--border));
   background: rgba(255,255,255,.92);
   color: color-mix(in srgb, var(--mod-reports) 66%, #46505c);
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
   letter-spacing: .08em;
 }
 
 .pdfd__title {
   margin: 10px 0 6px;
-  font-size: 1.12rem;
+  font-size: var(--fs-texto);
   line-height: 1.15;
   font-weight: 900;
 }
 
 .pdfd__meta {
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
 }
 

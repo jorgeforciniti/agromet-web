@@ -32,7 +32,7 @@
 }
 
 :host ::ng-deep .vars-grid .mat-mdc-radio-button .mdc-form-field {
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .radio-label {
@@ -85,7 +85,7 @@
 /* Período de referencia de las normales graficadas (si normales.php lo trae) */
 .nota-normales {
   margin: 8px 0 0;
-  font-size: 12.5px;
+  font-size: var(--fs-detalle);
   line-height: 1.4;
   color: var(--muted, #475467);
 }

@@ -109,7 +109,7 @@
 .chart-column h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: var(--fs-titulo);
   font-weight: 600;
   color: var(--text);
 }
@@ -124,7 +124,7 @@
 
 .variable-selector label {
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
@@ -134,7 +134,7 @@
 
 .rango-fechas {
   margin-left: auto;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   color: var(--muted);
 }
 
@@ -148,7 +148,7 @@
 .selector-text {
   font-style: italic;
   color: var(--muted);
-  font-size: .92rem;
+  font-size: var(--fs-texto);
 }
 
 /* =============================
@@ -173,13 +173,13 @@
   background: rgba(255, 255, 255, .92);
   color: var(--muted, #5b6470);
   font: inherit;
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   cursor: pointer;
 }
 
 .tabla-csv:hover {
-  color: var(--brand, #4a7a2c);
+  color: var(--brand, #4a7729);
   border-color: currentColor;
 }
 

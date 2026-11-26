@@ -47,7 +47,7 @@ export interface ConsultaBajas {
       border-radius: 10px;
       background: color-mix(in srgb, var(--warning, #f59f00) 10%, white);
       color: #7a5200;
-      font-size: .85rem;
+      font-size: var(--fs-detalle);
       line-height: 1.4;
     }
 

@@ -22,7 +22,7 @@
 
 .mis-estaciones__titulo {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
   color: var(--text);
 }
@@ -38,13 +38,13 @@
 }
 
 .mis-estaciones__admin {
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
 }
 
 .mis-estaciones__vacio {
   margin: 0;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   line-height: 1.45;
 }
 
@@ -92,14 +92,14 @@
 }
 
 .tarjeta__nombre strong {
-  font-size: 1rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
   color: var(--text);
   line-height: 1.2;
 }
 
 .tarjeta__nombre span {
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   font-weight: 600;
 }
@@ -108,7 +108,7 @@
   flex: 0 0 auto;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
 }
 
@@ -129,14 +129,14 @@
 }
 
 .tarjeta__datos dt {
-  font-size: .7rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   font-weight: 700;
 }
 
 .tarjeta__datos dd {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -145,7 +145,7 @@
 
 .tarjeta__hora {
   margin: 0;
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   font-weight: 600;
 }
@@ -170,7 +170,7 @@
   background: #fff;
   color: var(--text);
   font: inherit;
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
   cursor: pointer;
 }
@@ -236,7 +236,7 @@
   border-radius: 12px;
   background: #fffaf0;
   color: var(--text);
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
@@ -260,7 +260,7 @@
   border-radius: 0;
   background: #fff7ed;
   color: #7c2d12;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
@@ -299,7 +299,7 @@
 .mis-chips__titulo {
   margin-right: 2px;
   color: var(--muted);
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
@@ -317,7 +317,7 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   cursor: pointer;
 }
 
@@ -357,11 +357,11 @@
 .mis-chips__admin {
   margin-left: 4px;
   color: var(--brand-600);
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
 .mis-chips__vacio {
   color: var(--muted);
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }

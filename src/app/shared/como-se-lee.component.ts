@@ -25,8 +25,8 @@ import { MatIconModule } from '@angular/material/icon';
       gap: 4px;
       cursor: pointer;
       list-style: none;
-      color: var(--brand, #4a7a2c);
-      font-size: .84rem;
+      color: var(--brand, #4a7729);
+      font-size: var(--fs-detalle);
       font-weight: 800;
       user-select: none;
     }
@@ -38,11 +38,11 @@ import { MatIconModule } from '@angular/material/icon';
     .como-se-lee__cuerpo {
       margin-top: 6px;
       padding: 8px 12px;
-      border-left: 3px solid color-mix(in srgb, var(--brand, #4a7a2c) 40%, transparent);
+      border-left: 3px solid color-mix(in srgb, var(--brand, #4a7729) 40%, transparent);
       border-radius: 4px;
-      background: color-mix(in srgb, var(--brand, #4a7a2c) 5%, white);
+      background: color-mix(in srgb, var(--brand, #4a7729) 5%, white);
       color: var(--text, #1f2937);
-      font-size: .88rem;
+      font-size: var(--fs-texto);
       line-height: 1.45;
     }
     .como-se-lee__cuerpo ::ng-deep p { margin: 0 0 4px; }

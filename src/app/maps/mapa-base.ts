@@ -39,12 +39,30 @@ function capaSatelital(): L.TileLayer {
  */
 export function agregarMapaBase(map: L.Map, { selector = true } = {}): L.Control.Layers | undefined {
   const calles = capaCalles().addTo(map);
+  agregarLogoEeaoc(map, { chico: !selector });
   if (!selector) return undefined;
   return L.control.layers(
     { 'Calles': calles, 'Satelital': capaSatelital() },
     undefined,
     { position: 'topright' }
   ).addTo(map);
+}
+
+/**
+ * Logo de la EEAOC abajo a la izquierda (abajo a la derecha van las leyendas y la atribución).
+ * Se agrega antes que los demás controles de esa esquina, así queda pegado al borde inferior.
+ * En los mapas chicos de una sola estación va sólo el isotipo. Estilos: .mapa-logo en styles.css.
+ */
+function agregarLogoEeaoc(map: L.Map, { chico = false } = {}): void {
+  const logo = new L.Control({ position: 'bottomleft' });
+  logo.onAdd = () => {
+    const div = L.DomUtil.create('div', 'mapa-logo' + (chico ? ' mapa-logo--chico' : ''));
+    const img = L.DomUtil.create('img', '', div);
+    img.src = chico ? 'assets/images/logos/eeaoc-isotipo.png' : 'assets/images/logos/eeaoc-isologotipo.png';
+    img.alt = 'EEAOC';
+    return div;
+  };
+  logo.addTo(map);
 }
 
 /** Estilo común del límite provincial. */

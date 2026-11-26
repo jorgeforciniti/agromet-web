@@ -2,7 +2,7 @@
 
 :host{
   display: block;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -29,7 +29,7 @@
 .titulo{
   margin: 0 0 12px 0;
   padding-right: 56px;
-  font-size: 1.3rem;
+  font-size: var(--fs-titulo);
   font-weight: 900;
   color: var(--text);
 }
@@ -76,7 +76,7 @@
   background: rgba(17,24,39,.03);
   color: rgba(17,24,39,.85);
   font-weight: 800;
-  text-align: center;
+  text-align: left;
 }
 .no-data-message{
   font-weight: 700;
@@ -108,9 +108,9 @@
   margin-top: auto;
   padding-top: 12px;
   color: rgba(17,24,39,.68);
-  font-size: .75rem;
+  font-size: var(--fs-detalle);
   line-height: 1.35;
-  text-align: center;
+  text-align: left;
 }
 
 .map-wrap{
@@ -120,7 +120,7 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 

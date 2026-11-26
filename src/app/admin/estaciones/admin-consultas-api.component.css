@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
 }
 
 .cap-periodo select {

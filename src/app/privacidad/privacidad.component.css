@@ -34,7 +34,7 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
   background: rgba(255, 255, 255, .84);
-  font-size: .74rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   letter-spacing: .08em;
   color: color-mix(in srgb, var(--brand) 60%, #3f4750);
@@ -42,7 +42,7 @@
 
 .section-title {
   margin: 8px 0 0;
-  font-size: 1.24rem;
+  font-size: var(--fs-titulo);
   font-weight: 900;
   color: var(--text);
   line-height: 1.08;
@@ -51,7 +51,7 @@
 .section-summary {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   font-weight: 700;
 }
 
@@ -69,7 +69,7 @@
 
 .texto__intro {
   margin-top: 0;
-  font-size: 1rem;
+  font-size: var(--fs-texto);
 }
 
 .indice {
@@ -84,7 +84,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   color: color-mix(in srgb, var(--brand) 85%, black);
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
   text-decoration: none;
 }
@@ -99,7 +99,7 @@ section {
 
 h2 {
   margin: 22px 0 6px;
-  font-size: 1.05rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
   color: color-mix(in srgb, var(--brand) 80%, black);
 }
@@ -127,7 +127,7 @@ a {
   border-left: 4px solid var(--border);
   background: var(--surface-2, #f6f7f5);
   color: var(--muted);
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
 }
 
 @media (max-width: 600px) {

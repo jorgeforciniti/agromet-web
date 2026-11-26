@@ -23,21 +23,21 @@
   margin: 0 auto;
   /* --header-h lo mide AppComponent en tiempo real (ResizeObserver sobre .header-container).
      Los valores fijos son solo el respaldo para el primer pintado, antes de que corra el JS. */
-  margin-top: var(--header-h, 168px);
+  margin-top: var(--header-h, 183px);
   padding: 20px;
   background: var(--bg);
   transition: margin-top 0.2s ease;
   /* Ocupa al menos el resto de la pantalla: así el aviso y el pie quedan abajo desde el primer
      pintado y no "saltan" cuando termina de cargar la sección (Cumulative Layout Shift). */
-  min-height: calc(100vh - var(--header-h, 168px));
-  min-height: calc(100dvh - var(--header-h, 168px));
+  min-height: calc(100vh - var(--header-h, 183px));
+  min-height: calc(100dvh - var(--header-h, 183px));
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .main-content {
     padding: 0 8px;
-    margin-top: var(--header-h, 185px);
+    margin-top: var(--header-h, 200px);
   }
 }
 
@@ -45,9 +45,9 @@
   max-width: var(--page-max);
   margin: 0 auto;
   padding: 4px 20px 20px;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
-  text-align: center;
+  text-align: left;
   box-sizing: border-box;
 }
 

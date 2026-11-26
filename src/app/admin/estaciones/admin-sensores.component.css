@@ -8,7 +8,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   cursor: pointer;
 }

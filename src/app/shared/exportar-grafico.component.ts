@@ -8,7 +8,8 @@ import { descargarCsv } from './descargar-csv';
  * Botones "PNG" y "CSV" para descargar un gráfico de Chart.js. Busca el gráfico con
  * Chart.getChart al momento del clic, así que sirve igual para ng2-charts y para new Chart().
  *
- * Política de descargas: el PNG está en todos los gráficos y siempre lleva la fuente. El CSV
+ * Política de descargas: el PNG está en todos los gráficos y siempre lleva la fuente. Además lleva
+ * la marca EEAOC según el manual: isologotipo + eslogan SOMOS arriba y la línea tricolor abajo. El CSV
  * sólo aparece cuando se indica [maxFilas], que tiene que equivaler a 31 días de datos como
  * máximo (31 filas diarias, 31 × 96 registros de 15 minutos…). Quien necesite más datos los
  * pide a la Sección. En El Colmenar no se pasa [maxFilas]: ahí no hay CSV.
@@ -23,6 +24,28 @@ import { descargarCsv } from './descargar-csv';
  *   <app-exportar-grafico nombre="..."></app-exportar-grafico>
  *   <div class="grafico" role="img"><canvas baseChart ...></canvas></div>
  */
+const LOGO_URL = 'assets/images/logos/eeaoc-isologotipo.png';
+const ESLOGAN_URL = 'assets/images/logos/somos-eslogan.png';
+/** Amarillo Pantone 124 C, verde claro del eslogan y verde Pantone 364 C (manual de marca) */
+const LINEA_TRICOLOR = ['#eaaa00', '#8bc64b', '#4a7729'];
+
+const imagenes = new Map<string, Promise<HTMLImageElement | null>>();
+
+/** Carga (una sola vez) una imagen del sitio; si falla, el PNG sale igual sin ella. */
+function cargarImagen(url: string): Promise<HTMLImageElement | null> {
+  let promesa = imagenes.get(url);
+  if (!promesa) {
+    promesa = new Promise(resolver => {
+      const img = new Image();
+      img.onload = () => resolver(img);
+      img.onerror = () => { imagenes.delete(url); resolver(null); };
+      img.src = url;
+    });
+    imagenes.set(url, promesa);
+  }
+  return promesa;
+}
+
 @Component({
   selector: 'app-exportar-grafico',
   standalone: true,
@@ -58,14 +81,14 @@ import { descargarCsv } from './descargar-csv';
       background: rgba(255, 255, 255, .92);
       color: var(--muted, #5b6470);
       font: inherit;
-      font-size: .7rem;
+      font-size: var(--fs-detalle);
       font-weight: 800;
       letter-spacing: .03em;
       cursor: pointer;
     }
 
     button:hover {
-      color: var(--brand, #4a7a2c);
+      color: var(--brand, #4a7729);
       border-color: currentColor;
     }
 
@@ -101,9 +124,10 @@ export class ExportarGraficoComponent implements AfterViewInit {
     }
   }
 
-  png(): void {
+  async png(): Promise<void> {
     const chart = this.grafico();
     if (!chart) return;
+    const [isologotipo, eslogan] = await Promise.all([cargarImagen(LOGO_URL), cargarImagen(ESLOGAN_URL)]);
     // Fondo blanco: el canvas es transparente y la imagen quedaría negra en algunos visores
     const origen = chart.canvas;
     // La fuente va siempre en la imagen. Casi todos los gráficos la dibujan al pie (subtítulo de
@@ -112,20 +136,52 @@ export class ExportarGraficoComponent implements AfterViewInit {
     const conFuente = !!subtitulo?.display && subtitulo.text === FUENTE_TEXTO;
     const escala = origen.width / (origen.clientWidth || origen.width);
     const franja = conFuente ? 0 : Math.round(22 * escala);
+
+    // Encabezado con la marca. 46 px de alto dan ~148 px de ancho: no baja de la reducción
+    // mínima del isologotipo (38,5 mm). El margen alrededor respeta el área de seguridad.
+    const margen = Math.round(12 * escala);
+    const altoLogo = isologotipo ? Math.round(46 * escala) : 0;
+    const encabezado = isologotipo ? altoLogo + 2 * margen : 0;
+    const altoLinea = Math.round(6 * escala);
+
     const lienzo = document.createElement('canvas');
     lienzo.width = origen.width;
-    lienzo.height = origen.height + franja;
+    lienzo.height = encabezado + origen.height + franja + altoLinea;
     const ctx = lienzo.getContext('2d')!;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, lienzo.width, lienzo.height);
-    ctx.drawImage(origen, 0, 0);
+
+    if (isologotipo) {
+      const anchoLogo = Math.round(altoLogo * isologotipo.naturalWidth / isologotipo.naturalHeight);
+      ctx.drawImage(isologotipo, margen, margen, anchoLogo, altoLogo);
+      // El eslogan va a la derecha, con su base en la base del isologotipo y una altura
+      // proporcional; si el gráfico es angosto se omite (el isologotipo puede ir solo).
+      if (eslogan) {
+        const altoEslogan = Math.round(altoLogo * 0.68);
+        const anchoEslogan = Math.round(altoEslogan * eslogan.naturalWidth / eslogan.naturalHeight);
+        const x = lienzo.width - margen - anchoEslogan;
+        if (x >= margen + anchoLogo + 3 * margen) {
+          ctx.drawImage(eslogan, x, margen + altoLogo - altoEslogan, anchoEslogan, altoEslogan);
+        }
+      }
+    }
+
+    ctx.drawImage(origen, 0, encabezado);
     if (franja) {
       ctx.fillStyle = '#5f6670';
-      ctx.font = `${Math.round(12 * escala)}px sans-serif`;
-      ctx.textAlign = 'right';
+      // Misma letra, tamaño (detalle) y alineación (izquierda) que la fuente que dibuja Chart.js
+      ctx.font = `${Math.round(13.6 * escala)}px "Helvetica Neue LT", "Helvetica Neue", Roboto, Arial, sans-serif`;
+      ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(FUENTE_TEXTO, lienzo.width - 8 * escala, origen.height + franja / 2);
+      ctx.fillText(FUENTE_TEXTO, 8 * escala, encabezado + origen.height + franja / 2);
     }
+
+    // Línea tricolor de la marca al pie, en tercios iguales
+    const tercio = lienzo.width / 3;
+    LINEA_TRICOLOR.forEach((color, i) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(i * tercio), lienzo.height - altoLinea, Math.ceil(tercio), altoLinea);
+    });
     this.descargar(lienzo.toDataURL('image/png'), 'png');
   }
 

@@ -473,7 +473,7 @@ export class DatosOnlineComponent implements OnInit, AfterViewInit, OnDestroy {
         plugins: {
           referencias: { lineas: this.variableKind(variable) === 'temp' ? referenciasHelada() : [] },
           legend: {
-            labels: { color: text, font: { size: 12, weight: 'bold' } }
+            labels: { color: text, font: { size: 13.6, weight: 'bold' } }
           },
           tooltip: {
             enabled: true,

@@ -38,7 +38,7 @@
 
 .alert-section--calma .alert-title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--fs-texto);
   font-weight: 700;
   color: #166534;
 }
@@ -60,7 +60,7 @@
   border: 1px solid rgba(239, 68, 68, .14);
   background: rgba(255,255,255,.82);
   color: #9f1239;
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
   letter-spacing: .08em;
   width: fit-content;
@@ -73,7 +73,7 @@
   flex-wrap: wrap;
   gap: 10px;
   color: var(--text);
-  font-size: 1.2rem;
+  font-size: var(--fs-titulo);
   font-weight: 900;
 }
 
@@ -90,7 +90,7 @@
   background: rgba(255,255,255,.92);
   border: 1px solid rgba(148, 163, 184, .22);
   color: var(--muted);
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
 }
 
@@ -104,7 +104,7 @@
   background: linear-gradient(180deg, rgba(240, 253, 244, .98), rgba(255,255,255,.98));
   color: #3f6212;
   font-weight: 600;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   width: fit-content;
 }
 
@@ -128,7 +128,7 @@
   border-radius: 16px;
   font-weight: 700;
   color: #111827;
-  text-align: center;
+  text-align: left;
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
 }
 
@@ -138,7 +138,7 @@
 }
 
 .banner-text {
-  font-size: 1rem;
+  font-size: var(--fs-texto);
 }
 
 @keyframes pulse {
@@ -237,7 +237,7 @@
 
 .alert-btn {
   width: auto;
-  font-size: 16px;
+  font-size: var(--fs-texto);
   font-weight: 800 !important;
   padding: 10px 16px;
   border-radius: 999px;
@@ -257,7 +257,7 @@
 
 .alert-updated {
   color: var(--muted);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 .alert-updated a {
@@ -304,7 +304,7 @@
   border-radius: 999px;
   background: var(--nivel-tinte);
   color: var(--nivel-texto);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
 }
 
@@ -316,7 +316,7 @@
 
 .evento__nombre {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
   color: var(--text);
 }
@@ -325,7 +325,7 @@
   margin: 8px 0 10px;
   color: var(--text);
   font-weight: 700;
-  font-size: .94rem;
+  font-size: var(--fs-texto);
 }
 
 /* Grilla región × día y período */
@@ -344,7 +344,7 @@
   border-collapse: separate;
   border-spacing: 3px;
   table-layout: fixed;
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
 }
 
 .evento__grilla th,
@@ -357,14 +357,14 @@
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-weight: 800;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
 }
 
 .evento__periodo {
   color: var(--muted);
   font-weight: 700;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
 }
 
@@ -373,7 +373,7 @@
   padding-right: 6px !important;
   color: var(--text);
   font-weight: 700;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   text-align: left;
   line-height: 1.2;
 }
@@ -433,12 +433,12 @@
 
   .evento__grilla {
     border-spacing: 2px;
-    font-size: .7rem;
+    font-size: var(--fs-detalle);
   }
 
   .evento__region {
     width: 4.6em;
-    font-size: .74rem;
+    font-size: var(--fs-detalle);
   }
 
   .evento__grilla .largo {

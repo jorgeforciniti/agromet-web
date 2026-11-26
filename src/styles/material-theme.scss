@@ -6,8 +6,8 @@
 
 @include mat.core();
 
-// --brand (#4f7932) de src/styles/tokens.scss
-$brand-base: #4f7932;
+// --brand (#4a7729, Pantone 364 C) de src/styles/tokens.scss
+$brand-base: #4a7729;
 
 $brand-palette: (
   50: color.scale($brand-base, $lightness: 85%),
@@ -42,8 +42,8 @@ $brand-palette: (
   ),
 );
 
-// --accent (#0284c7) de src/styles/tokens.scss
-$accent-base: #0284c7;
+// --accent (#3b5f21) de src/styles/tokens.scss
+$accent-base: #3b5f21;
 
 $accent-palette: (
   50: color.scale($accent-base, $lightness: 85%),
@@ -82,12 +82,39 @@ $app-primary: mat.m2-define-palette($brand-palette, 500, 300, 700);
 $app-accent: mat.m2-define-palette($accent-palette, 500, 300, 700);
 $app-warn: mat.m2-define-palette(mat.$m2-red-palette);
 
+// Tipografía de los componentes de Material con la misma familia y la misma escala de tres
+// tamaños del sitio (--fs-titulo 1.5rem, --fs-texto 1rem, --fs-detalle .85rem en tokens.scss).
+$fuente: '"Helvetica Neue LT", "Helvetica Neue LT Std", "Helvetica Neue", Roboto, Arial, sans-serif';
+$titulo: mat.m2-define-typography-level(1.5rem, 1.25, 700);
+$texto: mat.m2-define-typography-level(1rem, 1.5, 400);
+$texto-fuerte: mat.m2-define-typography-level(1rem, 1.5, 600);
+$detalle: mat.m2-define-typography-level(.85rem, 1.4, 400);
+
+$app-typography: mat.m2-define-typography-config(
+  $font-family: $fuente,
+  $headline-1: $titulo,
+  $headline-2: $titulo,
+  $headline-3: $titulo,
+  $headline-4: $titulo,
+  $headline-5: $titulo,
+  $headline-6: $titulo,
+  $subtitle-1: $texto,
+  $subtitle-2: $texto-fuerte,
+  $body-1: $texto,
+  $body-2: $texto,
+  $caption: $detalle,
+  $button: $texto-fuerte,
+  $overline: $detalle,
+);
+
 $app-theme: mat.m2-define-light-theme((
   color: (
     primary: $app-primary,
     accent: $app-accent,
     warn: $app-warn,
   ),
+  typography: $app-typography,
+  density: 0,
 ));
 
 @include mat.all-component-themes($app-theme);

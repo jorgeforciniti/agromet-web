@@ -10,7 +10,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+  font-size: var(--fs-titulo);
   line-height: 1.05;
   color: var(--text);
 }
@@ -27,7 +27,7 @@
 .re-resumen__total strong {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.6rem;
+  font-size: var(--fs-titulo);
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
@@ -102,7 +102,7 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   cursor: pointer;
 }
 
@@ -121,7 +121,7 @@
   flex-basis: 100%;
   margin: 0;
   color: #9a3412;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .re-aviso:empty {
@@ -148,7 +148,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
 }
 
 .re-tabla thead th {
@@ -159,7 +159,7 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
   text-align: left;
 }
@@ -216,7 +216,7 @@ th[aria-sort='descending'] .orden { color: var(--text); }
   padding: 14px 14px 4px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: var(--fs-texto);
   color: var(--text);
   text-align: left;
 }
@@ -276,7 +276,7 @@ th[aria-sort='descending'] .orden { color: var(--text); }
 
 .re-nombre__texto span {
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -291,7 +291,7 @@ th[aria-sort='descending'] .orden { color: var(--text); }
   border-radius: 8px;
   background: transparent;
   color: #9ca3af;
-  font-size: 1.15rem;
+  font-size: var(--fs-titulo);
   line-height: 1;
   cursor: pointer;
 }
@@ -376,12 +376,12 @@ th[aria-sort='descending'] .orden { color: var(--text); }
 .re-elegida__texto strong {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: var(--fs-titulo);
 }
 
 .re-elegida__texto span {
   color: var(--muted);
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
 }
 
 .re-elegida__texto .re-elegida__activa {
@@ -404,7 +404,7 @@ th[aria-sort='descending'] .orden { color: var(--text); }
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -458,7 +458,7 @@ th[aria-sort='descending'] .orden { color: var(--text); }
   }
 
   .re-tabla {
-    font-size: .86rem;
+    font-size: var(--fs-detalle);
   }
 
   .re-fila td {

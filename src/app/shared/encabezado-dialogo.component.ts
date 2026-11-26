@@ -43,7 +43,7 @@ import { MatIconModule } from '@angular/material/icon';
     .encabezado__titulo {
       margin: 0;
       font-family: var(--font-display);
-      font-size: clamp(1.35rem, 1.1rem + .9vw, 1.7rem);
+      font-size: var(--fs-titulo);
       font-weight: 600;
       line-height: 1.1;
       color: var(--text);
@@ -56,7 +56,7 @@ import { MatIconModule } from '@angular/material/icon';
       background: color-mix(in srgb, var(--warning) 16%, white);
       color: #8a5a00;
       font-family: var(--font-sans);
-      font-size: .78rem;
+      font-size: var(--fs-detalle);
       font-weight: 600;
       line-height: 1.4;
       vertical-align: .3em;
@@ -65,7 +65,7 @@ import { MatIconModule } from '@angular/material/icon';
       max-width: 72ch;
       margin: 6px 0 0;
       color: var(--muted);
-      font-size: .95rem;
+      font-size: var(--fs-texto);
       line-height: 1.45;
     }
     .encabezado__cerrar {

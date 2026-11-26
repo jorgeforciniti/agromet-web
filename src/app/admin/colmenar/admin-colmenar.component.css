@@ -1,6 +1,6 @@
 .col-intro {
   margin: 0 0 14px;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .col-resumen {
@@ -13,7 +13,7 @@
 
 .col-nota {
   margin: 10px 0 0;
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
 }
 
 .col-vacio {
@@ -33,7 +33,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--muted);
 }
@@ -46,7 +46,7 @@
   background: #fff;
   font: inherit;
   font-weight: 600;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   color: var(--text);
 }
 
@@ -55,7 +55,7 @@
   align-items: center;
   gap: 6px;
   min-height: 42px;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-weight: 700;
 }
 
@@ -71,7 +71,7 @@
   color: #fff;
   font: inherit;
   font-weight: 800;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
 }
@@ -96,7 +96,7 @@
   margin: 0 0 12px;
   padding: 8px 10px;
   border-radius: 10px;
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
 }
 
 .col-aviso--ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
@@ -141,7 +141,7 @@
   align-items: center;
   gap: 4px;
   margin-left: 8px;
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
@@ -155,7 +155,7 @@
 
 .col-error {
   color: #991b1b;
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 

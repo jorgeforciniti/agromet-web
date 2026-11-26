@@ -10,7 +10,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+  font-size: var(--fs-titulo);
   line-height: 1.05;
   color: var(--text);
 }
@@ -18,7 +18,7 @@
 .inf__bajada {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: 1.02rem;
+  font-size: var(--fs-texto);
 }
 
 /* ====== Filtros ====== */
@@ -40,7 +40,7 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   cursor: pointer;
 }
 
@@ -98,7 +98,7 @@
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: .92rem;
+  font-size: var(--fs-texto);
 }
 
 .inf-buscador__anio select {
@@ -127,7 +127,7 @@
 .inf-resultados {
   margin: 0;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
 }
 
 /* ====== Vista por temas ====== */
@@ -155,7 +155,7 @@
   gap: 8px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: var(--fs-titulo);
   color: var(--text);
 }
 
@@ -174,7 +174,7 @@
   padding: 0;
   color: var(--brand-600);
   font: inherit;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
@@ -223,7 +223,7 @@
 
 .inf-fila__fecha {
   color: var(--muted);
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -251,7 +251,7 @@
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
 }
 
 .inf-fila__pdf {

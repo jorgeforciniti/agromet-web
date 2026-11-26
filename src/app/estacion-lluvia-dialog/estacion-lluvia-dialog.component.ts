@@ -521,7 +521,7 @@ export class EstacionLluviaDialogComponent implements OnInit, AfterViewInit, OnD
           position: 'top',
           align: 'start',
           labels: {
-            usePointStyle: true, boxWidth: 9, boxHeight: 9, color: COLOR.texto, font: { size: 11 },
+            usePointStyle: true, boxWidth: 9, boxHeight: 9, color: COLOR.texto, font: { size: 13.6 },
             // Las series auxiliares de las bandas no se muestran en la leyenda.
             filter: (item) => item.text !== 'p25' && item.text !== 'min'
           }

@@ -27,7 +27,7 @@
 
 .instr-title {
   margin: 0;
-  font-size: 1.18rem;
+  font-size: var(--fs-titulo);
   font-weight: 900;
   color: var(--text);
 }

@@ -236,7 +236,7 @@ export function opcionesBase(unidad: string, extra: { minCero?: boolean; decimal
       legend: {
         position: 'top',
         align: 'start',
-        labels: { usePointStyle: true, boxWidth: 10, boxHeight: 10, color: COLOR.texto, font: { size: 12 } }
+        labels: { usePointStyle: true, boxWidth: 10, boxHeight: 10, color: COLOR.texto, font: { size: 13.6 } }
       },
       tooltip: {
         callbacks: {

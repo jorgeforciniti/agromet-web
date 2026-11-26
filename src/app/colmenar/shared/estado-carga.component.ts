@@ -32,7 +32,7 @@ import { EstadoCarga } from '../colmenar.models';
     .sk-linea { display: block; height: 16px; width: 40%; }
     .sk-bloque { display: block; width: 100%; }
     .estado--error, .estado--vacio { flex-direction: row; align-items: flex-start; gap: 10px; padding: 12px 14px;
-      border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: .9rem; }
+      border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: var(--fs-texto); }
     .estado--error { border-color: color-mix(in srgb, var(--danger) 30%, var(--border)); background: color-mix(in srgb, var(--danger) 5%, white); }
     .estado--error mat-icon { color: var(--danger); flex: 0 0 auto; }
     .estado--vacio mat-icon { color: var(--muted); flex: 0 0 auto; }

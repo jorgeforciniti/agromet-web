@@ -69,14 +69,14 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
 .station-title{
   margin: 0 0 14px;
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: var(--fs-titulo);
   font-weight: 600;
   color: var(--text);
 }
 .station-title small{
   margin-left: 8px;
   font-family: var(--font-sans);
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
   font-weight: 400;
   color: var(--muted);
 }
@@ -95,7 +95,7 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
   align-items: center;
   gap: 6px;
   margin: 0 0 4px;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   font-weight: 700;
   color: var(--text);
 }
@@ -118,13 +118,13 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
 }
 .resumen-grupo__fila dt{
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
 }
 .resumen-grupo__fila dd{
   margin: 0;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -193,13 +193,13 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
 .table-header h3{
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: var(--fs-titulo);
   font-weight: 600;
 }
 .table-header h3 small{
   margin-left: 6px;
   font-family: var(--font-sans);
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
   font-weight: 400;
   color: var(--muted);
 }
@@ -207,7 +207,7 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
 .limit-message{
   padding: 8px 12px;
   color: var(--muted);
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .tabla-datos{
@@ -229,7 +229,7 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
 }
 .table-hint{
   margin: 0;
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
 }
 
@@ -250,7 +250,7 @@ mat-tab-nav-panel > app-aviso-bajas:not(:empty){
 /* Período de referencia de las normales graficadas (si normales.php lo trae) */
 .nota-normales {
   margin: 8px 0 0;
-  font-size: 12.5px;
+  font-size: var(--fs-detalle);
   line-height: 1.4;
   color: var(--muted, #475467);
 }

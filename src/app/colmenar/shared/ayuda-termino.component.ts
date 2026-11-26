@@ -70,14 +70,14 @@ export const GLOSARIO: Record<string, { titulo: string; texto: string }> = {
     :host { display: inline-flex; vertical-align: middle; }
     .ayuda { position: relative; display: inline-flex; }
     .ayuda__btn { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface);
-      color: var(--muted); font-size: .7rem; font-weight: 800; line-height: 1; cursor: pointer; padding: 0; position: relative; }
+      color: var(--muted); font-size: var(--fs-detalle); font-weight: 800; line-height: 1; cursor: pointer; padding: 0; position: relative; }
     /* Área táctil de 26 px (WCAG 2.5.8) sin agrandar el círculo visible de 18 px */
     .ayuda__btn::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; }
     .ayuda__btn:hover, .ayuda__btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
     .ayuda__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .ayuda__pop { position: absolute; z-index: 20; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
       width: min(280px, 80vw); padding: 10px 12px; border-radius: 12px; background: #1f2937; color: #f9fafb;
-      font-size: .8rem; font-weight: 400; line-height: 1.4; text-align: left; box-shadow: var(--shadow-sm); white-space: normal; }
+      font-size: var(--fs-detalle); font-weight: 400; line-height: 1.4; text-align: left; box-shadow: var(--shadow-sm); white-space: normal; }
   `]
 })
 export class AyudaTerminoComponent {

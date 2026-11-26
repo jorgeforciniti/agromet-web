@@ -46,14 +46,14 @@
   grid-template-columns: repeat(6, 1fr);
   padding: 0 calc(100% / 14);
   margin-top: 3px;
-  font-size: .62rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
 }
 
 .tabla--extremos th.grupo {
-  text-align: center;
+  text-align: left;
   border-left: 1px solid var(--border);
 }
 
@@ -67,7 +67,7 @@ thead .col--activa {
 
 .sub {
   color: var(--muted);
-  font-size: .74rem;
+  font-size: var(--fs-detalle);
 }
 
 .parcial-mark {
@@ -79,6 +79,6 @@ thead .col--activa {
 .regla__leyenda {
   display: block;
   margin-top: 1px;
-  font-size: .62rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
 }

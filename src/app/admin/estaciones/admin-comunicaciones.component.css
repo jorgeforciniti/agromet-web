@@ -18,7 +18,7 @@
   border: 2px solid transparent;
   border-radius: 12px;
   font: inherit;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -26,7 +26,7 @@
 
 .com-cifra strong {
   display: block;
-  font-size: 1.6rem;
+  font-size: var(--fs-titulo);
   line-height: 1.1;
   font-weight: 900;
 }
@@ -61,7 +61,7 @@
   outline: none;
   background: transparent;
   font: inherit;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
 }
 
 .com-opciones {
@@ -75,7 +75,7 @@
   align-items: center;
   gap: 5px;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
   cursor: pointer;
 }
@@ -83,7 +83,7 @@
 /* Atraso del dato debajo de la fecha, para que la tabla entre sin scroll horizontal */
 .com-detalle {
   display: block;
-  font-size: .74rem;
+  font-size: var(--fs-detalle);
 }
 
 .est-tabla td {

@@ -723,7 +723,7 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
             ticks: {
               color: mutedColor,
               maxTicksLimit: 6,
-              font: { size: 11 }
+              font: { size: 13.6 }
             },
             grid: { color: gridColor }
           },
@@ -745,13 +745,13 @@ export class WeatherForecastComponent implements OnInit, AfterViewInit, OnDestro
             display: true,
             text: 'Pronóstico de Temperatura Horaria (°C)',
             color: textColor,
-            font: { weight: 700, size: 12 }
+            font: { weight: 700, size: 16 }
           },
           subtitle: {
             display: !!ciclo,
             text: ciclo ? this.textoCicloSolar(ciclo) : '',
             color: '#b45309',
-            font: { weight: 600, size: 11 },
+            font: { weight: 600, size: 13.6 },
             padding: { bottom: 6 }
           },
           tooltip: {

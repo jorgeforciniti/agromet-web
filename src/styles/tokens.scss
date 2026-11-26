@@ -1,13 +1,17 @@
+/* Colores, franja y tipografía según el Manual de Normas y Aplicación de la Marca EEAOC (2026). */
 :root {
-  /* Marca */
-  --brand: #4f7932;
-  --brand-600: #3f6428;
-  --brand-50: #f2f6ef;
+  /* Marca: colores institucionales del manual */
+  --brand: #4a7729;          /* Pantone 364 C */
+  --brand-600: #3b5f21;
+  --brand-50: #eff3ec;
+  --brand-claro: #8bc64b;    /* verde secundario (eslogan) */
+  --brand-amarillo: #eaaa00; /* Pantone 124 C */
 
-  /* Acento (celeste meteorológico, coherente con --mod-rain/--mod-sat) */
-  --accent: #0284c7;
-  --accent-600: #026aa3;
-  --accent-50: #eaf6fd;
+  /* Acento de la interfaz (foco, selección, barras de progreso): un verde de la marca más oscuro.
+     El celeste queda sólo para los datos meteorológicos (--mod-rain, --info, gráficos y mapas). */
+  --accent: #3b5f21;
+  --accent-600: #2f4c1a;
+  --accent-50: #eef3ea;
 
   /* Semánticos */
   --danger: #dc2626;
@@ -18,18 +22,21 @@
   /* Módulos (acción por módulo) */
   --mod-alert: var(--warning);
   --mod-rain: #0ea5e9;
-  --mod-data: var(--accent);
+  --mod-data: var(--brand);
   --mod-sat: var(--teal);
   --mod-stats: var(--brand);
   --mod-reports: #64748b;
   --mod-maps: #16a34a;
 
-  /* Franja institucional (encabezado y pie) */
-  --brand-stripe: linear-gradient(90deg, #1f9a3a 0%, #8cc63f 22%, #e9c84b 44%, #f2a07b 62%, #a9c3d6 80%, #f5a800 100%);
-  --brand-stripe-h: 4px;
+  /* Franja institucional (encabezado y pie): barra tricolor del manual, en tercios iguales */
+  --brand-stripe: linear-gradient(90deg,
+    var(--brand-amarillo) 0 33.34%,
+    var(--brand-claro) 33.34% 66.67%,
+    var(--brand) 66.67% 100%);
+  --brand-stripe-h: 6px;
 
   /* Neutros */
-  --bg: #f7f7f8;
+  --bg: #ffffff;          /* fondo de página blanco, como el encabezado */
   --surface: #ffffff;
   --surface-2: #f1f0ef;
   --text: #111827;
@@ -43,7 +50,16 @@
   --shadow: 0 10px 30px rgba(0,0,0,.08);
   --shadow-sm: 0 6px 18px rgba(0,0,0,.08);
 
-  /* Tipografía */
-  --font-display: "Barlow", var(--font-sans);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  /* Tipografía: Helvetica Neue LT es la institucional. "Helvetica Neue LT" es la familia que se carga
+     desde src/assets/fonts cuando estén los archivos (ver styles/fuentes.scss); mientras tanto se usa
+     la instalada en el equipo o, si no hay, Roboto (se carga en index.html) y Arial, que el manual
+     admite como alternativas. */
+  --font-sans: "Helvetica Neue LT", "Helvetica Neue LT Std", "Helvetica Neue", Roboto, Arial, sans-serif;
+  --font-display: var(--font-sans);
+
+  /* Escala única de tamaños de letra para todo el sitio. No agregar tamaños nuevos: usar uno de estos. */
+  --fs-titulo: 1.5rem;   /* títulos de página, de sección y de tarjeta */
+  --fs-texto: 1rem;      /* texto corrido, menús, botones, tablas */
+  --fs-detalle: .85rem;  /* notas, etiquetas, ejes, ayudas */
+  --fs-cifra: 3rem;      /* sólo cifras destacadas (temperatura actual, KPI principal) */
 }

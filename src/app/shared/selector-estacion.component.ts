@@ -101,7 +101,7 @@ const MAX_RESULTADOS = 40;
     .selector-estacion__cerca { color: var(--muted, #5b6470); }
     .selector-estacion__km { color: var(--muted, #5b6470); font-weight: 600; }
     .selector-estacion__nombre { display: block; line-height: 1.25; }
-    .selector-estacion__lugar { display: block; color: var(--muted, #5b6470); font-size: .76rem; line-height: 1.2; }
+    .selector-estacion__lugar { display: block; color: var(--muted, #5b6470); font-size: var(--fs-detalle); line-height: 1.2; }
     :host ::ng-deep .selector-estacion__activa { font-weight: 800; }
   `]
 })

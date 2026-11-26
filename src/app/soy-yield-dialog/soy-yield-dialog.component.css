@@ -34,7 +34,7 @@
 .yield-result__title {
   margin: 0;
   color: var(--muted);
-  font-size: .95rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
@@ -43,7 +43,7 @@
   align-items: end;
   gap: 8px;
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3vw, 3rem);
+  font-size: var(--fs-cifra);
   font-weight: 600;
   line-height: 1;
   color: var(--brand-600);
@@ -53,7 +53,7 @@
   margin-bottom: 4px;
   color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 1rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
 }
 
@@ -74,13 +74,13 @@
 
 .yield-metric span {
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
 }
 
 .yield-metric strong {
   color: var(--text);
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -101,7 +101,7 @@
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   line-height: 1.45;
 }
 

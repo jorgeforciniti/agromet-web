@@ -26,31 +26,31 @@
 
 .enso__etiqueta {
   color: var(--muted);
-  font-size: .75rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
 
 .enso__fase strong {
-  font-size: 1.35rem;
+  font-size: var(--fs-titulo);
   line-height: 1.2;
   color: var(--text);
 }
 
 .enso__valor {
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   color: var(--text);
 }
 
 .enso__prov {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
 }
 
 .enso__texto p {
   margin: 0 0 8px;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   color: var(--text);
 }
 
@@ -69,7 +69,7 @@
 
 .enso__meta {
   color: var(--muted) !important;
-  font-size: .84rem !important;
+  font-size: var(--fs-detalle) !important;
 }
 
 .enso__link {
@@ -97,7 +97,7 @@
 .enso__nota {
   margin: 6px 0 0;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
 }
 
 .enso__error,

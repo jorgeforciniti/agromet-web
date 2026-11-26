@@ -1,7 +1,7 @@
 /* ===== Dialog claro final ===== */
 :host {
   display: block;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -31,7 +31,7 @@
 .titulo {
   margin: 0 0 12px 0;
   padding-right: 56px;
-  font-size: 1.3rem;
+  font-size: var(--fs-titulo);
   font-weight: 900;
   color: var(--text);
 }
@@ -91,9 +91,9 @@
   margin-top: auto;
   padding-top: 12px;
   color: rgba(17, 24, 39, .68);
-  font-size: .75rem;
+  font-size: var(--fs-detalle);
   line-height: 1.35;
-  text-align: center;
+  text-align: left;
 }
 
 .map-layout {
@@ -171,7 +171,7 @@
   background: rgba(17, 24, 39, .03);
   color: rgba(17, 24, 39, .85);
   font-weight: 800;
-  text-align: center;
+  text-align: left;
 }
 
 /* Map */
@@ -182,7 +182,7 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mod-data) 4%, white), rgba(255,255,255,.99));
+  background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
@@ -259,7 +259,7 @@ app-como-se-lee.mapa-como-se-lee {
 /* Día de 0 a 24 h o pluviométrico (de 9 a 9 h) */
 .dia-lluvia {
   margin: 0 0 10px;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .aviso-lluvia {
@@ -268,5 +268,5 @@ app-como-se-lee.mapa-como-se-lee {
   border-radius: 8px;
   background: #fffbeb;
   color: #854d0e;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }

@@ -18,7 +18,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+  font-size: var(--fs-titulo);
   line-height: 1.05;
   color: var(--text);
 }
@@ -72,7 +72,7 @@
 .ea-estacion__lugar {
   margin-top: 2px !important;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
 }
 
 .ea-estacion__selector {
@@ -127,7 +127,7 @@
   margin: 4px 0 10px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.4rem;
+  font-size: var(--fs-titulo);
   color: var(--text);
 }
 

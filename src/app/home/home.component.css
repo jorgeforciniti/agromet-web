@@ -17,7 +17,7 @@
   margin: 0 0 6px;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.35rem;
+  font-size: var(--fs-titulo);
   color: var(--text);
 }
 
@@ -65,7 +65,7 @@
 }
 
 .acceso-texto strong {
-  font-size: 1.02rem;
+  font-size: var(--fs-texto);
 }
 
 .acceso:hover .acceso-texto strong {
@@ -76,7 +76,7 @@
 
 .acceso-texto span {
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   line-height: 1.4;
   max-width: 52ch;
 }

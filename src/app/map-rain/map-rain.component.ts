@@ -450,7 +450,7 @@ export class MapRainComponent implements OnInit, AfterViewInit, OnDestroy {
       div.id = 'rainLegend';
       div.innerHTML = `
         <strong>Precipitaciones</strong><br>
-        <p style="font-size: 12px; margin: 5px 0;">Cargando datos...</p>
+        <p style="font-size: var(--fs-detalle); margin: 5px 0;">Cargando datos...</p>
       `;
       return leyendaPlegable(div);
     };

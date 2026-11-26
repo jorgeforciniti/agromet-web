@@ -124,7 +124,7 @@ export class EnsoEstadoComponent implements OnInit, OnDestroy {
         }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { maxRotation: 60, autoSkip: true, font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { maxRotation: 60, autoSkip: true, font: { size: 13.6 } } },
         y: {
           suggestedMin: -1,
           suggestedMax: 1,

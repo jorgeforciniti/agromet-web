@@ -35,7 +35,7 @@
   outline: none;
   background: transparent;
   font: inherit;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
 }
 
 .pub-filtros select,
@@ -47,7 +47,7 @@
   border-radius: 12px;
   background: rgba(255,255,255,.95);
   font: inherit;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
   color: var(--text);
 }
@@ -63,14 +63,14 @@
 .pub-total {
   margin: 0 0 8px;
   color: var(--muted);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 .pub-aviso {
   margin: 0 0 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .pub-aviso--ok {
@@ -120,7 +120,7 @@
 .pub-titulo {
   color: var(--text);
   font-weight: 800;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -133,7 +133,7 @@
 
 .pub-meta {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -155,7 +155,7 @@
   border-radius: 999px;
   background: #fff;
   font: inherit;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--text);
   cursor: pointer;
@@ -208,7 +208,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--muted);
 }

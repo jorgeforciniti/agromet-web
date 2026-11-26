@@ -36,7 +36,7 @@ const UMBRAL_ADVERTENCIA = 20;
       border-radius: 12px;
       background: #fffbeb;
       color: #78350f;
-      font-size: .88rem;
+      font-size: var(--fs-texto);
       line-height: 1.38;
     }
     .aviso-calidad--alto { border-color: #fdba74; background: #fff7ed; color: #9a3412; }

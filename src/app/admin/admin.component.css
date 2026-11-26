@@ -24,14 +24,14 @@
   border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
   background: rgba(255,255,255,.82);
   color: color-mix(in srgb, var(--brand) 66%, #46505c);
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
   letter-spacing: .08em;
 }
 
 .adm__title {
   margin: 0;
-  font-size: 1.26rem;
+  font-size: var(--fs-titulo);
   font-weight: 900;
   line-height: 1.08;
 }
@@ -39,7 +39,7 @@
 .adm__copy {
   margin: 0;
   color: var(--muted);
-  font-size: .92rem;
+  font-size: var(--fs-texto);
 }
 
 .adm__panel {
@@ -75,7 +75,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--muted);
 }
@@ -97,7 +97,7 @@
   background: rgba(255,255,255,.95);
   font: inherit;
   font-weight: 600;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   color: var(--text);
 }
 
@@ -127,7 +127,7 @@
   color: #fff;
   font: inherit;
   font-weight: 800;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
 }
@@ -150,7 +150,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: 12px;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .adm-aviso--error {
@@ -215,13 +215,13 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   overflow-wrap: anywhere;
 }
 
 .adm-zona__texto small {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
 }
 
 .adm-zona__elegir {
@@ -272,7 +272,7 @@
   border-radius: 999px;
   background: #fff;
   font: inherit;
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--text);
   cursor: pointer;
@@ -311,7 +311,7 @@
 /* ===== Últimos cargados ===== */
 .adm-subtitulo {
   margin: 0 0 10px;
-  font-size: 1rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
 }
 
@@ -341,7 +341,7 @@
 .adm-lista a {
   color: var(--text);
   font-weight: 800;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -357,7 +357,7 @@
 .adm-resumen,
 .adm-nota {
   color: var(--muted);
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
 }
 
 .adm-vacio,
@@ -367,7 +367,7 @@
 }
 
 .adm-resumen {
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 /* ===== Tabla 9 a 9 ===== */
@@ -383,7 +383,7 @@
 .adm-tabla {
   width: 100%;
   border-collapse: collapse;
-  font-size: .88rem;
+  font-size: var(--fs-texto);
 }
 
 .adm-tabla th,
@@ -398,7 +398,7 @@
   position: sticky;
   top: 0;
   background: #f8fafc;
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   font-weight: 900;
   color: var(--muted);
 }
@@ -465,7 +465,7 @@
 .adm-btn-sec.adm-btn-chico {
   min-height: 30px;
   padding: 0 10px;
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
 }
 
 .adm-btn-chico mat-icon {
@@ -490,7 +490,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
   white-space: nowrap;
 }

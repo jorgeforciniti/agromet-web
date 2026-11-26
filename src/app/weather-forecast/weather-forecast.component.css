@@ -13,7 +13,7 @@
 .loading,
 .error {
   padding: 12px;
-  text-align: center;
+  text-align: left;
   font: 1rem/1.2 var(--font-sans);
 }
 
@@ -141,7 +141,7 @@
   border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
   background: rgba(255,255,255,.88);
   color: color-mix(in srgb, var(--brand) 72%, #475467);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
@@ -191,11 +191,11 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 10px;
-  text-align: center;
+  text-align: left;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
 }
 
@@ -206,12 +206,12 @@
 
 .metric .value {
   font-weight: 900;
-  font-size: .98rem;
+  font-size: var(--fs-texto);
 }
 
 .metric .label {
   color: var(--muted);
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
 }
 
 .metric--wide {
@@ -229,7 +229,7 @@
 .forecast-wrapper--realtime .metric:first-child .value {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 3rem;
+  font-size: var(--fs-cifra);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -239,7 +239,7 @@
   justify-content: space-between;
   gap: 10px;
   color: var(--muted);
-  font-size: .86rem;
+  font-size: var(--fs-detalle);
   padding-top: 10px;
   border-top: 1px dashed rgba(0,0,0,.08);
 }
@@ -261,7 +261,7 @@
 .forecast-lead {
   margin: 0 0 14px;
   color: var(--muted);
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   line-height: 1.4;
 }
 
@@ -279,14 +279,14 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px;
   min-width: 0;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
   border-radius: 14px;
   padding: 8px 6px 9px;
-  text-align: center;
+  text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
@@ -310,7 +310,7 @@
 }
 
 .day-name {
-  font-size: .8rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--muted);
   text-transform: uppercase;
@@ -323,7 +323,7 @@
 }
 
 .day-date {
-  font-size: .68rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   line-height: 1;
 }
@@ -347,12 +347,12 @@
 
 .max-temp {
   color: #dc2626;
-  font-size: 1rem;
+  font-size: var(--fs-texto);
 }
 
 .min-temp {
   color: #2563eb;
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
 }
 
 /* Rango del día dentro de la semana: de la mínima a la máxima */
@@ -375,7 +375,7 @@
 }
 
 .day-rain {
-  font-size: .7rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
   color: #2563eb;
   white-space: nowrap;
@@ -393,7 +393,7 @@
   justify-content: space-between;
   gap: 8px;
   margin: 8px 2px 6px;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   font-weight: 800;
   color: var(--text);
 }
@@ -403,7 +403,7 @@
 }
 
 .day-details-title span {
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
   color: var(--muted);
 }
@@ -428,7 +428,7 @@
   padding: 2px 8px;
   border-radius: 10px;
   background: rgba(255,255,255,.94);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 /* Horas de noche (ícono nocturno de OpenWeather), como la franja del gráfico */
@@ -451,7 +451,7 @@
 
 .hourly-temp {
   font-weight: 900;
-  font-size: .98rem;
+  font-size: var(--fs-texto);
   color: var(--text);
   text-align: right;
 }
@@ -481,14 +481,14 @@
 .hourly-rain__pct {
   width: 34px;
   text-align: right;
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
   color: #2563eb;
   font-variant-numeric: tabular-nums;
 }
 
 .hourly-wind {
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   white-space: nowrap;
 }
@@ -499,12 +499,12 @@
 }
 
 .hourly-wind small {
-  font-size: .68rem;
+  font-size: var(--fs-detalle);
 }
 
 .forecast-source {
-  text-align: right;
-  font-size: .75rem;
+  text-align: left;
+  font-size: var(--fs-detalle);
   color: var(--muted);
   margin-top: 10px;
 }
@@ -630,7 +630,7 @@
   border-radius: 12px;
   background: #eff6ff;
   color: #1e3a8a;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   line-height: 1.38;
 }
 
@@ -660,6 +660,6 @@
 
 .nota-estimado {
   margin: 6px 0 0;
-  font-size: .78rem;
+  font-size: var(--fs-detalle);
   color: var(--muted);
 }

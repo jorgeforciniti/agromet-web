@@ -24,7 +24,7 @@
 }
 
 .franja__nombre {
-  font-size: .72rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--muted);
   text-transform: uppercase;
@@ -34,7 +34,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: .76rem;
+  font-size: var(--fs-detalle);
   color: #374151;
 }
 

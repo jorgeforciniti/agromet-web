@@ -1,0 +1,40 @@
+/*
+ * Helvetica Neue LT (tipografía institucional, manual de marca EEAOC).
+ *
+ * Es una fuente paga: para que la vean todos los visitantes hay que copiar sus archivos en
+ * src/assets/fonts/helvetica-neue-lt/ (con licencia que permita el uso web) y descomentar los
+ * @font-face de abajo. Los nombres esperados son:
+ *   HelveticaNeueLT-Roman.woff2   (normal, 400)
+ *   HelveticaNeueLT-Medium.woff2  (500)
+ *   HelveticaNeueLT-Bold.woff2    (700 y más)
+ * Si vienen en .otf o .ttf, conviene pasarlos a .woff2 (pesan mucho menos).
+ *
+ * Mientras estén comentados, --font-sans (tokens.scss) usa la instalada en el equipo o, si no
+ * hay, Roboto y Arial.
+ */
+
+/*
+@font-face {
+  font-family: "Helvetica Neue LT";
+  src: local("Helvetica Neue LT Std Roman"), url("/assets/fonts/helvetica-neue-lt/HelveticaNeueLT-Roman.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Helvetica Neue LT";
+  src: local("Helvetica Neue LT Std Medium"), url("/assets/fonts/helvetica-neue-lt/HelveticaNeueLT-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Helvetica Neue LT";
+  src: local("Helvetica Neue LT Std Bold"), url("/assets/fonts/helvetica-neue-lt/HelveticaNeueLT-Bold.woff2") format("woff2");
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
+*/

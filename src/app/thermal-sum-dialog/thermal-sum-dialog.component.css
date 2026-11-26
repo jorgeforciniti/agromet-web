@@ -29,7 +29,7 @@
 
 /* Nota de método: más liviana que una tarjeta */
 .thermal-note {
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   box-shadow: none;
   background: color-mix(in srgb, var(--mod-stats) 4%, white);
 }
@@ -85,7 +85,7 @@
   .thermal-note,
   .thermal-error {
     padding: 9px 10px;
-    font-size: .88rem;
+    font-size: var(--fs-texto);
   }
 
   .table-wrapper {

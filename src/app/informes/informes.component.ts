@@ -67,7 +67,7 @@ export class InformesComponent implements OnInit {
   private readonly categoryMeta: Record<string, CategoryMeta> = {
     ll: { label: 'Lluvias', color: '#2563eb' },
     he: { label: 'Heladas', color: '#7c3aed' },
-    bo: { label: 'Boletín', color: '#4f7932' },
+    bo: { label: 'Boletín', color: '#4a7729' },
     co: { label: 'Congresos', color: '#64748b' },
     ad: { label: 'Adversidades', color: '#dc2626' },
     rv: { label: 'Revistas', color: '#db2777' },

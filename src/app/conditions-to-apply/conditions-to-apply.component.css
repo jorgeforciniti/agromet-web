@@ -52,7 +52,7 @@
 /* ===== Error ===== */
 .error {
   color: #b91c1c;
-  text-align: center;
+  text-align: left;
   margin: 10px 0;
   font-weight: 700;
 }
@@ -96,8 +96,8 @@
 
 .tabla-datos td {
   padding: 10px;
-  text-align: center;
-  font-size: .9rem;
+  text-align: left;
+  font-size: var(--fs-texto);
   border-bottom: 1px solid var(--border);
 }
 
@@ -574,7 +574,7 @@
 .params__grupo legend {
   padding: 0 6px;
   color: var(--text);
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
   font-weight: 700;
 }
 
@@ -594,7 +594,7 @@
 
 .param__label label {
   color: var(--text);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
 }
 
@@ -607,7 +607,7 @@
   background: #fff;
   color: var(--text);
   font: inherit;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   font-weight: 600;
   box-sizing: border-box;
 }
@@ -676,7 +676,7 @@
   flex-wrap: wrap;
   gap: 6px 8px;
   color: var(--muted);
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 .params__kp-label {
@@ -757,9 +757,9 @@
   border-radius: 999px;
   background: var(--tono-claro);
   color: var(--tono-texto);
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
-  text-align: center;
+  text-align: left;
 }
 
 /* Fila elegida: sus razones y recomendaciones se muestran debajo de la tabla */
@@ -807,7 +807,7 @@
   border-radius: 999px;
   background: var(--tono-claro);
   color: var(--tono-texto);
-  font-size: .82rem;
+  font-size: var(--fs-detalle);
   font-weight: 600;
 }
 
@@ -821,7 +821,7 @@
 
 .resumen-consulta .resumen-titulo strong {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: var(--fs-titulo);
   font-weight: 600;
 }
 
@@ -832,7 +832,7 @@
 .resumen-consulta .resumen-sub {
   margin-top: 0;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   font-weight: 400;
 }
 
@@ -843,6 +843,6 @@
 
 .pronostico-titulo {
   margin: 0 0 8px;
-  font-size: 1rem;
+  font-size: var(--fs-texto);
   color: var(--brand);
 }

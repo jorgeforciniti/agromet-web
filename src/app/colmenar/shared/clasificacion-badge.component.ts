@@ -22,10 +22,10 @@ import { categoriaDe, coloresCategoria, EscalaClasificacion } from '../colmenar.
   `,
   styles: [`
     .badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px;
-      font-size: .78rem; font-weight: 700; line-height: 1.25; border: 1px solid rgba(0,0,0,.08); max-width: 100%; }
+      font-size: var(--fs-detalle); font-weight: 700; line-height: 1.25; border: 1px solid rgba(0,0,0,.08); max-width: 100%; }
     .badge--compacta, .badge--sin { white-space: nowrap; }
-    .badge--compacta { padding: 2px 7px; font-size: .72rem; }
-    .badge__sim { font-size: .62rem; letter-spacing: -1px; }
+    .badge--compacta { padding: 2px 7px; font-size: var(--fs-detalle); }
+    .badge__sim { font-size: var(--fs-detalle); letter-spacing: -1px; }
     .badge--sin { background: transparent; color: var(--muted); border: 1px dashed var(--border); font-weight: 600; }
   `]
 })

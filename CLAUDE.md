@@ -48,4 +48,5 @@ comentarios, los nombres y los mensajes de commit van en **español**.
 - Los PHP nuevos siguen el patrón de `comun.php` de su carpeta (respuestas `error_json`, validar el
   token, etc.). Cuando cambia lo que hay que instalar en el servidor, se actualiza su `LEEME.md`.
 - Imágenes de `src/assets`: optimizarlas antes de commitear (idealmente menos de 300 KB).
+- **Marca y tipografía** (manual de marca EEAOC 2026): colores, franja y fuentes en `src/styles/tokens.scss`. Tamaños de letra sólo con `--fs-titulo`, `--fs-texto`, `--fs-detalle` (y `--fs-cifra` para cifras destacadas); no agregar tamaños nuevos. Todo el texto alineado a la izquierda; sólo las columnas numéricas de tablas van a la derecha. Helvetica Neue LT se activa en `src/styles/fuentes.scss` cuando estén sus archivos.
 - Commits: un mensaje corto en español con el formato "Sección: qué cambia".

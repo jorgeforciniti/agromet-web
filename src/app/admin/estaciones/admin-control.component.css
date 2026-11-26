@@ -22,7 +22,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
   font-weight: 800;
   color: var(--muted);
 }
@@ -36,7 +36,7 @@
   background: rgba(255,255,255,.95);
   font: inherit;
   font-weight: 600;
-  font-size: .92rem;
+  font-size: var(--fs-texto);
   color: var(--text);
 }
 
@@ -48,7 +48,7 @@
 
 .ctl-info {
   margin: -4px 0 0;
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 .ctl-bloque {
@@ -62,13 +62,13 @@
 
 .ctl-bloque h3 {
   margin: 0;
-  font-size: .95rem;
+  font-size: var(--fs-texto);
   font-weight: 900;
 }
 
 .ctl-bloque > p {
   margin: 0;
-  font-size: .84rem;
+  font-size: var(--fs-detalle);
 }
 
 .ctl-botones {
@@ -84,7 +84,7 @@
   margin: 0;
   padding: 8px 10px;
   border-radius: 10px;
-  font-size: .85rem;
+  font-size: var(--fs-detalle);
 }
 
 .ctl-aviso mat-icon {
@@ -111,7 +111,7 @@
   color: #fff;
   font: inherit;
   font-weight: 800;
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
 }

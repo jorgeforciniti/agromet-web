@@ -19,22 +19,22 @@
 }
 
 .kicker {
-    font-size: .76rem;
+    font-size: var(--fs-detalle);
     font-weight: 900;
     letter-spacing: .08em;
-    color: #2f6b35;
+    color: var(--brand);
 }
 
 h1 {
     margin: 6px 0 8px;
     color: #1f3f25;
-    font-size: 1.9rem;
+    font-size: var(--fs-titulo);
 }
 
 h2 {
     grid-column: 1 / -1;
     margin: 18px 0 0;
-    color: #2f6b35;
+    color: var(--brand);
     border-bottom: 1px solid #d8e5d8;
     padding-bottom: 6px;
 }
@@ -75,7 +75,7 @@ textarea {
 
 span {
     color: #b00020;
-    font-size: .86rem;
+    font-size: var(--fs-detalle);
     font-weight: 700;
 }
 
@@ -96,7 +96,7 @@ small {
 
 button {
     border: none;
-    background: #2f6b35;
+    background: var(--brand);
     color: #fff;
     padding: 12px 22px;
     border-radius: 999px;
@@ -125,11 +125,11 @@ button:disabled {
 .ok-box strong {
     display: inline-block;
     background: #fff;
-    color: #2f6b35;
+    color: var(--brand);
     border: 1px solid #c8dec9;
     padding: 10px 14px;
     border-radius: 10px;
-    font-size: 1.35rem;
+    font-size: var(--fs-titulo);
 }
 
 .error-box {
@@ -155,7 +155,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 label small {
     color: #667085;
-    font-size: .82rem;
+    font-size: var(--fs-detalle);
     font-weight: 600;
 }
 
@@ -192,7 +192,7 @@ label small {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #2f6b35;
+    color: var(--brand);
     font-weight: 900;
     text-decoration: none;
     padding: 10px 14px;
@@ -215,6 +215,6 @@ label small {
     }
 
     h1 {
-        font-size: 1.55rem;
+        font-size: var(--fs-titulo);
     }
 }

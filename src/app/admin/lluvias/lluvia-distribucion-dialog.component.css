@@ -25,7 +25,7 @@
   border-left-width: 5px;
   border-radius: 10px;
   background: var(--surface);
-  font-size: .9rem;
+  font-size: var(--fs-texto);
   line-height: 1.4;
 }
 
@@ -39,7 +39,7 @@
 .ldi-senal--tapado { border-left-color: #c92a2a; background: #fff1f2; }
 
 .ldi-chico {
-  font-size: 1rem !important;
+  font-size: var(--fs-texto) !important;
 }
 
 .ldi-grafico {
@@ -48,7 +48,7 @@
 }
 
 .ldi-guia {
-  font-size: .88rem;
+  font-size: var(--fs-texto);
   color: var(--muted);
 }
 
