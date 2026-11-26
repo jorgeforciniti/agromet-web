@@ -84,9 +84,15 @@ if (($extension === 'pdf' && $inicio !== '%PDF-') || ($extension === 'xlsx' && s
     error_json('El archivo no es un ' . strtoupper($extension) . ' válido.', 422);
 }
 
+// Los dos casos se separan para saber qué revisar en el servidor (la ruta va en el log, no en pantalla)
 $carpeta = realpath(CARPETA_PDFS);
-if ($carpeta === false || !is_dir($carpeta) || !is_writable($carpeta)) {
-    error_json('No se encontró la carpeta de informes en el servidor.', 500);
+if ($carpeta === false || !is_dir($carpeta)) {
+    error_log('admin/api pdfs: no existe la carpeta ' . CARPETA_PDFS);
+    error_json('No se encontró la carpeta de informes (PDFS) en el servidor.', 500);
+}
+if (!is_writable($carpeta)) {
+    error_log("admin/api pdfs: sin permiso de escritura en $carpeta");
+    error_json('La carpeta de informes (PDFS) existe, pero PHP no tiene permiso para escribir en ella.', 500);
 }
 $destino = $carpeta . DIRECTORY_SEPARATOR . $nombre;
 if (file_exists($destino)) {
